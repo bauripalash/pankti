@@ -1,7 +1,16 @@
+//
+// Copyright (C) Palash Bauri
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+//
+// SPDX-License-Identifie: MPL-2.0
+
 const std = @import("std");
 
 pub fn build(b: *std.Build) void {
-       const target = b.standardTargetOptions(.{});
+    const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
     const exe = b.addExecutable(.{
@@ -23,6 +32,16 @@ pub fn build(b: *std.Build) void {
 
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
+
+    const zig_fmt_cmd = b.addSystemCommand(&[_][]const u8{
+        "zig",
+        "fmt",
+        "$(find -name zig-cache -prune -o -name \"*.zig\" -print)" //Does not work
+
+    });
+
+    const fmt_step = b.step("fmt", "Run zig fmt");
+    fmt_step.dependOn(&zig_fmt_cmd.step);
 
     const unit_tests = b.addTest(.{
         .root_source_file = .{ .path = "src/main.zig" },

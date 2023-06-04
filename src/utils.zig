@@ -1,3 +1,12 @@
+//
+// Copyright (C) Palash Bauri
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+//
+// SPDX-License-Identifie: MPL-2.0
+
 const std = @import("std");
 
 pub fn u8tou32(input: []const u8, alc: std.mem.Allocator) ![]u32 {
@@ -32,4 +41,10 @@ pub fn u8tou32(input: []const u8, alc: std.mem.Allocator) ![]u32 {
     }
     ustr = alc.realloc(ustr, outindex) catch ustr;
     return ustr;
+}
+
+pub fn printu32(input: []const u32) void {
+    for (input) |value| {
+        std.debug.print("{u}", .{@truncate(u21, value)});
+    }
 }
