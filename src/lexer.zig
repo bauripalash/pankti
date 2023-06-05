@@ -62,7 +62,6 @@ pub const TokenType = enum(u8) {
     Import,
     Panic,
 
-
     Unknown,
 };
 
@@ -246,6 +245,7 @@ pub const Lexer = struct {
             ';' => return self.makeToken(.Semicolon),
             ':' => return self.makeToken(.Colon),
             ',' => return self.makeToken(.Comma),
+            '"' => return self.readStringToken(),
 
             '!' => {
                 if (self.matchChar('=')) {
@@ -287,6 +287,34 @@ pub const Lexer = struct {
         return self.makeToken(TokenType.Unknown);
     }
 
+    fn readStringToken(self: *Self) Token {
+        const colpos = self.colpos;
+        const line = self.line;
+        while (self.peek() != '"' and !self.isEof()) {
+            if (self.peek() == '\n') {
+                self.line += 1;
+                self.colpos = 1;
+            } else if (self.peek() == '\\' and !self.isEof()) {
+                _ = self.next();
+            }
+
+            _ = self.next();
+        }
+
+        _ = self.next();
+        return self.makeStringToken(colpos, line);
+    }
+
+    fn makeStringToken(self: *Self, colpos: u32, line: u32) Token {
+        return Token{
+            .lexeme = self.src[self.start..self.current],
+            .toktype = .String,
+            .length = self.current - self.start,
+            .line = line,
+            .colpos = colpos,
+        };
+    }
+
     fn readNumberToken(self: *Lexer) Token {
         const colpos = self.colpos;
         while (isValidNumber(self.peek())) {
@@ -322,37 +350,37 @@ pub const Lexer = struct {
     }
 
     fn getIdentifierType(_: *Self, lx: []u32) TokenType {
-        if (lx.len == kw.K_EN_LET.len and utils.matchU32(lx, &kw.K_EN_LET)) {
+        if (utils.matchU32(lx, &kw.K_EN_LET) or utils.matchU32(lx, &kw.K_BN_LET)) {
             return .Let;
-        } else if (utils.matchU32(lx, &kw.K_EN_SHOW)) {
+        } else if (utils.matchU32(lx, &kw.K_EN_SHOW) or utils.matchU32(lx, &kw.K_BN_SHOW)) {
             return .Show;
-        } else if (utils.matchU32(lx, &kw.K_EN_AND)) {
+        } else if (utils.matchU32(lx, &kw.K_EN_AND) or utils.matchU32(lx, &kw.K_BN_AND)) {
             return .And;
-        } else if (utils.matchU32(lx, &kw.K_EN_OR)){
+        } else if (utils.matchU32(lx, &kw.K_EN_OR) or utils.matchU32(lx, &kw.K_BN_OR)) {
             return .Or;
-        } else if (utils.matchU32(lx, &kw.K_EN_END)){
+        } else if (utils.matchU32(lx, &kw.K_EN_END) or utils.matchU32(lx, &kw.K_BN_END)) {
             return .End;
-        } else if (utils.matchU32(lx, &kw.K_EN_IF)){
+        } else if (utils.matchU32(lx, &kw.K_EN_IF) or utils.matchU32(lx, &kw.K_BN_IF)) {
             return .If;
-        } else if (utils.matchU32(lx, &kw.K_EN_THEN)){
+        } else if (utils.matchU32(lx, &kw.K_EN_THEN) or utils.matchU32(lx, &kw.K_BN_THEN)) {
             return .Then;
-        } else if (utils.matchU32(lx, &kw.K_EN_ELSE)){
+        } else if (utils.matchU32(lx, &kw.K_EN_ELSE) or utils.matchU32(lx, &kw.K_BN_ELSE)) {
             return .Else;
-        } else if (utils.matchU32(lx, &kw.K_EN_WHILE)){
+        } else if (utils.matchU32(lx, &kw.K_EN_WHILE) or utils.matchU32(lx, &kw.K_BN_WHILE)) {
             return .PWhile;
-        } else if (utils.matchU32(lx, &kw.K_EN_NIL)){
+        } else if (utils.matchU32(lx, &kw.K_EN_NIL) or utils.matchU32(lx, &kw.K_BN_NIL)) {
             return .Nil;
-        } else if (utils.matchU32(lx, &kw.K_EN_TRUE)){
+        } else if (utils.matchU32(lx, &kw.K_EN_TRUE) or utils.matchU32(lx, &kw.K_BN_TRUE)) {
             return .True;
-        } else if (utils.matchU32(lx, &kw.K_EN_FALSE)){
+        } else if (utils.matchU32(lx, &kw.K_EN_FALSE) or utils.matchU32(lx, &kw.K_BN_FALSE)) {
             return .False;
-        } else if (utils.matchU32(lx, &kw.K_EN_RETURN)){
+        } else if (utils.matchU32(lx, &kw.K_EN_RETURN) or utils.matchU32(lx, &kw.K_BN_RETURN)) {
             return .Return;
-        } else if (utils.matchU32(lx, &kw.K_EN_FUNC)){
+        } else if (utils.matchU32(lx, &kw.K_EN_FUNC) or utils.matchU32(lx, &kw.K_BN_FUNC)) {
             return .Func;
-        } else if (utils.matchU32(lx, &kw.K_EN_IMPORT)){
+        } else if (utils.matchU32(lx, &kw.K_EN_IMPORT) or utils.matchU32(lx, &kw.K_BN_IMPORT)) {
             return .Import;
-        } else if (utils.matchU32(lx, &kw.K_EN_PANIC)){
+        } else if (utils.matchU32(lx, &kw.K_EN_PANIC) or utils.matchU32(lx, &kw.K_BN_PANIC)) {
             return .Panic;
         }
         return .Identifer;
