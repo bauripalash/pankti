@@ -58,3 +58,19 @@ pub fn isEnNum(c: u32) bool {
 pub fn isValidEn(c: u32) bool {
     return (c >= 'a' and c <= 'z') or (c >= 'A' and c <= 'Z') or c == '_';
 }
+
+pub fn matchU32(a: []const u32, b: []const u32) bool {
+    if (a.len != b.len) {
+        return false;
+    }
+
+    var i: u32 = 0;
+    while (i < a.len) {
+        if (a[i] != b[i]) {
+            return false;
+        }
+        i += 1;
+    }
+
+    return true;
+}

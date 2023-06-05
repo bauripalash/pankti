@@ -20,7 +20,7 @@ pub fn main() !void {
         _ = gpa.deinit();
     }
     //const text = try openfile("a.txt", ga);
-    const text = "show(100+220 == 5-2);";
+    const text = "show(100+22.0 == 5.9-2.001);";
     const u = try utils.u8tou32(text, ga);
     //print("->{any}\n", .{@TypeOf(text)});
 
