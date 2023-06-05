@@ -9,6 +9,7 @@
 
 const std = @import("std");
 const utils = @import("utils.zig");
+const bn = @import("bengali/bn.zig");
 
 pub const TokenType = enum(u8) {
     Plus,
@@ -21,6 +22,9 @@ pub const TokenType = enum(u8) {
     Equal,
     NotEqual,
     Semicolon,
+
+    Number,
+
     Unknown,
 };
 
@@ -36,6 +40,7 @@ pub fn toktypeToString(t: TokenType) []const u8 {
         .Equal => "Equal",
         .NotEqual => "NotEqual",
         .Semicolon => "Semicolon",
+        .Number => "Number",
         .Unknown => "Unknown",
     };
 }
@@ -127,6 +132,10 @@ pub const Lexer = struct {
 
         const c = self.next();
 
+        if (bn.isBnNumber(c) or utils.isEnNum(c)) {
+            return self.readNumberToken();
+        }
+
         switch (c) {
             '+' => return self.makeToken(.Plus),
             '-' => return self.makeToken(.Minus),
@@ -140,6 +149,23 @@ pub const Lexer = struct {
         }
 
         return self.makeToken(TokenType.Unknown);
+    }
+
+    pub fn readNumberToken(self: *Lexer) Token {
+        while (bn.isBnNumber(self.peek()) or utils.isEnNum(self.peek())) {
+            _ = self.next();
+        }
+
+        return self.makeNumberToken();
+    }
+    pub fn makeNumberToken(self: *Lexer) Token {
+        return Token{
+            .toktype = .Number,
+            .lexeme = self.src[self.start..self.current],
+            .line = self.line,
+            .colpos = self.colpos,
+            .length = 0,
+        };
     }
 
     pub fn debug(self: *Lexer) void {

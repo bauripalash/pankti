@@ -1,3 +1,4 @@
+//
 // Copyright (C) Palash Bauri
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -19,7 +20,7 @@ pub fn main() !void {
         _ = gpa.deinit();
     }
     //const text = try openfile("a.txt", ga);
-    const text = "show(1+2 == 5-2);";
+    const text = "show(100+220 == 5-2);";
     const u = try utils.u8tou32(text, ga);
     //print("->{any}\n", .{@TypeOf(text)});
 

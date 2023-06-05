@@ -9,6 +9,7 @@
 
 const std = @import("std");
 
+/// Convert a UTF-8 encoded string to UTF-32 encoded string
 pub fn u8tou32(input: []const u8, alc: std.mem.Allocator) ![]u32 {
     const inputLen = input.len;
     var ustr = try alc.alloc(u32, inputLen);
@@ -43,8 +44,17 @@ pub fn u8tou32(input: []const u8, alc: std.mem.Allocator) ![]u32 {
     return ustr;
 }
 
+/// Print a UTF-32 encoded string to stdout
 pub fn printu32(input: []const u32) void {
     for (input) |value| {
         std.debug.print("{u}", .{@truncate(u21, value)});
     }
+}
+
+pub fn isEnNum(c: u32) bool {
+    return c <= '9' and c >= '0';
+}
+
+pub fn isValidEn(c: u32) bool {
+    return (c >= 'a' and c <= 'z') or (c >= 'A' and c <= 'Z') or c == '_';
 }
