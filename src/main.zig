@@ -12,6 +12,7 @@ const openfile = @import("openfile.zig").openfile;
 const lexer = @import("lexer.zig");
 const print = std.debug.print;
 const utils = @import("utils.zig");
+const ins = @import("instruction.zig");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -42,5 +43,12 @@ pub fn main() !void {
     //const text = try openfile("a.txt", ga);
     //const text = "show(100+22.0 == 5.9-2.001);";
     //print("->{any}\n", .{@TypeOf(text)});
+    //
+    //
+    var n = ins.Instruction.init(ga);
+    try n.write(ins.OpCode.Const, ins.InstPos.dummy());
+    n.disasm("a");
+
+    n.free();
 
 }
