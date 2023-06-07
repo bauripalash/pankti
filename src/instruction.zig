@@ -1,3 +1,12 @@
+//
+// Copyright (C) Palash Bauri
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+//
+// SPDX-License-Identifie: MPL-2.0
+
 const std = @import("std");
 const PValue = @import("value.zig").PValue;
 
@@ -145,6 +154,11 @@ pub const Instruction = struct {
         }
     }
 
+    pub fn addConst(self : *Instruction , value : PValue) !void {
+        try self.cons.append(value);// catch return false;
+        //return true;
+    }
+
     pub fn disasm(self: *Instruction, name: []const u8) void {
         std.debug.print("== {s} | [{any}] ==", .{ name, self.code.items.len });
         std.debug.print("\n", .{});
@@ -153,6 +167,8 @@ pub const Instruction = struct {
         while (i < self.code.items.len) {
             i = self.disasmInstruction(i);
         }
+
+        std.debug.print("\n", .{});
     }
 
     fn getOpCode(self: *Instruction, offset: usize) OpCode {

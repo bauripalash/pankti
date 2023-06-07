@@ -1,3 +1,12 @@
+//
+// Copyright (C) Palash Bauri
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+//
+// SPDX-License-Identifie: MPL-2.0
+
 const std = @import("std");
 
 pub const PValue = packed struct {
@@ -17,7 +26,7 @@ pub const PValue = packed struct {
 
 
     pub fn isBool(self : Self) bool {
-        return (self.data & 1) == TRUE_VAL.data;
+        return (self.data | 1) == TRUE_VAL.data;
     }
 
     pub fn isNil(self : Self) bool {
@@ -77,6 +86,49 @@ pub const PValue = packed struct {
 
     }
 
+    pub fn printVal(self : Self) void{
+        if (self.isNil()) {
+            std.debug.print("nil", .{});
+        } else if (self.isBool()) {
+            const b : bool = self.asBool();
+            if (b) {
+                std.debug.print("true" , .{});
+            } else {
+                std.debug.print("false" , .{});
+            }
+        } else if (self.isNumber()){
+            const n : f64 = self.asNumber();
+            std.debug.print("{}" , .{n});
+        } else{
+            std.debug.print("UNKNOWN VALUE", .{});
+        }
+
+        
+    }
+
 
 
 };
+
+test "bool values" {
+    try std.testing.expect(PValue.makeBool(true).asBool() == true) ;
+    try std.testing.expectEqual(false, PValue.makeBool(!true).asBool());
+    try std.testing.expectEqual(false, PValue.makeBool(true).isNumber());
+    try std.testing.expectEqual(false, PValue.makeBool(true).isNil());
+    try std.testing.expectEqual(false, PValue.makeBool(true).isFalsy());
+    try std.testing.expectEqual(true, PValue.makeBool(false).isFalsy());
+}
+
+test "number values" {
+    try std.testing.expect(PValue.makeNumber(@floatCast(f64, 100)).asNumber() == @floatCast(f64, 100));
+    try std.testing.expect(PValue.makeNumber(@floatCast(f64, 99.99)).asNumber() == @floatCast(f64, 99.99));
+    try std.testing.expect(PValue.makeNumber(@floatCast(f64, 1)).isBool() == false);
+    try std.testing.expect(PValue.makeNumber(@floatCast(f64, 1)).isNil() == false);
+}
+
+test "nil value" {
+    try std.testing.expectEqual(PValue.makeNil() , PValue.makeNil());
+    try std.testing.expectEqual(true, PValue.makeNil().isNil());
+    try std.testing.expectEqual(false, PValue.makeNil().isBool());
+    try std.testing.expectEqual(false, PValue.makeNil().isNumber());
+}

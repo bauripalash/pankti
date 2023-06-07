@@ -8,8 +8,8 @@
 // SPDX-License-Identifie: MPL-2.0
 
 const std = @import("std");
-const utils = @import("utils.zig");
-const bn = @import("bengali/bn.zig");
+const utils = @import("../utils.zig");
+const bn = @import("../bengali/bn.zig");
 const kw = @import("keywords.zig");
 
 pub const TokenType = enum(u8) {
@@ -25,17 +25,13 @@ pub const TokenType = enum(u8) {
     LsBracket,
     RsBracket,
     Dot,
-
     Semicolon,
     Colon,
-
     Comma,
     Bang,
-
     Eq,
     EqEq,
     NotEqual,
-
     Gt,
     Gte,
     Lt,
@@ -45,6 +41,7 @@ pub const TokenType = enum(u8) {
     Identifer,
     String,
 
+    //keywords
     Let,
     Show,
     And,
@@ -122,7 +119,17 @@ fn isValidIdentChar(c: u32) bool {
     return utils.isValidEn(c) or bn.isBnChar(c);
 }
 
-pub const Token = struct { lexeme: []const u32, toktype: TokenType, length: u32, colpos: u32, line: u32 };
+pub const Token = struct { 
+    lexeme: []const u32,
+    toktype: TokenType,
+    length: u32,
+    colpos: u32,
+    line: u32,
+
+    
+    
+
+};
 
 pub const Lexer = struct {
     src: []u32,
@@ -438,4 +445,33 @@ pub const Lexer = struct {
         }
     }
 };
+
+fn tx(t : TokenType) Token{
+        return Token{
+            .lexeme = &[_]u32{'1'},
+            .toktype = t,
+            .length = 0,
+            .colpos = 0,
+            .line = 0,
+        };
+}
+
+
+test "lexer TokenType testing" {
+
+    const rawSource = "show(1+2);";
+    var a = std.testing.allocator;
+    const source : []u32 = try utils.u8tou32( rawSource , a);
+    var Lx = Lexer.new(source);
+    
+    var toks : []const Token = &[_]Token{ tx(.Show) , tx(.Lparen) , tx(.Number) , tx(.Plus) , tx(.Number) , tx(.Rparen) , tx(.Semicolon)  };
+    
+    for (toks) |t| {
+        const tr = Lx.getToken();
+        try std.testing.expectEqual(t.toktype, tr.toktype);
+    }
+
+    a.free(source);
+    
+}
 

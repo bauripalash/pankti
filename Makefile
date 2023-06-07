@@ -12,6 +12,9 @@ $(TARGET): build
 build:
 	$(ZIG) build 
 
+test:
+	@$(ZIG) test src/main.zig
+
 clean:
 	rm -rf $(BUILD_DIR)
 
