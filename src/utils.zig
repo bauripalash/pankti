@@ -44,6 +44,72 @@ pub fn u8tou32(input: []const u8, alc: std.mem.Allocator) ![]u32 {
     return ustr;
 }
 
+fn u32_to_u8_single(a: u32 , ga : std.mem.Allocator) ![]u8 {
+    if (a <= 0x7F) {
+        var c = try ga.alloc(u8, 1);
+        c[0] = @intCast(u8, a);
+        return c;
+    } else if (a <= 0x7FF) {
+        var c = try ga.alloc(u8, 2);
+        c[0] = (0xC0 | @intCast(u8, (a >> 6) & 0x1F));
+        c[1] = (0x80 | @intCast(u8, a & 0x3F));
+        return c;
+    } else if (a <= 0xFFFF) {
+        var c = try ga.alloc(u8, 3);
+        c[0] = (0xE0 | @intCast(u8, (a >> 12) & 0x0F));
+        c[1] = (0x80 | @intCast(u8, (a >> 6) & 0x3F));
+        c[2] = (0x80 | @intCast(u8, a & 0x3F));
+        return c;
+    } else {
+        var c = try ga.alloc(u8 , 4);
+        c[0] = (0xF0 | @intCast(u8, (a >> 18) & 0x07));
+        c[1] = (0x80 | @intCast(u8, (a >> 12) & 0x3F));
+        c[2] = (0x80 | @intCast(u8, (a >> 6) & 0x3F));
+        c[3] = (0x80 | @intCast(u8, a & 0x3F));
+        return c;
+    }
+
+    var c = try ga.alloc(u8, 1);
+    c[0] = 0;
+    return c;
+}
+
+pub fn u32tou8(input: []const u32, al: std.mem.Allocator) ![]u8 {
+    const len32 = input.len;
+    var u8str = try al.alloc(u8, len32 * 4);
+
+    var i: usize = 0;
+    for (input) |value| {
+        const u8char = try u32_to_u8_single(value , al);
+        std.debug.print("\n->{any}|{}\n", .{u8char , u8char.len});
+        if (u8char.len == 1) {
+            u8str[i] = u8char[0]; //1
+            i += 1;
+        } else if (u8char.len == 2) {
+            u8str[i] = u8char[0]; //1
+            u8str[i + 1] = u8char[1]; //2
+            i += 2;
+        } else if (u8char.len == 3) {
+            u8str[i] = u8char[0]; //1
+            u8str[i + 1] = u8char[1]; //2
+            u8str[i + 2] = u8char[2]; //3
+            i += 3;
+        } else {
+            u8str[i] = u8char[0]; //1
+            u8str[i + 1] = u8char[1]; //2
+            u8str[i + 2] = u8char[2]; //3
+            u8str[i + 3] = u8char[3]; // 3
+            i += 4;
+        }
+
+        al.free(u8char);
+    }
+
+    u8str = al.realloc(u8str, i) catch u8str;
+
+    return u8str;
+}
+
 /// Print a UTF-32 encoded string to stdout
 pub fn printu32(input: []const u32) void {
     for (input) |value| {

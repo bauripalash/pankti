@@ -19,8 +19,8 @@ const IntrpResult = v.IntrpResult;
 const PValue = @import("value.zig").PValue;
 
 pub fn main() !void {
-    //var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    //const ga = gpa.allocator();
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const ga = gpa.allocator();
 
     //var fileToRun: ?[]u8 = null;
 
@@ -31,9 +31,9 @@ pub fn main() !void {
     //    @memcpy(fileToRun.?, args[1]);
     //}
     //std.process.argsFree(ga, args);
-    //defer {
-    //    _ = gpa.deinit();
-    //}
+    defer {
+        _ = gpa.deinit();
+    }
     //print("{s}" , .{fileToRun.?});
     //if (fileToRun) |f| {
     //    const text = try openfile(f, ga);
@@ -75,6 +75,18 @@ pub fn main() !void {
     n.printVal();
     std.debug.print("\n{any}\n", .{m});
     m.printVal();
+
+    //const name = "পলাশ";
+    const name = try openfile("sample/a.txt", ga);
+    const name32 = try utils.u8tou32(name, ga);
+    const name8 = try utils.u32tou8(name32, ga);
+    std.debug.print("\nu32 -> " , .{});
+    utils.printu32(name32);
+    std.debug.print("\nu8  -> {any}\n", .{name8});
+    std.debug.print("\nu8x  -> '{s}'\n", .{name8});
+    ga.free(name32);
+    ga.free(name8);
+    ga.free(name);
 
 }
 
