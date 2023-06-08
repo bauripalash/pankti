@@ -5,7 +5,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// SPDX-License-Identifie: MPL-2.0
+// SPDX-License-Identifier: MPL-2.0
 
 pub const K_EN_LET = [_]u32{ 'l', 'e', 't' };
 pub const K_EN_SHOW = [_]u32{ 's', 'h', 'o', 'w' };
