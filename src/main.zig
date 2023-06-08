@@ -50,43 +50,52 @@ pub fn main() !void {
     //print("->{any}\n", .{@TypeOf(text)});
     //
     //
-    //var n = ins.Instruction.init(ga);
+    var n = ins.Instruction.init(ga);
     
-    //try n.addConst(PValue.makeNumber(@floatCast(f64, 100)));
-    //try n.write(ins.OpCode.Const, ins.InstPos.dummy());
-    //try n.write_raw(0, ins.InstPos.dummy());
-    //try n.write(ins.OpCode.Return, ins.InstPos.dummy());
-    //n.disasm("a");
+    const con = try n.addConst(PValue.makeNumber(10.99));
+    const con2 = try n.addConst(PValue.makeNumber(200));
+    try n.write(ins.OpCode.Const, ins.InstPos.line(1));
+    try n.write_raw(con, ins.InstPos.line(1));
+    //try n.write(ins.OpCode.Neg , ins.InstPos.line(1));
+    try n.write(ins.OpCode.Const, ins.InstPos.line(1));
+    try n.write_raw(con2, ins.InstPos.line(1));
+    try n.write(ins.OpCode.Div, ins.InstPos.line(1));
+    try n.write(ins.OpCode.Return, ins.InstPos.line(1));
+    
+    //std.debug.print("\n{any}\n\n" , .{n.pos});
+    
+    n.disasm("a");
 
-    //var myv = Vm.newVm(ga);
-    //myv.bootVm();
+    var myv = Vm.newVm(ga);
+    myv.bootVm();
 
-    //const result = myv.interpret(&n);
-    //print("VM Result=>{}", .{result});
+    const result = myv.interpret(&n);
+    print("VM Result=>{}\n", .{result});
 
     
+    myv.freeVm();
 
     //n.free();
     //
-    const n = PValue.makeNumber(100);
-    const f = n.asNumber();
-    const m = PValue.makeBool(false);
-    std.debug.print("{any}\n{}\n", .{n , f});
-    n.printVal();
-    std.debug.print("\n{any}\n", .{m});
-    m.printVal();
+    //const n = PValue.makeNumber(100);
+    //const f = n.asNumber();
+    //const m = PValue.makeBool(false);
+    //std.debug.print("{any}\n{}\n", .{n , f});
+    //n.printVal();
+    //std.debug.print("\n{any}\n", .{m});
+    //m.printVal();
 
     //const name = "পলাশ";
-    const name = try openfile("sample/a.txt", ga);
-    const name32 = try utils.u8tou32(name, ga);
-    const name8 = try utils.u32tou8(name32, ga);
-    std.debug.print("\nu32 -> " , .{});
-    utils.printu32(name32);
-    std.debug.print("\nu8  -> {any}\n", .{name8});
-    std.debug.print("\nu8x  -> '{s}'\n", .{name8});
-    ga.free(name32);
-    ga.free(name8);
-    ga.free(name);
+    //const name = try openfile("sample/a.txt", ga);
+    //const name32 = try utils.u8tou32(name, ga);
+    //const name8 = try utils.u32tou8(name32, ga);
+    //std.debug.print("\nu32 -> " , .{});
+    //utils.printu32(name32);
+    //std.debug.print("\nu8  -> {any}\n", .{name8});
+    //std.debug.print("\nu8x  -> '{s}'\n", .{name8});
+    //ga.free(name32);
+    //ga.free(name8);
+    //ga.free(name);
 
 }
 

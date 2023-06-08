@@ -75,6 +75,14 @@ pub const PValue = packed struct {
         return NIL_VAL;
     }
 
+    pub fn makeNeg(self : Self) PValue {
+        if (self.isNumber()) {
+            return PValue.makeNumber(-self.asNumber());
+        } else {
+            return self;
+        }
+    }
+
     pub fn isFalsy(self : Self) bool{
         if (self.isBool()) { 
             return !self.asBool(); 
@@ -98,7 +106,7 @@ pub const PValue = packed struct {
             }
         } else if (self.isNumber()){
             const n : f64 = self.asNumber();
-            std.debug.print("{}" , .{n});
+            std.debug.print("{d}" , .{n});
         } else{
             std.debug.print("UNKNOWN VALUE", .{});
         }

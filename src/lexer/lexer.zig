@@ -60,6 +60,7 @@ pub const TokenType = enum(u8) {
     Panic,
 
     Unknown,
+    Err,
 };
 
 pub fn toktypeToString(t: TokenType) []const u8 {
@@ -107,6 +108,7 @@ pub fn toktypeToString(t: TokenType) []const u8 {
         .Import => "Import",
         .Panic => "Panic",
         .Unknown => "Unknown",
+        .Err => "Error",
         //else => "INVALID"
     };
 }

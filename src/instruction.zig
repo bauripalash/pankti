@@ -114,6 +114,15 @@ pub const InstPos = struct {
             .length = 0,
         };
     }
+
+    pub fn line(l : u32) InstPos {
+        return InstPos{
+            .virtual = true,
+            .colpos = 0,
+            .line = l,
+            .length = 0,
+        };
+    }
 };
 
 pub const Instruction = struct {
@@ -136,27 +145,29 @@ pub const Instruction = struct {
 
     pub fn write_raw(self: *Instruction, bt: u8, pos: InstPos) !void {
         try self.code.append(bt);
-
-        if (self.pos.items.len == 0 or
-            self.pos.items[self.pos.items.len - 1].line != pos.line)
-        {
-            try self.pos.append(pos);
-        }
+        try self.pos.append(pos);
     }
 
     pub fn write(self: *Instruction, bt: OpCode, pos: InstPos) !void {
         try self.code.append(@enumToInt(bt));
-
-        if (self.pos.items.len == 0 or
-            self.pos.items[self.pos.items.len - 1].line != pos.line)
-        {
-            try self.pos.append(pos);
-        }
+        try self.pos.append(pos);
     }
 
-    pub fn addConst(self : *Instruction , value : PValue) !void {
-        try self.cons.append(value);// catch return false;
+    pub fn addConst(self : *Instruction , value : PValue) !u8 {
+        try self.cons.append(value);
+        return @intCast(u8 , self.cons.items.len - 1);
+        // catch return false;
         //return true;
+    }
+
+    /// Return OpCode at offset
+     fn getOpCode(self: *Instruction, offset: usize) OpCode {
+        return @intToEnum(OpCode, self.code.items[offset]);
+    }
+
+     /// Return OpCode at offset
+     fn getRawOpCode(self: *Instruction, offset: usize) u8 {
+        return self.code.items[offset];
     }
 
     pub fn disasm(self: *Instruction, name: []const u8) void {
@@ -171,21 +182,65 @@ pub const Instruction = struct {
         std.debug.print("\n", .{});
     }
 
-    fn getOpCode(self: *Instruction, offset: usize) OpCode {
-        return @intToEnum(OpCode, self.code.items[offset]);
+    fn simpleInstruction(_ : *Instruction , name : []const u8 , offset : usize) usize{
+        std.debug.print("{s}\n" , .{name});
+        return offset + 1;
+    }   
+
+    fn constInstruction(self : *Instruction ,  name : []const u8 , offset : usize) usize {
+        const constIndex = self.getRawOpCode(offset+1);
+        std.debug.print("{s} {d} '" , .{name , constIndex});
+        self.cons.items[constIndex].printVal(); 
+        std.debug.print("'\n" , .{});
+         
+        return offset + 2;
+
+
     }
 
     fn disasmInstruction(self: *Instruction, offset: usize) usize {
-        if (offset > 0 and self.pos.items[offset].line == self.pos.items[offset - 1].line) {
-            std.debug.print(" | ", .{});
+        std.debug.print("{:0>4} " , .{offset});
+        if (offset > 0 and self.pos.items[offset].line == self.pos.items[offset-1].line){
+            std.debug.print("   | ", .{});
         } else {
-            std.debug.print("{} ", .{offset});
+            std.debug.print("{:>4} " , .{self.pos.items[offset].line});
         }
 
         const ins = self.getOpCode(offset);
 
-        std.debug.print("{s}", .{ins.toString()});
+        switch (ins) {
+            .Return,
+            .Neg, 
+            .Add , 
+            .Sub, 
+            .Mul, 
+            .Div, 
+            .Nil, 
+            .True, 
+            .False, 
+            .Not, 
+            .Eq , 
+            .Lt , 
+            .Gt , 
+            .Pop, 
+            .ClsUp, 
+            .Err, 
+            .Index, 
+            .SubAssign => {
+                return self.simpleInstruction(ins.toString(), offset);
+            },
+            .Const, 
+            .Import , 
+            .DefGlob, 
+            .GetGlob, 
+            .SetGlob, => { 
+                return self.constInstruction(ins.toString() , offset);
+            },
+            else => {
+                return offset + 1;
+            }
+        }
 
-        return offset + 1;
+
     }
 };

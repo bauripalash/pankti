@@ -41,7 +41,7 @@ pub const Vm = struct {
 
     pub fn bootVm(self : *Self) void {
         self.ins = ins.Instruction.init(self.al);
-        //self.stack.init
+        self.stack = std.ArrayList(PValue).init(self.al);
     }
 
     pub fn freeVm(self : *Self) void {
@@ -65,36 +65,130 @@ pub const Vm = struct {
     }
 
     fn resetStack(self : *Self) void {
-
         self.stackTop = 0;
     }
     
-    fn push(self : *Self , value : PValue) bool {
-        self.stack.append(value) catch return false;
-        return true;
+    fn push(self : *Self , value : PValue) !void {
+        try self.stack.append(value);
+        
     }
 
     fn pop(self : *Self) PValue {
         return self.stack.pop();
     }
 
+    pub fn debugStack(self : *Self) void{
+        std.debug.print("==== STACK ====\n" , .{});
+        for (self.stack.items, 0..) |value, i| {
+            std.debug.print("[{} | " , .{i});
+            value.printVal();
+            std.debug.print("]\n" , .{});
+
+        }
+        std.debug.print("===============\n\n" , .{});
+    }
+
+    fn doBinaryOpAdd(self : *Self) bool{
+        // only works on numbers
+        const b = self.pop();
+        const a = self.pop();
+
+        if (a.isNumber() and b.isNumber()) {
+            self.push(PValue.makeNumber(a.asNumber() + b.asNumber())) catch return false;
+            return true;
+        } else {
+            return false;
+        }
+        
+    }
+
+    fn doBinaryOpSub(self : *Self) bool{
+        // only works on numbers
+        const b = self.pop();
+        const a = self.pop();
+
+        if (a.isNumber() and b.isNumber()) {
+            self.push(PValue.makeNumber(a.asNumber() - b.asNumber())) catch return false;
+            return true;
+        } else {
+            return false;
+        }
+        
+    }
+
+    fn doBinaryOpMul(self : *Self) bool{
+        // only works on numbers
+        const b = self.pop();
+        const a = self.pop();
+
+        if (a.isNumber() and b.isNumber()) {
+            self.push(PValue.makeNumber(a.asNumber() * b.asNumber())) catch return false;
+            return true;
+        } else {
+            return false;
+        }
+        
+    }
+
+    fn doBinaryOpDiv(self : *Self) bool{
+        // only works on numbers
+        const b = self.pop();
+        const a = self.pop();
+
+        if (a.isNumber() and b.isNumber()) {
+            self.push(PValue.makeNumber(a.asNumber() / b.asNumber())) catch return false;
+            return true;
+        } else {
+            return false;
+        }
+        
+    }
+
     fn run(self : *Self) IntrpResult{
         while (true) {
+            self.debugStack();
             const op = self.readByte();
 
             switch (op) {
-                
-                OpCode.Return => {
+                .Return => {
                     self.pop().printVal();
                     std.debug.print("\n" , .{});
                     return IntrpResult.Ok;
                 },
 
-                OpCode.Const => {
-                    
+                .Const => {
                    const con : PValue = self.readConst();
-                   _ = self.push(con);
+                   self.push(con) catch return .RuntimeError;
 
+                },
+
+                .Neg => {
+                    var v = self.pop();
+                    if (v.isNumber()) {
+                        self.push(v.makeNeg()) catch return .RuntimeError;
+                    } else {
+                        return .RuntimeError;
+                    }
+                },
+
+                .Add => {
+                    if (!self.doBinaryOpAdd()){
+                        return .RuntimeError;
+                    }
+                },
+
+                .Sub => {
+                    if (!self.doBinaryOpSub()) { return .RuntimeError; }
+                },
+
+                .Mul => { if (!self.doBinaryOpMul()) { return .RuntimeError; } 
+                
+                },
+
+                .Div => {
+                    if (!self.doBinaryOpDiv()) {
+                        return .RuntimeError;
+                    }
                 },
 
                 else => {
