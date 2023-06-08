@@ -45,7 +45,7 @@ pub fn u8tou32(input: []const u8, alc: std.mem.Allocator) ![]u32 {
     return ustr;
 }
 
-/// Convert UTF-32 encoded string to UTF-8 encoded string 
+/// Convert UTF-32 encoded string to UTF-8 encoded string
 /// You must free the result
 pub fn u32tou8(input: []const u32, al: std.mem.Allocator) ![]u8 {
     const len32 = input.len;
@@ -113,3 +113,63 @@ pub fn matchU32(a: []const u32, b: []const u32) bool {
 
     return true;
 }
+
+test "test utils->u8tou32->english" {
+    const al = std.testing.allocator;
+    const text = "The quick brown fox jumps over the lazy dog";
+
+    const textU32 = try u8tou32(text, al);
+
+    const textU32X = [_]u32{ 84, 104, 101, 32, 113, 117, 105, 99, 107, 32, 98, 114, 111, 119, 110, 32, 102, 111, 120, 32, 106, 117, 109, 112, 115, 32, 111, 118, 101, 114, 32, 116, 104, 101, 32, 108, 97, 122, 121, 32, 100, 111, 103 };
+
+    try std.testing.expectEqual(text.len, textU32.len);
+    try std.testing.expectEqual(textU32.len, textU32X.len);
+
+    for (textU32, 0..) |value, i| {
+        try std.testing.expectEqual(value, textU32X[i]);
+    }
+
+    al.free(textU32);
+}
+
+test "test utils->u8tou32->bengali" {
+    const al = std.testing.allocator;
+    const text =
+        \\জীর্ণ পৃথিবীতে ব্যর্থ, মৃত আর ধ্বংসস্তূপ-পিঠে
+        \\ চলে যেতে হবে আমাদের।
+        \\ চলে যাব- তবু আজ যতক্ষণ দেহে আছে প্রাণ
+        \\ প্রাণপণে পৃথিবীর সরাব জঞ্জাল,
+        \\ এ বিশ্বকে এ শিশুর বাসযোগ্য ক’রে যাব আমি
+        \\নবজাতকের কাছে এ আমার দৃঢ় অঙ্গীকার।
+    ;
+    const textU32 = try u8tou32(text, al);
+
+    const textU32X = [_]u32{ 2460, 2496, 2480, 2509, 2467, 32, 2474, 2499, 2469, 2495, 2476, 2496, 2468, 2503, 32, 2476, 2509, 2479, 2480, 2509, 2469, 44, 32, 2478, 2499, 2468, 32, 2438, 2480, 32, 2471, 2509, 2476, 2434, 2488, 2488, 2509, 2468, 2498, 2474, 45, 2474, 2495, 2464, 2503, 10, 32, 2458, 2482, 2503, 32, 2479, 2503, 2468, 2503, 32, 2489, 2476, 2503, 32, 2438, 2478, 2494, 2470, 2503, 2480, 2404, 10, 32, 2458, 2482, 2503, 32, 2479, 2494, 2476, 45, 32, 2468, 2476, 2497, 32, 2438, 2460, 32, 2479, 2468, 2453, 2509, 2487, 2467, 32, 2470, 2503, 2489, 2503, 32, 2438, 2459, 2503, 32, 2474, 2509, 2480, 2494, 2467, 10, 32, 2474, 2509, 2480, 2494, 2467, 2474, 2467, 2503, 32, 2474, 2499, 2469, 2495, 2476, 2496, 2480, 32, 2488, 2480, 2494, 2476, 32, 2460, 2462, 2509, 2460, 2494, 2482, 44, 10, 32, 2447, 32, 2476, 2495, 2486, 2509, 2476, 2453, 2503, 32, 2447, 32, 2486, 2495, 2486, 2497, 2480, 32, 2476, 2494, 2488, 2479, 2507, 2455, 2509, 2479, 32, 2453, 128, 38950, 2087, 30752, 27616, 28576, 27424, 2438, 2478, 2495, 10, 2472, 2476, 2460, 2494, 2468, 2453, 2503, 2480, 32, 2453, 2494, 2459, 2503, 32, 2447, 32, 2438, 2478, 2494, 2480, 32, 2470, 2499, 2466, 2492, 32, 2437, 2457, 2509, 2455, 2496, 2453, 2494, 2480, 2404 };
+
+    try std.testing.expectEqual(textU32X.len, textU32.len);
+
+    for (textU32, 0..) |value, i| {
+        try std.testing.expectEqual(value, textU32X[i]);
+    }
+
+    al.free(textU32);
+}
+
+test "test utils->u32tou8->english" {
+    const al = std.testing.allocator;
+    const textU32 = [_]u32{ 84, 104, 101, 32, 113, 117, 105, 99, 107, 32, 98, 114, 111, 119, 110, 32, 102, 111, 120, 32, 106, 117, 109, 112, 115, 32, 111, 118, 101, 114, 32, 116, 104, 101, 32, 108, 97, 122, 121, 32, 100, 111, 103 };
+
+    const textU8 = try u32tou8(&textU32, al);
+
+    const text = "The quick brown fox jumps over the lazy dog";
+
+    try std.testing.expectEqual(textU8.len, textU8.len);
+
+    for (textU8, 0..) |value, i| {
+        try std.testing.expectEqual(value, text[i]);
+    }
+
+    al.free(textU8);
+}
+
+
