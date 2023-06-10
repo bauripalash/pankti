@@ -80,9 +80,10 @@ pub const Vm = struct {
     pub fn debugStack(self : *Self) void{
         std.debug.print("==== STACK ====\n" , .{});
         for (self.stack.items, 0..) |value, i| {
-            std.debug.print("[{} | " , .{i});
-            value.printVal();
-            std.debug.print("]\n" , .{});
+            const vs = value.toString(self.al) catch return;
+            std.debug.print("[ |{:0>2}| {s:>4}" , .{self.stack.items.len - 1 - i , vs } );
+            std.debug.print(" ]\n" , .{});
+            self.al.free(vs);
 
         }
         std.debug.print("===============\n\n" , .{});

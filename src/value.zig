@@ -25,22 +25,28 @@ pub const PValue = packed struct {
     const Self = @This();
 
 
+    /// is value a bool
     pub fn isBool(self : Self) bool {
         return (self.data | 1) == TRUE_VAL.data;
     }
-
+    
+    /// is value a nil 
     pub fn isNil(self : Self) bool {
         return self.data == NIL_VAL.data;
     }
-
+    
+    /// is value a nil
     pub fn isNumber(self : Self) bool{
         return (self.data & QNAN) != QNAN;
     }
 
+    /// is value a object
     pub fn isObj(self : Self) bool{
         return (self.data & (QNAN | SIGN_BIT)) == (QNAN | SIGN_BIT);
     }
+    
 
+    /// get a number value as `f64` 
     pub fn asNumber(self : Self) f64 {
        if (self.isNumber()) {
             return @bitCast(f64, self.data); 
@@ -49,6 +55,8 @@ pub const PValue = packed struct {
        } 
     }
 
+
+    /// get a bool value as `bool`
     pub fn asBool(self : Self) bool {
         if (self.isBool()) {
             return self.data == TRUE_VAL.data;
@@ -57,12 +65,16 @@ pub const PValue = packed struct {
         }
     }
 
+
+    /// Create a new number value
     pub fn makeNumber(n : f64) PValue {
         return PValue{
             .data = @bitCast(u64, n)
         };
     }
 
+
+    /// Create a new bool value
     pub fn makeBool(b : bool) PValue{
         if (b) {
             return TRUE_VAL;
@@ -71,10 +83,15 @@ pub const PValue = packed struct {
         }
     }
 
+
+    /// Create a new nil value
     pub fn makeNil() PValue {
         return NIL_VAL;
     }
 
+
+    /// Return a new value with with negative value of itself;
+    /// If `self` is not a number return itself
     pub fn makeNeg(self : Self) PValue {
         if (self.isNumber()) {
             return PValue.makeNumber(-self.asNumber());
@@ -83,6 +100,7 @@ pub const PValue = packed struct {
         }
     }
 
+    /// Chec if value is falsy
     pub fn isFalsy(self : Self) bool{
         if (self.isBool()) { 
             return !self.asBool(); 
@@ -94,6 +112,8 @@ pub const PValue = packed struct {
 
     }
 
+
+    /// Print value of PValue to console
     pub fn printVal(self : Self) void{
         if (self.isNil()) {
             std.debug.print("nil", .{});
@@ -112,6 +132,32 @@ pub const PValue = packed struct {
         }
 
         
+    }
+
+    /// Convert value to string 
+    /// you must free the result
+    pub fn toString(self : Self , al : std.mem.Allocator) ![]u8{
+        if (self.isNil()) {
+            var r = try std.fmt.allocPrint(al, "nil" , .{});
+            return r;
+        } else if (self.isBool()){
+            if (self.asBool()) {
+                var r = try std.fmt.allocPrint(al, "true", .{});
+                return r;
+            } else {
+                var r = try std.fmt.allocPrint(al, "false", .{}); 
+                return r;
+            }
+        } else if (self.isNumber()) {
+            //const size = @intCast( usize , std.fmt.count("{d}", .{self.asNumber()}));
+            //const mstr = try al.alloc(u8 , size);
+            //_ = try std.fmt.bufPrint(mstr, "{d}", .{self.asNumber()});
+            const mstr = try std.fmt.allocPrint(al, "{d}", .{self.asNumber()});
+            return mstr;
+        }
+            var r = try al.alloc(u8, 1);
+            r[0] = '_';
+            return r;
     }
 
 
