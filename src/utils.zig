@@ -80,6 +80,8 @@ pub fn u32tou8(input: []const u32, al: std.mem.Allocator) ![]u8 {
     return u8str;
 }
 
+    
+
 /// Print a UTF-32 encoded string to stdout
 pub fn printu32(input: []const u32) void {
     for (input) |value| {

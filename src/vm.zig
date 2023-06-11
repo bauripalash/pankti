@@ -10,6 +10,7 @@
 const std = @import("std");
 const ins = @import("instruction.zig");
 const OpCode = @import("instruction.zig").OpCode;
+const Compiler = @import("compiler.zig").Compiler;
 const vl = @import("value.zig");
 const PValue = vl.PValue;
 
@@ -22,6 +23,7 @@ pub const IntrpResult = enum(u8) {
 pub const Vm = struct {
     ins : ins.Instruction,
     al : std.mem.Allocator,
+    compiler : Compiler,
     ip : u8,
     stack : std.ArrayList(PValue),
     stackTop : usize,
@@ -36,12 +38,14 @@ pub const Vm = struct {
             .ip = 0,
             .stack = undefined,
             .stackTop = 0,
+            .compiler = undefined,
         };
     }
 
     pub fn bootVm(self : *Self) void {
         self.ins = ins.Instruction.init(self.al);
         self.stack = std.ArrayList(PValue).init(self.al);
+        self.compiler.init(self.al);
     }
 
     pub fn freeVm(self : *Self) void {
@@ -77,14 +81,21 @@ pub const Vm = struct {
         return self.stack.pop();
     }
 
+
+    fn peek(self : *Self , dist : usize) PValue{
+        return self.stack.items[dist];
+    }
+
     pub fn debugStack(self : *Self) void{
         std.debug.print("==== STACK ====\n" , .{});
-        for (self.stack.items, 0..) |value, i| {
-            const vs = value.toString(self.al) catch return;
-            std.debug.print("[ |{:0>2}| {s:>4}" , .{self.stack.items.len - 1 - i , vs } );
-            std.debug.print(" ]\n" , .{});
-            self.al.free(vs);
+        if (self.stack.items.len > 0) {
+            for (self.stack.items, 0..) |value, i| {
+                const vs = value.toString(self.al) catch return;
+                std.debug.print("[ |{:0>2}| {s:>4}" , .{self.stack.items.len - 1 - i , vs } );
+                std.debug.print(" ]\n" , .{});
+                self.al.free(vs);
 
+            }
         }
         std.debug.print("===============\n\n" , .{});
     }
@@ -157,6 +168,10 @@ pub const Vm = struct {
                     return IntrpResult.Ok;
                 },
 
+                .Nil => {
+                    self.push(PValue.makeNil()) catch return .RuntimeError;
+                },
+
                 .Const => {
                    const con : PValue = self.readConst();
                    self.push(con) catch return .RuntimeError;
@@ -199,11 +214,23 @@ pub const Vm = struct {
         }
     }
 
-    pub fn interpret(self : *Self , inst : *ins.Instruction) IntrpResult{
+    pub fn interpretRaw(self : *Self , inst : *ins.Instruction) IntrpResult{
         //@memcpy(self.ins.*, inst.);
         self.ip = 0;
         self.ins = inst.*;
         return self.run();
+    }
+
+    pub fn interpret(self : *Self , source : []u32) IntrpResult{
+        self.ip = 0;
+        const result = self.compiler.compile(source, &self.ins) catch false;
+        if (result) { 
+            self.compiler.curIns().disasm("<script>");
+            return self.interpretRaw(self.compiler.curIns());
+        } else { 
+            return .CompileError;
+        }
+
     }
 
 

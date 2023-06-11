@@ -16,12 +16,12 @@ pub const TokenType = enum(u8) {
     Plus,
     Minus,
     Astr,
-    Div,
+    Slash,
     Eof,
     Lparen,
     Rparen,
-    Lbracket,
-    Rbracket,
+    Lbrace,
+    Rbrace,
     LsBracket,
     RsBracket,
     Dot,
@@ -68,12 +68,12 @@ pub fn toktypeToString(t: TokenType) []const u8 {
         .Plus => "Plus",
         .Minus => "Minus",
         .Astr => "Astr",
-        .Div => "Div",
+        .Slash => "Slash",
         .Eof => "Eof",
         .Lparen => "Lparen",
         .Rparen => "Rparen",
-        .Lbracket => "Lbracket",
-        .Rbracket => "Rbracket",
+        .Lbrace => "Lbracket",
+        .Rbrace => "Rbracket",
         .LsBracket => "LsBracket",
         .RsBracket => "RsBracket",
         .Dot => "Dot",
@@ -129,6 +129,15 @@ pub const Token = struct {
     line: u32,
 
     
+    pub fn dummy() Token{
+        return Token{
+            .lexeme = undefined,
+            .toktype = .Err,
+            .length = 1,
+            .colpos = 1,
+            .line = 1,
+        };
+    }
     
 
 };
@@ -141,6 +150,16 @@ pub const Lexer = struct {
     colpos: u32,
 
     const Self = @This();
+
+    pub fn dummy() Lexer {
+        return Lexer{
+            .src = undefined,
+            .start = 0,
+            .line = 1,
+            .colpos = 1,
+            .current = 0,
+        };
+    }
 
     pub fn new(src: []u32) Lexer {
         return Lexer{
@@ -242,13 +261,13 @@ pub const Lexer = struct {
         switch (c) {
             '(' => return self.makeToken(.Lparen),
             ')' => return self.makeToken(.Rparen),
-            '{' => return self.makeToken(.Lbracket),
-            '}' => return self.makeToken(.Rbracket),
+            '{' => return self.makeToken(.Lbrace),
+            '}' => return self.makeToken(.Rbrace),
             '[' => return self.makeToken(.LsBracket),
             ']' => return self.makeToken(.RsBracket),
             '-' => return self.makeToken(.Minus),
             '+' => return self.makeToken(.Plus),
-            '/' => return self.makeToken(.Div),
+            '/' => return self.makeToken(.Slash),
             '*' => return self.makeToken(.Astr),
             '.' => return self.makeToken(.Dot),
             ';' => return self.makeToken(.Semicolon),

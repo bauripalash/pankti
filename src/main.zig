@@ -50,30 +50,32 @@ pub fn main() !void {
     //print("->{any}\n", .{@TypeOf(text)});
     //
     //
-    var n = ins.Instruction.init(ga);
+    //var n = ins.Instruction.init(ga);
     
-    const con = try n.addConst(PValue.makeNumber(10.99));
-    const con2 = try n.addConst(PValue.makeNumber(200));
-    try n.write(ins.OpCode.Const, ins.InstPos.line(1));
-    try n.write_raw(con, ins.InstPos.line(1));
+    //const con = try n.addConst(PValue.makeNumber(10.99));
+    //const con2 = try n.addConst(PValue.makeNumber(200));
+    //try n.write(ins.OpCode.Const, ins.InstPos.line(1));
+    //try n.write_raw(con, ins.InstPos.line(1));
     //try n.write(ins.OpCode.Neg , ins.InstPos.line(1));
-    try n.write(ins.OpCode.Const, ins.InstPos.line(1));
-    try n.write_raw(con2, ins.InstPos.line(1));
-    try n.write(ins.OpCode.Div, ins.InstPos.line(1));
-    try n.write(ins.OpCode.Return, ins.InstPos.line(1));
+    //try n.write(ins.OpCode.Const, ins.InstPos.line(1));
+    //try n.write_raw(con2, ins.InstPos.line(1));
+    //try n.write(ins.OpCode.Div, ins.InstPos.line(1));
+    //try n.write(ins.OpCode.Return, ins.InstPos.line(1));
     
     //std.debug.print("\n{any}\n\n" , .{n.pos});
     
-    n.disasm("a");
+    //n.disasm("a");
 
     var myv = Vm.newVm(ga);
     myv.bootVm();
 
-    const result = myv.interpret(&n);
+    const rawSrc = try utils.u8tou32("show 1+2;", ga);
+    const result = myv.interpret(rawSrc);
     print("VM Result=>{}\n", .{result});
 
     
     myv.freeVm();
+    ga.free(rawSrc);
 
     //n.free();
     //
