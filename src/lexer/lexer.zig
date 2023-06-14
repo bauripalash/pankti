@@ -138,6 +138,13 @@ pub const Token = struct {
             .line = 1,
         };
     }
+
+    pub fn toString(self : *const Token , al : std.mem.Allocator) ![]u8{
+        const lexeme = try utils.u32tou8(self.lexeme, al);
+        const result = try std.fmt.allocPrint(al, "T[{s}|{s}|]" , .{toktypeToString(self.toktype) , lexeme});
+        al.free(lexeme);
+        return result;
+    }
     
 
 };
@@ -178,6 +185,7 @@ pub const Lexer = struct {
     }
 
     fn peek(self: *Lexer) u32 {
+        if (self.isEof()) return 0x04;
         return self.src[self.current];
     }
 

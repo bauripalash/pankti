@@ -14,6 +14,8 @@ const lexer = @import("lexer/lexer.zig");
 const ins = @import("instruction.zig");
 const PValue = @import("value.zig").PValue;
 
+const DEBUG = true;
+
 const Precedence = enum(u8) {
     P_None,
     P_Assignment,
@@ -44,14 +46,23 @@ pub const Compiler = struct {
 
     const RuleTable = std.EnumArray(lexer.TokenType, ParseRule);
 
-    const rules = RuleTable.initFill(.{
+    const rules = RuleTable.init(.{
         .Lparen = ParseRule{
             .prefix = Self.rGroup,
             .prec = .P_Call,
         },
         .Rparen = ParseRule{},
         .Lbrace  = ParseRule{},
-        .Rparen = ParseRule{},
+        .Rbrace = ParseRule{},
+        .LsBracket = ParseRule{},
+        .RsBracket = ParseRule{},
+        .Colon = ParseRule{},
+        .End = ParseRule{},
+        .Then = ParseRule{},
+        .Func = ParseRule{},
+        .Import = ParseRule{},
+        .Panic = ParseRule{},
+        .Unknown = ParseRule{},
         .Comma = ParseRule{},
         .Dot = ParseRule{},
         .Minus = ParseRule{
@@ -102,13 +113,26 @@ pub const Compiler = struct {
             .infix = Self.rBinary,
             .prec = .P_Comp,
         },
-        .Identifer = ParseRule{
-            
-        },
+        .Identifer = ParseRule{},
+        .String = ParseRule{},
         .Number = ParseRule{
             .prefix = Self.rNumber,
             .prec = .P_None,
         },
+        .And = ParseRule{},
+        .If = ParseRule{},
+        .Else = ParseRule{},
+        .True = ParseRule{.prefix = Self.rLiteral},
+        .False = ParseRule{.prefix = Self.rLiteral},
+        .Nil = ParseRule{.prefix = Self.rLiteral},
+        .Or = ParseRule{},
+        .Show = ParseRule{},
+        .Return = ParseRule{},
+        .Let = ParseRule{},
+        .PWhile = ParseRule{},
+        .Err = ParseRule{},
+        .Eof = ParseRule{},
+        
     });
     
     pub fn init(self : *Self , al : std.mem.Allocator) void{
@@ -151,38 +175,39 @@ pub const Compiler = struct {
     fn rNumber(self : *Self , _ : bool) !void{
         const stru8 = try utils.u32tou8(self.parser.previous.lexeme , self.al);
         const rawNum : f64 = try std.fmt.parseFloat(f64,stru8);
-        self.emitConst(PValue.makeNumber(rawNum));
+        try self.emitConst(PValue.makeNumber(rawNum));
         self.al.free(stru8);
     }
 
-    fn rGroup(self : *Self , _ : bool) void {
-        self.rExpr();
+    fn rGroup(self : *Self , _ : bool) !void {
+        try self.parseExpression();
         self.eat(.Rparen, "Expected ')' after group expression");
     }
 
-    fn rUnary(self : *Self , _ : bool) void{
+    fn rUnary(self : *Self , _ : bool) !void{
         const oprt = self.parser.previous.toktype;
-        self.parsePrec(.P_Unary);
-
-        if (oprt == .Minus) {
-            self.emitBt(.Neg);
-        } else {
-            return;
-        }
-
-    }
-
-    fn rBinary(self : *Self , _ : bool) void{
-        const oprt : lexer.TokenType = self.parser.previous.toktype;
-        const rule = self.getRule(oprt);
-        
-        self.parsePrec(@intToEnum(Precedence, @enumToInt(rule.prec) + 1));
+        try self.parsePrec(.P_Unary);
 
         switch (oprt) {
-            .Plus => self.emitBt(.Add),
-            .Minus => self.emitBt(.Sub),
-            .Astr => self.emitBt(.Mul),
-            .Slash => self.emitBt(.Div),
+            .Minus => { try self.emitBt(.Neg); },
+            .Bang => { try self.emitBt(.Not); },
+            else => { return; }
+        }
+
+        return;
+    }
+
+    fn rBinary(self : *Self , _ : bool) !void{
+        const oprt : lexer.TokenType = self.parser.previous.toktype;
+        const rule = Self.getRule(oprt);
+        
+        try self.parsePrec(@intToEnum(Precedence, @enumToInt(rule.prec) + 1));
+
+        switch (oprt) {
+            .Plus => try self.emitBt(.Add),
+            .Minus => try self.emitBt(.Sub),
+            .Astr => try self.emitBt(.Mul),
+            .Slash => try self.emitBt(.Div),
             else => {
                 return;
             }
@@ -192,9 +217,23 @@ pub const Compiler = struct {
 
 
     }
+    
+    fn rLiteral(self : *Self , _ : bool) !void {
+        switch (self.parser.previous.toktype) {
+            .False => { try self.emitBt(ins.OpCode.False);},
+            .True => { try self.emitBt(ins.OpCode.True); },
+            .Nil => { try self.emitBt(ins.OpCode.Nil); },
+            else => { return; }
+        }
+
+        return;
+    }
 
    
-    fn parsePrec(self : *Self , prec : Precedence) void{
+    fn parseExpression(self : *Self) !void{
+        try self.parsePrec(.P_Assignment);
+    }
+    fn parsePrec(self : *Self , prec : Precedence) !void{
         self.parser.advance();
 
         const prefRule = Self.rules.get(self.parser.previous.toktype).prefix orelse {
@@ -220,13 +259,7 @@ pub const Compiler = struct {
         //if (canAssign and self) {}
     }
 
-    fn rExpr(self : *Self) void {
-        self.parsePrec();
-        
-        //return;
-    }
-
-
+   
     pub fn eat(self : *Self , t : lexer.TokenType , msg : []const u8) void{
         if (self.parser.current.toktype == t) {
             self.parser.advance();
@@ -241,18 +274,23 @@ pub const Compiler = struct {
     }
         
     fn endCompiler(self : *Self) !void {
-        try self.emitBt(.Nil);
+        //try self.emitBt(.Nil);
         try self.emitBt(.Return);
+        if (!self.parser.hadErr) {
+            self.inst.disasm("<script>");
+        }
     }
 
     pub fn compile(self : *Self , source : []u32 , inst : *ins.Instruction) !bool{
         self.parser.init(source, self.al);
         self.inst = inst;
+        
         self.parser.advance();
 
-        while (self.parser.previous.toktype != .Eof) {
-            self.parser.advance();
-        }
+        //while (self.parser.previous.toktype != .Eof) {
+        //    self.parser.advance();
+        //}
+        try self.parseExpression();
 
         try self.endCompiler();
 
@@ -290,6 +328,8 @@ pub const Parser = struct {
         self.current = undefined;
         self.previous = undefined;
         self.al = al;
+
+            
     }
 
     fn errorAt(self : *Self, token : *lexer.Token , msg : []const u8) void {

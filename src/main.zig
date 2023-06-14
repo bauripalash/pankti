@@ -69,9 +69,16 @@ pub fn main() !void {
     var myv = Vm.newVm(ga);
     myv.bootVm();
 
-    const rawSrc = try utils.u8tou32("show 1+2;", ga);
+    const rawSrc = try utils.u8tou32("1+2*3", ga);
     const result = myv.interpret(rawSrc);
     print("VM Result=>{}\n", .{result});
+    //
+    //var mylx = lexer.Lexer.new(rawSrc);
+    //while (!mylx.isEof()) {
+    //    const tok = try mylx.getToken().toString(ga);
+    //    std.debug.print("{s}\n", .{tok});
+    //    ga.free(tok);
+    //}
 
     
     myv.freeVm();

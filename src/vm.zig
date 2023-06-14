@@ -86,6 +86,12 @@ pub const Vm = struct {
         return self.stack.items[dist];
     }
 
+    fn throwRuntimeError(self : *Self , msg : []const u8) void{
+        
+        std.debug.print("Runtime Error Occured in line {}", .{self.ins.pos.items[@intCast(usize, self.ip)-1].line});
+        std.debug.print("\n{s}\n", .{msg});
+    }
+
     pub fn debugStack(self : *Self) void{
         std.debug.print("==== STACK ====\n" , .{});
         if (self.stack.items.len > 0) {
@@ -163,13 +169,10 @@ pub const Vm = struct {
 
             switch (op) {
                 .Return => {
+                    //self.throwRuntimeError("Return occured");
                     self.pop().printVal();
                     std.debug.print("\n" , .{});
                     return IntrpResult.Ok;
-                },
-
-                .Nil => {
-                    self.push(PValue.makeNil()) catch return .RuntimeError;
                 },
 
                 .Const => {
@@ -205,6 +208,30 @@ pub const Vm = struct {
                     if (!self.doBinaryOpDiv()) {
                         return .RuntimeError;
                     }
+                },
+
+                .True => {
+                    self.push(PValue.makeBool(true)) catch {
+                        return .RuntimeError;
+                    };
+                },
+
+                .False => {
+                    self.push(PValue.makeBool(false)) catch {
+                        return .RuntimeError;
+                    };
+                },
+
+                .Nil => {
+                    self.push(PValue.makeNil()) catch {
+                        return .RuntimeError;    
+                    };
+                },
+
+                .Not => {
+                    self.push(PValue.makeBool(self.pop().isFalsy())) catch {
+                        return .RuntimeError;
+                    };
                 },
 
                 else => {
