@@ -13,6 +13,7 @@ const OpCode = @import("instruction.zig").OpCode;
 const Compiler = @import("compiler.zig").Compiler;
 const vl = @import("value.zig");
 const PValue = vl.PValue;
+const Pobj = @import("object.zig").PObj;
 
 pub const IntrpResult = enum(u8) {
     Ok,
@@ -27,6 +28,7 @@ pub const Vm = struct {
     ip : u8,
     stack : std.ArrayList(PValue),
     stackTop : usize,
+    objects : ?*Pobj,
 
 
     const Self = @This();
@@ -39,16 +41,30 @@ pub const Vm = struct {
             .stack = undefined,
             .stackTop = 0,
             .compiler = undefined,
+            .objects = null,
         };
     }
 
     pub fn bootVm(self : *Self) void {
         self.ins = ins.Instruction.init(self.al);
         self.stack = std.ArrayList(PValue).init(self.al);
-        self.compiler.init(self.al);
+        self.compiler.init(self);
+    }
+
+    fn freeObjects(self : *Self) void { 
+        var obj = self.objects;
+        while (obj != null) {
+           const next = obj.?.next;
+           obj.?.free(self);
+            obj = next;
+
+        }
     }
 
     pub fn freeVm(self : *Self) void {
+        
+       self.freeObjects(); 
+
         self.ins.free();
         self.stack.deinit();
     }
@@ -72,12 +88,12 @@ pub const Vm = struct {
         self.stackTop = 0;
     }
     
-    fn push(self : *Self , value : PValue) !void {
+    pub fn push(self : *Self , value : PValue) !void {
         try self.stack.append(value);
         
     }
 
-    fn pop(self : *Self) PValue {
+    pub fn pop(self : *Self) PValue {
         return self.stack.pop();
     }
 
@@ -220,6 +236,25 @@ pub const Vm = struct {
                     self.push(PValue.makeBool(false)) catch {
                         return .RuntimeError;
                     };
+                },
+
+                .Op_Eq => {
+                    const b = self.pop();
+                    const a = self.pop();
+
+                    self.push(PValue.makeBool(a.isEqual(b))) catch {
+                        return .RuntimeError;  
+                    };
+                },
+
+                .Op_Neq => {
+                    const b = self.pop();
+                    const a = self.pop();
+                    
+                    self.push(PValue.makeBool(!a.isEqual(b))) catch {
+                        return .RuntimeError;  
+                    };
+
                 },
 
                 .Op_Nil => {

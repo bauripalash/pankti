@@ -13,6 +13,8 @@ const utils = @import("utils.zig");
 const lexer = @import("lexer/lexer.zig");
 const ins = @import("instruction.zig");
 const PValue = @import("value.zig").PValue;
+const PObj = @import("object.zig").PObj;
+const Vm = @import("vm.zig").Vm;
 
 const DEBUG = true;
 
@@ -114,7 +116,9 @@ pub const Compiler = struct {
             .prec = .P_Comp,
         },
         .Identifer = ParseRule{},
-        .String = ParseRule{},
+        .String = ParseRule{
+           .prefix = Self.rString, 
+        },
         .Number = ParseRule{
             .prefix = Self.rNumber,
             .prec = .P_None,
@@ -135,9 +139,10 @@ pub const Compiler = struct {
         
     });
     
-    pub fn init(self : *Self , al : std.mem.Allocator) void{
-        self.al = al;
+    pub fn init(self : *Self , vm : *Vm) void{
+        self.al = vm.al;
         self.parser  = Parser.new();
+        self.parser.vm = vm;
     }
 
     fn emitBtRaw(self : *Self , bt : u8) !void{
@@ -182,6 +187,11 @@ pub const Compiler = struct {
     fn rGroup(self : *Self , _ : bool) !void {
         try self.parseExpression();
         self.eat(.Rparen, "Expected ')' after group expression");
+    }
+
+    fn rString(self : *Self , _ : bool) !void{
+        const s : *PObj.OString = try PObj.OString.copy(self.parser.vm, self.parser.previous.lexeme);
+        try self.emitConst(s.obj.asValue());
     }
 
     fn rUnary(self : *Self , _ : bool) !void{
@@ -307,6 +317,7 @@ pub const Compiler = struct {
 };
 
 pub const Parser = struct {
+    vm : *Vm,
     current : lexer.Token,
     previous : lexer.Token,
     lexer : lexer.Lexer,
@@ -324,6 +335,7 @@ pub const Parser = struct {
             .hadErr = false,
             .panicMode = false,
             .al = undefined,
+            .vm = undefined,
         };
     }
 

@@ -8,6 +8,15 @@
 // SPDX-License-Identifier: MPL-2.0
 
 const std = @import("std");
+const PObj = @import("object.zig").PObj;
+
+pub const PValueType = enum(u8) {
+    Pt_Num,
+    Pt_Bool,
+    Pt_Nil,
+    Pt_Obj,
+    Pt_Unknown,
+};
 
 pub const PValue = packed struct {
     data: u64,
@@ -24,6 +33,7 @@ pub const PValue = packed struct {
 
     const Self = @This();
 
+    
 
     /// is value a bool
     pub fn isBool(self : Self) bool {
@@ -65,6 +75,11 @@ pub const PValue = packed struct {
         }
     }
 
+    pub fn asObj(self : Self) *PObj{
+        const v : u64 = self.data & ~(SIGN_BIT | QNAN);
+        return @intToPtr(*PObj , @intCast(usize, v));
+    }
+
 
     /// Create a new number value
     pub fn makeNumber(n : f64) PValue {
@@ -89,6 +104,12 @@ pub const PValue = packed struct {
         return NIL_VAL;
     }
 
+    pub fn makeObj(o : *PObj) PValue{
+        return PValue{
+            .data = SIGN_BIT | QNAN | @ptrToInt(o),       
+        };
+    }
+
 
     /// Return a new value with with negative value of itself;
     /// If `self` is not a number return itself
@@ -98,6 +119,38 @@ pub const PValue = packed struct {
         } else {
             return self;
         }
+    }
+
+    pub fn getType(self : Self) PValueType{
+        if (self.isNumber()) {
+            return .Pt_Num;
+        } else if (self.isBool()){
+            return .Pt_Bool;
+        } else if (self.isNil()){
+            return .Pt_Nil;
+        } else if (self.isObj()){
+            return .Pt_Obj;
+        }
+
+        return .Pt_Unknown;
+    }
+
+    pub fn isEqual(self : Self , other : PValue) bool {
+        if (self.getType() != other.getType()) {
+            return false;
+        }
+
+        if (self.isBool()) {
+            return self.asBool() == other.asBool();
+        }else if (self.isNumber()){
+            return self.asNumber() == other.asNumber();
+        } else if (self.isNil()) {
+            return true; 
+        } else if (self.isObj()) {
+            return true; //object equal test 
+        }
+
+        return false;
     }
 
     /// Chec if value is falsy
@@ -127,6 +180,8 @@ pub const PValue = packed struct {
         } else if (self.isNumber()){
             const n : f64 = self.asNumber();
             std.debug.print("{d}" , .{n});
+        } else if (self.isObj()){
+           self.asObj().printObj();
         } else{
             std.debug.print("UNKNOWN VALUE", .{});
         }
@@ -154,6 +209,8 @@ pub const PValue = packed struct {
             //_ = try std.fmt.bufPrint(mstr, "{d}", .{self.asNumber()});
             const mstr = try std.fmt.allocPrint(al, "{d}", .{self.asNumber()});
             return mstr;
+        } else if (self.isObj()){
+            return try self.asObj().toString(al);
         }
             var r = try al.alloc(u8, 1);
             r[0] = '_';
