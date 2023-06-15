@@ -168,20 +168,20 @@ pub const Vm = struct {
             const op = self.readByte();
 
             switch (op) {
-                .Return => {
+                .Op_Return => {
                     //self.throwRuntimeError("Return occured");
                     self.pop().printVal();
                     std.debug.print("\n" , .{});
                     return IntrpResult.Ok;
                 },
 
-                .Const => {
+                .Op_Const => {
                    const con : PValue = self.readConst();
                    self.push(con) catch return .RuntimeError;
 
                 },
 
-                .Neg => {
+                .Op_Neg => {
                     var v = self.pop();
                     if (v.isNumber()) {
                         self.push(v.makeNeg()) catch return .RuntimeError;
@@ -190,45 +190,45 @@ pub const Vm = struct {
                     }
                 },
 
-                .Add => {
+                .Op_Add => {
                     if (!self.doBinaryOpAdd()){
                         return .RuntimeError;
                     }
                 },
 
-                .Sub => {
+                .Op_Sub => {
                     if (!self.doBinaryOpSub()) { return .RuntimeError; }
                 },
 
-                .Mul => { if (!self.doBinaryOpMul()) { return .RuntimeError; } 
+                .Op_Mul => { if (!self.doBinaryOpMul()) { return .RuntimeError; } 
                 
                 },
 
-                .Div => {
+                .Op_Div => {
                     if (!self.doBinaryOpDiv()) {
                         return .RuntimeError;
                     }
                 },
 
-                .True => {
+                .Op_True => {
                     self.push(PValue.makeBool(true)) catch {
                         return .RuntimeError;
                     };
                 },
 
-                .False => {
+                .Op_False => {
                     self.push(PValue.makeBool(false)) catch {
                         return .RuntimeError;
                     };
                 },
 
-                .Nil => {
+                .Op_Nil => {
                     self.push(PValue.makeNil()) catch {
                         return .RuntimeError;    
                     };
                 },
 
-                .Not => {
+                .Op_Not => {
                     self.push(PValue.makeBool(self.pop().isFalsy())) catch {
                         return .RuntimeError;
                     };

@@ -92,7 +92,7 @@ pub const Compiler = struct {
             .infix = Self.rBinary,
             .prec = .P_Eq
         },
-        .Eq = ParseRule{},
+        .Eq = ParseRule{ },
         .EqEq = ParseRule{
             .infix = Self.rBinary,
             .prec = .P_Eq,
@@ -159,7 +159,7 @@ pub const Compiler = struct {
     }
 
     fn emitConst(self : *Self , val : PValue) !void{
-        try self.emitBt(.Const);
+        try self.emitBt(.Op_Const);
         try self.emitBtRaw(try self.makeConst(val));
     }
 
@@ -189,8 +189,8 @@ pub const Compiler = struct {
         try self.parsePrec(.P_Unary);
 
         switch (oprt) {
-            .Minus => { try self.emitBt(.Neg); },
-            .Bang => { try self.emitBt(.Not); },
+            .Minus => { try self.emitBt(.Op_Neg); },
+            .Bang => { try self.emitBt(.Op_Not); },
             else => { return; }
         }
 
@@ -204,10 +204,16 @@ pub const Compiler = struct {
         try self.parsePrec(@intToEnum(Precedence, @enumToInt(rule.prec) + 1));
 
         switch (oprt) {
-            .Plus => try self.emitBt(.Add),
-            .Minus => try self.emitBt(.Sub),
-            .Astr => try self.emitBt(.Mul),
-            .Slash => try self.emitBt(.Div),
+            .Plus => try self.emitBt(.Op_Add),
+            .Minus => try self.emitBt(.Op_Sub),
+            .Astr => try self.emitBt(.Op_Mul),
+            .Slash => try self.emitBt(.Op_Div),
+            .NotEqual => try self.emitBt(.Op_Neq),
+            .EqEq => try self.emitBt(.Op_Eq),
+            .Gt => try self.emitBt(.Op_Gt),
+            .Gte => try self.emitBt(.Op_Gte),
+            .Lt => try self.emitBt(.Op_Lt),
+            .Lte => try self.emitBt(.Op_Lte),
             else => {
                 return;
             }
@@ -220,9 +226,9 @@ pub const Compiler = struct {
     
     fn rLiteral(self : *Self , _ : bool) !void {
         switch (self.parser.previous.toktype) {
-            .False => { try self.emitBt(ins.OpCode.False);},
-            .True => { try self.emitBt(ins.OpCode.True); },
-            .Nil => { try self.emitBt(ins.OpCode.Nil); },
+            .False => { try self.emitBt(.Op_False);},
+            .True => { try self.emitBt(.Op_True); },
+            .Nil => { try self.emitBt(.Op_Nil); },
             else => { return; }
         }
 
@@ -275,7 +281,7 @@ pub const Compiler = struct {
         
     fn endCompiler(self : *Self) !void {
         //try self.emitBt(.Nil);
-        try self.emitBt(.Return);
+        try self.emitBt(.Op_Return);
         if (!self.parser.hadErr) {
             self.inst.disasm("<script>");
         }
