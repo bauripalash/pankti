@@ -25,7 +25,7 @@ pub const PObj = struct {
     pub fn create(vm : *Vm , comptime T : type , objtype : OType) !*PObj{
         const ptr = try vm.al.create(T);
         ptr.obj = PObj{
-            .next = vm.objects,
+            .next = null,
             .objtype = objtype,
             .isMarked = false,
         };
@@ -76,23 +76,32 @@ pub const PObj = struct {
     
     pub const OString = struct {
         obj : PObj,
-        chars : []const u32,
+        chars : []u32,
         len : usize,
 
         fn allocate(vm : *Vm , chars : []const u32) !*OString{
-            const obj = try PObj.create(vm, OString, .Ot_String);
+            const obj = try PObj.create(vm, PObj.OString, .Ot_String);
             const str = obj.asString();
-            str.chars = chars;
+            var temp_chars = try vm.al.alloc(u32, chars.len);
+            str.len = chars.len;
+            @memcpy(temp_chars.ptr, chars);
+            str.chars = temp_chars;
 
-            try vm.push(PValue.makeObj(obj));
-            _ = vm.pop();
 
             return str;
             
         }
 
         pub fn copy(vm : *Vm , chars : []const u32) !*OString{
-            return OString.allocate(vm, chars);
+            if (vm.strings.get(chars)) |s| {
+                return s;
+            }
+
+            const s = try PObj.OString.allocate(vm, chars);
+
+            //std.debug.print("{any}", .{s.*});
+            try vm.strings.put(vm.al , chars , s);
+            return s;
         }
 
         pub fn free(self : *OString , vm : *Vm) void{

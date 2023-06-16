@@ -81,6 +81,19 @@ pub fn u32tou8(input: []const u32, al: std.mem.Allocator) ![]u8 {
 }
 
     
+pub fn hashU32(input : []const u32) !u32{
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const ga = gpa.allocator();
+
+    
+    var x = std.hash.XxHash32.init(@intCast(u32, std.time.timestamp()));
+    const u = try u32tou8(input , ga);
+
+    x.update(u);
+    ga.free(u);
+    
+    return x.final();
+}
 
 /// Print a UTF-32 encoded string to stdout
 pub fn printu32(input: []const u32) void {

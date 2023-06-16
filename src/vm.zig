@@ -14,12 +14,16 @@ const Compiler = @import("compiler.zig").Compiler;
 const vl = @import("value.zig");
 const PValue = vl.PValue;
 const Pobj = @import("object.zig").PObj;
+const utils = @import("utils.zig");
+const table = @import("table.zig");
 
 pub const IntrpResult = enum(u8) {
     Ok,
     CompileError,
     RuntimeError,
 };
+
+
 
 pub const Vm = struct {
     ins : ins.Instruction,
@@ -29,6 +33,7 @@ pub const Vm = struct {
     stack : std.ArrayList(PValue),
     stackTop : usize,
     objects : ?*Pobj,
+    strings : table.StringTable(),
 
 
     const Self = @This();
@@ -42,6 +47,7 @@ pub const Vm = struct {
             .stackTop = 0,
             .compiler = undefined,
             .objects = null,
+            .strings = undefined,
         };
     }
 
@@ -49,24 +55,19 @@ pub const Vm = struct {
         self.ins = ins.Instruction.init(self.al);
         self.stack = std.ArrayList(PValue).init(self.al);
         self.compiler.init(self);
-    }
 
-    fn freeObjects(self : *Self) void { 
-        var obj = self.objects;
-        while (obj != null) {
-           const next = obj.?.next;
-           obj.?.free(self);
-            obj = next;
-
-        }
+        self.strings = table.StringTable(){};
+        
     }
 
     pub fn freeVm(self : *Self) void {
-        
-       self.freeObjects(); 
+        //std.debug.print("{d}\n", .{self.strings.keys().len});
+        _ = table.freeStringTable(self, self.strings); 
 
-        self.ins.free();
+        self.strings.deinit(self.al);
+
         self.stack.deinit();
+        self.ins.free();
     }
 
     fn readByte(self : *Self) ins.OpCode{
@@ -129,6 +130,34 @@ pub const Vm = struct {
 
         if (a.isNumber() and b.isNumber()) {
             self.push(PValue.makeNumber(a.asNumber() + b.asNumber())) catch return false;
+            return true;
+        }else if ((a.isObj() and a.asObj().objtype == Pobj.OType.Ot_String) and (b.isObj() and b.asObj().objtype == Pobj.OType.Ot_String)) {
+            const bs = b.asObj().asString();
+            const as = b.asObj().asString();
+            
+            var temp_chars = self.al.alloc(u32, as.chars.len + bs.chars.len) catch return false;
+            var i : usize = 0;
+
+            while (i < as.chars.len) {
+                temp_chars[i] = as.chars[i];
+                i += 1;
+            }
+
+            while (i - as.chars.len < bs.chars.len) {
+                temp_chars[i] = bs.chars[i - as.chars.len];
+                i += 1;
+            }
+            
+
+            const s = Pobj.OString.copy(self, temp_chars) catch {
+                 self.al.free(temp_chars);
+                return false;
+            };
+            self.push(s.obj.asValue()) catch {
+                self.al.free(temp_chars);
+                return false;
+            };
+            self.al.free(temp_chars);
             return true;
         } else {
             return false;

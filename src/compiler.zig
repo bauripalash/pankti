@@ -190,7 +190,11 @@ pub const Compiler = struct {
     }
 
     fn rString(self : *Self , _ : bool) !void{
-        const s : *PObj.OString = try PObj.OString.copy(self.parser.vm, self.parser.previous.lexeme);
+        const prevLen = self.parser.previous.lexeme.len;
+        const s : *PObj.OString = try PObj.OString.copy( 
+                self.parser.vm, 
+                self.parser.previous.lexeme[1..prevLen - 1]);
+
         try self.emitConst(s.obj.asValue());
     }
 
