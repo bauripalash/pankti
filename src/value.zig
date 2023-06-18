@@ -54,6 +54,14 @@ pub const PValue = packed struct {
     pub fn isObj(self : Self) bool{
         return (self.data & (QNAN | SIGN_BIT)) == (QNAN | SIGN_BIT);
     }
+
+    pub fn isString(self : Self) bool {
+        if (self.isObj()) {
+            return self.asObj().isString();
+        } 
+
+        return false;
+    }
     
 
     /// get a number value as `f64` 

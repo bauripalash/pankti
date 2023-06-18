@@ -12,6 +12,7 @@ const Vm = @import("vm.zig").Vm;
 const value = @import("value.zig");
 const PValue = value.PValue;
 const utils = @import("utils.zig");
+const Gc = @import("gc.zig").Gc;
 
 pub const PObj = struct {
     objtype : OType,
@@ -22,15 +23,21 @@ pub const PObj = struct {
         Ot_String,
     };
 
-    pub fn create(vm : *Vm , comptime T : type , objtype : OType) !*PObj{
-        const ptr = try vm.al.create(T);
+    pub fn create(gc : *Gc , comptime T : type , objtype : OType) !*PObj{
+        const ptr = try gc.getAlc().create(T);
         ptr.obj = PObj{
-            .next = null,
+            .next = gc.objects,
             .objtype = objtype,
             .isMarked = false,
         };
 
+        gc.objects = &ptr.obj;
+
         return &ptr.obj;
+    }
+
+    pub fn child(self : *PObj , comptime ChildType : type) *ChildType{
+        return @fieldParentPtr(ChildType, "obj", self);
     }
 
     pub fn getType(self : *PObj) OType {
@@ -39,6 +46,10 @@ pub const PObj = struct {
 
     pub fn is(self : *PObj , tp : OType) bool{
         return self.getType() == tp;
+    }
+
+    pub fn isString(self : *PObj) bool {
+        return self.is(.Ot_String);
     }
 
     pub fn asString(self : *PObj) *OString{
@@ -52,7 +63,6 @@ pub const PObj = struct {
         }
 
     }
-
     pub fn asValue(self : *PObj) PValue{
         return PValue.makeObj(self);
     }
@@ -77,13 +87,15 @@ pub const PObj = struct {
     pub const OString = struct {
         obj : PObj,
         chars : []u32,
+        hash : u32,
         len : usize,
 
-        fn allocate(vm : *Vm , chars : []const u32) !*OString{
-            const obj = try PObj.create(vm, PObj.OString, .Ot_String);
+        fn allocate(gc : *Gc , chars : []const u32) !*OString{
+            const obj = try PObj.create(gc, PObj.OString, .Ot_String);
             const str = obj.asString();
-            var temp_chars = try vm.al.alloc(u32, chars.len);
+            var temp_chars = try gc.getAlc().alloc(u32, chars.len);
             str.len = chars.len;
+            str.hash = utils.hashU32(chars) catch 0;
             @memcpy(temp_chars.ptr, chars);
             str.chars = temp_chars;
 
@@ -92,21 +104,25 @@ pub const PObj = struct {
             
         }
 
-        pub fn copy(vm : *Vm , chars : []const u32) !*OString{
-            if (vm.strings.get(chars)) |s| {
-                return s;
-            }
+        pub fn copy(gc : *Gc , chars : []const u32) !*OString{
+            //if (gc.strings.get(chars)) |s| {
+            //    return s;
+            //}
 
-            const s = try PObj.OString.allocate(vm, chars);
+            const s = try PObj.OString.allocate(gc, chars);
 
             //std.debug.print("{any}", .{s.*});
-            try vm.strings.put(vm.al , chars , s);
+            try gc.strings.put(gc.getAlc() , chars , s);
             return s;
         }
 
-        pub fn free(self : *OString , vm : *Vm) void{
-            vm.al.free(self.chars);
-            vm.al.destroy(self);
+        pub fn free(self : *OString , gc : *Gc) void{
+            gc.getAlc().free(self.chars);
+            gc.getAlc().destroy(self);
+        }
+
+        pub fn parent(self : *OString) *PObj{
+            return @ptrCast(*PObj, self);
         }
     };
 

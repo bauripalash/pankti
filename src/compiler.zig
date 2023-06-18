@@ -15,6 +15,7 @@ const ins = @import("instruction.zig");
 const PValue = @import("value.zig").PValue;
 const PObj = @import("object.zig").PObj;
 const Vm = @import("vm.zig").Vm;
+const Gc = @import("gc.zig").Gc;
 
 const DEBUG = true;
 
@@ -34,8 +35,8 @@ const Precedence = enum(u8) {
 };
 
 pub const Compiler = struct {
-    parser : Parser,
-    al : std.mem.Allocator,
+    parser : *Parser,
+    gc : *Gc,
     inst : *ins.Instruction,
 
     const Self = @This();
@@ -139,10 +140,20 @@ pub const Compiler = struct {
         
     });
     
-    pub fn init(self : *Self , vm : *Vm) void{
-        self.al = vm.al;
+    pub fn init(self : *Self , gc : *Gc) void{
         self.parser  = Parser.new();
-        self.parser.vm = vm;
+        self.parser.gc = gc;
+    }
+
+    pub fn new(source : []u32 , gc : *Gc) !*Compiler{
+        const c = try gc.getAlc().create(Compiler);
+        c.* = .{
+            .parser = try Parser.new(source, gc),
+            .gc = gc,
+            .inst = undefined,
+
+        };
+        return c;
     }
 
     fn emitBtRaw(self : *Self , bt : u8) !void{
@@ -178,10 +189,10 @@ pub const Compiler = struct {
     }
 
     fn rNumber(self : *Self , _ : bool) !void{
-        const stru8 = try utils.u32tou8(self.parser.previous.lexeme , self.al);
+        const stru8 = try utils.u32tou8(self.parser.previous.lexeme , self.gc.getAlc());
         const rawNum : f64 = try std.fmt.parseFloat(f64,stru8);
         try self.emitConst(PValue.makeNumber(rawNum));
-        self.al.free(stru8);
+        self.gc.getAlc().free(stru8);
     }
 
     fn rGroup(self : *Self , _ : bool) !void {
@@ -191,9 +202,10 @@ pub const Compiler = struct {
 
     fn rString(self : *Self , _ : bool) !void{
         const prevLen = self.parser.previous.lexeme.len;
-        const s : *PObj.OString = try PObj.OString.copy( 
-                self.parser.vm, 
-                self.parser.previous.lexeme[1..prevLen - 1]);
+        const s : *PObj.OString = try self.gc.copyString( 
+                self.parser.previous.lexeme[1..prevLen - 1],
+                self.parser.previous.length - 2,
+                );
 
         try self.emitConst(s.obj.asValue());
     }
@@ -302,7 +314,7 @@ pub const Compiler = struct {
     }
 
     pub fn compile(self : *Self , source : []u32 , inst : *ins.Instruction) !bool{
-        self.parser.init(source, self.al);
+        self.parser.init(source, self.gc);
         self.inst = inst;
         
         self.parser.advance();
@@ -317,41 +329,53 @@ pub const Compiler = struct {
         return !self.parser.hadErr;
     }
 
+    pub fn free(self : *Self , al : std.mem.Allocator) void{
+        self.parser.free(self.gc.getAlc());
+        al.destroy(self);
+        
+    }
+
 
 };
 
 pub const Parser = struct {
-    vm : *Vm,
+    gc : *Gc,
     current : lexer.Token,
     previous : lexer.Token,
     lexer : lexer.Lexer,
     hadErr : bool,
     panicMode : bool,
-    al : std.mem.Allocator,
     
     const Self = @This();
 
-    pub fn new() Parser {
-        return Parser{
+    pub fn new(source : []u32 , gc : *Gc) !*Parser {
+        const p = try gc.getAlc().create(Parser);
+        p.* = .{
             .current = lexer.Token.dummy(),
             .previous = lexer.Token.dummy(),
-            .lexer = lexer.Lexer.dummy(),
+            .lexer = lexer.Lexer.new(source),
             .hadErr = false,
             .panicMode = false,
-            .al = undefined,
-            .vm = undefined,
+            .gc = gc,
         };
+        
+        return p;
     }
 
-    pub fn init(self : *Self , source : []u32 , al : std.mem.Allocator) void{
+    pub fn init(self : *Self , source : []u32 , gc : *Gc) void{
         self.hadErr = false;
         self.panicMode = false;
         self.lexer = lexer.Lexer.new(source);
         self.current = undefined;
         self.previous = undefined;
-        self.al = al;
+        self.gc = gc;
 
             
+    }
+
+    pub fn free(self : *Self , al : std.mem.Allocator) void{
+        al.destroy(self);
+    
     }
 
     fn errorAt(self : *Self, token : *lexer.Token , msg : []const u8) void {
@@ -386,9 +410,9 @@ pub const Parser = struct {
             if (self.current.toktype != .Err) {
                 break;
             }
-            const lxm = utils.u32tou8(self.current.lexeme, self.al) catch return;
+            const lxm = utils.u32tou8(self.current.lexeme, self.gc.getAlc()) catch return;
             self.errCur(lxm);
-            self.al.free(lxm);
+            self.gc.getAlc().free(lxm);
 
        }
     }

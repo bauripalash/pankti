@@ -14,6 +14,7 @@ const print = std.debug.print;
 const utils = @import("utils.zig");
 const ins = @import("instruction.zig");
 const v = @import("vm.zig");
+const Gc = @import("gc.zig").Gc;
 const Vm = v.Vm;
 const IntrpResult = v.IntrpResult;
 const PValue = @import("value.zig").PValue;
@@ -21,6 +22,7 @@ const PValue = @import("value.zig").PValue;
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const ga = gpa.allocator();
+
 
     var fileToRun: ?[]u8 = null;
 
@@ -32,33 +34,31 @@ pub fn main() !void {
     }
     std.process.argsFree(ga, args);
 
-
+    var gcGpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const GcGa = gcGpa.allocator();
     defer {
         if (fileToRun) |f| {
             ga.free(f);
         }
         _ = gpa.deinit();
+        _ = gcGpa.deinit();
     }
+    
     if (fileToRun) |f| {
+        var gc = try Gc.new(GcGa);
+        gc.boot(GcGa);
+
+        //std.debug.print("{any}\n", .{gc});
         const text = try openfile(f, ga);
         const u = try utils.u8tou32(text, ga);
-        var myv = Vm.newVm(ga);
-        myv.bootVm();
-
+        var myv = try Vm.newVm(gc.getAlc());
+        myv.bootVm(gc);
         const result = myv.interpret(u);
         print("VM Result => {}\n" , .{result});
-        myv.freeVm();
+        myv.freeVm(gc.getAlc());
         ga.free(u);
         ga.free(text);
-    } else{
-        var myv = Vm.newVm(ga);
-        myv.bootVm();
-        const rawSrc = try utils.u8tou32("1!=2", ga);
-        const result = myv.interpret(rawSrc);
-        print("VM Result=>{}\n", .{result});
-        myv.freeVm();
-        ga.free(rawSrc);
-    }
+    } 
 }
 
 

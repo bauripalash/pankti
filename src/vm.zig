@@ -11,11 +11,13 @@ const std = @import("std");
 const ins = @import("instruction.zig");
 const OpCode = @import("instruction.zig").OpCode;
 const Compiler = @import("compiler.zig").Compiler;
+const Gc = @import("gc.zig").Gc;
 const vl = @import("value.zig");
 const PValue = vl.PValue;
 const Pobj = @import("object.zig").PObj;
 const utils = @import("utils.zig");
 const table = @import("table.zig");
+const Allocator = std.mem.Allocator;
 
 pub const IntrpResult = enum(u8) {
     Ok,
@@ -25,49 +27,49 @@ pub const IntrpResult = enum(u8) {
 
 
 
+
+
 pub const Vm = struct {
     ins : ins.Instruction,
-    al : std.mem.Allocator,
-    compiler : Compiler,
+    compiler : *Compiler,
     ip : u8,
     stack : std.ArrayList(PValue),
     stackTop : usize,
-    objects : ?*Pobj,
-    strings : table.StringTable(),
+    gc : *Gc,
 
 
     const Self = @This();
 
-    pub fn newVm(al : std.mem.Allocator) Vm{
-        return Vm{
-            .al = al,
-            .ins = undefined,
-            .ip = 0,
-            .stack = undefined,
-            .stackTop = 0,
-            .compiler = undefined,
-            .objects = null,
-            .strings = undefined,
-        };
-    }
-
-    pub fn bootVm(self : *Self) void {
-        self.ins = ins.Instruction.init(self.al);
-        self.stack = std.ArrayList(PValue).init(self.al);
-        self.compiler.init(self);
-
-        self.strings = table.StringTable(){};
+    pub fn newVm(al : Allocator) !*Vm{
+        const v = try al.create(Vm);
+        return v;
         
     }
 
-    pub fn freeVm(self : *Self) void {
+    pub fn bootVm(self : *Self , gc : *Gc) void {
+        self.* = .{
+            .gc = gc,
+            .ins = ins.Instruction.init(gc.getAlc()),
+            .stack = std.ArrayList(PValue).init(gc.getAlc()),
+            .ip = 0,
+            .stackTop = 0,
+            .compiler = undefined,
+        };
+        
+
+        //self.strings = table.StringTable(){};
+        
+    }
+
+    pub fn freeVm(self : *Self , al : Allocator) void {
         //std.debug.print("{d}\n", .{self.strings.keys().len});
-        _ = table.freeStringTable(self, self.strings); 
-
-        self.strings.deinit(self.al);
-
+        //_ = table.freeStringTable(self, self.strings); 
+        self.compiler.free(self.gc.getAlc());
+        self.gc.free();
         self.stack.deinit();
         self.ins.free();
+        al.destroy(self);
+        
     }
 
     fn readByte(self : *Self) ins.OpCode{
@@ -113,10 +115,10 @@ pub const Vm = struct {
         std.debug.print("==== STACK ====\n" , .{});
         if (self.stack.items.len > 0) {
             for (self.stack.items, 0..) |value, i| {
-                const vs = value.toString(self.al) catch return;
+                const vs = value.toString(self.gc.getAlc()) catch return;
                 std.debug.print("[ |{:0>2}| {s:>4}" , .{self.stack.items.len - 1 - i , vs } );
                 std.debug.print(" ]\n" , .{});
-                self.al.free(vs);
+                self.gc.getAlc().free(vs);
 
             }
         }
@@ -131,11 +133,11 @@ pub const Vm = struct {
         if (a.isNumber() and b.isNumber()) {
             self.push(PValue.makeNumber(a.asNumber() + b.asNumber())) catch return false;
             return true;
-        }else if ((a.isObj() and a.asObj().objtype == Pobj.OType.Ot_String) and (b.isObj() and b.asObj().objtype == Pobj.OType.Ot_String)) {
+        }else if (a.isString() and b.isString()) {
             const bs = b.asObj().asString();
             const as = b.asObj().asString();
             
-            var temp_chars = self.al.alloc(u32, as.chars.len + bs.chars.len) catch return false;
+            var temp_chars = self.gc.getAlc().alloc(u32, as.chars.len + bs.chars.len) catch return false;
             var i : usize = 0;
 
             while (i < as.chars.len) {
@@ -149,15 +151,15 @@ pub const Vm = struct {
             }
             
 
-            const s = Pobj.OString.copy(self, temp_chars) catch {
-                 self.al.free(temp_chars);
+            const s = self.gc.copyString(temp_chars, @intCast(u32 , temp_chars.len)) catch {
+                 self.gc.getAlc().free(temp_chars);
                 return false;
             };
             self.push(s.obj.asValue()) catch {
-                self.al.free(temp_chars);
+                self.gc.getAlc().free(temp_chars);
                 return false;
             };
-            self.al.free(temp_chars);
+            self.gc.getAlc().free(temp_chars);
             return true;
         } else {
             return false;
@@ -314,6 +316,7 @@ pub const Vm = struct {
 
     pub fn interpret(self : *Self , source : []u32) IntrpResult{
         self.ip = 0;
+        self.compiler = Compiler.new(source, self.gc) catch return .RuntimeError;
         const result = self.compiler.compile(source, &self.ins) catch false;
         if (result) { 
             self.compiler.curIns().disasm("<script>");
