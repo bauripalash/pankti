@@ -21,6 +21,13 @@ pub const PObj = struct {
     
     pub const OType = enum(u8) {
         Ot_String,
+
+        pub fn toString(self : OType) []const u8 {
+
+            switch (self) {
+                .Ot_String => { return "OBJ_STRING"; }
+            }
+        }
     };
 
     pub fn create(gc : *Gc , comptime T : type , objtype : OType) !*PObj{
@@ -69,7 +76,7 @@ pub const PObj = struct {
 
     pub fn printObj(self : *PObj) void{
         switch (self.getType()) {
-            .Ot_String => utils.printu32(self.asString().chars),
+            .Ot_String => self.asString().print(),
         }
     }
 
@@ -104,21 +111,25 @@ pub const PObj = struct {
             
         }
 
-        pub fn copy(gc : *Gc , chars : []const u32) !*OString{
-            //if (gc.strings.get(chars)) |s| {
-            //    return s;
-            //}
-
-            const s = try PObj.OString.allocate(gc, chars);
-
-            //std.debug.print("{any}", .{s.*});
-            try gc.strings.put(gc.getAlc() , chars , s);
-            return s;
-        }
-
         pub fn free(self : *OString , gc : *Gc) void{
             gc.getAlc().free(self.chars);
             gc.getAlc().destroy(self);
+        }
+
+        pub fn print(self : *OString) void{
+            std.debug.print("\"" , .{});
+            utils.printu32(self.chars);
+            std.debug.print("\"" , .{});
+        }
+
+        pub fn size(self : *OString) usize{
+            var total : usize = @sizeOf(OString);
+            total += self.chars.len + 1 * @sizeOf(u32); 
+            //+1 is for self.hash each a u32
+
+            total += @sizeOf(@TypeOf(self.len));
+            return total;
+            
         }
 
         pub fn parent(self : *OString) *PObj{

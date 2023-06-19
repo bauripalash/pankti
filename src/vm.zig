@@ -18,15 +18,21 @@ const Pobj = @import("object.zig").PObj;
 const utils = @import("utils.zig");
 const table = @import("table.zig");
 const Allocator = std.mem.Allocator;
+const flags = @import("flags.zig");
 
 pub const IntrpResult = enum(u8) {
     Ok,
     CompileError,
     RuntimeError,
+
+    pub fn toString(self : IntrpResult) []const u8 {
+        switch (self) {
+            .Ok => { return "Ok"; },
+            .CompileError => { return "CompileError"; },
+            .RuntimeError => { return "RuntimeError"; },
+        }
+    }
 };
-
-
-
 
 
 pub const Vm = struct {
@@ -211,7 +217,9 @@ pub const Vm = struct {
 
     fn run(self : *Self) IntrpResult{
         while (true) {
-            self.debugStack();
+            if (flags.DEBUG) {
+                self.debugStack();
+            }
             const op = self.readByte();
 
             switch (op) {
@@ -319,7 +327,6 @@ pub const Vm = struct {
         self.compiler = Compiler.new(source, self.gc) catch return .RuntimeError;
         const result = self.compiler.compile(source, &self.ins) catch false;
         if (result) { 
-            self.compiler.curIns().disasm("<script>");
             return self.interpretRaw(self.compiler.curIns());
         } else { 
             return .CompileError;

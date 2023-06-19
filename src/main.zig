@@ -48,13 +48,12 @@ pub fn main() !void {
         var gc = try Gc.new(GcGa);
         gc.boot(GcGa);
 
-        //std.debug.print("{any}\n", .{gc});
         const text = try openfile(f, ga);
         const u = try utils.u8tou32(text, ga);
         var myv = try Vm.newVm(gc.getAlc());
         myv.bootVm(gc);
         const result = myv.interpret(u);
-        print("VM Result => {}\n" , .{result});
+        std.debug.print("VM Result : {s}\n" , .{result.toString()});
         myv.freeVm(gc.getAlc());
         ga.free(u);
         ga.free(text);

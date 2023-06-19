@@ -16,6 +16,7 @@ const PValue = @import("value.zig").PValue;
 const PObj = @import("object.zig").PObj;
 const Vm = @import("vm.zig").Vm;
 const Gc = @import("gc.zig").Gc;
+const flags = @import("flags.zig");
 
 const DEBUG = true;
 
@@ -308,7 +309,7 @@ pub const Compiler = struct {
     fn endCompiler(self : *Self) !void {
         //try self.emitBt(.Nil);
         try self.emitBt(.Op_Return);
-        if (!self.parser.hadErr) {
+        if (flags.DEBUG) {
             self.inst.disasm("<script>");
         }
     }
