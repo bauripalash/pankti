@@ -262,6 +262,36 @@ pub const Compiler = struct {
         return;
     }
 
+    fn rDeclaration(self : *Self) !void{
+        try self.rStatement();
+    }
+
+    fn rStatement(self : *Self) !void{
+        if (self.match(.Show)) {
+            try self.rPrintStatement();
+        }
+
+    }
+
+    fn rExprStatement(self : *Self) !void {
+        self.parseExpression() catch {
+            self.parser.err("failed to parse expression");
+            return;
+        };
+
+        try self.emitBt(.Op_Pop);
+    }
+
+    fn rPrintStatement(self : *Self) !void {
+        self.parseExpression() catch {
+            self.parser.errCur("failed to parse expression");
+            return;
+        };
+
+        try self.emitBt(.Op_Show);
+
+    }
+
    
     fn parseExpression(self : *Self) !void{
         try self.parsePrec(.P_Assignment);
@@ -301,6 +331,17 @@ pub const Compiler = struct {
 
         self.parser.errCur(msg);
     }
+    
+    pub fn check(self : *Self , t : lexer.TokenType) bool {
+        return self.parser.current.toktype == t;
+    }
+
+    pub fn match(self : *Self , t : lexer.TokenType) bool{
+        if (!self.check(t)) { return false; }
+        self.parser.advance();
+        return true;
+        
+    }
 
     pub fn curIns(self : *Self) *ins.Instruction{
         return self.inst;
@@ -323,7 +364,11 @@ pub const Compiler = struct {
         //while (self.parser.previous.toktype != .Eof) {
         //    self.parser.advance();
         //}
-        try self.parseExpression();
+        //try self.parseExpression();
+        //
+        while (!self.match(.Eof)) {
+            try self.rDeclaration();
+        }
 
         try self.endCompiler();
 

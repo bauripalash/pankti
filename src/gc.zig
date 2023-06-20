@@ -128,7 +128,7 @@ pub const Gc = struct {
     }
 
     pub fn free(self : *Self) void{
-        std.debug.print("{any}\n" , .{self.strings.keys().len});
+        //std.debug.print("{any}\n" , .{self.strings.keys().len});
         self.freeObjects();
         self.strings.deinit(self.al);
         self.al.destroy(self);

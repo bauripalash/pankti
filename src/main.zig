@@ -18,6 +18,7 @@ const Gc = @import("gc.zig").Gc;
 const Vm = v.Vm;
 const IntrpResult = v.IntrpResult;
 const PValue = @import("value.zig").PValue;
+const flags = @import("flags.zig");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -40,6 +41,17 @@ pub fn main() !void {
         if (fileToRun) |f| {
             ga.free(f);
         }
+        
+        if (flags.DEBUG_GC) {
+
+            std.debug.print("==== GC Deinit ====\n" , .{});
+         
+            std.debug.print("[GC] Leaks -> {}\n" , .{gcGpa.detectLeaks()});
+            //std.debug.print("[GC] {}\n" , .{});
+
+            std.debug.print("===================\n" , .{});
+        }
+
         _ = gpa.deinit();
         _ = gcGpa.deinit();
     }

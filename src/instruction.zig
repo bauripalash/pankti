@@ -9,6 +9,7 @@
 
 const std = @import("std");
 const PValue = @import("value.zig").PValue;
+const Gc = @import("gc.zig").Gc;
 
 pub const OpCode = enum(u8) {
     Op_Return,
@@ -128,35 +129,39 @@ pub const InstPos = struct {
 };
 
 pub const Instruction = struct {
-    code: std.ArrayList(u8),
-    pos: std.ArrayList(InstPos),
-    cons : std.ArrayList(PValue),
-    pub fn init(al: std.mem.Allocator) Instruction {
+    code: std.ArrayListUnmanaged(u8),
+    pos: std.ArrayListUnmanaged(InstPos),
+    cons : std.ArrayListUnmanaged(PValue),
+    gc : *Gc,
+
+    pub fn init(gc : *Gc) Instruction {
+
         return Instruction{
-            .code = std.ArrayList(u8).init(al),
-            .pos = std.ArrayList(InstPos).init(al),
-            .cons = std.ArrayList(PValue).init(al),
+            .code = std.ArrayListUnmanaged(u8){},
+            .pos = std.ArrayListUnmanaged(InstPos){},
+            .cons = std.ArrayListUnmanaged(PValue){},
+            .gc = gc,
         };
     }
 
     pub fn free(self: *Instruction) void {
-        self.code.deinit();
-        self.pos.deinit();
-        self.cons.deinit();
+        self.code.deinit(self.gc.getAlc());
+        self.pos.deinit(self.gc.getAlc());
+        self.cons.deinit(self.gc.getAlc());
     }
 
     pub fn write_raw(self: *Instruction, bt: u8, pos: InstPos) !void {
-        try self.code.append(bt);
-        try self.pos.append(pos);
+        try self.code.append(self.gc.getAlc() , bt);
+        try self.pos.append(self.gc.getAlc(), pos);
     }
 
     pub fn write(self: *Instruction, bt: OpCode, pos: InstPos) !void {
-        try self.code.append(@enumToInt(bt));
-        try self.pos.append(pos);
+        try self.code.append(self.gc.getAlc() , @enumToInt(bt));
+        try self.pos.append(self.gc.getAlc() , pos);
     }
 
     pub fn addConst(self : *Instruction , value : PValue) !u8 {
-        try self.cons.append(value);
+        try self.cons.append(self.gc.getAlc() , value);
         return @intCast(u8 , self.cons.items.len - 1);
         // catch return false;
         //return true;
@@ -229,6 +234,7 @@ pub const Instruction = struct {
             .Op_ClsUp, 
             .Op_Err, 
             .Op_Index, 
+            .Op_Show,
             .Op_SubAssign => {
                 return self.simpleInstruction(ins.toString(), offset);
             },

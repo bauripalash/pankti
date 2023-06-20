@@ -39,7 +39,7 @@ pub const Vm = struct {
     ins : ins.Instruction,
     compiler : *Compiler,
     ip : u8,
-    stack : std.ArrayList(PValue),
+    stack : std.ArrayListUnmanaged(PValue),
     stackTop : usize,
     gc : *Gc,
 
@@ -55,8 +55,8 @@ pub const Vm = struct {
     pub fn bootVm(self : *Self , gc : *Gc) void {
         self.* = .{
             .gc = gc,
-            .ins = ins.Instruction.init(gc.getAlc()),
-            .stack = std.ArrayList(PValue).init(gc.getAlc()),
+            .ins = ins.Instruction.init(gc),
+            .stack = std.ArrayListUnmanaged(PValue){},
             .ip = 0,
             .stackTop = 0,
             .compiler = undefined,
@@ -71,9 +71,9 @@ pub const Vm = struct {
         //std.debug.print("{d}\n", .{self.strings.keys().len});
         //_ = table.freeStringTable(self, self.strings); 
         self.compiler.free(self.gc.getAlc());
-        self.gc.free();
-        self.stack.deinit();
+        self.stack.deinit(self.gc.getAlc());
         self.ins.free();
+        self.gc.free();
         al.destroy(self);
         
     }
@@ -98,7 +98,7 @@ pub const Vm = struct {
     }
     
     pub fn push(self : *Self , value : PValue) !void {
-        try self.stack.append(value);
+        try self.stack.append(self.gc.getAlc() , value);
         
     }
 
@@ -225,15 +225,24 @@ pub const Vm = struct {
             switch (op) {
                 .Op_Return => {
                     //self.throwRuntimeError("Return occured");
-                    self.pop().printVal();
-                    std.debug.print("\n" , .{});
+                    //self.pop().printVal();
+                    //std.debug.print("\n" , .{});
                     return IntrpResult.Ok;
+                },
+
+                .Op_Show => {
+                    self.pop().printVal();
+                    std.debug.print("\n", .{});
                 },
 
                 .Op_Const => {
                    const con : PValue = self.readConst();
                    self.push(con) catch return .RuntimeError;
 
+                },
+
+                .Op_Pop => {
+                    _ = self.pop();
                 },
 
                 .Op_Neg => {
