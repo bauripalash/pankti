@@ -21,6 +21,7 @@ pub const Gc = struct {
     al : Allocator,
     objects : ?*PObj,
     strings : table.StringTable(),
+    globals : table.GlobalsTable(),
     const Self = @This();
 
     pub fn new(gc : Allocator) !*Gc{
@@ -28,6 +29,7 @@ pub const Gc = struct {
         newgc.* = .{
             .al = gc,
             .strings = table.StringTable(){},
+            .globals = table.GlobalsTable(){},
             .inernal_al = gc,
             .objects = null,
         };
@@ -73,6 +75,7 @@ pub const Gc = struct {
         ptr.chars = chars;
         ptr.len = len;
         ptr.obj.isMarked = true;
+        ptr.hash = try utils.hashU32(chars);
 
         try self.strings.put(self.getAlc(), chars , ptr);
 
@@ -131,6 +134,7 @@ pub const Gc = struct {
         //std.debug.print("{any}\n" , .{self.strings.keys().len});
         self.freeObjects();
         self.strings.deinit(self.al);
+        self.globals.deinit(self.al);
         self.al.destroy(self);
     }
 

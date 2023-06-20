@@ -20,6 +20,12 @@ const table = @import("table.zig");
 const Allocator = std.mem.Allocator;
 const flags = @import("flags.zig");
 
+pub const StackError = error {
+    StackOverflow,
+    StackUnderflow,
+    StackFailPush,
+};
+
 pub const IntrpResult = enum(u8) {
     Ok,
     CompileError,
@@ -60,6 +66,7 @@ pub const Vm = struct {
             .ip = 0,
             .stackTop = 0,
             .compiler = undefined,
+             
         };
         
 
@@ -93,16 +100,27 @@ pub const Vm = struct {
        return self.ins.cons.items[self.readRawByte()];
     }
 
+    fn readStringConst(self : *Self) *Pobj.OString{
+        return self.readConst().asObj().asString();
+
+    }
+
     fn resetStack(self : *Self) void {
         self.stackTop = 0;
     }
     
-    pub fn push(self : *Self , value : PValue) !void {
-        try self.stack.append(self.gc.getAlc() , value);
+    pub fn push(self : *Self , value : PValue) StackError!void {
+        self.stack.append(self.gc.getAlc() , value) catch {
+            return StackError.StackFailPush;
+        };
         
     }
 
-    pub fn pop(self : *Self) PValue {
+    pub fn pop(self : *Self) StackError!PValue {
+        if (self.stack.items.len == 0) {
+            self.throwRuntimeError("Stack Underflow Occured");
+            return StackError.StackUnderflow;
+        }
         return self.stack.pop();
     }
 
@@ -133,8 +151,8 @@ pub const Vm = struct {
 
     fn doBinaryOpAdd(self : *Self) bool{
         // only works on numbers
-        const b = self.pop();
-        const a = self.pop();
+        const b = self.pop() catch return false;
+        const a = self.pop() catch return false;
 
         if (a.isNumber() and b.isNumber()) {
             self.push(PValue.makeNumber(a.asNumber() + b.asNumber())) catch return false;
@@ -175,8 +193,8 @@ pub const Vm = struct {
 
     fn doBinaryOpSub(self : *Self) bool{
         // only works on numbers
-        const b = self.pop();
-        const a = self.pop();
+        const b = self.pop() catch return false;
+        const a = self.pop() catch return false;
 
         if (a.isNumber() and b.isNumber()) {
             self.push(PValue.makeNumber(a.asNumber() - b.asNumber())) catch return false;
@@ -189,8 +207,8 @@ pub const Vm = struct {
 
     fn doBinaryOpMul(self : *Self) bool{
         // only works on numbers
-        const b = self.pop();
-        const a = self.pop();
+        const b = self.pop() catch return false;
+        const a = self.pop() catch return false;
 
         if (a.isNumber() and b.isNumber()) {
             self.push(PValue.makeNumber(a.asNumber() * b.asNumber())) catch return false;
@@ -203,8 +221,8 @@ pub const Vm = struct {
 
     fn doBinaryOpDiv(self : *Self) bool{
         // only works on numbers
-        const b = self.pop();
-        const a = self.pop();
+        const b = self.pop() catch return false;
+        const a = self.pop() catch return false;
 
         if (a.isNumber() and b.isNumber()) {
             self.push(PValue.makeNumber(a.asNumber() / b.asNumber())) catch return false;
@@ -227,11 +245,15 @@ pub const Vm = struct {
                     //self.throwRuntimeError("Return occured");
                     //self.pop().printVal();
                     //std.debug.print("\n" , .{});
+                    //const popVal = self.pop() catch return .RuntimeError;
+                    //popVal.printVal();
+
                     return IntrpResult.Ok;
                 },
 
                 .Op_Show => {
-                    self.pop().printVal();
+                    const popVal = self.pop() catch return .RuntimeError;
+                    popVal.printVal();
                     std.debug.print("\n", .{});
                 },
 
@@ -242,11 +264,11 @@ pub const Vm = struct {
                 },
 
                 .Op_Pop => {
-                    _ = self.pop();
+                    _ = self.pop() catch return .RuntimeError;
                 },
 
                 .Op_Neg => {
-                    var v = self.pop();
+                    var v = self.pop() catch return .RuntimeError;
                     if (v.isNumber()) {
                         self.push(v.makeNeg()) catch return .RuntimeError;
                     } else {
@@ -274,6 +296,26 @@ pub const Vm = struct {
                     }
                 },
 
+                .Op_DefGlob => {
+                    const name : *Pobj.OString = self.readStringConst();
+                    self.gc.globals.put(self.gc.getAlc(), name, self.peek(0)) catch return .RuntimeError;
+                     _ = self.pop() catch return .RuntimeError;
+                },
+
+                .Op_GetGlob => {
+                    const name : *Pobj.OString = self.readStringConst();
+
+                    if (self.gc.globals.get(name)) |value| {
+                        self.push(value) catch return .RuntimeError;
+                    }else{
+                        self.throwRuntimeError("Undefined variable");
+                        return .RuntimeError;
+                    }
+
+
+
+                },
+
                 .Op_True => {
                     self.push(PValue.makeBool(true)) catch {
                         return .RuntimeError;
@@ -287,8 +329,8 @@ pub const Vm = struct {
                 },
 
                 .Op_Eq => {
-                    const b = self.pop();
-                    const a = self.pop();
+                    const b = self.pop() catch return .RuntimeError;
+                    const a = self.pop() catch return .RuntimeError;
 
                     self.push(PValue.makeBool(a.isEqual(b))) catch {
                         return .RuntimeError;  
@@ -296,8 +338,8 @@ pub const Vm = struct {
                 },
 
                 .Op_Neq => {
-                    const b = self.pop();
-                    const a = self.pop();
+                    const b = self.pop() catch return .RuntimeError;
+                    const a = self.pop() catch return .RuntimeError;
                     
                     self.push(PValue.makeBool(!a.isEqual(b))) catch {
                         return .RuntimeError;  
@@ -312,7 +354,8 @@ pub const Vm = struct {
                 },
 
                 .Op_Not => {
-                    self.push(PValue.makeBool(self.pop().isFalsy())) catch {
+                    const val = self.pop() catch return .RuntimeError;
+                    self.push(PValue.makeBool(val.isFalsy())) catch {
                         return .RuntimeError;
                     };
                 },

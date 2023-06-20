@@ -12,6 +12,8 @@ const utils = @import("utils.zig");
 const object = @import("object.zig");
 const Vm = @import("vm.zig").Vm;
 const Pobj = object.PObj;
+const val = @import("value.zig");
+const PValue = val.PValue;
 
 const StringTableContext = struct {
     pub fn eql(self : @This() , a : []const u32 , b : []const u32 , index : usize) bool{
@@ -34,9 +36,36 @@ pub fn StringTable() type{
 }
 
 pub fn freeStringTable(vm : *Vm , table : StringTable()) bool {
-    std.debug.print("{d}" , .{table.keys().len});
+    //std.debug.print("{d}" , .{table.keys().len});
     for (table.values()) |value| {
         value.free(vm);
     }
     return true;
+}
+
+const GlobalsTableContext = struct {
+    
+    pub fn eql(self : @This() , a :*Pobj.OString , b :*Pobj.OString , index : usize) bool {
+        _ = index;
+        _ = self;
+        return a.hash == b.hash;
+    }
+    pub fn hash(self : @This() , key : *Pobj.OString) u32 {
+        _ = self;
+        return key.hash;
+    }
+};
+
+pub fn GlobalsTable() type {
+    return std.ArrayHashMapUnmanaged(*Pobj.OString, PValue, GlobalsTableContext, true);
+}
+
+pub fn freeGlobalsTable(vm : *Vm , table : GlobalsTable()) bool {
+
+    for (table.values()) |value| {
+        value.free(vm);
+    }
+
+    return true;
+
 }

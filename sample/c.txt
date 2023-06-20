@@ -1,1 +1,3 @@
 show "hello" + "hello"
+let a = 10
+show a+10;

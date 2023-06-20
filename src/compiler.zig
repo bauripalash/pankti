@@ -117,7 +117,9 @@ pub const Compiler = struct {
             .infix = Self.rBinary,
             .prec = .P_Comp,
         },
-        .Identifer = ParseRule{},
+        .Identifer = ParseRule{
+            .prefix = Self.rVariable,
+        },
         .String = ParseRule{
            .prefix = Self.rString, 
         },
@@ -187,6 +189,39 @@ pub const Compiler = struct {
     fn makeConst(self : *Self , val : PValue ) !u8{
         const con : u8 = try self.inst.addConst(val);
         return con;
+    }
+
+    fn syncErrors(self : *Self) void {
+        self.parser.panicMode = false;
+
+        while (self.parser.current.toktype != .Eof) {
+            if (self.parser.previous.toktype == .Semicolon) {
+                return;
+            }
+
+            switch (self.parser.current.toktype) {
+               .Func , .Let , .If , .PWhile , .Show , .Return => {
+                    return;
+               },
+
+               else => {},
+            }
+
+            self.parser.advance();
+        }
+    }
+    
+    fn rVariable(self : *Self , canAssign : bool) !void {
+        _ = canAssign;
+        try self.namedVariable(self.parser.previous);
+
+    }
+
+    fn namedVariable(self : *Self , name : lexer.Token) !void {
+        const arg = self.rIdentConst(&name);
+        try self.emitBt(.Op_GetGlob);
+        try self.emitBtRaw(arg);
+
     }
 
     fn rNumber(self : *Self , _ : bool) !void{
@@ -263,7 +298,16 @@ pub const Compiler = struct {
     }
 
     fn rDeclaration(self : *Self) !void{
-        try self.rStatement();
+
+        if (self.match(.Let)) {
+            try self.rLetDeclaration();
+        } else {
+            try self.rStatement();
+        }
+
+        if (self.parser.panicMode) {
+            self.syncErrors();
+        }
     }
 
     fn rStatement(self : *Self) !void{
@@ -279,7 +323,15 @@ pub const Compiler = struct {
             return;
         };
 
+        self.skipSemicolon();
+
         try self.emitBt(.Op_Pop);
+    }
+
+    fn skipSemicolon(self : *Self) void {
+        if (self.match(.Semicolon)) {
+            self.parser.advance();
+        }
     }
 
     fn rPrintStatement(self : *Self) !void {
@@ -288,8 +340,40 @@ pub const Compiler = struct {
             return;
         };
 
+        self.skipSemicolon();
+
         try self.emitBt(.Op_Show);
 
+    }
+
+    fn rLetDeclaration(self : *Self) !void {
+        const global : u8 = self.parseVariable("Expected variable name");
+        if (self.match(.Eq)) {
+            try self.parseExpression();
+        } else {
+            try self.emitBt(.Op_Nil);
+        }
+
+        self.skipSemicolon();
+
+        try self.defineVar(global);
+    }
+
+    fn defineVar(self : *Self , global : u8) !void{
+        try self.emitBt(.Op_DefGlob);
+        try self.emitBtRaw(global);
+    }
+    
+    fn parseVariable(self : *Self , msg : []const u8) u8{
+        self.eat(.Identifer, msg);
+        return self.rIdentConst(&self.parser.previous);
+    }
+
+    fn rIdentConst(self : *Self, name : *const lexer.Token) u8 {
+        const strObj : *PObj.OString = self.gc.copyString(name.lexeme , name.length) catch return 0;
+        const val = strObj.parent().asValue();
+         
+        return self.makeConst(val) catch return 0;
     }
 
    
