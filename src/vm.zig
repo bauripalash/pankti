@@ -233,9 +233,22 @@ pub const Vm = struct {
         
     }
 
+    fn doBinaryOpComp(self : *Self) bool {
+         // only works on numbers
+        const b = self.pop() catch return false;
+        const a = self.pop() catch return false;
+
+        if (a.isNumber() and b.isNumber()) {
+            self.push(PValue.makeBool(a.asNumber() > b.asNumber())) catch return false;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     fn run(self : *Self) IntrpResult{
         while (true) {
-            if (flags.DEBUG) {
+            if (flags.DEBUG and flags.DEBUG_STACK) {
                 self.debugStack();
             }
             const op = self.readByte();
@@ -253,6 +266,7 @@ pub const Vm = struct {
 
                 .Op_Show => {
                     const popVal = self.pop() catch return .RuntimeError;
+                    std.debug.print("~~ " , .{});
                     popVal.printVal();
                     std.debug.print("\n", .{});
                 },
@@ -296,9 +310,19 @@ pub const Vm = struct {
                     }
                 },
 
+                .Op_Gt => {
+
+                    if (!self.doBinaryOpComp()){
+                        return .RuntimeError;
+                    }
+                
+                },
+
                 .Op_DefGlob => {
                     const name : *Pobj.OString = self.readStringConst();
-                    self.gc.globals.put(self.gc.getAlc(), name, self.peek(0)) catch return .RuntimeError;
+                    self.gc.globals.put(self.gc.getAlc(), name, self.peek(0))
+                        catch return .RuntimeError;
+
                      _ = self.pop() catch return .RuntimeError;
                 },
 
@@ -311,9 +335,20 @@ pub const Vm = struct {
                         self.throwRuntimeError("Undefined variable");
                         return .RuntimeError;
                     }
+                },
 
+                .Op_SetGlob => {
+                     const name : *Pobj.OString = self.readStringConst();
 
-
+                    if (self.gc.globals.get(name)) |_| {
+                        self.gc.globals.put(self.gc.getAlc(),
+                                            name, 
+                                            self.peek(0)) catch 
+                                                return .RuntimeError;
+                    }else{
+                        self.throwRuntimeError("Undefined variable");
+                        return .RuntimeError;
+                    }
                 },
 
                 .Op_True => {

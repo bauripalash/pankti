@@ -2,6 +2,7 @@ ZIG:=zig
 BUILD_DIR:=zig-out
 TARGET:=$(BUILD_DIR)/bin/neopank
 SAMPLE:=sample/c.txt
+DEBUGGER:=gdb
 
 run: $(TARGET)
 	./$(TARGET) $(SAMPLE)
@@ -11,6 +12,9 @@ $(TARGET): build
 
 build:
 	$(ZIG) build 
+
+debug: $(TARGET)
+	$(DEBUGGER) --args $(TARGET) $(SAMPLE)
 
 test:
 	@$(ZIG) test src/main.zig

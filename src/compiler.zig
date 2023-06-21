@@ -194,10 +194,10 @@ pub const Compiler = struct {
     fn syncErrors(self : *Self) void {
         self.parser.panicMode = false;
 
-        while (self.parser.current.toktype != .Eof) {
-            if (self.parser.previous.toktype == .Semicolon) {
-                return;
-            }
+        while (!self.parser.lexer.isEof()) {
+            //if (self.parser.previous.toktype == .Semicolon) {
+            //    return;
+            //}
 
             switch (self.parser.current.toktype) {
                .Func , .Let , .If , .PWhile , .Show , .Return => {
@@ -212,16 +212,26 @@ pub const Compiler = struct {
     }
     
     fn rVariable(self : *Self , canAssign : bool) !void {
-        _ = canAssign;
-        try self.namedVariable(self.parser.previous);
+
+        try self.namedVariable(self.parser.previous , canAssign);
 
     }
 
-    fn namedVariable(self : *Self , name : lexer.Token) !void {
-        const arg = self.rIdentConst(&name);
-        try self.emitBt(.Op_GetGlob);
-        try self.emitBtRaw(arg);
+    fn namedVariable(self : *Self , name : lexer.Token , canAssign : bool) !void {
 
+        const arg = self.rIdentConst(&name);
+        
+        if (canAssign and self.match(.Eq)) {
+
+           try self.parseExpression();
+           try self.emitBt(.Op_SetGlob);
+           try self.emitBtRaw(arg);
+        } else {
+            try self.emitBt(.Op_GetGlob);
+            try self.emitBtRaw(arg);
+        }
+
+        
     }
 
     fn rNumber(self : *Self , _ : bool) !void{
@@ -297,6 +307,12 @@ pub const Compiler = struct {
         return;
     }
 
+    fn skipSemicolon(self : *Self) void {
+        if (self.check(.Semicolon)) {
+            self.eat(.Semicolon, "Ate Semicolon");
+        }
+    }
+
     fn rDeclaration(self : *Self) !void{
 
         if (self.match(.Let)) {
@@ -313,6 +329,8 @@ pub const Compiler = struct {
     fn rStatement(self : *Self) !void{
         if (self.match(.Show)) {
             try self.rPrintStatement();
+        }else {
+            try self.rExprStatement();
         }
 
     }
@@ -328,11 +346,7 @@ pub const Compiler = struct {
         try self.emitBt(.Op_Pop);
     }
 
-    fn skipSemicolon(self : *Self) void {
-        if (self.match(.Semicolon)) {
-            self.parser.advance();
-        }
-    }
+    
 
     fn rPrintStatement(self : *Self) !void {
         self.parseExpression() catch {
@@ -340,9 +354,15 @@ pub const Compiler = struct {
             return;
         };
 
+
+        
         self.skipSemicolon();
 
         try self.emitBt(.Op_Show);
+
+
+        //self.inst.disasm("before print");
+        //std.debug.print("next token -> {}, {}" , .{self.parser.previous , self.parser.current});
 
     }
 
@@ -407,6 +427,8 @@ pub const Compiler = struct {
     }
 
    
+    /// Eat the `t` TokenType from `current` token.  
+    /// Otherwise raise an error with `msg`  as text
     pub fn eat(self : *Self , t : lexer.TokenType , msg : []const u8) void{
         if (self.parser.current.toktype == t) {
             self.parser.advance();
@@ -415,11 +437,14 @@ pub const Compiler = struct {
 
         self.parser.errCur(msg);
     }
-    
+
+    /// Check if the `current` token is of type `t`
     pub fn check(self : *Self , t : lexer.TokenType) bool {
         return self.parser.current.toktype == t;
     }
 
+    /// Check if current token is of type `t`, if yes  
+    /// then advance the parser.
     pub fn match(self : *Self , t : lexer.TokenType) bool{
         if (!self.check(t)) { return false; }
         self.parser.advance();
@@ -445,11 +470,6 @@ pub const Compiler = struct {
         
         self.parser.advance();
 
-        //while (self.parser.previous.toktype != .Eof) {
-        //    self.parser.advance();
-        //}
-        //try self.parseExpression();
-        //
         while (!self.match(.Eof)) {
             try self.rDeclaration();
         }
@@ -493,6 +513,17 @@ pub const Parser = struct {
     }
 
     pub fn init(self : *Self , source : []u32 , gc : *Gc) void{
+        
+        //if (flags.DEBUG and flags.DEBUG_LEXER) {
+        //    var lx = lexer.Lexer.new(source);
+        //    while (!lx.isEof()) {
+        //        const tokStr =  lx.getToken().toString(self.gc.getAlc()) catch continue;
+        //        std.debug.print("{s}\n", .{tokStr} );
+        //        self.gc.getAlc().free(tokStr);
+        //    }
+        //    
+        //}
+
         self.hadErr = false;
         self.panicMode = false;
         self.lexer = lexer.Lexer.new(source);
