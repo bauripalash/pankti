@@ -129,6 +129,24 @@ pub fn matchU32(a: []const u32, b: []const u32) bool {
     return true;
 }
 
+/// Convert an u16 to u8 
+pub fn u16tou8(a : u16) [2]u8{
+    var result : [2]u8 = undefined;
+    result[0] = @intCast(u8 , a >> 8);
+    result[1] = @intCast(u8, a & 0xff);
+    return result;
+
+}
+
+/// Convert two u8 to u16
+pub fn u8tou16(a :[]const u8) u16{
+    if (a.len > 2) { return 0; }
+    var result : u16 = (@intCast(u16 , a[0]) << 8) | @intCast(u16, a[1]);
+    return result;
+
+
+}
+
 test "test utils->u8tou32->english" {
     const al = std.testing.allocator;
     const text = "The quick brown fox jumps over the lazy dog";

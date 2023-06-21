@@ -1,4 +1,4 @@
 #show "hello" + "hello";
-let a = 200;
-a = 1000 > 3
-show a+10
+#let a = 200
+#a = a * 1000
+show 90 ** 90

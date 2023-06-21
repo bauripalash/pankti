@@ -219,6 +219,20 @@ pub const Vm = struct {
         
     }
 
+    fn doBinaryOpPow(self : *Self) bool{
+        // only works on numbers
+        const b = self.pop() catch return false;
+        const a = self.pop() catch return false;
+
+        if (a.isNumber() and b.isNumber()) {
+            self.push(PValue.makeNumber(std.math.pow(f64, a.asNumber() , b.asNumber()))) catch return false;
+            return true;
+        } else {
+            return false;
+        }
+        
+    }
+
     fn doBinaryOpDiv(self : *Self) bool{
         // only works on numbers
         const b = self.pop() catch return false;
@@ -300,8 +314,13 @@ pub const Vm = struct {
                     if (!self.doBinaryOpSub()) { return .RuntimeError; }
                 },
 
-                .Op_Mul => { if (!self.doBinaryOpMul()) { return .RuntimeError; } 
+                .Op_Mul => { 
+                    if (!self.doBinaryOpMul()) { return .RuntimeError; } 
                 
+                },
+
+                .Op_Pow => {
+                    if (!self.doBinaryOpPow()) { return .RuntimeError; }
                 },
 
                 .Op_Div => {

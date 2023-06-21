@@ -89,6 +89,10 @@ pub const Compiler = struct {
             .infix = Self.rBinary,
             .prec = .P_Fact
         },
+        .PowAstr = ParseRule{
+            .infix = Self.rBinary,
+            .prec = .P_Fact
+        },
         .Bang = ParseRule{
             .prefix = Self.rUnary,
         },
@@ -279,6 +283,7 @@ pub const Compiler = struct {
             .Plus => try self.emitBt(.Op_Add),
             .Minus => try self.emitBt(.Op_Sub),
             .Astr => try self.emitBt(.Op_Mul),
+            .PowAstr => try self.emitBt(.Op_Pow),
             .Slash => try self.emitBt(.Op_Div),
             .NotEqual => try self.emitBt(.Op_Neq),
             .EqEq => try self.emitBt(.Op_Eq),
@@ -423,7 +428,9 @@ pub const Compiler = struct {
             try infixRule(self , canAssign);
         }
 
-        //if (canAssign and self) {}
+        if (canAssign and self.match(.Eq)) {
+            self.parser.err("Invalid assignment target");
+        }
     }
 
    
