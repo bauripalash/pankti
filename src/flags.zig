@@ -7,8 +7,8 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
-pub const DEBUG_GC = true;
-pub const DEBUG_STACK = true;
+pub const DEBUG_GC = false;
+pub const DEBUG_STACK = false;
 pub const DEBUG = true;
 pub const DEBUG_LEXER = false;
 

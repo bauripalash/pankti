@@ -1,4 +1,8 @@
-#show "hello" + "hello";
-#let a = 200
-#a = a * 1000
-show 90 ** 90
+{
+	let a = 10
+	{
+		let b = 20
+		#show(b)
+		b = b + 1
+	}
+}

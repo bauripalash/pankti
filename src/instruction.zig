@@ -245,7 +245,10 @@ pub const Instruction = struct {
             .Op_Import , 
             .Op_DefGlob, 
             .Op_GetGlob, 
-            .Op_SetGlob, => { 
+            .Op_SetGlob,
+            .Op_GetLocal,
+            .Op_SetLocal,
+            => { 
                 return self.constInstruction(ins.toString() , offset);
             },
             else => {

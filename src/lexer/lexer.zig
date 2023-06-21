@@ -74,8 +74,8 @@ pub fn toktypeToString(t: TokenType) []const u8 {
         .Eof => "Eof",
         .Lparen => "Lparen",
         .Rparen => "Rparen",
-        .Lbrace => "Lbracket",
-        .Rbrace => "Rbracket",
+        .Lbrace => "Lbrace",
+        .Rbrace => "Rbrace",
         .LsBracket => "LsBracket",
         .RsBracket => "RsBracket",
         .Dot => "Dot",
@@ -133,7 +133,7 @@ pub const Token = struct {
     
     pub fn dummy() Token{
         return Token{
-            .lexeme = undefined,
+            .lexeme = &[_]u32{'_'},
             .toktype = .Err,
             .length = 1,
             .colpos = 1,

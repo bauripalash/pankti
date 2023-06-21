@@ -370,6 +370,19 @@ pub const Vm = struct {
                     }
                 },
 
+                .Op_GetLocal => {
+
+                    const slot = self.readRawByte();
+                    self.push(self.stack.items[@intCast(usize , slot)]) catch 
+                        return .RuntimeError;
+                },
+
+                .Op_SetLocal => {
+
+                    const slot = self.readRawByte();
+                    self.stack.items[@intCast(usize , slot)] = self.peek(0);
+                },
+
                 .Op_True => {
                     self.push(PValue.makeBool(true)) catch {
                         return .RuntimeError;

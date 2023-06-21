@@ -20,6 +20,11 @@ const flags = @import("flags.zig");
 
 const DEBUG = true;
 
+pub const Local = struct {
+    name : lexer.Token,
+    depth : i32,
+};
+
 const Precedence = enum(u8) {
     P_None,
     P_Assignment,
@@ -32,13 +37,15 @@ const Precedence = enum(u8) {
     P_Unary,
     P_Call,
     P_Pry,
-
 };
 
 pub const Compiler = struct {
     parser : *Parser,
     gc : *Gc,
     inst : *ins.Instruction,
+    localCount : u32,
+    scopeDepth : u32,
+    locals : [std.math.maxInt(u8)]Local,
 
     const Self = @This();
 
@@ -158,9 +165,39 @@ pub const Compiler = struct {
             .parser = try Parser.new(source, gc),
             .gc = gc,
             .inst = undefined,
+            .scopeDepth = 0,
+            .localCount = 0,
+            .locals = [_]Local{Local{ .name = lexer.Token.dummy(), .depth = 0 }} ** std.math.maxInt(u8),
 
         };
+
+        //var l = c.*.locals[0];
+        //_ = l;
+
+        
+        //var local = &c.locals[0];
+        //c.localCount += 1;
+        //local.depth = 0;
+        //local.name.lexeme = &[_]u32{};
+        //local.name.length = 0;
+        //local.captured = false;
+
+
         return c;
+    }
+
+    fn beginScope(self : *Self) void {
+        self.scopeDepth+=1;
+    }
+
+    fn endScope(self : *Self) void {
+        self.scopeDepth-=1;
+
+        while (self.localCount > 0 and 
+            self.locals[self.localCount - 1].depth > self.scopeDepth) {
+            self.emitBt(.Op_Pop) catch return;
+            self.localCount -= 1;
+        }
     }
 
     fn emitBtRaw(self : *Self , bt : u8) !void{
@@ -221,18 +258,40 @@ pub const Compiler = struct {
 
     }
 
+    fn rBlock(self : *Self) !void{
+       while (!self.check(.Rbrace) and !self.check(.Eof)) {
+            try self.rDeclaration();
+       } 
+
+       self.eat(.Rbrace, "Expected '}' after block statement");
+    }
+
     fn namedVariable(self : *Self , name : lexer.Token , canAssign : bool) !void {
 
-        const arg = self.rIdentConst(&name);
+        var getOp : ins.OpCode = undefined;
+        var setOp : ins.OpCode = undefined;
+
+        //std.debug.print("SCOPE -> {d} {}\n" , .{self.scopeDepth , name});
+        var arg = self.resolveLocal(&name);
+
+        if (arg != -1) {
+            getOp = .Op_GetLocal;
+            setOp = .Op_SetLocal;
+        } else {
+            
+            arg = self.rIdentConst(&name);
+            getOp = .Op_GetGlob;
+            setOp = .Op_SetGlob;
+        }
         
         if (canAssign and self.match(.Eq)) {
 
            try self.parseExpression();
-           try self.emitBt(.Op_SetGlob);
-           try self.emitBtRaw(arg);
+           try self.emitBt(setOp);
+           try self.emitBtRaw(@intCast(u8 , arg));
         } else {
-            try self.emitBt(.Op_GetGlob);
-            try self.emitBtRaw(arg);
+            try self.emitBt(getOp);
+            try self.emitBtRaw(@intCast(u8 , arg));
         }
 
         
@@ -334,6 +393,10 @@ pub const Compiler = struct {
     fn rStatement(self : *Self) !void{
         if (self.match(.Show)) {
             try self.rPrintStatement();
+        } else if (self.match(.Lbrace)) {
+            self.beginScope();
+            try self.rBlock();
+            self.endScope();
         }else {
             try self.rExprStatement();
         }
@@ -385,13 +448,103 @@ pub const Compiler = struct {
     }
 
     fn defineVar(self : *Self , global : u8) !void{
+        
+        if (self.scopeDepth > 0) { 
+            self.markInit();
+            return;
+        }
+
+    
         try self.emitBt(.Op_DefGlob);
         try self.emitBtRaw(global);
     }
     
     fn parseVariable(self : *Self , msg : []const u8) u8{
         self.eat(.Identifer, msg);
+        std.debug.print("==\n\nPREV->{any}  \nCUR->{} \n==\n" , .{self.parser.previous , self.parser.current});
+        
+        self.declareVariable();
+        if (self.scopeDepth > 0 ) { return 0; }
+
         return self.rIdentConst(&self.parser.previous);
+    }
+
+    fn markInit(self : *Self) void {
+        self.locals[self.localCount - 1].depth = @intCast(i32 , self.scopeDepth);
+        
+    }
+
+    fn declareVariable(self : *Self) void {
+
+        if (self.scopeDepth == 0) { return; }
+        const name = self.parser.previous;
+        
+        const locals = self.locals[0..self.localCount];
+        var i = @intCast(i64, self.localCount) - 1;
+        while (i >= 0) : (i -= 1) {
+            const local : Local = locals[@intCast(usize, i)];
+
+            if (local.depth != -1 and local.depth < self.scopeDepth) {
+                break;
+            }
+
+            if (idEqual(&name, &local.name)) {
+                self.parser.err("Already a variable with this name in this scope");
+            }
+        }
+
+        //std.debug.print("\n\nLOCAL COUNT -> {d}\n\n" , .{self.localCount});
+        self.addLocal(name);
+    }
+
+    fn addLocal(self : *Self , name : lexer.Token) void {
+        
+        if (self.localCount == std.math.maxInt(u8)) {
+            self.parser.err("Too many local variables");
+            return;
+        }
+        
+        self.locals[self.localCount].name = name;
+        self.locals[self.localCount].depth = -1;
+        self.localCount += 1;
+        //local.name = name;
+        //local.depth = -1; //@intCast(i32 , self.scopeDepth);
+        //local.captured = false;
+        //std.debug.print("ADDLOCAL NAME -> {any}\n" , .{self.locals[self.localCount-1].name});
+        //std.debug.print("ADD_LOCAL->{any}\n" , .{self.locals[0..self.localCount]});
+    }
+
+    fn resolveLocal(self : *Self , name : *const lexer.Token) i32 {
+        const locals = self.locals[0..self.localCount];
+        //std.debug.print("------\nLOCAL -> {d} | {any}\n------\n" , .{self.localCount , locals});
+        var i  = @intCast(i64, self.localCount) - 1;
+
+        while (i >= 0) : (i -= 1) {
+            const local : Local = locals[@intCast(usize, i)];
+
+            std.debug.print("FROM RESOLVE LOCAL ->> " , .{});
+            if (idEqual(name , &local.name)) {
+                //std.debug.print("a->{} | b->{}\n" , .{name, local.name});
+                if (local.depth == -1) {
+                    self.parser.err("Can't read local variable in its own init");
+                }
+
+                return @intCast(i32 , i);
+            }
+        }
+
+        return -1;
+    }
+
+    fn idEqual(a : *const lexer.Token , b : *const lexer.Token) bool {
+
+        std.debug.print("\na->{} | b->{}\n\n" , .{a, b});
+        if (a.toktype != b.toktype) { return false; }
+        if (a.length != b.length) { return false; }
+        for (a.lexeme, 0..) |value, i| {
+            if (value != b.lexeme[i]) { return false; }
+        }
+        return true;
     }
 
     fn rIdentConst(self : *Self, name : *const lexer.Token) u8 {
@@ -464,7 +617,7 @@ pub const Compiler = struct {
     }
         
     fn endCompiler(self : *Self) !void {
-        //try self.emitBt(.Nil);
+        try self.emitBt(.Op_Nil);
         try self.emitBt(.Op_Return);
         if (flags.DEBUG) {
             self.inst.disasm("<script>");
@@ -521,15 +674,15 @@ pub const Parser = struct {
 
     pub fn init(self : *Self , source : []u32 , gc : *Gc) void{
         
-        //if (flags.DEBUG and flags.DEBUG_LEXER) {
-        //    var lx = lexer.Lexer.new(source);
-        //    while (!lx.isEof()) {
-        //        const tokStr =  lx.getToken().toString(self.gc.getAlc()) catch continue;
-        //        std.debug.print("{s}\n", .{tokStr} );
-        //        self.gc.getAlc().free(tokStr);
-        //    }
-        //    
-        //}
+        if (flags.DEBUG and flags.DEBUG_LEXER) {
+            var lx = lexer.Lexer.new(source);
+            while (!lx.isEof()) {
+                const tokStr =  lx.getToken().toString(self.gc.getAlc()) catch continue;
+                std.debug.print("{s}\n", .{tokStr} );
+                self.gc.getAlc().free(tokStr);
+            }
+            
+        }
 
         self.hadErr = false;
         self.panicMode = false;

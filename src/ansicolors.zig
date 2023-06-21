@@ -30,7 +30,6 @@ pub fn TermColor(color : u8) void{
         'c' => {std.debug.print("{s}" , .{ANSI_COLOR_CYAN});},
         'w' => {std.debug.print("{s}" , .{ANSI_COLOR_WHITE});},
         else => { return; }
-
     }
 }
 
