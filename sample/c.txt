@@ -1,14 +1,5 @@
-#{
-#	let a = 10
-#	{
-#		let b = 20
-#		#show(b)
-#		b = b + 1
-#	}
-#}
-
-jodi false and true tahole
-	show true
-nahole
-	show false
-sesh
+let a = 10
+while a > 0 do
+	show a
+	a = a - 1
+end

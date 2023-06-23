@@ -147,6 +147,7 @@ pub const Compiler = struct {
             .infix = Self.rOr,
             .prec = .P_Or,
         },
+        .Do = ParseRule{},
         .If = ParseRule{},
         .Else = ParseRule{},
         .True = ParseRule{.prefix = Self.rLiteral},
@@ -425,6 +426,8 @@ pub const Compiler = struct {
             try self.rPrintStatement();
         } else if (self.match(.If)) {
             try self.rIfStatement();
+        } else if (self.match(.PWhile)) {
+            try self.rWhileStatement();
         } else if (self.match(.Lbrace)) {
             self.beginScope();
             try self.rBlock();
@@ -619,6 +622,33 @@ pub const Compiler = struct {
         
     }
 
+    fn rWhileStatement(self : *Self) !void{
+        const loopStart = self.inst.code.items.len;
+
+        try self.parseExpression();
+        self.eat(.Do, "Expected do after while expression");
+        const exitJump = try self.emitJump(.Op_JumpIfFalse);
+        try self.emitBt(.Op_Pop);
+        self.beginScope();
+        try self.readToEnd();
+        self.endScope();
+        try self.emitLoop(loopStart);
+        self.patchJump(@intCast(usize , exitJump));
+        try self.emitBt(.Op_Pop);
+
+
+    }
+
+    fn emitLoop(self : *Self , loopStart : usize) !void{
+        try self.emitBt(.Op_Loop);
+        const offset = self.inst.code.items.len - loopStart + 2;
+        if (offset > std.math.maxInt(u16)) {
+            self.parser.err("loop body too large");
+        }
+
+        const offu8 = utils.u16tou8(@intCast(u16 , offset));
+        try self.emitTwoRaw(offu8[0], offu8[1]);
+    }
 
 
     fn emitJump(self : *Self , instruction : ins.OpCode) !u32 {

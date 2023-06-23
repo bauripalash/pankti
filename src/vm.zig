@@ -298,6 +298,11 @@ pub const Vm = struct {
 
                    // std.debug.print("JIF -> {d}\n" , .{offset});
                 },
+
+                .Op_Loop => {
+                    const offset = self.readU16();
+                    self.ip -= offset;
+                },
                 .Op_Return => {
                     //self.throwRuntimeError("Return occured");
                     //self.pop().printVal();

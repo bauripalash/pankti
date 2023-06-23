@@ -260,6 +260,10 @@ pub const Instruction = struct {
                 return self.jumpInstruction(ins.toString(), 1, offset);
             },
 
+            .Op_Loop => {
+                return self.jumpInstruction(ins.toString() , -1 , offset);
+            },
+
             .Op_Const, 
             .Op_Import , 
             .Op_DefGlob, 
