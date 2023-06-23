@@ -34,12 +34,21 @@ pub fn build(b: *std.Build) void {
     run_step.dependOn(&run_cmd.step);
 
   
-
     const unit_tests = b.addTest(.{
         .root_source_file = .{ .path = "src/main.zig" },
         .target = target,
         .optimize = optimize,
     });
+    
+    const output_exe = "zig-out/bin/neopank";
+    const source_to_run = "sample/c.txt";
+    const run_interp_step = b.addSystemCommand(&[_][]const u8{
+        output_exe,
+        source_to_run,
+    });
+
+    const run_interp = b.step("code", "Run source code sample");
+    run_interp.dependOn(&run_interp_step.step);
 
 
 

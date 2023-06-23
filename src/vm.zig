@@ -44,7 +44,7 @@ pub const IntrpResult = enum(u8) {
 pub const Vm = struct {
     ins : ins.Instruction,
     compiler : *Compiler,
-    ip : u8,
+    ip : [*]u8,
     stack : std.ArrayListUnmanaged(PValue),
     stackTop : usize,
     gc : *Gc,
@@ -63,11 +63,13 @@ pub const Vm = struct {
             .gc = gc,
             .ins = ins.Instruction.init(gc),
             .stack = std.ArrayListUnmanaged(PValue){},
-            .ip = 0,
+            .ip = undefined,
             .stackTop = 0,
             .compiler = undefined,
              
         };
+
+        self.*.ip = self.*.ins.code.items.ptr;
         
 
         //self.strings = table.StringTable(){};
@@ -85,25 +87,38 @@ pub const Vm = struct {
         
     }
 
-    fn readByte(self : *Self) ins.OpCode{
-        self.ip += 1;
-        return @intToEnum(ins.OpCode, self.ins.code.items[self.ip - 1]);
+    pub inline fn readByte(self : *Self) ins.OpCode{
+        const bt = @intToEnum(ins.OpCode, self.ip[0]);
 
+        self.ip += 1;
+
+        return bt;
     }
 
-    fn readRawByte(self : *Self) u8 {
-        self.ip += 1;
-        return self.ins.code.items[self.ip - 1];
+    pub inline fn readU16(self : *Self) u16 {
+        const b1 = self.readRawByte();
+        const b2 = self.readRawByte();
+
+        return (@intCast(u16, b1) << 8) | @intCast(u16 , b2);
     }
 
-    fn readConst(self : *Self) PValue {
+    pub inline fn readRawByte(self : *Self) u8 {
+        const bt =  self.ip[0];
+
+        self.ip += 1;
+
+        return bt;
+    }
+
+    pub inline fn readConst(self : *Self) PValue {
        return self.ins.cons.items[self.readRawByte()];
     }
 
-    fn readStringConst(self : *Self) *Pobj.OString{
+    pub inline fn readStringConst(self : *Self) *Pobj.OString{
         return self.readConst().asObj().asString();
 
     }
+
 
     fn resetStack(self : *Self) void {
         self.stackTop = 0;
@@ -131,7 +146,8 @@ pub const Vm = struct {
 
     fn throwRuntimeError(self : *Self , msg : []const u8) void{
         
-        std.debug.print("Runtime Error Occured in line {}", .{self.ins.pos.items[@intCast(usize, self.ip)-1].line});
+        const i = @ptrToInt(self.ip) - @ptrToInt(self.ins.code.items.ptr) - 1;
+        std.debug.print("Runtime Error Occured in line {}", .{self.ins.pos.items[i].line});
         std.debug.print("\n{s}\n", .{msg});
     }
 
@@ -268,6 +284,16 @@ pub const Vm = struct {
             const op = self.readByte();
 
             switch (op) {
+
+                .Op_JumpIfFalse => {
+                    const offset = self.readU16();
+                    if (self.peek(0).isFalsy()) {
+                        self.ip += offset;
+                    }
+                },
+                .Op_Jump => {
+                    self.ip += self.readU16();
+                },
                 .Op_Return => {
                     //self.throwRuntimeError("Return occured");
                     //self.pop().printVal();
@@ -436,13 +462,12 @@ pub const Vm = struct {
 
     pub fn interpretRaw(self : *Self , inst : *ins.Instruction) IntrpResult{
         //@memcpy(self.ins.*, inst.);
-        self.ip = 0;
+        self.ip = inst.code.items.ptr;
         self.ins = inst.*;
         return self.run();
     }
 
     pub fn interpret(self : *Self , source : []u32) IntrpResult{
-        self.ip = 0;
         self.compiler = Compiler.new(source, self.gc) catch return .RuntimeError;
         const result = self.compiler.compile(source, &self.ins) catch false;
         if (result) { 

@@ -10,6 +10,7 @@
 const std = @import("std");
 const PValue = @import("value.zig").PValue;
 const Gc = @import("gc.zig").Gc;
+const utils = @import("utils.zig");
 
 pub const OpCode = enum(u8) {
     Op_Return,
@@ -207,6 +208,19 @@ pub const Instruction = struct {
 
     }
 
+    fn jumpInstruction(self : *Instruction , name : []const u8 , sign : i32 , offset : usize) usize{
+
+        var jump : u16 = utils.u8tou16(&[_]u8{self.code.items[offset + 1] , self.code.items[offset + 2 ]});
+
+
+
+        std.debug.print("{s} {d} -> {d}\n" , .{name , offset , @intCast(i64 , offset) + 3 + sign * jump});
+
+            return offset + 3;
+
+
+    }
+
     fn disasmInstruction(self: *Instruction, offset: usize) usize {
         std.debug.print("{:0>4} " , .{offset});
         if (offset > 0 and self.pos.items[offset].line == self.pos.items[offset-1].line){
@@ -241,6 +255,11 @@ pub const Instruction = struct {
             .Op_SubAssign => {
                 return self.simpleInstruction(ins.toString(), offset);
             },
+            
+            .Op_JumpIfFalse , .Op_Jump =>  {
+                return self.jumpInstruction(ins.toString(), 1, offset);
+            },
+
             .Op_Const, 
             .Op_Import , 
             .Op_DefGlob, 

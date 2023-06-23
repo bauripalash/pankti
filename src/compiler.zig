@@ -393,6 +393,8 @@ pub const Compiler = struct {
     fn rStatement(self : *Self) !void{
         if (self.match(.Show)) {
             try self.rPrintStatement();
+        } else if (self.match(.If)) {
+            try self.rIfStatement();
         } else if (self.match(.Lbrace)) {
             self.beginScope();
             try self.rBlock();
@@ -461,7 +463,7 @@ pub const Compiler = struct {
     
     fn parseVariable(self : *Self , msg : []const u8) u8{
         self.eat(.Identifer, msg);
-        std.debug.print("==\n\nPREV->{any}  \nCUR->{} \n==\n" , .{self.parser.previous , self.parser.current});
+ //       std.debug.print("==\n\nPREV->{any}  \nCUR->{} \n==\n" , .{self.parser.previous , self.parser.current});
         
         self.declareVariable();
         if (self.scopeDepth > 0 ) { return 0; }
@@ -492,8 +494,6 @@ pub const Compiler = struct {
                 self.parser.err("Already a variable with this name in this scope");
             }
         }
-
-        //std.debug.print("\n\nLOCAL COUNT -> {d}\n\n" , .{self.localCount});
         self.addLocal(name);
     }
 
@@ -507,24 +507,18 @@ pub const Compiler = struct {
         self.locals[self.localCount].name = name;
         self.locals[self.localCount].depth = -1;
         self.localCount += 1;
-        //local.name = name;
-        //local.depth = -1; //@intCast(i32 , self.scopeDepth);
-        //local.captured = false;
-        //std.debug.print("ADDLOCAL NAME -> {any}\n" , .{self.locals[self.localCount-1].name});
-        //std.debug.print("ADD_LOCAL->{any}\n" , .{self.locals[0..self.localCount]});
+
     }
 
     fn resolveLocal(self : *Self , name : *const lexer.Token) i32 {
         const locals = self.locals[0..self.localCount];
-        //std.debug.print("------\nLOCAL -> {d} | {any}\n------\n" , .{self.localCount , locals});
         var i  = @intCast(i64, self.localCount) - 1;
 
         while (i >= 0) : (i -= 1) {
             const local : Local = locals[@intCast(usize, i)];
 
-            std.debug.print("FROM RESOLVE LOCAL ->> " , .{});
+//            std.debug.print("FROM RESOLVE LOCAL ->> " , .{});
             if (idEqual(name , &local.name)) {
-                //std.debug.print("a->{} | b->{}\n" , .{name, local.name});
                 if (local.depth == -1) {
                     self.parser.err("Can't read local variable in its own init");
                 }
@@ -538,7 +532,6 @@ pub const Compiler = struct {
 
     fn idEqual(a : *const lexer.Token , b : *const lexer.Token) bool {
 
-        std.debug.print("\na->{} | b->{}\n\n" , .{a, b});
         if (a.toktype != b.toktype) { return false; }
         if (a.length != b.length) { return false; }
         for (a.lexeme, 0..) |value, i| {
@@ -552,6 +545,43 @@ pub const Compiler = struct {
         const val = strObj.parent().asValue();
          
         return self.makeConst(val) catch return 0;
+    }
+
+    fn rIfStatement(self : *Self) anyerror!void{
+        try self.parseExpression();
+        const thenJump = try self.emitJump(.Op_JumpIfFalse);
+        try self.emitBt(.Op_Pop);
+        try self.rStatement();
+        const elseJump = try self.emitJump(.Op_Jump);
+        self.patchJump(@intCast(usize , thenJump));
+        try self.emitBt(.Op_Pop);
+
+        if (self.match(.Else)) { try self.rStatement(); }
+
+        self.patchJump(@intCast(usize , elseJump));
+        
+    }
+
+    fn emitJump(self : *Self , instruction : ins.OpCode) !u32 {
+        try self.emitBt(instruction);
+        try self.emitBtRaw(0xff);
+        try self.emitBtRaw(0xff);
+        return @intCast(u32 , self.inst.code.items.len - 2);
+    }
+
+    fn patchJump(self : *Self , offset : usize) void{
+        const jump = self.inst.code.items.len - offset - 2;
+
+        if (jump > std.math.maxInt(u16)) {
+            self.parser.err("Too much code to jump over");
+        }
+
+        const jmp = @intCast(u16 , jump);
+
+        self.inst.code.items[offset] = @intCast(u8, (jmp >> 8) & 0xff);
+        self.inst.code.items[offset + 1] = @intCast(u8 , jmp & 0xff);
+
+
     }
 
    

@@ -1,8 +1,14 @@
-{
-	let a = 10
-	{
-		let b = 20
-		#show(b)
-		b = b + 1
-	}
+#{
+#	let a = 10
+#	{
+#		let b = 20
+#		#show(b)
+#		b = b + 1
+#	}
+#}
+
+if true {
+	show true 
+}else {
+	show false
 }
