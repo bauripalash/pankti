@@ -41,6 +41,7 @@ pub const K_BN_RETURN = [_]u32{ 0x09ab, 0x09c7, 0x09b0, 0x09be, 0x0993 };
 pub const K_BN_FUNC = [_]u32{ 0x0995, 0x09be, 0x099c };
 pub const K_BN_IMPORT = [_]u32{ 0x0986, 0x09a8, 0x09df, 0x09a8 };
 pub const K_BN_PANIC = [_]u32{ 0x0997, 0x09cb, 0x09b2, 0x09ae, 0x09be, 0x09b2 };
+pub const K_BN_DO = [_]u32 { 0x0995,0x09b0 ,0x09cb };
 
 pub const K_PN_LET = [_]u32{ 'd', 'h', 'o', 'r', 'i' };
 pub const K_PN_SHOW = [_]u32{ 'd', 'e', 'k', 'h', 'a', 'u' };

@@ -461,9 +461,9 @@ pub const Lexer = struct {
             or utils.matchU32(lx, &kw.K_PN_PANIC)) {
             return .Panic;
         } else if (utils.matchU32(lx, &kw.K_EN_DO)
-            or utils.matchU32(lx, &kw.K_PN_DO)){
+            or utils.matchU32(lx, &kw.K_BN_DO)
+            or utils.matchU32(lx , &kw.K_PN_DO)){
             return .Do;
-            //TODO: Add Bengali DO
         }
         return .Identifer;
     }
