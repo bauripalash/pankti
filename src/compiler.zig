@@ -138,13 +138,20 @@ pub const Compiler = struct {
             .prefix = Self.rNumber,
             .prec = .P_None,
         },
-        .And = ParseRule{},
+        .And = ParseRule{
+            .infix = Self.rAnd,
+            .prec = .P_And,
+        },
+
+        .Or = ParseRule{
+            .infix = Self.rOr,
+            .prec = .P_Or,
+        },
         .If = ParseRule{},
         .Else = ParseRule{},
         .True = ParseRule{.prefix = Self.rLiteral},
         .False = ParseRule{.prefix = Self.rLiteral},
         .Nil = ParseRule{.prefix = Self.rLiteral},
-        .Or = ParseRule{},
         .Show = ParseRule{},
         .Return = ParseRule{},
         .Let = ParseRule{},
@@ -371,6 +378,29 @@ pub const Compiler = struct {
         return;
     }
 
+    fn rAnd(self : *Self , canAssign : bool) !void{
+        _ = canAssign;
+
+        const endJump = try self.emitJump(.Op_JumpIfFalse);
+        try self.emitBt(.Op_Pop);
+        try self.parsePrec(.P_And);
+        self.patchJump(@intCast(usize , endJump));
+
+    }
+
+    fn rOr(self : *Self , canAssign : bool) !void{
+        _ = canAssign;
+        const elseJump = try self.emitJump(.Op_JumpIfFalse);
+        const endJump = try self.emitJump(.Op_Jump);
+
+        self.patchJump(@intCast(usize , elseJump));
+        try self.emitBt(.Op_Pop);
+
+        try self.parsePrec(.P_Or);
+        self.patchJump(@intCast(usize , endJump));
+        
+    }
+
     fn skipSemicolon(self : *Self) void {
         if (self.check(.Semicolon)) {
             self.eat(.Semicolon, "Ate Semicolon");
@@ -588,6 +618,8 @@ pub const Compiler = struct {
         self.patchJump(@intCast(usize , elseJump));
         
     }
+
+
 
     fn emitJump(self : *Self , instruction : ins.OpCode) !u32 {
         try self.emitBt(instruction);

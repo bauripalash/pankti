@@ -7,7 +7,7 @@
 #	}
 #}
 
-jodi false tahole
+jodi false and true tahole
 	show true
 nahole
 	show false
