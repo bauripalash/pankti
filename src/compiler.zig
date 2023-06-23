@@ -547,16 +547,43 @@ pub const Compiler = struct {
         return self.makeConst(val) catch return 0;
     }
 
+    fn readIfBlock(self : *Self) !void {
+        self.beginScope();
+        while (!self.check(.End) and !self.check(.Else) and !self.check(.Eof)) {
+            try self.rDeclaration();
+        }
+        self.endScope();
+    }
+
+    fn readToEnd(self : *Self) !void{
+        while (!self.check(.End) and !self.check(.Eof)) {
+            try self.rDeclaration();
+        }
+
+        self.eat(.End, "Expected `end`");
+    }
+
     fn rIfStatement(self : *Self) anyerror!void{
         try self.parseExpression();
+        self.eat(.Then, "Expected then after if expression");
+
         const thenJump = try self.emitJump(.Op_JumpIfFalse);
         try self.emitBt(.Op_Pop);
-        try self.rStatement();
+
+        try self.readIfBlock();
+
         const elseJump = try self.emitJump(.Op_Jump);
+
         self.patchJump(@intCast(usize , thenJump));
         try self.emitBt(.Op_Pop);
 
-        if (self.match(.Else)) { try self.rStatement(); }
+        if (self.match(.Else)) { 
+            self.beginScope();
+            try self.readToEnd();
+            self.endScope();
+        } else {
+            self.eat(.End, "Expected `end` after if block without else");
+        }
 
         self.patchJump(@intCast(usize , elseJump));
         

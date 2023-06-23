@@ -7,8 +7,8 @@
 #	}
 #}
 
-if true {
-	show true 
-}else {
+jodi false tahole
+	show true
+nahole
 	show false
-}
+sesh

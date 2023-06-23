@@ -287,12 +287,16 @@ pub const Vm = struct {
 
                 .Op_JumpIfFalse => {
                     const offset = self.readU16();
+                    //std.debug.print("JIF -> {d}\n" , .{offset});
                     if (self.peek(0).isFalsy()) {
                         self.ip += offset;
                     }
                 },
                 .Op_Jump => {
-                    self.ip += self.readU16();
+                    const offset = self.readU16();
+                    self.ip += offset;
+
+                   // std.debug.print("JIF -> {d}\n" , .{offset});
                 },
                 .Op_Return => {
                     //self.throwRuntimeError("Return occured");
