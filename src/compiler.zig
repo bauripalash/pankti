@@ -52,6 +52,7 @@ pub const Compiler = struct {
     locals : [std.math.maxInt(u8)]Local,
     function : *PObj.OFunction,
     ftype : FnType,
+    enclosing : ?*Compiler,
 
 
     const Self = @This();
@@ -173,7 +174,38 @@ pub const Compiler = struct {
         self.parser  = Parser.new();
         self.parser.gc = gc;
     }
+    
+    pub fn newEnclosed(gc : *Gc , enclosing : ?*Self ,ftype : FnType) !Self{
+        
+        var function : *PObj.OFunction = try gc.newObj(.Ot_Function, PObj.OFunction);
 
+        function.init(gc);
+
+        var self = Self{
+            .gc = gc,
+            .enclosing = enclosing,
+            .scopeDepth = 0,
+            .function = function,
+            .ftype = ftype,
+            .localCount = 0,
+            .parser = enclosing.?.parser,
+            .locals = [_]Local{Local{ .name = lexer.Token.dummy(), .depth = 0 }} ** std.math.maxInt(u8),
+        };
+
+        if (ftype != .Ft_SCRIPT) {
+            self.function.name = try gc.copyString(enclosing.?.parser.previous.lexeme , enclosing.?.parser.previous.length);
+        }
+
+        var local = &self.locals[0];
+        self.localCount += 1;
+        local.depth = 0;
+        local.name.lexeme = &[_]u32{};
+        local.name.length = 0;
+        //local.captured = false;
+        
+        return self;
+
+    }
 
     pub fn new(source : []u32 , gc : *Gc , ftype : FnType) !*Compiler{
         const c = try gc.getAlc().create(Compiler);
@@ -183,6 +215,7 @@ pub const Compiler = struct {
             .gc = gc,
             .scopeDepth = 0,
             .localCount = 0,
+            .enclosing = null,
             .function = undefined,
             .ftype = ftype,
             .locals = [_]Local{Local{ .name = lexer.Token.dummy(), .depth = 0 }} ** std.math.maxInt(u8),
@@ -279,6 +312,32 @@ pub const Compiler = struct {
             self.parser.advance();
         }
     }
+
+    fn rFuncDeclaration(self : *Self) !void{
+        const global = self.parseVariable("Expected function name");
+        self.markInit();
+        try self.rFunc(.Ft_FUNC);
+        try self.defineVar(global);
+    }
+    
+   
+
+    fn rFunc(self : *Self , ft : FnType) !void{
+        _ = ft;
+
+        var fcomp = try Self.newEnclosed(self.gc, self , .Ft_FUNC);
+
+        fcomp.beginScope();
+
+        fcomp.eat(.Lparen, "Expected (");
+        fcomp.eat(.Rparen, "Expected )");
+        try fcomp.readToEnd();
+
+        const f = try fcomp.endCompiler();
+            try self.emitBt(.Op_Const);
+            try self.emitBtRaw(try self.makeConst(PValue.makeObj(f.parent())));
+
+    }
     
     fn rVariable(self : *Self , canAssign : bool) !void {
 
@@ -324,6 +383,8 @@ pub const Compiler = struct {
 
         
     }
+
+
 
     fn rNumber(self : *Self , _ : bool) !void{
         const stru8 = try utils.u32tou8(self.parser.previous.lexeme , self.gc.getAlc());
@@ -432,6 +493,8 @@ pub const Compiler = struct {
 
         if (self.match(.Let)) {
             try self.rLetDeclaration();
+        } else if (self.match(.Func)) {
+            try self.rFuncDeclaration();
         } else {
             try self.rStatement();
         }
