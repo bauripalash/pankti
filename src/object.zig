@@ -13,6 +13,8 @@ const value = @import("value.zig");
 const PValue = value.PValue;
 const utils = @import("utils.zig");
 const Gc = @import("gc.zig").Gc;
+const instruction = @import("instruction.zig");
+const Instruction = instruction.Instruction;
 
 pub const PObj = struct {
     objtype : OType,
@@ -21,11 +23,13 @@ pub const PObj = struct {
     
     pub const OType = enum(u8) {
         Ot_String,
+        Ot_Function,
 
         pub fn toString(self : OType) []const u8 {
 
             switch (self) {
-                .Ot_String => { return "OBJ_STRING"; }
+                .Ot_String => { return "OBJ_STRING"; },
+                .Ot_Function => {return "OBJ_FUNC";},
             }
         }
     };
@@ -66,7 +70,7 @@ pub const PObj = struct {
     pub fn free(self : *PObj , vm : *Vm) void{
         switch (self.objtype) {
             .Ot_String => self.asString().free(vm),
-            //else => {},
+            else => {},
         }
 
     }
@@ -77,6 +81,7 @@ pub const PObj = struct {
     pub fn printObj(self : *PObj) void{
         switch (self.getType()) {
             .Ot_String => self.asString().print(),
+            .Ot_Function => self.child(PObj.OFunction).*.print(),
         }
     }
 
@@ -85,12 +90,53 @@ pub const PObj = struct {
            .Ot_String => {
                 return try utils.u32tou8(self.asString().chars, al);
            }, 
+
+           .Ot_Function => {
+                return try utils.u32tou8(&[_]u32{'<' , 'f' , 'n' , '>'}, al);
+           }
         }
 
         return try utils.u32tou8([_]u32{'_'}, al);
     }
 
     
+    pub const OFunction = struct {
+        obj : PObj,
+        arity : u8,
+        name : ?*OString,
+        ins : Instruction,
+
+        pub fn init(self : *OFunction , gc : *Gc) void {
+            self.arity = 0;
+            self.name = null;
+            self.ins = Instruction.init(gc);
+        }
+
+        pub inline fn parent(self : *OFunction) *PObj {
+            return @ptrCast(*PObj, self);
+        }
+
+        pub fn getName(self : *OFunction) []const u32{
+            if (self.name) |n| { 
+                return n.chars[0..n.chars.len];
+            } else {
+                return &[_]u32 { '<', 's', 'c', 'r', 'i', 'p', 't', '>' };
+            }
+        }
+
+        pub fn print(self : *OFunction) void {
+            std.debug.print("<fn " , .{});
+            utils.printu32(self.getName());
+            std.debug.print(" >" , .{});
+        }
+
+        pub fn free(self : *OFunction , gc : *Gc) void {
+            self.ins.free(); 
+            gc.getAlc().destroy(self);
+            
+        }
+    };
+
     pub const OString = struct {
         obj : PObj,
         chars : []u32,
@@ -132,7 +178,7 @@ pub const PObj = struct {
             
         }
 
-        pub fn parent(self : *OString) *PObj{
+        pub inline fn parent(self : *OString) *PObj{
             return @ptrCast(*PObj, self);
         }
     };

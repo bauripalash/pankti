@@ -10,7 +10,8 @@
 const std = @import("std");
 const ins = @import("instruction.zig");
 const OpCode = @import("instruction.zig").OpCode;
-const Compiler = @import("compiler.zig").Compiler;
+const comp = @import("compiler.zig");
+const Compiler = comp.Compiler;
 const Gc = @import("gc.zig").Gc;
 const vl = @import("value.zig");
 const PValue = vl.PValue;
@@ -19,6 +20,9 @@ const utils = @import("utils.zig");
 const table = @import("table.zig");
 const Allocator = std.mem.Allocator;
 const flags = @import("flags.zig");
+
+const FRAME_MAX = 64;
+const STACK_MAX = FRAME_MAX * std.math.maxInt(u8);
 
 pub const StackError = error {
     StackOverflow,
@@ -41,52 +45,30 @@ pub const IntrpResult = enum(u8) {
 };
 
 
-pub const Vm = struct {
-    ins : ins.Instruction,
-    compiler : *Compiler,
-    ip : [*]u8,
-    stack : std.ArrayListUnmanaged(PValue),
-    stackTop : usize,
-    gc : *Gc,
-
-
+pub const VStack = struct {
+    stack : [STACK_MAX]PValue,
+    top : [*]PValue,
+    
     const Self = @This();
 
-    pub fn newVm(al : Allocator) !*Vm{
-        const v = try al.create(Vm);
-        return v;
+    pub inline fn push(self : *Self , value : PValue) StackError!void {
         
+        self.top[0] = value;
+        self.top += 1;
     }
 
-    pub fn bootVm(self : *Self , gc : *Gc) void {
-        self.* = .{
-            .gc = gc,
-            .ins = ins.Instruction.init(gc),
-            .stack = std.ArrayListUnmanaged(PValue){},
-            .ip = undefined,
-            .stackTop = 0,
-            .compiler = undefined,
-             
-        };
-
-        self.*.ip = self.*.ins.code.items.ptr;
-        
-
-        //self.strings = table.StringTable(){};
-        
+    pub inline fn pop(self : *Self) !PValue {
+        self.top -= 1;
+        return self.top[0];
     }
+};
 
-    pub fn freeVm(self : *Self , al : Allocator) void {
-        //std.debug.print("{d}\n", .{self.strings.keys().len});
-        //_ = table.freeStringTable(self, self.strings); 
-        self.compiler.free(self.gc.getAlc());
-        self.stack.deinit(self.gc.getAlc());
-        self.ins.free();
-        self.gc.free();
-        al.destroy(self);
-        
-    }
-
+pub const CallFrame = struct {
+    function : *Pobj.OFunction,
+    ip : [*]u8,
+    slots : [*]PValue,
+    const Self = @This();
+  
     pub inline fn readByte(self : *Self) ins.OpCode{
         const bt = @intToEnum(ins.OpCode, self.ip[0]);
 
@@ -111,43 +93,126 @@ pub const Vm = struct {
     }
 
     pub inline fn readConst(self : *Self) PValue {
-       return self.ins.cons.items[self.readRawByte()];
+        return self.function.ins.cons.items[self.readRawByte()];
+       //return self.ins.cons.items[self.readRawByte()];
     }
 
     pub inline fn readStringConst(self : *Self) *Pobj.OString{
         return self.readConst().asObj().asString();
 
     }
+};
+
+pub const CallStack = struct {
+    stack : [FRAME_MAX]CallFrame,
+    count : u32 = 0,
+};
+
+pub const Vm = struct {
+    callframes : CallStack,
+    compiler : *Compiler,
+    stack : VStack,
+    gc : *Gc,
+
+
+    const Self = @This();
+
+    pub fn newVm(al : Allocator) !*Vm{
+        const v = try al.create(Vm);
+        return v;
+        
+    }
+
+    pub fn bootVm(self : *Self , gc : *Gc) void {
+        self.*.gc = gc;
+        self.*.compiler = undefined;
+        self.*.callframes = undefined;
+    
+        self.stack.top = self.stack.stack[0..];
+        
+        
+        //self.*.ip = self.*.ins.code.items.ptr;
+        
+
+        //self.strings = table.StringTable(){};
+        
+    }
+
+     pub fn interpretRaw(self : *Self , inst : *ins.Instruction) IntrpResult{
+         _ = inst;
+         _ = self;
+        //@memcpy(self.ins.*, inst.);
+        //self.ip = inst.code.items.ptr;
+        //self.ins = inst.*;
+        //return self.run();
+    }
+
+    pub fn interpret(self : *Self , source : []u32) IntrpResult{
+        self.compiler = Compiler.new(source, self.gc , comp.FnType.Ft_SCRIPT) 
+                        catch return .RuntimeError;
+
+        const rfunc : ?*Pobj.OFunction = self.compiler.compile(source) catch return .CompileError;
+        
+        if (rfunc) |f| {
+            self.*.callframes.stack[0] = .{
+                .function = f,
+                .ip = f.ins.code.items.ptr,
+                .slots = self.stack.stack[0..]
+            };
+
+            self.*.callframes.count = 1;
+
+            return self.run();
+        } else {
+            return .RuntimeError;
+        }
+
+       
+    }
+
+    pub fn freeVm(self : *Self , al : Allocator) void {
+        //std.debug.print("{d}\n", .{self.strings.keys().len});
+        //_ = table.freeStringTable(self, self.strings); 
+        self.compiler.free(self.gc.getAlc());
+        
+        //self.stack.deinit(self.gc.getAlc());
+        //self.ins.free();
+        self.gc.free();
+        al.destroy(self);
+        
+    }
+
 
 
     fn resetStack(self : *Self) void {
-        self.stackTop = 0;
+        //self.stackTop = 0;
+        self.stack.top = self.stack.stack[0..];
     }
     
-    pub fn push(self : *Self , value : PValue) StackError!void {
-        self.stack.append(self.gc.getAlc() , value) catch {
-            return StackError.StackFailPush;
-        };
-        
-    }
+    //pub fn push(self : *Self , value : PValue) StackError!void {
+    //    self.stack.append(self.gc.getAlc() , value) catch {
+    //        return StackError.StackFailPush;
+    //    };
+    //    
+    //}
 
-    pub fn pop(self : *Self) StackError!PValue {
-        if (self.stack.items.len == 0) {
-            self.throwRuntimeError("Stack Underflow Occured");
-            return StackError.StackUnderflow;
-        }
-        return self.stack.pop();
-    }
+    //pub fn pop(self : *Self) StackError!PValue {
+    //    if (self.stack.items.len == 0) {
+    //        self.throwRuntimeError("Stack Underflow Occured");
+    //        return StackError.StackUnderflow;
+    //    }
+    //    return self.stack.pop();
+    //}
 
 
     fn peek(self : *Self , dist : usize) PValue{
-        return self.stack.items[dist];
+        return self.stack.stack[dist];
     }
 
     fn throwRuntimeError(self : *Self , msg : []const u8) void{
-        
-        const i = @ptrToInt(self.ip) - @ptrToInt(self.ins.code.items.ptr) - 1;
-        std.debug.print("Runtime Error Occured in line {}", .{self.ins.pos.items[i].line});
+        const frame = &self.callframes.stack[self.callframes.count - 1];
+        const i = @ptrToInt(frame.ip) - @ptrToInt(frame.function.ins.code.items.ptr) - 1;
+        std.debug.print("Runtime Error Occured in line {}", .{frame.function.ins.pos.items[i].line});
         std.debug.print("\n{s}\n", .{msg});
     }
 
@@ -167,11 +232,11 @@ pub const Vm = struct {
 
     fn doBinaryOpAdd(self : *Self) bool{
         // only works on numbers
-        const b = self.pop() catch return false;
-        const a = self.pop() catch return false;
+        const b = self.stack.pop() catch return false;
+        const a = self.stack.pop() catch return false;
 
         if (a.isNumber() and b.isNumber()) {
-            self.push(PValue.makeNumber(a.asNumber() + b.asNumber())) catch return false;
+            self.stack.push(PValue.makeNumber(a.asNumber() + b.asNumber())) catch return false;
             return true;
         }else if (a.isString() and b.isString()) {
             const bs = b.asObj().asString();
@@ -195,7 +260,7 @@ pub const Vm = struct {
                  self.gc.getAlc().free(temp_chars);
                 return false;
             };
-            self.push(s.obj.asValue()) catch {
+            self.stack.push(s.obj.asValue()) catch {
                 self.gc.getAlc().free(temp_chars);
                 return false;
             };
@@ -209,11 +274,11 @@ pub const Vm = struct {
 
     fn doBinaryOpSub(self : *Self) bool{
         // only works on numbers
-        const b = self.pop() catch return false;
-        const a = self.pop() catch return false;
+        const b = self.stack.pop() catch return false;
+        const a = self.stack.pop() catch return false;
 
         if (a.isNumber() and b.isNumber()) {
-            self.push(PValue.makeNumber(a.asNumber() - b.asNumber())) catch return false;
+            self.stack.push(PValue.makeNumber(a.asNumber() - b.asNumber())) catch return false;
             return true;
         } else {
             return false;
@@ -223,11 +288,11 @@ pub const Vm = struct {
 
     fn doBinaryOpMul(self : *Self) bool{
         // only works on numbers
-        const b = self.pop() catch return false;
-        const a = self.pop() catch return false;
+        const b = self.stack.pop() catch return false;
+        const a = self.stack.pop() catch return false;
 
         if (a.isNumber() and b.isNumber()) {
-            self.push(PValue.makeNumber(a.asNumber() * b.asNumber())) catch return false;
+            self.stack.push(PValue.makeNumber(a.asNumber() * b.asNumber())) catch return false;
             return true;
         } else {
             return false;
@@ -237,11 +302,11 @@ pub const Vm = struct {
 
     fn doBinaryOpPow(self : *Self) bool{
         // only works on numbers
-        const b = self.pop() catch return false;
-        const a = self.pop() catch return false;
+        const b = self.stack.pop() catch return false;
+        const a = self.stack.pop() catch return false;
 
         if (a.isNumber() and b.isNumber()) {
-            self.push(PValue.makeNumber(std.math.pow(f64, a.asNumber() , b.asNumber()))) catch return false;
+            self.stack.push(PValue.makeNumber(std.math.pow(f64, a.asNumber() , b.asNumber()))) catch return false;
             return true;
         } else {
             return false;
@@ -251,11 +316,11 @@ pub const Vm = struct {
 
     fn doBinaryOpDiv(self : *Self) bool{
         // only works on numbers
-        const b = self.pop() catch return false;
-        const a = self.pop() catch return false;
+        const b = self.stack.pop() catch return false;
+        const a = self.stack.pop() catch return false;
 
         if (a.isNumber() and b.isNumber()) {
-            self.push(PValue.makeNumber(a.asNumber() / b.asNumber())) catch return false;
+            self.stack.push(PValue.makeNumber(a.asNumber() / b.asNumber())) catch return false;
             return true;
         } else {
             return false;
@@ -265,11 +330,11 @@ pub const Vm = struct {
 
     fn doBinaryOpComp(self : *Self) bool {
          // only works on numbers
-        const b = self.pop() catch return false;
-        const a = self.pop() catch return false;
+        const b = self.stack.pop() catch return false;
+        const a = self.stack.pop() catch return false;
 
         if (a.isNumber() and b.isNumber()) {
-            self.push(PValue.makeBool(a.asNumber() > b.asNumber())) catch return false;
+            self.stack.push(PValue.makeBool(a.asNumber() > b.asNumber())) catch return false;
             return true;
         } else {
             return false;
@@ -277,31 +342,35 @@ pub const Vm = struct {
     }
 
     fn run(self : *Self) IntrpResult{
+        
+        var frame : *CallFrame = 
+            &self.callframes.stack[self.callframes.count - 1];
+
         while (true) {
             if (flags.DEBUG and flags.DEBUG_STACK) {
                 self.debugStack();
             }
-            const op = self.readByte();
+            const op = frame.readByte();
 
             switch (op) {
 
                 .Op_JumpIfFalse => {
-                    const offset = self.readU16();
+                    const offset = frame.readU16();
                     //std.debug.print("JIF -> {d}\n" , .{offset});
                     if (self.peek(0).isFalsy()) {
-                        self.ip += offset;
+                        frame.ip += offset;
                     }
                 },
                 .Op_Jump => {
-                    const offset = self.readU16();
-                    self.ip += offset;
+                    const offset = frame.readU16();
+                    frame.ip += offset;
 
                    // std.debug.print("JIF -> {d}\n" , .{offset});
                 },
 
                 .Op_Loop => {
-                    const offset = self.readU16();
-                    self.ip -= offset;
+                    const offset = frame.readU16();
+                    frame.ip -= offset;
                 },
                 .Op_Return => {
                     //self.throwRuntimeError("Return occured");
@@ -314,26 +383,26 @@ pub const Vm = struct {
                 },
 
                 .Op_Show => {
-                    const popVal = self.pop() catch return .RuntimeError;
+                    const popVal = self.stack.pop() catch return .RuntimeError;
                     std.debug.print("~~ " , .{});
                     popVal.printVal();
                     std.debug.print("\n", .{});
                 },
 
                 .Op_Const => {
-                   const con : PValue = self.readConst();
-                   self.push(con) catch return .RuntimeError;
+                   const con : PValue = frame.readConst();
+                   self.stack.push(con) catch return .RuntimeError;
 
                 },
 
                 .Op_Pop => {
-                    _ = self.pop() catch return .RuntimeError;
+                    _ = self.stack.pop() catch return .RuntimeError;
                 },
 
                 .Op_Neg => {
-                    var v = self.pop() catch return .RuntimeError;
+                    var v = self.stack.pop() catch return .RuntimeError;
                     if (v.isNumber()) {
-                        self.push(v.makeNeg()) catch return .RuntimeError;
+                        self.stack.push(v.makeNeg()) catch return .RuntimeError;
                     } else {
                         return .RuntimeError;
                     }
@@ -373,18 +442,18 @@ pub const Vm = struct {
                 },
 
                 .Op_DefGlob => {
-                    const name : *Pobj.OString = self.readStringConst();
+                    const name : *Pobj.OString = frame.readStringConst();
                     self.gc.globals.put(self.gc.getAlc(), name, self.peek(0))
                         catch return .RuntimeError;
 
-                     _ = self.pop() catch return .RuntimeError;
+                     _ = self.stack.pop() catch return .RuntimeError;
                 },
 
                 .Op_GetGlob => {
-                    const name : *Pobj.OString = self.readStringConst();
+                    const name : *Pobj.OString = frame.readStringConst();
 
                     if (self.gc.globals.get(name)) |value| {
-                        self.push(value) catch return .RuntimeError;
+                        self.stack.push(value) catch return .RuntimeError;
                     }else{
                         self.throwRuntimeError("Undefined variable");
                         return .RuntimeError;
@@ -392,7 +461,7 @@ pub const Vm = struct {
                 },
 
                 .Op_SetGlob => {
-                     const name : *Pobj.OString = self.readStringConst();
+                     const name : *Pobj.OString = frame.readStringConst();
 
                     if (self.gc.globals.get(name)) |_| {
                         self.gc.globals.put(self.gc.getAlc(),
@@ -406,58 +475,57 @@ pub const Vm = struct {
                 },
 
                 .Op_GetLocal => {
-
-                    const slot = self.readRawByte();
-                    self.push(self.stack.items[@intCast(usize , slot)]) catch 
+                    const slot = frame.readRawByte();
+                    self.stack.push(frame.slots[@intCast(usize , slot)]) catch 
                         return .RuntimeError;
                 },
 
                 .Op_SetLocal => {
 
-                    const slot = self.readRawByte();
-                    self.stack.items[@intCast(usize , slot)] = self.peek(0);
+                    const slot = frame.readRawByte();
+                    frame.slots[@intCast(usize , slot)] = self.peek(0);
                 },
 
                 .Op_True => {
-                    self.push(PValue.makeBool(true)) catch {
+                    self.stack.push(PValue.makeBool(true)) catch {
                         return .RuntimeError;
                     };
                 },
 
                 .Op_False => {
-                    self.push(PValue.makeBool(false)) catch {
+                    self.stack.push(PValue.makeBool(false)) catch {
                         return .RuntimeError;
                     };
                 },
 
                 .Op_Eq => {
-                    const b = self.pop() catch return .RuntimeError;
-                    const a = self.pop() catch return .RuntimeError;
+                    const b = self.stack.pop() catch return .RuntimeError;
+                    const a = self.stack.pop() catch return .RuntimeError;
 
-                    self.push(PValue.makeBool(a.isEqual(b))) catch {
+                    self.stack.push(PValue.makeBool(a.isEqual(b))) catch {
                         return .RuntimeError;  
                     };
                 },
 
                 .Op_Neq => {
-                    const b = self.pop() catch return .RuntimeError;
-                    const a = self.pop() catch return .RuntimeError;
+                    const b = self.stack.pop() catch return .RuntimeError;
+                    const a = self.stack.pop() catch return .RuntimeError;
                     
-                    self.push(PValue.makeBool(!a.isEqual(b))) catch {
+                    self.stack.push(PValue.makeBool(!a.isEqual(b))) catch {
                         return .RuntimeError;  
                     };
 
                 },
 
                 .Op_Nil => {
-                    self.push(PValue.makeNil()) catch {
+                    self.stack.push(PValue.makeNil()) catch {
                         return .RuntimeError;    
                     };
                 },
 
                 .Op_Not => {
-                    const val = self.pop() catch return .RuntimeError;
-                    self.push(PValue.makeBool(val.isFalsy())) catch {
+                    const val = self.stack.pop() catch return .RuntimeError;
+                    self.stack.push(PValue.makeBool(val.isFalsy())) catch {
                         return .RuntimeError;
                     };
                 },
@@ -469,23 +537,7 @@ pub const Vm = struct {
         }
     }
 
-    pub fn interpretRaw(self : *Self , inst : *ins.Instruction) IntrpResult{
-        //@memcpy(self.ins.*, inst.);
-        self.ip = inst.code.items.ptr;
-        self.ins = inst.*;
-        return self.run();
-    }
-
-    pub fn interpret(self : *Self , source : []u32) IntrpResult{
-        self.compiler = Compiler.new(source, self.gc) catch return .RuntimeError;
-        const result = self.compiler.compile(source, &self.ins) catch false;
-        if (result) { 
-            return self.interpretRaw(self.compiler.curIns());
-        } else { 
-            return .CompileError;
-        }
-
-    }
+   
 
 
 };

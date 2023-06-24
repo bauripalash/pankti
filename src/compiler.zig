@@ -39,13 +39,20 @@ const Precedence = enum(u8) {
     P_Pry,
 };
 
+pub const FnType = enum(u8) {
+    Ft_FUNC,
+    Ft_SCRIPT, 
+};
+
 pub const Compiler = struct {
     parser : *Parser,
     gc : *Gc,
-    inst : *ins.Instruction,
     localCount : u32,
     scopeDepth : u32,
     locals : [std.math.maxInt(u8)]Local,
+    function : *PObj.OFunction,
+    ftype : FnType,
+
 
     const Self = @This();
 
@@ -167,17 +174,26 @@ pub const Compiler = struct {
         self.parser.gc = gc;
     }
 
-    pub fn new(source : []u32 , gc : *Gc) !*Compiler{
+
+    pub fn new(source : []u32 , gc : *Gc , ftype : FnType) !*Compiler{
         const c = try gc.getAlc().create(Compiler);
+       
         c.* = .{
             .parser = try Parser.new(source, gc),
             .gc = gc,
-            .inst = undefined,
             .scopeDepth = 0,
             .localCount = 0,
+            .function = undefined,
+            .ftype = ftype,
             .locals = [_]Local{Local{ .name = lexer.Token.dummy(), .depth = 0 }} ** std.math.maxInt(u8),
 
         };
+        
+        var function : *PObj.OFunction = try gc.newObj(.Ot_Function,
+                                                    PObj.OFunction);
+        function.init(gc);
+
+        c.*.function = function;
 
         //var l = c.*.locals[0];
         //_ = l;
@@ -189,6 +205,10 @@ pub const Compiler = struct {
         //local.name.lexeme = &[_]u32{};
         //local.name.length = 0;
         //local.captured = false;
+        //
+
+        c.*.locals[c.localCount].depth = 0;
+        c.*.localCount+=1;
 
 
         return c;
@@ -209,11 +229,11 @@ pub const Compiler = struct {
     }
 
     fn emitBtRaw(self : *Self , bt : u8) !void{
-        try self.inst.write_raw(bt, ins.InstPos.line(self.parser.previous.line));
+        try self.curIns().write_raw(bt, ins.InstPos.line(self.parser.previous.line));
     }
 
     fn emitBt(self : *Self , bt : ins.OpCode) !void{
-        try self.inst.write(bt, ins.InstPos.line(self.parser.previous.line));
+        try self.curIns().write(bt, ins.InstPos.line(self.parser.previous.line));
     }
 
     fn emitTwo(self : *Self , bt : ins.OpCode , bt2 : ins.OpCode) !void{
@@ -236,7 +256,7 @@ pub const Compiler = struct {
     }
 
     fn makeConst(self : *Self , val : PValue ) !u8{
-        const con : u8 = try self.inst.addConst(val);
+        const con : u8 = try self.curIns().addConst(val);
         return con;
     }
 
@@ -623,7 +643,7 @@ pub const Compiler = struct {
     }
 
     fn rWhileStatement(self : *Self) !void{
-        const loopStart = self.inst.code.items.len;
+        const loopStart = self.curIns().code.items.len;
 
         try self.parseExpression();
         self.eat(.Do, "Expected do after while expression");
@@ -641,7 +661,7 @@ pub const Compiler = struct {
 
     fn emitLoop(self : *Self , loopStart : usize) !void{
         try self.emitBt(.Op_Loop);
-        const offset = self.inst.code.items.len - loopStart + 2;
+        const offset = self.curIns().code.items.len - loopStart + 2;
         if (offset > std.math.maxInt(u16)) {
             self.parser.err("loop body too large");
         }
@@ -655,11 +675,11 @@ pub const Compiler = struct {
         try self.emitBt(instruction);
         try self.emitBtRaw(0xff);
         try self.emitBtRaw(0xff);
-        return @intCast(u32 , self.inst.code.items.len - 2);
+        return @intCast(u32 , self.curIns().code.items.len - 2);
     }
 
     fn patchJump(self : *Self , offset : usize) void{
-        const jump = self.inst.code.items.len - offset - 2;
+        const jump = self.curIns().code.items.len - offset - 2;
 
         if (jump > std.math.maxInt(u16)) {
             self.parser.err("Too much code to jump over");
@@ -667,8 +687,8 @@ pub const Compiler = struct {
 
         const jmp = @intCast(u16 , jump);
 
-        self.inst.code.items[offset] = @intCast(u8, (jmp >> 8) & 0xff);
-        self.inst.code.items[offset + 1] = @intCast(u8 , jmp & 0xff);
+        self.curIns().code.items[offset] = @intCast(u8, (jmp >> 8) & 0xff);
+        self.curIns().code.items[offset + 1] = @intCast(u8 , jmp & 0xff);
 
 
     }
@@ -732,20 +752,27 @@ pub const Compiler = struct {
     }
 
     pub fn curIns(self : *Self) *ins.Instruction{
-        return self.inst;
+        return &self.function.ins;
     }
         
-    fn endCompiler(self : *Self) !void {
+    fn endCompiler(self : *Self) !*PObj.OFunction {
         try self.emitBt(.Op_Nil);
         try self.emitBt(.Op_Return);
+        const f = self.function;
         if (flags.DEBUG) {
-            self.inst.disasm("<script>");
+            const fname = try utils.u32tou8(self.function.getName() , 
+                                            self.gc.getAlc());
+            self.curIns().disasm(fname);
+            self.gc.getAlc().free(fname);
+            
         }
+
+        return f;
     }
 
-    pub fn compile(self : *Self , source : []u32 , inst : *ins.Instruction) !bool{
+    pub fn compile(self : *Self , source : []u32) !?*PObj.OFunction{
         self.parser.init(source, self.gc);
-        self.inst = inst;
+        //self.inst = inst;
         
         self.parser.advance();
 
@@ -753,9 +780,9 @@ pub const Compiler = struct {
             try self.rDeclaration();
         }
 
-        try self.endCompiler();
+        const f = try self.endCompiler();
 
-        return !self.parser.hadErr;
+        if (self.parser.hadErr) { return null; } else { return f; }
     }
 
     pub fn free(self : *Self , al : std.mem.Allocator) void{

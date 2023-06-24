@@ -52,10 +52,10 @@ pub const Gc = struct {
         return self.al;
     }
 
-    pub fn newObj(self : *Self , comptime ParentType : type) !*ParentType{
+    pub fn newObj(self : *Self , otype : PObj.OType , comptime ParentType : type) !*ParentType{
         
         const ptr = try self.al.create(ParentType);
-        ptr.parent().objtype =  .Ot_String;
+        ptr.parent().objtype =  otype;
         ptr.parent().isMarked = false;
         ptr.parent().next = self.objects;
         self.objects = ptr.parent();
@@ -71,7 +71,7 @@ pub const Gc = struct {
     }
 
     pub fn newString(self : *Self , chars : []u32 , len : u32) !*PObj.OString{
-        var ptr = try self.newObj(PObj.OString);
+        var ptr = try self.newObj(.Ot_String , PObj.OString);
         ptr.chars = chars;
         ptr.len = len;
         ptr.obj.isMarked = true;
@@ -114,7 +114,12 @@ pub const Gc = struct {
                 }
 
                 str_obj.free(self);
-            }
+            },
+
+            .Ot_Function => {
+                const fnObj = obj.child(PObj.OFunction);
+                fnObj.free(self);
+            },
         }
 
         return;
