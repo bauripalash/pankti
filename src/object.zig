@@ -67,6 +67,10 @@ pub const PObj = struct {
         return @fieldParentPtr(OString, "obj", self);
     }
 
+    pub fn asFunc(self : *PObj) *OFunction{
+        return self.child(PObj.OFunction);
+    }
+
     pub fn free(self : *PObj , vm : *Vm) void{
         switch (self.objtype) {
             .Ot_String => self.asString().free(vm),

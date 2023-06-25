@@ -211,14 +211,14 @@ pub const Instruction = struct {
     fn jumpInstruction(self : *Instruction , name : []const u8 , sign : i32 , offset : usize) usize{
 
         var jump : u16 = utils.u8tou16(&[_]u8{self.code.items[offset + 1] , self.code.items[offset + 2 ]});
-
-
-
         std.debug.print("{s} {d} -> {d}\n" , .{name , offset , @intCast(i64 , offset) + 3 + sign * jump});
-
             return offset + 3;
+    }
 
-
+    fn byteInstruction(self : *Instruction , name : []const u8 , offset : usize) usize{
+       const slot = self.code.items[offset + 1];
+       std.debug.print("{s} {:>4}\n" , .{name , slot});
+       return offset + 2;
     }
 
     fn disasmInstruction(self: *Instruction, offset: usize) usize {
@@ -262,6 +262,10 @@ pub const Instruction = struct {
 
             .Op_Loop => {
                 return self.jumpInstruction(ins.toString() , -1 , offset);
+            },
+
+            .Op_Call => {
+                return self.byteInstruction(ins.toString(), offset);
             },
 
             .Op_Const, 

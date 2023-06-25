@@ -68,6 +68,7 @@ pub const Compiler = struct {
     const rules = RuleTable.init(.{
         .Lparen = ParseRule{
             .prefix = Self.rGroup,
+            .infix = Self.rCall,
             .prec = .P_Call,
         },
         .Rparen = ParseRule{},
@@ -311,6 +312,36 @@ pub const Compiler = struct {
 
             self.parser.advance();
         }
+    }
+
+    fn readArgumentList(self : *Self) !u8 {
+        var argc : u8 = 0;
+
+        if (!self.check(.Rparen)) {
+            while (true) {
+                try self.parseExpression();
+
+                if (argc == std.math.maxInt(u8)) {
+                    self.parser.err("Can't have more than 255 arguments");
+                }
+
+                argc += 1;
+
+                if (!self.match(.Comma)) {
+                    break;
+                }
+            }
+        }
+
+        self.eat(.Rparen, "Expected ')' after arguments");
+        return argc;
+    }
+
+    fn rCall(self : *Self , canAssign : bool) !void{
+        _ = canAssign;
+        const argc = try self.readArgumentList();
+        try self.emitBt(.Op_Call);
+        try self.emitBtRaw(argc);
     }
 
     fn rFuncDeclaration(self : *Self) !void{

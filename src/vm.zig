@@ -48,17 +48,29 @@ pub const IntrpResult = enum(u8) {
 pub const VStack = struct {
     stack : [STACK_MAX]PValue,
     top : [*]PValue,
+    count : u32,
     
     const Self = @This();
 
-    pub inline fn push(self : *Self , value : PValue) StackError!void {
+    pub fn push(self : *Self , value : PValue) StackError!void {
         
+        if (self.count == STACK_MAX) {
+            return StackError.StackOverflow;
+        }
+
         self.top[0] = value;
         self.top += 1;
+        self.count += 1;
     }
 
-    pub inline fn pop(self : *Self) !PValue {
+    pub fn pop(self : *Self) StackError!PValue {
+        
+        if (self.count == 0) {
+            return StackError.StackUnderflow;
+        }
+
         self.top -= 1;
+        self.count -= 1;
         return self.top[0];
     }
 };
@@ -206,14 +218,36 @@ pub const Vm = struct {
 
 
     fn peek(self : *Self , dist : usize) PValue{
-        return self.stack.stack[dist];
+        return (self.stack.top - 1 - dist)[0];
     }
 
     fn throwRuntimeError(self : *Self , msg : []const u8) void{
+        
         const frame = &self.callframes.stack[self.callframes.count - 1];
         const i = @ptrToInt(frame.ip) - @ptrToInt(frame.function.ins.code.items.ptr) - 1;
         std.debug.print("Runtime Error Occured in line {}", .{frame.function.ins.pos.items[i].line});
         std.debug.print("\n{s}\n", .{msg});
+
+        //std.debug.print("call frames -> {any}\n\n" , .{self.callframes});
+        
+        var j : i64 = @intCast(i64 , self.callframes.count - 1);
+        //std.debug.print("CFC -> {d}\n" , .{self.callframes.count});
+        while (j >= 0) {
+            const f = &self.callframes.stack[@intCast(usize , j)];
+            const fun = f.function;
+            const instr = @ptrToInt(f.ip) - @ptrToInt(f.function.ins.code.items.ptr) - 1;
+            std.debug.print("[line {d}] in " , .{fun.ins.pos.items[instr].line});
+            if (fun.name) |n| {
+                utils.printu32(n.chars);
+                std.debug.print("()\n" , .{});
+            } else{
+                std.debug.print("<script>\n" , .{});
+            }
+
+            j -= 1;
+        }
+
+        self.resetStack();
     }
 
     pub fn debugStack(self : *Self) void{
@@ -341,6 +375,40 @@ pub const Vm = struct {
         }
     }
 
+    fn call(self : *Self , func : *Pobj.OFunction , argc : u8) bool{
+        
+        if (argc != func.arity) {
+            self.throwRuntimeError("Function Expected Arg != Got");
+            return false;
+        }
+
+        var frame = &self.callframes.stack[self.callframes.count];
+        self.callframes.count += 1;
+        frame.function = func;
+        frame.ip = func.ins.code.items.ptr;
+        frame.slots = self.stack.top - argc - 1;
+        return true;
+
+    }
+
+    fn callVal(self : *Self , calle : PValue , argc : u8) bool {
+
+        if (calle.isObj()) {
+            switch (calle.asObj().objtype) {
+                .Ot_Function => {
+                    return self.call(calle.asObj().asFunc() , argc);
+                },
+                else => {},
+            }
+        }
+        
+        //calle.printVal();
+        self.throwRuntimeError("Can only call functions");
+        return false;
+
+    } 
+
+
     fn run(self : *Self) IntrpResult{
         
         var frame : *CallFrame = 
@@ -353,6 +421,14 @@ pub const Vm = struct {
             const op = frame.readByte();
 
             switch (op) {
+
+                .Op_Call => {
+                    const argcount = frame.readRawByte();
+                    if (!self.callVal(self.peek(@intCast(usize , argcount)), argcount)) {
+                        return .RuntimeError;
+                    }
+                    frame = &self.callframes.stack[self.callframes.count - 1];
+                },
 
                 .Op_JumpIfFalse => {
                     const offset = frame.readU16();
@@ -373,13 +449,26 @@ pub const Vm = struct {
                     frame.ip -= offset;
                 },
                 .Op_Return => {
+                    if (self.callframes.count == 1) {
+                        _ = self.stack.pop() catch return .RuntimeError;
+                        return .Ok;
+                    }
+                    const result = self.stack.pop() catch return .RuntimeError;
+
+                    self.callframes.count -= 1;
+                    
+
+                    self.stack.top = frame.slots;
+                    self.stack.push(result) catch return .RuntimeError;
+                    frame = &self.callframes.stack[self.callframes.count - 1];
+
                     //self.throwRuntimeError("Return occured");
                     //self.pop().printVal();
                     //std.debug.print("\n" , .{});
                     //const popVal = self.pop() catch return .RuntimeError;
                     //popVal.printVal();
 
-                    return IntrpResult.Ok;
+                    //return IntrpResult.Ok;
                 },
 
                 .Op_Show => {
