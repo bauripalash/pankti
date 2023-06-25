@@ -1,7 +1,7 @@
 ZIG:=zig
 BUILD_DIR:=zig-out
 TARGET:=$(BUILD_DIR)/bin/neopank
-SAMPLE:=sample/c.txt
+SAMPLE:=sample/d.txt
 DEBUGGER:=gdb
 
 run: $(TARGET)

@@ -25,4 +25,6 @@ kaj z()
 	z(1,2)
 end 
 
-x()
+#x()
+
+show clock()

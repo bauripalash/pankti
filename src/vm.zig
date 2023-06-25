@@ -20,6 +20,7 @@ const utils = @import("utils.zig");
 const table = @import("table.zig");
 const Allocator = std.mem.Allocator;
 const flags = @import("flags.zig");
+const builtins = @import("builtins.zig");
 
 const FRAME_MAX = 64;
 const STACK_MAX = FRAME_MAX * std.math.maxInt(u8);
@@ -76,7 +77,7 @@ pub const VStack = struct {
 };
 
 pub const CallFrame = struct {
-    function : *Pobj.OFunction,
+    closure : *Pobj.OClosure,
     ip : [*]u8,
     slots : [*]PValue,
     const Self = @This();
@@ -105,7 +106,7 @@ pub const CallFrame = struct {
     }
 
     pub inline fn readConst(self : *Self) PValue {
-        return self.function.ins.cons.items[self.readRawByte()];
+        return self.closure.function.ins.cons.items[self.readRawByte()];
        //return self.ins.cons.items[self.readRawByte()];
     }
 
@@ -141,6 +142,8 @@ pub const Vm = struct {
         self.*.callframes = undefined;
     
         self.stack.top = self.stack.stack[0..];
+
+        self.defineNative(&[_]u32{'c' , 'l' , 'o' , 'c' , 'k'} , builtins.nClock ) catch return;
         
         
         //self.*.ip = self.*.ins.code.items.ptr;
@@ -166,8 +169,13 @@ pub const Vm = struct {
         const rfunc : ?*Pobj.OFunction = self.compiler.compile(source) catch return .CompileError;
         
         if (rfunc) |f| {
+            self.stack.push(f.parent().asValue()) catch return .RuntimeError;
+            const cls = Pobj.OClosure.new(self.gc, f) catch return .RuntimeError;
+            _ = self.stack.pop() catch return .RuntimeError;
+            _ = self.stack.push(cls.parent().asValue()) catch return .RuntimeError;
+            
             self.*.callframes.stack[0] = .{
-                .function = f,
+                .closure = cls,
                 .ip = f.ins.code.items.ptr,
                 .slots = self.stack.stack[0..]
             };
@@ -224,8 +232,8 @@ pub const Vm = struct {
     fn throwRuntimeError(self : *Self , msg : []const u8) void{
         
         const frame = &self.callframes.stack[self.callframes.count - 1];
-        const i = @ptrToInt(frame.ip) - @ptrToInt(frame.function.ins.code.items.ptr) - 1;
-        std.debug.print("Runtime Error Occured in line {}", .{frame.function.ins.pos.items[i].line});
+        const i = @ptrToInt(frame.ip) - @ptrToInt(frame.closure.function.ins.code.items.ptr) - 1;
+        std.debug.print("Runtime Error Occured in line {}", .{frame.closure.function.ins.pos.items[i].line});
         std.debug.print("\n{s}\n", .{msg});
 
         //std.debug.print("call frames -> {any}\n\n" , .{self.callframes});
@@ -234,8 +242,8 @@ pub const Vm = struct {
         //std.debug.print("CFC -> {d}\n" , .{self.callframes.count});
         while (j >= 0) {
             const f = &self.callframes.stack[@intCast(usize , j)];
-            const fun = f.function;
-            const instr = @ptrToInt(f.ip) - @ptrToInt(f.function.ins.code.items.ptr) - 1;
+            const fun = f.closure.function;
+            const instr = @ptrToInt(f.ip) - @ptrToInt(fun.ins.code.items.ptr) - 1;
             std.debug.print("[line {d}] in " , .{fun.ins.pos.items[instr].line});
             if (fun.name) |n| {
                 utils.printu32(n.chars);
@@ -262,6 +270,23 @@ pub const Vm = struct {
             }
         }
         std.debug.print("===============\n\n" , .{});
+    }
+
+    fn defineNative(self : *Self , name : []const u32 , func : Pobj.ONativeFunction.NativeFn) !void {
+        
+        const nstr = try self.gc.copyString(name, @intCast(u32 , name.len));
+        
+        
+        try self.stack.push(nstr.parent().asValue());
+        var nf = try self.gc.newObj(.Ot_NativeFunc, Pobj.ONativeFunction);
+        nf.init(func);
+
+        try self.stack.push(nf.parent().asValue());
+
+        try self.gc.globals.put(self.gc.getAlc() , self.stack.stack[0].asObj().asString() , self.stack.stack[1]);
+        _ = try self.stack.pop();
+        _ = try self.stack.pop();
+        
     }
 
     fn doBinaryOpAdd(self : *Self) bool{
@@ -375,17 +400,17 @@ pub const Vm = struct {
         }
     }
 
-    fn call(self : *Self , func : *Pobj.OFunction , argc : u8) bool{
+    fn call(self : *Self , closure : *Pobj.OClosure , argc : u8) bool{
         
-        if (argc != func.arity) {
+        if (argc != closure.function.arity) {
             self.throwRuntimeError("Function Expected Arg != Got");
             return false;
         }
 
         var frame = &self.callframes.stack[self.callframes.count];
         self.callframes.count += 1;
-        frame.function = func;
-        frame.ip = func.ins.code.items.ptr;
+        frame.closure = closure;
+        frame.ip = closure.function.ins.code.items.ptr;
         frame.slots = self.stack.top - argc - 1;
         return true;
 
@@ -395,8 +420,15 @@ pub const Vm = struct {
 
         if (calle.isObj()) {
             switch (calle.asObj().objtype) {
-                .Ot_Function => {
-                    return self.call(calle.asObj().asFunc() , argc);
+                .Ot_Closure => {
+                    return self.call(calle.asObj().asClosure() , argc);
+                },
+                .Ot_NativeFunc => {
+                    const f : *Pobj.ONativeFunction = calle.asObj().asNativeFun();
+                    const result = f.func(argc , (self.stack.top - argc)[0..argc]);
+                    self.stack.top -= argc + 1;
+                    self.stack.push(result) catch return false;
+                    return true;
                 },
                 else => {},
             }
@@ -421,6 +453,12 @@ pub const Vm = struct {
             const op = frame.readByte();
 
             switch (op) {
+
+                .Op_Closure => {
+                    const func = frame.readConst().asObj().asFunc();
+                    const cls = Pobj.OClosure.new(self.gc, func) catch return .RuntimeError;
+                    self.stack.push(cls.parent().asValue()) catch return .RuntimeError;
+                },
 
                 .Op_Call => {
                     const argcount = frame.readRawByte();

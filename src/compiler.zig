@@ -25,6 +25,11 @@ pub const Local = struct {
     depth : i32,
 };
 
+pub const UpValue = struct {
+    index : u8,
+    isLocal : bool,
+};
+
 const Precedence = enum(u8) {
     P_None,
     P_Assignment,
@@ -53,6 +58,7 @@ pub const Compiler = struct {
     function : *PObj.OFunction,
     ftype : FnType,
     enclosing : ?*Compiler,
+    upvalues : [std.math.maxInt(u8)]UpValue,
 
 
     const Self = @This();
@@ -189,6 +195,7 @@ pub const Compiler = struct {
             .function = function,
             .ftype = ftype,
             .localCount = 0,
+            .upvalues = undefined,
             .parser = enclosing.?.parser,
             .locals = [_]Local{Local{ .name = lexer.Token.dummy(), .depth = 0 }} ** std.math.maxInt(u8),
         };
@@ -218,6 +225,7 @@ pub const Compiler = struct {
             .localCount = 0,
             .enclosing = null,
             .function = undefined,
+            .upvalues = undefined,
             .ftype = ftype,
             .locals = [_]Local{Local{ .name = lexer.Token.dummy(), .depth = 0 }} ** std.math.maxInt(u8),
 
@@ -285,6 +293,10 @@ pub const Compiler = struct {
         try self.emitBtRaw(try self.makeConst(val));
     }
 
+    fn emitReturn(self : *Self) !void {
+        try self.emitTwo(.Op_Nil, .Op_Return);
+    }
+
     fn getRule(t : lexer.TokenType) ParseRule{
         return rules.get(t);
     }
@@ -312,6 +324,46 @@ pub const Compiler = struct {
 
             self.parser.advance();
         }
+    }
+
+    fn resolveUpvalue(self : *Self , name : *const lexer.Token) i32{
+        const enc = self.enclosing orelse return -1;
+        
+        const local = enc.resolveLocal(name);
+        if (local != -1) {
+            return self.addUpvalue(@truncate(u8, @intCast(u64 , local)), true);
+        }
+
+        const upv = enc.resolveUpvalue(name);
+        if (upv != -1) {
+            
+            return self.addUpvalue(@truncate(u8,  @intCast(u64 , local)), false);
+        }
+
+        return -1;
+        
+    }
+    fn addUpvalue(self : *Self , index: u8 , isLocal : bool ) i32 {
+        const upc = self.function.upvCount;
+        
+        var i : u32 = 0;
+
+        while (i < upc) : (i += 1) {
+            const upv = self.upvalues[i];
+            if (upv.index == index and upv.isLocal == isLocal) {
+                return @intCast(i32 , i);
+            }
+        }
+
+        if (upc == std.math.maxInt(u8)) {
+            self.parser.err("too many closure variables");
+            return 0;
+        }
+
+        self.upvalues[upc].index = index;
+        self.upvalues[upc].isLocal = isLocal;
+        self.function.upvCount += 1;
+        return @intCast(i32, upc);
     }
 
     fn readArgumentList(self : *Self) !u8 {
@@ -365,8 +417,21 @@ pub const Compiler = struct {
         try fcomp.readToEnd();
 
         const f = try fcomp.endCompiler();
-            try self.emitBt(.Op_Const);
-            try self.emitBtRaw(try self.makeConst(PValue.makeObj(f.parent())));
+        try self.emitBt(.Op_Closure);
+        try self.emitBtRaw(try self.makeConst(PValue.makeObj(f.parent())));
+
+        var i : usize = 0;
+
+        while (i < f.upvCount) : (i += 1) {
+            const upv = &self.upvalues[i];
+            if (upv.isLocal) {
+                try self.emitBtRaw(1);
+            } else {
+                try self.emitBtRaw(0);
+            }
+
+            try self.emitBtRaw(upv.index);
+        }
 
     }
     
@@ -395,11 +460,18 @@ pub const Compiler = struct {
         if (arg != -1) {
             getOp = .Op_GetLocal;
             setOp = .Op_SetLocal;
+
         } else {
             
-            arg = self.rIdentConst(&name);
-            getOp = .Op_GetGlob;
-            setOp = .Op_SetGlob;
+            arg = self.resolveUpvalue(&name);
+            if (arg != -1) {
+                setOp = .Op_SetUp;
+                getOp = .Op_GetUp;
+            }else  {
+                arg = self.rIdentConst(&name);
+                getOp = .Op_GetGlob;
+                setOp = .Op_SetGlob;
+            }
         }
         
         if (canAssign and self.match(.Eq)) {
@@ -538,6 +610,8 @@ pub const Compiler = struct {
     fn rStatement(self : *Self) !void{
         if (self.match(.Show)) {
             try self.rPrintStatement();
+        } else if (self.match(.Return)){
+            try self.rReturnStatement();
         } else if (self.match(.If)) {
             try self.rIfStatement();
         } else if (self.match(.PWhile)) {
@@ -550,6 +624,21 @@ pub const Compiler = struct {
             try self.rExprStatement();
         }
 
+    }
+
+    fn rReturnStatement(self : *Self) !void{
+        
+        if (self.ftype == .Ft_SCRIPT) {
+            self.parser.err("Can't return from top-level code");
+        }
+
+        if (self.match(.Semicolon)) {
+            try self.emitReturn();
+        } else {
+            try self.parseExpression();
+            self.skipSemicolon();
+            try self.emitBt(.Op_Return);
+        }
     }
 
     fn rExprStatement(self : *Self) !void {

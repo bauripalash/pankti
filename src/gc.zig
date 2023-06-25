@@ -120,6 +120,16 @@ pub const Gc = struct {
                 const fnObj = obj.child(PObj.OFunction);
                 fnObj.free(self);
             },
+
+            .Ot_NativeFunc => {
+                const nfObj = obj.asNativeFun();
+                nfObj.free(self);
+            },
+
+            .Ot_Closure => {
+                const cl = obj.asClosure();
+                cl.free(self);
+            },
         }
 
         return;

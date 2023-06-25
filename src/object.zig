@@ -24,12 +24,17 @@ pub const PObj = struct {
     pub const OType = enum(u8) {
         Ot_String,
         Ot_Function,
+        Ot_NativeFunc,
+        Ot_Closure,
 
         pub fn toString(self : OType) []const u8 {
 
             switch (self) {
                 .Ot_String => { return "OBJ_STRING"; },
                 .Ot_Function => {return "OBJ_FUNC";},
+                .Ot_NativeFunc => return "OBJ_NATIVE",
+                .Ot_Closure => return "OBJ_CLOSURE",
+                
             }
         }
     };
@@ -71,6 +76,13 @@ pub const PObj = struct {
         return self.child(PObj.OFunction);
     }
 
+    pub fn asNativeFun(self : *PObj) *ONativeFunction {
+        return self.child(PObj.ONativeFunction);
+    }
+
+    pub fn asClosure(self : *PObj) *OClosure {
+        return self.child(PObj.OClosure);
+    }
     pub fn free(self : *PObj , vm : *Vm) void{
         switch (self.objtype) {
             .Ot_String => self.asString().free(vm),
@@ -85,7 +97,9 @@ pub const PObj = struct {
     pub fn printObj(self : *PObj) void{
         switch (self.getType()) {
             .Ot_String => self.asString().print(),
-            .Ot_Function => self.child(PObj.OFunction).*.print(),
+            .Ot_Function => self.asFunc().print(),
+            .Ot_NativeFunc => self.asNativeFun().print(),
+            .Ot_Closure => self.asClosure().print(),
         }
     }
 
@@ -97,22 +111,91 @@ pub const PObj = struct {
 
            .Ot_Function => {
                 return try utils.u32tou8(&[_]u32{'<' , 'f' , 'n' , '>'}, al);
-           }
+           },
+
+            .Ot_Closure => {
+                return try utils.u32tou8(&[_]u32{'c' , 'l' , 'o' , 's' , 'u' , 'r' , 'e'}, al);
+            },
+
+           .Ot_NativeFunc => {
+    
+                return try utils.u32tou8(&[_]u32{'<' ,
+                    'n' ,
+                    'a' ,
+                    't',
+                    'i',
+                    'v',
+                    ' ',
+                    'f' ,
+                    'n' ,
+                    '>'}, al);
+        },
         }
 
         return try utils.u32tou8([_]u32{'_'}, al);
     }
+
+    pub const OClosure = struct {
+        obj : PObj,
+        function : *OFunction,
+
+        pub fn new(gc : *Gc , func : *OFunction) !*PObj.OClosure {
+            const cl = try gc.newObj(.Ot_Closure, PObj.OClosure);
+            cl.function = func;
+            return cl;
+        }
+
+        pub fn print(self : *OClosure) void {
+            std.debug.print("<cl " , .{});
+            self.function.print();
+            std.debug.print(" >" , .{});
+        }
+
+        pub fn parent(self : *OClosure) *PObj {
+            return @ptrCast(*PObj, self);
+        }
+
+        pub fn free(self : *OClosure , gc : *Gc) void {
+            gc.getAlc().destroy(self);
+        }
+    };
+
+    pub const ONativeFunction = struct {
+        obj : PObj,
+        func : NativeFn,
+
+        pub const NativeFn = *const fn (u8 , []PValue) PValue;
+
+        pub fn init(self : *ONativeFunction , func : NativeFn) void {
+            self.func = func;
+        }
+
+        pub fn print(self : *ONativeFunction) void {
+            _ = self;
+            std.debug.print("<native fn>" , .{});
+        }
+
+        pub fn parent(self : *ONativeFunction) *PObj {
+            return @ptrCast(*PObj, self);
+        }
+
+        pub fn free(self : *ONativeFunction , gc : *Gc) void {
+            gc.getAlc().destroy(self);
+        } 
+    };
 
     
     pub const OFunction = struct {
         obj : PObj,
         arity : u8,
         name : ?*OString,
+        upvCount : u32,
         ins : Instruction,
 
         pub fn init(self : *OFunction , gc : *Gc) void {
             self.arity = 0;
             self.name = null;
+            self.upvCount = 0;
             self.ins = Instruction.init(gc);
         }
 

@@ -1,0 +1,11 @@
+kaj outer()
+	dhori a = 1
+	dhori b = 2
+	kaj middle()
+		dhori c = 3
+		dhori d = 4
+		kaj inner()
+			show a+c+b+d 
+		sesh
+	sesh 
+sesh

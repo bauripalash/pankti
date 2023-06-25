@@ -11,6 +11,7 @@ const std = @import("std");
 const PValue = @import("value.zig").PValue;
 const Gc = @import("gc.zig").Gc;
 const utils = @import("utils.zig");
+const PObj = @import("object.zig").PObj;
 
 pub const OpCode = enum(u8) {
     Op_Return,
@@ -278,6 +279,30 @@ pub const Instruction = struct {
             => { 
                 return self.constInstruction(ins.toString() , offset);
             },
+
+            .Op_Closure => {
+                var off = offset + 2;
+                const con = self.code.items[off - 1];
+                std.debug.print("{s} {d} " , .{ins.toString() , con});
+                self.cons.items[con].printVal();
+                std.debug.print("\n" , .{});
+                
+                const f : *PObj.OFunction = self.cons.items[con].asObj().asFunc();
+                var i : usize = 0;
+                while (i < f.upvCount) : (i += 1) {
+                    const rawisLocal = self.code.items[off];
+                    var isLocal = "false";
+                    if (rawisLocal == 1) { isLocal = "true "; }
+                    off += 1;
+                    const index  = self.code.items[off];
+                    off += 1;
+
+                    std.debug.print("{d} | {s} {d}\n" , .{off - 1 , isLocal , index});
+
+                }
+
+                return off;
+        },
             else => {
                 return offset + 1;
             }
