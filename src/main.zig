@@ -14,7 +14,8 @@ const print = std.debug.print;
 const utils = @import("utils.zig");
 const ins = @import("instruction.zig");
 const v = @import("vm.zig");
-const Gc = @import("gc.zig").Gc;
+const g = @import("gc.zig");
+const Gc = g.Gc;
 const Vm = v.Vm;
 const IntrpResult = v.IntrpResult;
 const PValue = @import("value.zig").PValue;
@@ -37,6 +38,7 @@ pub fn main() !void {
 
     var gcGpa = std.heap.GeneralPurposeAllocator(.{}){};
     const GcGa = gcGpa.allocator();
+    _ = GcGa;
     defer {
         if (fileToRun) |f| {
             ga.free(f);
@@ -57,18 +59,20 @@ pub fn main() !void {
     }
     
     if (fileToRun) |f| {
-        var gc = try Gc.new(GcGa);
-        gc.boot(GcGa);
+        
+        var gc = try Gc.new(ga);
+        gc.boot();
 
         const text = try openfile(f, ga);
         const u = try utils.u8tou32(text, ga);
-        var myv = try Vm.newVm(gc.getAlc());
+        var myv = try Vm.newVm(ga);
         myv.bootVm(gc);
         const result = myv.interpret(u);
         std.debug.print("VM Result : {s}\n" , .{result.toString()});
-        myv.freeVm(gc.getAlc());
+        myv.freeVm(ga);
         ga.free(u);
         ga.free(text);
+        
     } 
 }
 

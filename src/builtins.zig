@@ -17,3 +17,12 @@ pub fn nClock(argc : u8 , values : []PValue) PValue{
     const s = std.time.timestamp();
     return PValue.makeNumber(@intToFloat(f64, s));
 }
+
+pub fn nShow(argc : u8 , values : []PValue) PValue{
+    var i : usize = 0;
+    while (i < argc) : (i += 1) {
+        values[i].printVal();
+        std.debug.print("\n" , .{}); //Until complete
+    }
+    return PValue.makeNil();
+}

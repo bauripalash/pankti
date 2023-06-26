@@ -5,7 +5,7 @@ kaj main()
 	{
 		dhori a = "one"
 		kaj one()
-			show a
+			 print(a)
 		sesh 
 
 		gone = one 
@@ -14,7 +14,7 @@ kaj main()
 	{
 		dhori a = "two"
 		kaj two()
-			show a
+			print(a , "\n")
 		sesh 
 
 		gtwo = two

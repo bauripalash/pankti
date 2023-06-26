@@ -144,6 +144,7 @@ pub const Vm = struct {
         self.stack.top = self.stack.stack[0..];
 
         self.defineNative(&[_]u32{'c' , 'l' , 'o' , 'c' , 'k'} , builtins.nClock ) catch return;
+        self.defineNative(&[_]u32 { 'p' , 'r' , 'i' , 'n' , 't' } , builtins.nShow) catch return;
         
         
         //self.*.ip = self.*.ins.code.items.ptr;
@@ -198,6 +199,9 @@ pub const Vm = struct {
         //self.stack.deinit(self.gc.getAlc());
         //self.ins.free();
         self.gc.free();
+        //self.gc.getAlc().destroy(self);
+        //self.gc.getAlc().destroy(self.gc);
+        
         al.destroy(self);
         
     }

@@ -17,21 +17,22 @@ const ansicolors = @import("ansicolors.zig");
 
 
 pub const Gc = struct {
-    inernal_al : Allocator,
+    internal_al : Allocator,
     al : Allocator,
     objects : ?*PObj,
     strings : table.StringTable(),
     globals : table.GlobalsTable(),
     openUps : ?*PObj.OUpValue,
+
     const Self = @This();
 
-    pub fn new(gc : Allocator) !*Gc{
-        const newgc = try gc.create(Self);
+    pub fn new(al : Allocator) !*Gc{
+        const newgc = try al.create(Self);
         newgc.* = .{
-            .al = gc,
+            .internal_al = al,
+            .al = undefined,
             .strings = table.StringTable(){},
             .globals = table.GlobalsTable(){},
-            .inernal_al = gc,
             .objects = null,
             .openUps = null,
         };
@@ -40,11 +41,47 @@ pub const Gc = struct {
         
     }
 
-    pub fn boot(self : *Self , al : Allocator ) void {
-        _ = self;
-        _ = al;
-        
+    pub fn boot(self : *Self ) void {
+        //std.debug.print("allocator -> {any}\n" , .{self.getAlc()});
+        self.al = self.allocator();
     }
+
+    pub inline fn allocator(self : *Self) Allocator {
+            return .{
+                    .ptr = self,
+                    .vtable = comptime &Allocator.VTable {
+                        .alloc = allocImpl,
+                        .free = freeImpl,
+                        .resize = resizeImpl,
+                    }
+            };
+        }
+
+     pub fn allocImpl(ptr: *anyopaque, len: usize, ptr_align: u8, ret_addr: usize) ?[*]u8 {
+            
+            const self: *Gc = @ptrCast(*Gc, @alignCast(@alignOf(Gc) , ptr));
+            return self.internal_al.rawAlloc(len, ptr_align, ret_addr);
+            
+        }
+
+        pub fn freeImpl(ptr : *anyopaque , buf : []u8 , bufalign : u8 , ret_addr : usize) void{
+
+
+            const self: *Gc = @ptrCast(*Gc, @alignCast(@alignOf(Gc) , ptr));
+            self.internal_al.rawFree(buf, bufalign, ret_addr);
+
+        }
+
+        pub fn resizeImpl(ptr : *anyopaque , buf : []u8 , bufalign : u8 , newlen : usize , ret_addr : usize ) bool {
+
+            const self: *Gc = @ptrCast(*Gc, @alignCast(@alignOf(Gc) , ptr));
+            return self.internal_al.rawResize(buf, bufalign, newlen, ret_addr);
+
+        }
+
+
+    
+
 
     pub fn getIntAlc(self : *Self) Allocator{
         return self.inernal_al;
