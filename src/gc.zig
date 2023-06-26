@@ -23,6 +23,7 @@ pub const Gc = struct {
     strings : table.StringTable(),
     globals : table.GlobalsTable(),
     openUps : ?*PObj.OUpValue,
+    alocAmount : usize,
 
     const Self = @This();
 
@@ -35,6 +36,7 @@ pub const Gc = struct {
             .globals = table.GlobalsTable(){},
             .objects = null,
             .openUps = null,
+            .alocAmount = 0,
         };
 
         return newgc;
@@ -60,24 +62,36 @@ pub const Gc = struct {
      pub fn allocImpl(ptr: *anyopaque, len: usize, ptr_align: u8, ret_addr: usize) ?[*]u8 {
             
             const self: *Gc = @ptrCast(*Gc, @alignCast(@alignOf(Gc) , ptr));
-            return self.internal_al.rawAlloc(len, ptr_align, ret_addr);
+            const bts = self.internal_al.rawAlloc(len, ptr_align, ret_addr);
+            self.alocAmount += len;
+            //std.debug.print("ALOC SIZE ->{d}bytes\n" , .{len});
+            return bts;
+
             
-        }
+    }
 
-        pub fn freeImpl(ptr : *anyopaque , buf : []u8 , bufalign : u8 , ret_addr : usize) void{
+    pub fn freeImpl(ptr : *anyopaque , buf : []u8 , bufalign : u8 , ret_addr : usize) void{
 
+        const self: *Gc = @ptrCast(*Gc, @alignCast(@alignOf(Gc) , ptr));
+        self.internal_al.rawFree(buf, bufalign, ret_addr);
 
-            const self: *Gc = @ptrCast(*Gc, @alignCast(@alignOf(Gc) , ptr));
-            self.internal_al.rawFree(buf, bufalign, ret_addr);
+        //self.alocAmount -= buf.len;
 
-        }
+    }
 
-        pub fn resizeImpl(ptr : *anyopaque , buf : []u8 , bufalign : u8 , newlen : usize , ret_addr : usize ) bool {
+    pub fn resizeImpl(ptr : *anyopaque , buf : []u8 , bufalign : u8 , newlen : usize , ret_addr : usize ) bool {
 
-            const self: *Gc = @ptrCast(*Gc, @alignCast(@alignOf(Gc) , ptr));
-            return self.internal_al.rawResize(buf, bufalign, newlen, ret_addr);
+        const self: *Gc = @ptrCast(*Gc, @alignCast(@alignOf(Gc) , ptr));
+            
+        if (buf.len > newlen) {
+            self.alocAmount = (self.alocAmount - buf.len) + newlen;
+        } else if (buf.len < newlen) {
+            self.alocAmount = (self.alocAmount - buf.len) + newlen;
+        } 
 
-        }
+        return self.internal_al.rawResize(buf, bufalign, newlen, ret_addr);
+
+    }
 
 
     
@@ -126,11 +140,7 @@ pub const Gc = struct {
         if (self.strings.get(chars)) |interned| {
             return interned;
         }
-        //
-        //
-        //std.debug.print("->{d} " , .{self.strings.count()});
-        //utils.printu32(chars);
-        //std.debug.print("<-\n" , .{});
+    
         const mem_chars = try self.al.alloc(u32, len);
         @memcpy(mem_chars, chars);
 
@@ -189,11 +199,11 @@ pub const Gc = struct {
     }
 
     pub fn free(self : *Self) void{
-        //std.debug.print("{any}\n" , .{self.strings.keys().len});
+        std.debug.print("TOTAL BYTES ALLOCATED-> {d}bytes\n" , .{self.alocAmount});
         self.freeObjects();
         self.strings.deinit(self.al);
         self.globals.deinit(self.al);
-        self.al.destroy(self);
+        self.getAlc().destroy(self);
     }
 
 };
