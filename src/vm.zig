@@ -440,6 +440,15 @@ pub const Vm = struct {
 
     } 
 
+    fn captureUpval(self : *Self , local : *PValue) !*Pobj.OUpValue{
+
+        const newUp = try self.gc.newObj(.Ot_UpValue, Pobj.OUpValue);
+        newUp.init(local);
+
+        return newUp;
+        
+    }
+
 
     fn run(self : *Self) IntrpResult{
         
@@ -454,10 +463,36 @@ pub const Vm = struct {
 
             switch (op) {
 
+                .Op_GetUp => {
+                    const slot = frame.readRawByte();
+                    self.stack.push(frame.closure.upvalues[slot].location.*) catch 
+                        return .RuntimeError;
+                },
+
+                .Op_SetUp => {
+
+                    const slot = frame.readRawByte();
+
+                    const v = self.peek(0);
+
+                    frame.closure.upvalues[slot].location.* = v;
+                },
+
                 .Op_Closure => {
                     const func = frame.readConst().asObj().asFunc();
                     const cls = Pobj.OClosure.new(self.gc, func) catch return .RuntimeError;
                     self.stack.push(cls.parent().asValue()) catch return .RuntimeError;
+
+                    var i : usize = 0;
+                    while (i < cls.upc) : (i += 1) {
+                        const islocal = frame.readRawByte();
+                        const index = frame.readRawByte();
+                        if (islocal == 1) {
+                            cls.upvalues[i] = self.captureUpval(&frame.slots[index]) catch return .RuntimeError;
+                        } else {
+                            cls.upvalues[i] = frame.closure.upvalues[index];
+                        }
+                    }
                 },
 
                 .Op_Call => {

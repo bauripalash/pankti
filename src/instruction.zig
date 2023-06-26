@@ -259,7 +259,7 @@ pub const Instruction = struct {
                 return self.simpleInstruction(ins.toString(), offset);
             },
 
-            .Op_SetUp , .Op_GetUp => {
+            .Op_SetUp , .Op_GetUp , .Op_GetLocal , .Op_SetLocal  => {
                 return self.byteInstruction(ins.toString(), offset);
             },
             
@@ -280,8 +280,6 @@ pub const Instruction = struct {
             .Op_DefGlob, 
             .Op_GetGlob, 
             .Op_SetGlob,
-            .Op_GetLocal,
-            .Op_SetLocal,
             => { 
                 return self.constInstruction(ins.toString() , offset);
             },

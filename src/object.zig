@@ -26,6 +26,7 @@ pub const PObj = struct {
         Ot_Function,
         Ot_NativeFunc,
         Ot_Closure,
+        Ot_UpValue,
 
         pub fn toString(self : OType) []const u8 {
 
@@ -34,6 +35,7 @@ pub const PObj = struct {
                 .Ot_Function => {return "OBJ_FUNC";},
                 .Ot_NativeFunc => return "OBJ_NATIVE",
                 .Ot_Closure => return "OBJ_CLOSURE",
+                .Ot_UpValue => return "OBJ_UPVALUE",
                 
             }
         }
@@ -83,6 +85,11 @@ pub const PObj = struct {
     pub fn asClosure(self : *PObj) *OClosure {
         return self.child(PObj.OClosure);
     }
+    
+    pub fn asUpvalue(self : *PObj) *OUpValue {
+        return self.child(PObj.OUpValue);
+    }
+
     pub fn free(self : *PObj , vm : *Vm) void{
         switch (self.objtype) {
             .Ot_String => self.asString().free(vm),
@@ -100,6 +107,7 @@ pub const PObj = struct {
             .Ot_Function => self.asFunc().print(),
             .Ot_NativeFunc => self.asNativeFun().print(),
             .Ot_Closure => self.asClosure().print(),
+            .Ot_UpValue => self.asUpvalue().print(),
         }
     }
 
@@ -129,18 +137,49 @@ pub const PObj = struct {
                     'f' ,
                     'n' ,
                     '>'}, al);
-        },
+            },
+            .Ot_UpValue => { return try utils.u32tou8(&[_]u32{ 'u' , 'p' , 'v' , 'a' , 'l' , 'u' ,'e'  } , al); },
         }
 
         return try utils.u32tou8([_]u32{'_'}, al);
     }
 
+    pub const OUpValue = struct {
+        obj : PObj,
+        location : *PValue,
+
+        pub fn init(self : *OUpValue , val : *PValue) void{
+            self.location = val;
+        }
+
+        pub fn print(self : *OUpValue) void {
+            _ = self;
+            std.debug.print("upvalue" , .{});
+        }
+
+        pub fn free(self : *OUpValue , gc : *Gc) void {
+            gc.getAlc().destroy(self);
+        }
+
+        pub fn parent(self : *OUpValue) *PObj {
+            return @ptrCast(*PObj, self);
+        }
+    };
+
     pub const OClosure = struct {
         obj : PObj,
         function : *OFunction,
+        upvalues : [*]*OUpValue,
+        upc : u32,
 
         pub fn new(gc : *Gc , func : *OFunction) !*PObj.OClosure {
+            const upvalues = try gc.getAlc().alloc(?*OUpValue, func.upvCount);
+            for (upvalues) |*v| {
+                v.* = std.mem.zeroes(?*OUpValue);
+            }
             const cl = try gc.newObj(.Ot_Closure, PObj.OClosure);
+            cl.upvalues = @ptrCast([*]*OUpValue, upvalues);
+            cl.upc = func.upvCount;
             cl.function = func;
             return cl;
         }
@@ -156,6 +195,7 @@ pub const PObj = struct {
         }
 
         pub fn free(self : *OClosure , gc : *Gc) void {
+            gc.getAlc().free(self.upvalues[0..self.upc]);
             gc.getAlc().destroy(self);
         }
     };

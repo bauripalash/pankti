@@ -130,6 +130,10 @@ pub const Gc = struct {
                 const cl = obj.asClosure();
                 cl.free(self);
             },
+
+            .Ot_UpValue => {
+                obj.asUpvalue().free(self);
+            },
         }
 
         return;
