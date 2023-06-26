@@ -196,6 +196,7 @@ pub const Compiler = struct {
             .ftype = ftype,
             .localCount = 0,
             .upvalues = undefined,
+            
             .parser = enclosing.?.parser,
             .locals = [_]Local{Local{ .name = lexer.Token.dummy(), .depth = 0 }} ** std.math.maxInt(u8),
         };
@@ -205,7 +206,7 @@ pub const Compiler = struct {
         }
 
         var local = &self.locals[0];
-        self.localCount += 1;
+        self.localCount = 1;
         local.depth = 0;
         local.name.lexeme = &[_]u32{};
         local.name.length = 0;
@@ -326,25 +327,32 @@ pub const Compiler = struct {
         }
     }
 
-    fn resolveUpvalue(self : *Self , name : *const lexer.Token) i32{
-        const enc = self.enclosing orelse return -1;
+    pub const UpvalueResolveError = error{
+        UpNotFound,
+    };
+    
+   
+
+    fn resolveUpvalue(self : *Self , name : *const lexer.Token) UpvalueResolveError!i32{
+        const enc = self.enclosing orelse return UpvalueResolveError.UpNotFound;
         
         const local = enc.resolveLocal(name);
-        if (local != -1) {
-            return self.addUpvalue(@truncate(u8, @intCast(u64 , local)), true);
-        }
+        if (local) |l| {
+            return self.addUpvalue(@truncate(u8, @intCast(u64 , l)), true);
+        } else |_| {}
 
         const upv = enc.resolveUpvalue(name);
-        if (upv != -1) {
+        if (upv) |u| {
             
-            return self.addUpvalue(@truncate(u8,  @intCast(u64 , local)), false);
-        }
+            return self.addUpvalue(@truncate(u8,  @intCast(u64 , u)), false);
+        } else |_| {}
 
-        return -1;
+        return UpvalueResolveError.UpNotFound;
         
     }
     fn addUpvalue(self : *Self , index: u8 , isLocal : bool ) i32 {
         const upc = self.function.upvCount;
+        //std.debug.print("UP_INDEX -> {d}\nUPC{d}\n" , .{index , upc});
         
         var i : u32 = 0;
 
@@ -364,6 +372,43 @@ pub const Compiler = struct {
         self.upvalues[upc].isLocal = isLocal;
         self.function.upvCount += 1;
         return @intCast(i32, upc);
+    }
+
+
+    fn addLocal(self : *Self , name : lexer.Token) void {
+        
+        if (self.localCount == std.math.maxInt(u8)) {
+            self.parser.err("Too many local variables");
+            return;
+        }
+        
+        self.locals[self.localCount].name = name;
+        self.locals[self.localCount].depth = -1;
+        self.localCount += 1;
+
+    }
+
+    pub const LocalResolveError = error {
+       LocalNotFound, 
+    };
+    fn resolveLocal(self : *Self , name : *const lexer.Token) LocalResolveError!i32 {
+        const locals = self.locals[0..self.localCount];
+        var i  = @intCast(i64, self.localCount) - 1;
+
+        while (i >= 0) : (i -= 1) {
+            const local : Local = locals[@intCast(usize, i)];
+
+//            std.debug.print("FROM RESOLVE LOCAL ->> " , .{});
+            if (idEqual(name , &local.name)) {
+                if (local.depth == -1) {
+                    self.parser.err("Can't read local variable in its own init");
+                }
+
+                return @intCast(i32 , i);
+            }
+        }
+
+        return LocalResolveError.LocalNotFound;
     }
 
     fn readArgumentList(self : *Self) !u8 {
@@ -422,13 +467,16 @@ pub const Compiler = struct {
 
         var i : usize = 0;
 
+        //std.debug.print("upc -> {d}\n" , .{f.upvCount});
         while (i < f.upvCount) : (i += 1) {
-            const upv = &self.upvalues[i];
+            const upv = &fcomp.upvalues[i];
+            //std.debug.print("u{d} -> {any}\n" , .{i , upv});
             if (upv.isLocal) {
                 try self.emitBtRaw(1);
             } else {
                 try self.emitBtRaw(0);
             }
+            //std.debug.print("-->UPVINDEX{d}\n" , .{upv.index});
 
             try self.emitBtRaw(upv.index);
         }
@@ -455,7 +503,7 @@ pub const Compiler = struct {
         var setOp : ins.OpCode = undefined;
 
         //std.debug.print("SCOPE -> {d} {}\n" , .{self.scopeDepth , name});
-        var arg = self.resolveLocal(&name);
+        var arg = self.resolveLocal(&name) catch -1;
 
         if (arg != -1) {
             getOp = .Op_GetLocal;
@@ -463,7 +511,7 @@ pub const Compiler = struct {
 
         } else {
             
-            arg = self.resolveUpvalue(&name);
+            arg = self.resolveUpvalue(&name) catch -1;
             if (arg != -1) {
                 setOp = .Op_SetUp;
                 getOp = .Op_GetUp;
@@ -733,38 +781,7 @@ pub const Compiler = struct {
         self.addLocal(name);
     }
 
-    fn addLocal(self : *Self , name : lexer.Token) void {
-        
-        if (self.localCount == std.math.maxInt(u8)) {
-            self.parser.err("Too many local variables");
-            return;
-        }
-        
-        self.locals[self.localCount].name = name;
-        self.locals[self.localCount].depth = -1;
-        self.localCount += 1;
 
-    }
-
-    fn resolveLocal(self : *Self , name : *const lexer.Token) i32 {
-        const locals = self.locals[0..self.localCount];
-        var i  = @intCast(i64, self.localCount) - 1;
-
-        while (i >= 0) : (i -= 1) {
-            const local : Local = locals[@intCast(usize, i)];
-
-//            std.debug.print("FROM RESOLVE LOCAL ->> " , .{});
-            if (idEqual(name , &local.name)) {
-                if (local.depth == -1) {
-                    self.parser.err("Can't read local variable in its own init");
-                }
-
-                return @intCast(i32 , i);
-            }
-        }
-
-        return -1;
-    }
 
     fn idEqual(a : *const lexer.Token , b : *const lexer.Token) bool {
 

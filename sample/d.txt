@@ -5,7 +5,7 @@ kaj outer()
 		dhori c = 3
 		dhori d = 4
 		kaj inner()
-			show a+c+b+d 
+			return a+c+b+d 
 		sesh
 	sesh 
 sesh

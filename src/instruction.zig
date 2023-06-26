@@ -20,19 +20,16 @@ pub const OpCode = enum(u8) {
     Op_Add,
     Op_Sub,
     Op_Mul,
-    Op_Pow,
     Op_Div,
     Op_Nil,
     Op_True,
     Op_False,
     Op_Not,
     Op_Eq,
-    Op_Neq,
     Op_Gt,
     Op_Gte,
     Op_Lt,
     Op_Lte,
-    Op_Show,
     Op_Pop,
     Op_DefGlob,
     Op_SetGlob,
@@ -56,6 +53,10 @@ pub const OpCode = enum(u8) {
     Op_Hmap,
     Op_Index,
     Op_SubAssign,
+
+    Op_Show,
+    Op_Neq,
+    Op_Pow,
 
     const Self = @This();
     pub fn toString(self: *const Self) []const u8 {
@@ -182,6 +183,7 @@ pub const Instruction = struct {
     }
 
     pub fn disasm(self: *Instruction, name: []const u8) void {
+        //std.debug.print("INS{any}" , .{self.code.items});
         std.debug.print("== {s} | [{any}] ==", .{ name, self.code.items.len });
         std.debug.print("\n", .{});
 
@@ -256,6 +258,10 @@ pub const Instruction = struct {
             .Op_SubAssign => {
                 return self.simpleInstruction(ins.toString(), offset);
             },
+
+            .Op_SetUp , .Op_GetUp => {
+                return self.byteInstruction(ins.toString(), offset);
+            },
             
             .Op_JumpIfFalse , .Op_Jump =>  {
                 return self.jumpInstruction(ins.toString(), 1, offset);
@@ -281,8 +287,9 @@ pub const Instruction = struct {
             },
 
             .Op_Closure => {
-                var off = offset + 2;
-                const con = self.code.items[off - 1];
+                var off = offset + 1;
+                const con = self.code.items[off];
+                off += 1;
                 std.debug.print("{s} {d} " , .{ins.toString() , con});
                 self.cons.items[con].printVal();
                 std.debug.print("\n" , .{});
@@ -290,15 +297,18 @@ pub const Instruction = struct {
                 const f : *PObj.OFunction = self.cons.items[con].asObj().asFunc();
                 var i : usize = 0;
                 while (i < f.upvCount) : (i += 1) {
-                    const rawisLocal = self.code.items[off];
-                    var isLocal = "false";
-                    if (rawisLocal == 1) { isLocal = "true "; }
+                    const isLocal = self.code.items[off];
                     off += 1;
-                    const index  = self.code.items[off];
+                    const index = self.code.items[off];
                     off += 1;
-
-                    std.debug.print("{d} | {s} {d}\n" , .{off - 1 , isLocal , index});
-
+                    std.debug.print("{:0>4}   |   ->" , .{off - 2});
+                    if (isLocal == 1) {
+                        std.debug.print("local" , .{});
+                    } else {
+                        std.debug.print("upvalue" , .{});
+                    }
+                    
+                    std.debug.print(" {d}\n" , .{index});
                 }
 
                 return off;
