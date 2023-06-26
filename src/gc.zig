@@ -22,6 +22,7 @@ pub const Gc = struct {
     objects : ?*PObj,
     strings : table.StringTable(),
     globals : table.GlobalsTable(),
+    openUps : ?*PObj.OUpValue,
     const Self = @This();
 
     pub fn new(gc : Allocator) !*Gc{
@@ -32,6 +33,7 @@ pub const Gc = struct {
             .globals = table.GlobalsTable(){},
             .inernal_al = gc,
             .objects = null,
+            .openUps = null,
         };
 
         return newgc;

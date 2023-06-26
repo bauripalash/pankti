@@ -147,9 +147,13 @@ pub const PObj = struct {
     pub const OUpValue = struct {
         obj : PObj,
         location : *PValue,
+        next : ?*OUpValue, 
+        closed : PValue,
 
         pub fn init(self : *OUpValue , val : *PValue) void{
             self.location = val;
+            self.next = null;
+            self.closed = PValue.makeNil();
         }
 
         pub fn print(self : *OUpValue) void {

@@ -442,11 +442,44 @@ pub const Vm = struct {
 
     fn captureUpval(self : *Self , local : *PValue) !*Pobj.OUpValue{
 
+        var prevup : ?*Pobj.OUpValue = null;
+        var upval = self.gc.openUps;
+
+        while (upval != null and @ptrToInt(upval.?.location) > @ptrToInt(local)) {
+            prevup = upval;
+            upval = upval.?.next;
+        }
+
+        if (upval != null and @ptrToInt(upval.?.location) == @ptrToInt(local)) {
+            return upval.?;
+        }
+
         const newUp = try self.gc.newObj(.Ot_UpValue, Pobj.OUpValue);
         newUp.init(local);
+        newUp.next = upval;
+
+        if (prevup == null) {
+            self.gc.openUps = newUp;
+        } else {
+            prevup.?.next = newUp;
+        }
 
         return newUp;
         
+    }
+
+    fn closeUpv(self : *Self , last : [*]PValue) void{
+        while (self.gc.openUps) |oup| {
+            if (!(@ptrToInt(oup) >= @ptrToInt(last))) {
+                break;
+            }
+
+            var upv = oup;
+            upv.closed = oup.location.*;
+            upv.location = &upv.closed;
+            self.gc.openUps = upv.next;
+
+        }
     }
 
 
@@ -462,6 +495,11 @@ pub const Vm = struct {
             const op = frame.readByte();
 
             switch (op) {
+
+                .Op_ClsUp => {
+                    self.closeUpv(self.stack.top - 1);
+                    _ = self.stack.pop() catch return .RuntimeError;
+                },
 
                 .Op_GetUp => {
                     const slot = frame.readRawByte();
@@ -528,6 +566,7 @@ pub const Vm = struct {
                     }
                     const result = self.stack.pop() catch return .RuntimeError;
 
+                    self.closeUpv(frame.slots);
                     self.callframes.count -= 1;
                     
 

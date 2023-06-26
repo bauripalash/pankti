@@ -23,6 +23,7 @@ const DEBUG = true;
 pub const Local = struct {
     name : lexer.Token,
     depth : i32,
+    isCaptured : bool,
 };
 
 pub const UpValue = struct {
@@ -198,7 +199,7 @@ pub const Compiler = struct {
             .upvalues = undefined,
             
             .parser = enclosing.?.parser,
-            .locals = [_]Local{Local{ .name = lexer.Token.dummy(), .depth = 0 }} ** std.math.maxInt(u8),
+            .locals = [_]Local{Local{ .name = lexer.Token.dummy(), .depth = 0 , .isCaptured = false }} ** std.math.maxInt(u8),
         };
 
         if (ftype != .Ft_SCRIPT) {
@@ -210,7 +211,7 @@ pub const Compiler = struct {
         local.depth = 0;
         local.name.lexeme = &[_]u32{};
         local.name.length = 0;
-        //local.captured = false;
+        local.isCaptured = false;
         
         return self;
 
@@ -228,7 +229,7 @@ pub const Compiler = struct {
             .function = undefined,
             .upvalues = undefined,
             .ftype = ftype,
-            .locals = [_]Local{Local{ .name = lexer.Token.dummy(), .depth = 0 }} ** std.math.maxInt(u8),
+            .locals = [_]Local{Local{ .name = lexer.Token.dummy(), .depth = 0 , .isCaptured = false }} ** std.math.maxInt(u8),
 
         };
         
@@ -266,7 +267,17 @@ pub const Compiler = struct {
 
         while (self.localCount > 0 and 
             self.locals[self.localCount - 1].depth > self.scopeDepth) {
-            self.emitBt(.Op_Pop) catch return;
+            
+            if (self.locals[self.localCount-1].isCaptured) {
+
+
+                self.emitBt(.Op_ClsUp) catch return;
+            } 
+            else {
+                
+                self.emitBt(.Op_Pop) catch return;
+            }
+
             self.localCount -= 1;
         }
     }
@@ -338,7 +349,9 @@ pub const Compiler = struct {
         
         const local = enc.resolveLocal(name);
         if (local) |l| {
-            return self.addUpvalue(@truncate(u8, @intCast(u64 , l)), true);
+            const ind = @truncate(u8, @intCast(u64 , l));
+            enc.locals[ind].isCaptured = true;
+            return self.addUpvalue(ind, true);
         } else |_| {}
 
         const upv = enc.resolveUpvalue(name);
@@ -384,6 +397,7 @@ pub const Compiler = struct {
         
         self.locals[self.localCount].name = name;
         self.locals[self.localCount].depth = -1;
+        self.locals[self.localCount].isCaptured = false;
         self.localCount += 1;
 
     }
