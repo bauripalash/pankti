@@ -48,18 +48,32 @@ pub const IntrpResult = enum(u8) {
 
 pub const VStack = struct {
     stack : [STACK_MAX]PValue,
+    head : [*]PValue,
     top : [*]PValue,
-    count : u32,
+    count : usize,
     
     const Self = @This();
 
+    fn presentcount(self : *Self) u64 {
+        return (@as(u64, @intCast(@intFromPtr(self.top)))
+            - @as(u64 , @intCast(@intFromPtr(self.head)))) / @sizeOf(*PValue);
+    }
+
+    pub fn clear(self : *Self) StackError!void {
+        while (self.presentcount() != 0) {
+            //std.debug.print("[Z] CLEARING STACK -> LEFT {}\n\n" , .{self.presentcount()});
+            _ = try self.pop();
+        }
+    }
+
     pub fn push(self : *Self , value : PValue) StackError!void {
         
-        //if (self.count == STACK_MAX) {
+        if (self.presentcount() >= STACK_MAX) {
         //    std.debug.print("STACK -> {any}\n" , .{.{self.top[0] , self.count }} );
-        //    return StackError.StackOverflow;
-        //}
-        std.debug.print("Calling push -> {} >< {}\n" , .{self.count , STACK_MAX});
+            return StackError.StackOverflow;
+        }
+        //const xvalue = self.presentcount();
+        //std.debug.print("[X] push -> {} {} >< {}\n" , .{xvalue , self.count , STACK_MAX});
 
         //std.os.exit(0);
 
@@ -70,9 +84,12 @@ pub const VStack = struct {
 
     pub fn pop(self : *Self) StackError!PValue {
         
-        if (self.count == 0) {
+        if (self.presentcount() == 0) {
             return StackError.StackUnderflow;
-        }
+        } 
+
+
+        //std.debug.print("[Y] pop -> {} {} >< {}\n" , .{self.presentcount() , self.count , STACK_MAX});
 
         self.top -= 1;
         self.count -= 1;
@@ -149,6 +166,7 @@ pub const Vm = struct {
 
         self.*.stack.count = 0;
         self.*.stack.top = self.stack.stack[0..];
+        self.*.stack.head = self.stack.stack[0..];
 
         self.defineNative(&[_]u32{'c' , 'l' , 'o' , 'c' , 'k'} , builtins.nClock ) catch return;
         self.defineNative(&[_]u32 { 's' , 'h' , 'o' , 'w' } , builtins.nShow) catch return;
@@ -216,6 +234,10 @@ pub const Vm = struct {
         //self.gc.getAlc().destroy(self);
         //self.gc.getAlc().destroy(self.gc);
         
+        //self.stack.clear() catch {
+        //    self.throwRuntimeError("failed to clear stack");
+        //    return;
+        //};
         self.resetStack();
         al.destroy(self);
         

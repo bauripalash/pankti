@@ -1,17 +1,23 @@
 ZIG:=zig
 BUILD_DIR:=zig-out
 TARGET:=$(BUILD_DIR)/bin/neopank
-SAMPLE:=sample/fiben.pank
+SAMPLE:=sample/f.txt
 DEBUGGER:=gdb
 
 run: $(TARGET)
-	./$(TARGET) $(SAMPLE)
+	@./$(TARGET) $(SAMPLE)
 
 $(TARGET): build 
 
 
 build:
-	$(ZIG) build 
+	@$(ZIG) build 
+
+release:
+	$(ZIG) build -Doptimize=ReleaseSafe
+
+fast:
+	$(ZIG) build -Doptimize=ReleaseFast
 
 debug: $(TARGET)
 	$(DEBUGGER) --args $(TARGET) $(SAMPLE)

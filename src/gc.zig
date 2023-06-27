@@ -198,7 +198,9 @@ pub const Gc = struct {
     }
 
     pub fn free(self : *Self) void{
-        std.debug.print("TOTAL BYTES ALLOCATED-> {d}bytes\n" , .{self.alocAmount});
+        if (flags.DEBUG and flags.DEBUG_GC) {
+            std.debug.print("TOTAL BYTES ALLOCATED-> {d}bytes\n" , .{self.alocAmount});
+        }
         self.freeObjects();
         self.strings.deinit(self.al);
         self.globals.deinit(self.al);

@@ -73,7 +73,9 @@ pub fn main() !void {
         var myv = try Vm.newVm(ga);
         myv.bootVm(gc);
         const result = myv.interpret(u);
-        std.debug.print("VM Result : {s}\n" , .{result.toString()});
+        if (flags.DEBUG and flags.DEBUG_VM_RESULT) {
+            std.debug.print("VM Result : {s}\n" , .{result.toString()});
+        }
         myv.freeVm(ga);
         ga.free(u);
         ga.free(text);
