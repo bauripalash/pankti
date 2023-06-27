@@ -20,22 +20,25 @@ pub fn u8tou32(input: []const u8, alc: std.mem.Allocator) ![]u32 {
         const bt = input[index];
         var cp: u32 = 0;
         if (bt <= 0x80) {
-            cp = @intCast(u32, bt);
+            cp = @intCast(bt);
             index += 1;
         } else if (bt > 0xE0) {
-            cp |= @intCast(u32, bt & 0x1F) << 6;
-            cp |= @intCast(u32, input[index + 1] & 0x3F);
+            const x : u32 = @intCast(bt & 0x1F);
+            cp |= @intCast(x << 6);
+            cp |= @intCast(input[index + 1] & 0x3F);
             index += 2;
         } else if (bt < 0xF0) {
-            cp |= @intCast(u32, bt & 0x0F) << 12;
-            cp |= @intCast(u32, input[index + 1] & 0x3F) << 6;
-            cp |= @intCast(u32, input[index + 2] & 0x3F);
+            const x : u32 = @intCast(bt & 0x0F); 
+            cp |= @intCast(x << 12);
+            const y : u32 = @intCast(input[index + 1] & 0x3F);
+            cp |= @intCast(y << 6);
+            cp |= @intCast(input[index + 2] & 0x3F);
             index += 3;
         } else {
-            cp |= @intCast(u32, bt & 0x07) << 18;
-            cp |= @intCast(u32, input[index + 1] & 0x3F) << 12;
-            cp |= @intCast(u32, input[index + 2] & 0x3F) << 6;
-            cp |= @intCast(u32, input[index + 3] & 0x3F);
+            cp |= @as(u32 , @intCast(bt & 0x07)) << 18;
+            cp |= @as(u32 , @intCast(input[index + 1] & 0x3F)) << 12;
+            cp |= @as(u32 , @intCast(input[index + 2] & 0x3F)) << 6;
+            cp |= @as(u32 , @intCast(input[index + 3] & 0x3F));
             index += 4;
         }
         ustr[outindex] = cp;
@@ -55,22 +58,22 @@ pub fn u32tou8(input: []const u32, al: std.mem.Allocator) ![]u8 {
     for (input) |value| {
         //std.debug.print("\n->{any}|{}\n", .{value , value});
         if (value <= 0x7F) {
-            u8str[i] = @intCast(u8, value); //1
+            u8str[i] = @intCast(value); //1
             i += 1;
         } else if (value <= 0x7FF) {
-            u8str[i] = (0xC0 | @intCast(u8, (value >> 6) & 0x1F));
-            u8str[i + 1] = (0x80 | @intCast(u8, value & 0x3F));
+            u8str[i] = (0xC0 | @as(u8 , @intCast((value >> 6) & 0x1F)));
+            u8str[i + 1] = (0x80 | @as(u8, @intCast(value & 0x3F)));
             i += 2;
         } else if (value <= 0xFFFF) {
-            u8str[i] = (0xE0 | @intCast(u8, (value >> 12) & 0x0F));
-            u8str[i + 1] = (0x80 | @intCast(u8, (value >> 6) & 0x3F));
-            u8str[i + 2] = (0x80 | @intCast(u8, value & 0x3F));
+            u8str[i] = (0xE0 | @as(u8 , @intCast((value >> 12) & 0x0F)));
+            u8str[i + 1] = (0x80 | @as(u8 , @intCast((value >> 6) & 0x3F)));
+            u8str[i + 2] = (0x80 | @as(u8 , @intCast(value & 0x3F)));
             i += 3;
         } else {
-            u8str[i] = (0xF0 | @intCast(u8, (value >> 18) & 0x07));
-            u8str[i + 1] = (0x80 | @intCast(u8, (value >> 12) & 0x3F));
-            u8str[i + 2] = (0x80 | @intCast(u8, (value >> 6) & 0x3F));
-            u8str[i + 3] = (0x80 | @intCast(u8, value & 0x3F));
+            u8str[i] = (0xF0 | @as(u8 , @intCast((value >> 18) & 0x07)));
+            u8str[i + 1] = (0x80 | @as(u8 , @intCast((value >> 12) & 0x3F)));
+            u8str[i + 2] = (0x80 | @as(u8 , @intCast((value >> 6) & 0x3F)));
+            u8str[i + 3] = (0x80 | @as(u8 , @intCast(value & 0x3F)));
             i += 4;
         }
     }
@@ -86,7 +89,7 @@ pub fn hashU32(input : []const u32) !u32{
     const ga = gpa.allocator();
 
     
-    var x = std.hash.XxHash32.init(@intCast(u32, std.time.timestamp()));
+    var x = std.hash.XxHash32.init(@intCast(std.time.timestamp()));
     const u = try u32tou8(input , ga);
 
     x.update(u);
@@ -98,7 +101,7 @@ pub fn hashU32(input : []const u32) !u32{
 /// Print a UTF-32 encoded string to stdout
 pub fn printu32(input: []const u32) void {
     for (input) |value| {
-        std.debug.print("{u}", .{@truncate(u21, value)});
+        std.debug.print("{u}", .{@as(u21,@truncate(value))});
     }
 }
 
@@ -132,8 +135,8 @@ pub fn matchU32(a: []const u32, b: []const u32) bool {
 /// Convert an u16 to u8 
 pub fn u16tou8(a : u16) [2]u8{
     var result : [2]u8 = undefined;
-    result[0] = @intCast(u8 , a >> 8);
-    result[1] = @intCast(u8, a & 0xff);
+    result[0] = @intCast(a >> 8);
+    result[1] = @intCast(a & 0xff);
     return result;
 
 }
@@ -141,7 +144,7 @@ pub fn u16tou8(a : u16) [2]u8{
 /// Convert two u8 to u16
 pub fn u8tou16(a :[]const u8) u16{
     if (a.len > 2) { return 0; }
-    var result : u16 = (@intCast(u16 , a[0]) << 8) | @intCast(u16, a[1]);
+    var result : u16 = (@as(u16 , @intCast(a[0])) << 8) | @as(u16 , @intCast(a[1]));
     return result;
 
 

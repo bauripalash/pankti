@@ -161,20 +161,20 @@ pub const Instruction = struct {
     }
 
     pub fn write(self: *Instruction, bt: OpCode, pos: InstPos) !void {
-        try self.code.append(self.gc.getAlc() , @enumToInt(bt));
+        try self.code.append(self.gc.getAlc() , @intFromEnum(bt));
         try self.pos.append(self.gc.getAlc() , pos);
     }
 
     pub fn addConst(self : *Instruction , value : PValue) !u8 {
         try self.cons.append(self.gc.getAlc() , value);
-        return @intCast(u8 , self.cons.items.len - 1);
+        return @intCast(self.cons.items.len - 1);
         // catch return false;
         //return true;
     }
 
     /// Return OpCode at offset
      fn getOpCode(self: *Instruction, offset: usize) OpCode {
-        return @intToEnum(OpCode, self.code.items[offset]);
+        return @enumFromInt(self.code.items[offset]);
     }
 
      /// Return OpCode at offset
@@ -214,7 +214,7 @@ pub const Instruction = struct {
     fn jumpInstruction(self : *Instruction , name : []const u8 , sign : i32 , offset : usize) usize{
 
         var jump : u16 = utils.u8tou16(&[_]u8{self.code.items[offset + 1] , self.code.items[offset + 2 ]});
-        std.debug.print("{s} {d} -> {d}\n" , .{name , offset , @intCast(i64 , offset) + 3 + sign * jump});
+        std.debug.print("{s} {d} -> {d}\n" , .{name , offset , @as(i64 , @intCast(offset)) + 3 + sign * jump});
             return offset + 3;
     }
 

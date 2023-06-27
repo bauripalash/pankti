@@ -349,7 +349,7 @@ pub const Compiler = struct {
         
         const local = enc.resolveLocal(name);
         if (local) |l| {
-            const ind = @truncate(u8, @intCast(u64 , l));
+            const ind : u8 = @truncate(@as(u64 , @intCast(l)));
             enc.locals[ind].isCaptured = true;
             return self.addUpvalue(ind, true);
         } else |_| {}
@@ -357,7 +357,7 @@ pub const Compiler = struct {
         const upv = enc.resolveUpvalue(name);
         if (upv) |u| {
             
-            return self.addUpvalue(@truncate(u8,  @intCast(u64 , u)), false);
+            return self.addUpvalue(@truncate(@as(u64 , @intCast(u))), false);
         } else |_| {}
 
         return UpvalueResolveError.UpNotFound;
@@ -372,7 +372,7 @@ pub const Compiler = struct {
         while (i < upc) : (i += 1) {
             const upv = self.upvalues[i];
             if (upv.index == index and upv.isLocal == isLocal) {
-                return @intCast(i32 , i);
+                return @intCast(i);
             }
         }
 
@@ -384,7 +384,7 @@ pub const Compiler = struct {
         self.upvalues[upc].index = index;
         self.upvalues[upc].isLocal = isLocal;
         self.function.upvCount += 1;
-        return @intCast(i32, upc);
+        return @intCast(upc);
     }
 
 
@@ -407,10 +407,10 @@ pub const Compiler = struct {
     };
     fn resolveLocal(self : *Self , name : *const lexer.Token) LocalResolveError!i32 {
         const locals = self.locals[0..self.localCount];
-        var i  = @intCast(i64, self.localCount) - 1;
+        var i  = @as(i64, self.localCount) - 1;
 
         while (i >= 0) : (i -= 1) {
-            const local : Local = locals[@intCast(usize, i)];
+            const local : Local = locals[@intCast(i)];
 
 //            std.debug.print("FROM RESOLVE LOCAL ->> " , .{});
             if (idEqual(name , &local.name)) {
@@ -418,7 +418,7 @@ pub const Compiler = struct {
                     self.parser.err("Can't read local variable in its own init");
                 }
 
-                return @intCast(i32 , i);
+                return @intCast(i);
             }
         }
 
@@ -557,10 +557,10 @@ pub const Compiler = struct {
 
            try self.parseExpression();
            try self.emitBt(setOp);
-           try self.emitBtRaw(@intCast(u8 , arg));
+           try self.emitBtRaw(@intCast(arg));
         } else {
             try self.emitBt(getOp);
-            try self.emitBtRaw(@intCast(u8 , arg));
+            try self.emitBtRaw(@intCast(arg));
         }
 
         
@@ -607,7 +607,7 @@ pub const Compiler = struct {
         const oprt : lexer.TokenType = self.parser.previous.toktype;
         const rule = Self.getRule(oprt);
         
-        try self.parsePrec(@intToEnum(Precedence, @enumToInt(rule.prec) + 1));
+        try self.parsePrec(@enumFromInt(@intFromEnum(rule.prec) + 1));
 
         switch (oprt) {
             .Plus => try self.emitBt(.Op_Add),
@@ -648,7 +648,7 @@ pub const Compiler = struct {
         const endJump = try self.emitJump(.Op_JumpIfFalse);
         try self.emitBt(.Op_Pop);
         try self.parsePrec(.P_And);
-        self.patchJump(@intCast(usize , endJump));
+        self.patchJump(@intCast(endJump));
 
     }
 
@@ -657,11 +657,11 @@ pub const Compiler = struct {
         const elseJump = try self.emitJump(.Op_JumpIfFalse);
         const endJump = try self.emitJump(.Op_Jump);
 
-        self.patchJump(@intCast(usize , elseJump));
+        self.patchJump(@intCast(elseJump));
         try self.emitBt(.Op_Pop);
 
         try self.parsePrec(.P_Or);
-        self.patchJump(@intCast(usize , endJump));
+        self.patchJump(@intCast(endJump));
         
     }
 
@@ -785,7 +785,8 @@ pub const Compiler = struct {
     }
 
     fn markInit(self : *Self) void {
-        self.locals[self.localCount - 1].depth = @intCast(i32 , self.scopeDepth);
+        
+        self.locals[self.localCount - 1].depth = @intCast(self.scopeDepth);
         
     }
 
@@ -795,9 +796,9 @@ pub const Compiler = struct {
         const name = self.parser.previous;
         
         const locals = self.locals[0..self.localCount];
-        var i = @intCast(i64, self.localCount) - 1;
+        var i : i64 = @as(i64 , self.localCount) - 1;
         while (i >= 0) : (i -= 1) {
-            const local : Local = locals[@intCast(usize, i)];
+            const local : Local = locals[@intCast(i)];
 
             if (local.depth != -1 and local.depth < self.scopeDepth) {
                 break;
@@ -856,7 +857,7 @@ pub const Compiler = struct {
 
         const elseJump = try self.emitJump(.Op_Jump);
 
-        self.patchJump(@intCast(usize , thenJump));
+        self.patchJump(@intCast(thenJump));
         try self.emitBt(.Op_Pop);
 
         if (self.match(.Else)) { 
@@ -867,7 +868,7 @@ pub const Compiler = struct {
             self.eat(.End, "Expected `end` after if block without else");
         }
 
-        self.patchJump(@intCast(usize , elseJump));
+        self.patchJump(@intCast(elseJump));
         
     }
 
@@ -882,7 +883,7 @@ pub const Compiler = struct {
         try self.readToEnd();
         self.endScope();
         try self.emitLoop(loopStart);
-        self.patchJump(@intCast(usize , exitJump));
+        self.patchJump(@intCast(exitJump));
         try self.emitBt(.Op_Pop);
 
 
@@ -895,7 +896,7 @@ pub const Compiler = struct {
             self.parser.err("loop body too large");
         }
 
-        const offu8 = utils.u16tou8(@intCast(u16 , offset));
+        const offu8 = utils.u16tou8(@intCast(offset));
         try self.emitTwoRaw(offu8[0], offu8[1]);
     }
 
@@ -904,7 +905,7 @@ pub const Compiler = struct {
         try self.emitBt(instruction);
         try self.emitBtRaw(0xff);
         try self.emitBtRaw(0xff);
-        return @intCast(u32 , self.curIns().code.items.len - 2);
+        return @intCast(self.curIns().code.items.len - 2);
     }
 
     fn patchJump(self : *Self , offset : usize) void{
@@ -914,10 +915,10 @@ pub const Compiler = struct {
             self.parser.err("Too much code to jump over");
         }
 
-        const jmp = @intCast(u16 , jump);
+        const jmp : u16 = @intCast(jump);
 
-        self.curIns().code.items[offset] = @intCast(u8, (jmp >> 8) & 0xff);
-        self.curIns().code.items[offset + 1] = @intCast(u8 , jmp & 0xff);
+        self.curIns().code.items[offset] = @intCast((jmp >> 8) & 0xff);
+        self.curIns().code.items[offset + 1] = @intCast(jmp & 0xff);
 
 
     }
@@ -934,12 +935,12 @@ pub const Compiler = struct {
             return;
         };
 
-        const canAssign = @enumToInt(prec) <= @enumToInt(Precedence.P_Assignment);
+        const canAssign = @intFromEnum(prec) <= @intFromEnum(Precedence.P_Assignment);
 
         try prefRule(self , canAssign);
 
-        const precInt = @enumToInt(prec);
-        while (precInt <= @enumToInt(Self.getRule(self.parser.current.toktype).prec)) {
+        const precInt = @intFromEnum(prec);
+        while (precInt <= @intFromEnum(Self.getRule(self.parser.current.toktype).prec)) {
             self.parser.advance();
             const infixRule = Self.getRule(self.parser.previous.toktype).infix orelse {
                 self.parser.err("no infix rule found");

@@ -176,7 +176,7 @@ pub const PObj = struct {
         }
 
         pub fn parent(self : *OUpValue) *PObj {
-            return @ptrCast(*PObj, self);
+            return @ptrCast(self);
         }
     };
 
@@ -192,7 +192,8 @@ pub const PObj = struct {
                 v.* = std.mem.zeroes(?*OUpValue);
             }
             const cl = try gc.newObj(.Ot_Closure, PObj.OClosure);
-            cl.upvalues = @ptrCast([*]*OUpValue, upvalues);
+            const ptr : [*]*OUpValue = @ptrCast(upvalues);
+            cl.upvalues = ptr;
             cl.upc = func.upvCount;
             cl.function = func;
             return cl;
@@ -205,7 +206,7 @@ pub const PObj = struct {
         }
 
         pub fn parent(self : *OClosure) *PObj {
-            return @ptrCast(*PObj, self);
+            return @ptrCast(self);
         }
 
         pub fn free(self : *OClosure , gc : *Gc) void {
@@ -230,7 +231,7 @@ pub const PObj = struct {
         }
 
         pub fn parent(self : *ONativeFunction) *PObj {
-            return @ptrCast(*PObj, self);
+            return @ptrCast(self);
         }
 
         pub fn free(self : *ONativeFunction , gc : *Gc) void {
@@ -254,7 +255,7 @@ pub const PObj = struct {
         }
 
         pub inline fn parent(self : *OFunction) *PObj {
-            return @ptrCast(*PObj, self);
+            return @ptrCast(self);
         }
 
         pub fn getName(self : *OFunction) []const u32{
@@ -320,7 +321,7 @@ pub const PObj = struct {
         }
 
         pub inline fn parent(self : *OString) *PObj{
-            return @ptrCast(*PObj, self);
+            return @ptrCast(self);
         }
     };
 

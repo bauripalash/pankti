@@ -27,7 +27,7 @@ const StringTableContext = struct {
         
         const result = utils.hashU32(key) catch 0;
         //std.debug.print("<{any}->{d}>\n\n", .{key , result});
-        return @intCast(u32, result);
+        return @intCast(result);
     }
 };
 

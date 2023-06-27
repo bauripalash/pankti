@@ -67,7 +67,7 @@ pub const PValue = packed struct {
     /// get a number value as `f64` 
     pub fn asNumber(self : Self) f64 {
        if (self.isNumber()) {
-            return @bitCast(f64, self.data); 
+            return @bitCast(self.data); 
        } else {
             return 0;
        } 
@@ -84,15 +84,16 @@ pub const PValue = packed struct {
     }
 
     pub fn asObj(self : Self) *PObj{
-        const v : u64 = self.data & ~(SIGN_BIT | QNAN);
-        return @intToPtr(*PObj , @intCast(usize, v));
+        const v : usize = @intCast(self.data & ~(SIGN_BIT | QNAN));
+
+        return @ptrFromInt(v);
     }
 
 
     /// Create a new number value
     pub fn makeNumber(n : f64) PValue {
         return PValue{
-            .data = @bitCast(u64, n)
+            .data = @bitCast(n)
         };
     }
 
@@ -114,7 +115,7 @@ pub const PValue = packed struct {
 
     pub fn makeObj(o : *PObj) PValue{
         return PValue{
-            .data = SIGN_BIT | QNAN | @ptrToInt(o),       
+            .data = SIGN_BIT | QNAN | @intFromPtr(o),       
         };
     }
 
@@ -239,10 +240,12 @@ test "bool values" {
 }
 
 test "number values" {
-    try std.testing.expect(PValue.makeNumber(@floatCast(f64, 100)).asNumber() == @floatCast(f64, 100));
-    try std.testing.expect(PValue.makeNumber(@floatCast(f64, 99.99)).asNumber() == @floatCast(f64, 99.99));
-    try std.testing.expect(PValue.makeNumber(@floatCast(f64, 1)).isBool() == false);
-    try std.testing.expect(PValue.makeNumber(@floatCast(f64, 1)).isNil() == false);
+    const hundred : f64 = 100.0;
+    const nnnn : f64 = 99.99;
+    try std.testing.expect(PValue.makeNumber(@floatCast(100)).asNumber() == hundred);
+    try std.testing.expect(PValue.makeNumber(@floatCast(99.99)).asNumber() == nnnn);
+    try std.testing.expect(PValue.makeNumber(@floatCast(1)).isBool() == false);
+    try std.testing.expect(PValue.makeNumber(@floatCast(1)).isNil() == false);
 }
 
 test "nil value" {

@@ -15,7 +15,7 @@ pub fn nClock(argc : u8 , values : []PValue) PValue{
     _ = values;
     _ = argc;
     const s = std.time.milliTimestamp();
-    return PValue.makeNumber(@intToFloat(f64, s));
+    return PValue.makeNumber(@floatFromInt(s));
 }
 
 pub fn nShow(argc : u8 , values : []PValue) PValue{

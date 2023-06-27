@@ -55,10 +55,13 @@ pub const VStack = struct {
 
     pub fn push(self : *Self , value : PValue) StackError!void {
         
-        if (self.count == STACK_MAX) {
-            std.debug.print("STACK -> {any}\n" , .{.{self.top[0] , self.count }} );
-            return StackError.StackOverflow;
-        }
+        //if (self.count == STACK_MAX) {
+        //    std.debug.print("STACK -> {any}\n" , .{.{self.top[0] , self.count }} );
+        //    return StackError.StackOverflow;
+        //}
+        std.debug.print("Calling push -> {} >< {}\n" , .{self.count , STACK_MAX});
+
+        //std.os.exit(0);
 
         self.top[0] = value;
         self.top += 1;
@@ -84,7 +87,7 @@ pub const CallFrame = struct {
     const Self = @This();
   
     pub inline fn readByte(self : *Self) ins.OpCode{
-        const bt = @intToEnum(ins.OpCode, self.ip[0]);
+        const bt : ins.OpCode = @enumFromInt(self.ip[0]);
 
         self.ip += 1;
 
@@ -95,7 +98,7 @@ pub const CallFrame = struct {
         const b1 = self.readRawByte();
         const b2 = self.readRawByte();
 
-        return (@intCast(u16, b1) << 8) | @intCast(u16 , b2);
+        return (@as(u16 , @intCast(b1)) << 8) | @as(u16 , @intCast(b2));
     }
 
     pub inline fn readRawByte(self : *Self) u8 {
@@ -213,6 +216,7 @@ pub const Vm = struct {
         //self.gc.getAlc().destroy(self);
         //self.gc.getAlc().destroy(self.gc);
         
+        self.resetStack();
         al.destroy(self);
         
     }
@@ -222,6 +226,7 @@ pub const Vm = struct {
     fn resetStack(self : *Self) void {
         //self.stackTop = 0;
         self.stack.top = self.stack.stack[0..];
+        self.stack.count = 0;
     }
     
     //pub fn push(self : *Self , value : PValue) StackError!void {
@@ -247,18 +252,18 @@ pub const Vm = struct {
     fn throwRuntimeError(self : *Self , msg : []const u8) void{
         
         const frame = &self.callframes.stack[self.callframes.count - 1];
-        const i = @ptrToInt(frame.ip) - @ptrToInt(frame.closure.function.ins.code.items.ptr) - 1;
+        const i = @intFromPtr(frame.ip) - @intFromPtr(frame.closure.function.ins.code.items.ptr) - 1;
         std.debug.print("Runtime Error Occured in line {}", .{frame.closure.function.ins.pos.items[i].line});
         std.debug.print("\n{s}\n", .{msg});
 
         //std.debug.print("call frames -> {any}\n\n" , .{self.callframes});
         
-        var j : i64 = @intCast(i64 , self.callframes.count - 1);
+        var j : i64 = @intCast(self.callframes.count - 1);
         //std.debug.print("CFC -> {d}\n" , .{self.callframes.count});
         while (j >= 0) {
-            const f = &self.callframes.stack[@intCast(usize , j)];
+            const f = &self.callframes.stack[@intCast(j)];
             const fun = f.closure.function;
-            const instr = @ptrToInt(f.ip) - @ptrToInt(fun.ins.code.items.ptr) - 1;
+            const instr = @intFromPtr(f.ip) - @intFromPtr(fun.ins.code.items.ptr) - 1;
             std.debug.print("[line {d}] in " , .{fun.ins.pos.items[instr].line});
             if (fun.name) |n| {
                 utils.printu32(n.chars);
@@ -289,7 +294,7 @@ pub const Vm = struct {
 
     fn defineNative(self : *Self , name : []const u32 , func : Pobj.ONativeFunction.NativeFn) !void {
         
-        const nstr = try self.gc.copyString(name, @intCast(u32 , name.len));
+        const nstr = try self.gc.copyString(name, @intCast(name.len));
         
         
         try self.stack.push(nstr.parent().asValue());
@@ -330,7 +335,7 @@ pub const Vm = struct {
             }
             
 
-            const s = self.gc.copyString(temp_chars, @intCast(u32 , temp_chars.len)) catch {
+            const s = self.gc.copyString(temp_chars, @intCast(temp_chars.len)) catch {
                  self.gc.getAlc().free(temp_chars);
                 return false;
             };
@@ -499,12 +504,12 @@ pub const Vm = struct {
         var prevup : ?*Pobj.OUpValue = null;
         var upval = self.gc.openUps;
 
-        while (upval != null and @ptrToInt(upval.?.location) > @ptrToInt(local)) {
+        while (upval != null and @intFromPtr(upval.?.location) > @intFromPtr(local)) {
             prevup = upval;
             upval = upval.?.next;
         }
 
-        if (upval != null and @ptrToInt(upval.?.location) == @ptrToInt(local)) {
+        if (upval != null and @intFromPtr(upval.?.location) == @intFromPtr(local)) {
             return upval.?;
         }
 
@@ -524,7 +529,7 @@ pub const Vm = struct {
 
     fn closeUpv(self : *Self , last : [*]PValue) void{
         while (self.gc.openUps) |oup| {
-            if (!(@ptrToInt(oup) >= @ptrToInt(last))) {
+            if (!(@intFromPtr(oup) >= @intFromPtr(last))) {
                 break;
             }
 
@@ -603,7 +608,7 @@ pub const Vm = struct {
 
                 .Op_Call => {
                     const argcount = frame.readRawByte();
-                    if (!self.callVal(self.peek(@intCast(usize , argcount)), argcount)) {
+                    if (!self.callVal(self.peek(@intCast(argcount)), argcount)) {
                         self.throwRuntimeError("Failed to call");
                         return .RuntimeError;
                     }
@@ -838,7 +843,7 @@ pub const Vm = struct {
 
                 .Op_GetLocal => {
                     const slot = frame.readRawByte();
-                    self.stack.push(frame.slots[@intCast(usize , slot)]) catch {
+                    self.stack.push(frame.slots[@intCast(slot)]) catch {
                         self.throwRuntimeError("failed to push value for get local");
                         return .RuntimeError;
                     };
@@ -847,7 +852,7 @@ pub const Vm = struct {
                 .Op_SetLocal => {
 
                     const slot = frame.readRawByte();
-                    frame.slots[@intCast(usize , slot)] = self.peek(0);
+                    frame.slots[@intCast(slot)] = self.peek(0);
                 },
 
                 .Op_True => {

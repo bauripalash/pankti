@@ -63,7 +63,7 @@ pub const Gc = struct {
         }
 
      pub fn allocImpl(ptr: *anyopaque, len: usize, ptr_align: u8, ret_addr: usize) ?[*]u8 {
-        const self: *Gc = @ptrCast(*Gc, @alignCast(@alignOf(Gc) , ptr));
+        const self: *Gc = @ptrCast(@alignCast(ptr));
         const bts = self.internal_al.rawAlloc(len, ptr_align, ret_addr);
         self.alocAmount += len;
         self.collect() catch return bts;
@@ -72,14 +72,14 @@ pub const Gc = struct {
     }
 
     pub fn freeImpl(ptr : *anyopaque , buf : []u8 , bufalign : u8 , ret_addr : usize) void{
-        const self: *Gc = @ptrCast(*Gc, @alignCast(@alignOf(Gc) , ptr));
+        const self: *Gc = @ptrCast(@alignCast(ptr));
         self.alocAmount -= buf.len;
         self.internal_al.rawFree(buf, bufalign, ret_addr);
     }
 
     pub fn resizeImpl(ptr : *anyopaque , buf : []u8 , bufalign : u8 , newlen : usize , ret_addr : usize ) bool {
 
-        const self: *Gc = @ptrCast(*Gc, @alignCast(@alignOf(Gc) , ptr));
+        const self: *Gc = @ptrCast(@alignCast(ptr));
         if (buf.len > newlen) {
             self.alocAmount = (self.alocAmount - buf.len) + newlen;
         } else if (buf.len < newlen) {
@@ -112,7 +112,7 @@ pub const Gc = struct {
         if (flags.DEBUG_GC) {
             ansicolors.TermColor('b');
             std.debug.print("[GC] (0x{x}) New Object: {s}" , 
-                .{ @ptrToInt(ptr) , 
+                .{ @intFromPtr(ptr) , 
                     ptr.parent().objtype.toString()}); 
 
             ansicolors.ResetColor();
@@ -150,7 +150,7 @@ pub const Gc = struct {
     pub fn freeSingleObject(self : *Self , obj : *PObj) void {
         if (flags.DEBUG_GC) {
             ansicolors.TermColor('p');
-            std.debug.print("[GC] (0x{x}) Free Object: {s} : " , .{@ptrToInt(obj) , obj.objtype.toString()});
+            std.debug.print("[GC] (0x{x}) Free Object: {s} : " , .{@intFromPtr(obj) , obj.objtype.toString()});
 
         }
         switch (obj.objtype) {
