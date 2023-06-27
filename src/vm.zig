@@ -56,6 +56,7 @@ pub const VStack = struct {
     pub fn push(self : *Self , value : PValue) StackError!void {
         
         if (self.count == STACK_MAX) {
+            std.debug.print("STACK -> {any}\n" , .{.{self.top[0] , self.count }} );
             return StackError.StackOverflow;
         }
 
@@ -141,10 +142,13 @@ pub const Vm = struct {
         self.*.compiler = undefined;
         self.*.callframes = undefined;
     
-        self.stack.top = self.stack.stack[0..];
+        self.*.stack.stack[0] = PValue.makeNil();
+
+        self.*.stack.count = 0;
+        self.*.stack.top = self.stack.stack[0..];
 
         self.defineNative(&[_]u32{'c' , 'l' , 'o' , 'c' , 'k'} , builtins.nClock ) catch return;
-        self.defineNative(&[_]u32 { 'p' , 'r' , 'i' , 'n' , 't' } , builtins.nShow) catch return;
+        self.defineNative(&[_]u32 { 's' , 'h' , 'o' , 'w' } , builtins.nShow) catch return;
         
         
         //self.*.ip = self.*.ins.code.items.ptr;
@@ -170,8 +174,15 @@ pub const Vm = struct {
         const rfunc : ?*Pobj.OFunction = self.compiler.compile(source) catch return .CompileError;
         
         if (rfunc) |f| {
-            self.stack.push(f.parent().asValue()) catch return .RuntimeError;
-            const cls = Pobj.OClosure.new(self.gc, f) catch return .RuntimeError;
+            self.stack.push(f.parent().asValue()) catch {
+                std.debug.print("failed to push function to stack" , .{});
+                return .RuntimeError;
+            };
+            const cls = Pobj.OClosure.new(self.gc, f) catch {
+
+                std.debug.print("failed to create a closure" , .{});
+                return .RuntimeError;
+            };
             _ = self.stack.pop() catch return .RuntimeError;
             _ = self.stack.push(cls.parent().asValue()) catch return .RuntimeError;
             
@@ -391,17 +402,56 @@ pub const Vm = struct {
         
     }
 
-    fn doBinaryOpComp(self : *Self) bool {
+    const BinaryComp = enum(u8) {
+        C_Gt,
+        C_Lt,
+        C_Gte,
+        C_Lte,
+    };
+
+    fn doBinaryOpComp(self : *Self , op : BinaryComp) bool {
          // only works on numbers
         const b = self.stack.pop() catch return false;
         const a = self.stack.pop() catch return false;
 
         if (a.isNumber() and b.isNumber()) {
-            self.stack.push(PValue.makeBool(a.asNumber() > b.asNumber())) catch return false;
+            var val : bool = false;
+            const av = a.asNumber();
+            const bv = b.asNumber(); 
+            switch (op) {
+                .C_Gt => val = av > bv,
+                .C_Lt => val = av < bv,
+                .C_Gte => val = av >= bv,
+                .C_Lte => val = av <= bv,
+            }
+            self.stack.push(PValue.makeBool(val)) catch return false;
             return true;
         } else {
             return false;
         }
+    }
+
+    const ValueComp = enum(u8){
+        C_Eq,
+        C_Neq,
+    };
+
+    fn doValueComp(self : *Self , op : ValueComp) bool {
+        const b = self.stack.pop() catch return false;
+        const a = self.stack.pop() catch return false;
+        var val : bool = false;
+        switch (op) {
+            .C_Eq => {
+               val = a.isEqual(b);
+            },
+            .C_Neq => {
+                val = !a.isEqual(b);
+            }
+        }
+
+        self.stack.push(PValue.makeBool(val)) catch return false;
+
+        return true;
     }
 
     fn call(self : *Self , closure : *Pobj.OClosure , argc : u8) bool{
@@ -502,13 +552,18 @@ pub const Vm = struct {
 
                 .Op_ClsUp => {
                     self.closeUpv(self.stack.top - 1);
-                    _ = self.stack.pop() catch return .RuntimeError;
+                    _ = self.stack.pop() catch {
+                        self.throwRuntimeError("Failed pop stack while closing upvalue");
+                        return .RuntimeError;
+                    };
                 },
 
                 .Op_GetUp => {
                     const slot = frame.readRawByte();
-                    self.stack.push(frame.closure.upvalues[slot].location.*) catch 
+                    self.stack.push(frame.closure.upvalues[slot].location.*) catch { 
+                        self.throwRuntimeError("Failed to push upvalue which getting it");
                         return .RuntimeError;
+                    };
                 },
 
                 .Op_SetUp => {
@@ -522,15 +577,24 @@ pub const Vm = struct {
 
                 .Op_Closure => {
                     const func = frame.readConst().asObj().asFunc();
-                    const cls = Pobj.OClosure.new(self.gc, func) catch return .RuntimeError;
-                    self.stack.push(cls.parent().asValue()) catch return .RuntimeError;
+                    const cls = Pobj.OClosure.new(self.gc, func) catch {
+                        self.throwRuntimeError("Failed to create new closure for function");
+                        return .RuntimeError;
+                    };
+                    self.stack.push(cls.parent().asValue()) catch {
+                        self.throwRuntimeError("Failed to push newly created closure");
+                        return .RuntimeError;
+                    };
 
                     var i : usize = 0;
                     while (i < cls.upc) : (i += 1) {
                         const islocal = frame.readRawByte();
                         const index = frame.readRawByte();
                         if (islocal == 1) {
-                            cls.upvalues[i] = self.captureUpval(&frame.slots[index]) catch return .RuntimeError;
+                            cls.upvalues[i] = self.captureUpval(&frame.slots[index]) catch { 
+                                self.throwRuntimeError("Failed to capture upvalues for closure");
+                                return .RuntimeError;
+                            };
                         } else {
                             cls.upvalues[i] = frame.closure.upvalues[index];
                         }
@@ -540,6 +604,7 @@ pub const Vm = struct {
                 .Op_Call => {
                     const argcount = frame.readRawByte();
                     if (!self.callVal(self.peek(@intCast(usize , argcount)), argcount)) {
+                        self.throwRuntimeError("Failed to call");
                         return .RuntimeError;
                     }
                     frame = &self.callframes.stack[self.callframes.count - 1];
@@ -565,17 +630,26 @@ pub const Vm = struct {
                 },
                 .Op_Return => {
                     if (self.callframes.count == 1) {
-                        _ = self.stack.pop() catch return .RuntimeError;
+                        _ = self.stack.pop() catch {
+                            self.throwRuntimeError("Failed to pop stack for return");
+                            return .RuntimeError;
+                        };
                         return .Ok;
                     }
-                    const result = self.stack.pop() catch return .RuntimeError;
+                    const result = self.stack.pop() catch {
+                        self.throwRuntimeError("Failed to pop stack for return result");
+                        return .RuntimeError;
+                    };
 
                     self.closeUpv(frame.slots);
                     self.callframes.count -= 1;
                     
 
                     self.stack.top = frame.slots;
-                    self.stack.push(result) catch return .RuntimeError;
+                    self.stack.push(result) catch {
+                        self.throwRuntimeError("Failed to push return result to stack");
+                        return .RuntimeError;
+                    };
                     frame = &self.callframes.stack[self.callframes.count - 1];
 
                     //self.throwRuntimeError("Return occured");
@@ -588,7 +662,10 @@ pub const Vm = struct {
                 },
 
                 .Op_Show => {
-                    const popVal = self.stack.pop() catch return .RuntimeError;
+                    const popVal = self.stack.pop() catch {
+                        self.throwRuntimeError("faild to pop stack for showing");
+                        return .RuntimeError;
+                    };
                     std.debug.print("~~ " , .{});
                     popVal.printVal();
                     std.debug.print("\n", .{});
@@ -596,69 +673,147 @@ pub const Vm = struct {
 
                 .Op_Const => {
                    const con : PValue = frame.readConst();
-                   self.stack.push(con) catch return .RuntimeError;
+                   self.stack.push(con) catch |err| {
+                       self.throwRuntimeError("Failed to push constant to stack");
+                       std.debug.print("Because of {any}\n" , .{err});
+                       return .RuntimeError;
+                   };
 
                 },
 
                 .Op_Pop => {
-                    _ = self.stack.pop() catch return .RuntimeError;
+                    _ = self.stack.pop() catch {
+                        self.throwRuntimeError("Failed to pop stack on op pop");
+                        return .RuntimeError;
+                    };
                 },
 
                 .Op_Neg => {
-                    var v = self.stack.pop() catch return .RuntimeError;
+                    var v = self.stack.pop() catch {
+                        self.throwRuntimeError("Failed to pop stack for neg");
+                        return .RuntimeError;
+                    };
                     if (v.isNumber()) {
-                        self.stack.push(v.makeNeg()) catch return .RuntimeError;
+                        self.stack.push(v.makeNeg()) catch {
+                            self.throwRuntimeError("failed to push the neg value to stack");
+                            return .RuntimeError;
+                        };
                     } else {
+                        self.throwRuntimeError("Negative only works on numbers");
                         return .RuntimeError;
                     }
                 },
 
                 .Op_Add => {
                     if (!self.doBinaryOpAdd()){
+                        self.throwRuntimeError("Failed to do binary add");
                         return .RuntimeError;
                     }
                 },
 
                 .Op_Sub => {
-                    if (!self.doBinaryOpSub()) { return .RuntimeError; }
+                    if (!self.doBinaryOpSub()) { 
+                        self.throwRuntimeError("Failed to do binary sub");
+                        return .RuntimeError; 
+                        
+                    }
                 },
 
                 .Op_Mul => { 
-                    if (!self.doBinaryOpMul()) { return .RuntimeError; } 
+                    if (!self.doBinaryOpMul()) { 
+                        self.throwRuntimeError("Failed to do binary mul");
+                        return .RuntimeError;
+                    } 
                 
                 },
 
                 .Op_Pow => {
-                    if (!self.doBinaryOpPow()) { return .RuntimeError; }
+                    if (!self.doBinaryOpPow()) { 
+                        self.throwRuntimeError("Failed to do binary pow");
+                        return .RuntimeError;
+                    }
                 },
 
                 .Op_Div => {
                     if (!self.doBinaryOpDiv()) {
+                        self.throwRuntimeError("Failed to do binary div");
                         return .RuntimeError;
                     }
                 },
 
                 .Op_Gt => {
 
-                    if (!self.doBinaryOpComp()){
+                    if (!self.doBinaryOpComp(.C_Gt)){
+
+                        self.throwRuntimeError("Failed to do binary gt");
                         return .RuntimeError;
                     }
                 
                 },
 
+                .Op_Lt => {
+                    if (!self.doBinaryOpComp(.C_Lt)){
+
+                        self.throwRuntimeError("Failed to do binary lt");
+                        return .RuntimeError;
+                    }
+                },
+
+                .Op_Gte => {
+                     if (!self.doBinaryOpComp(.C_Gte)){
+
+                        self.throwRuntimeError("Failed to do binary gte");
+                        return .RuntimeError;
+                    }
+                },
+
+                .Op_Lte => {
+                    if (!self.doBinaryOpComp(.C_Lte)){
+
+                        self.throwRuntimeError("Failed to do binary lte");
+                        return .RuntimeError;
+                    }
+                },
+
+                .Op_Eq => {
+                    if (!self.doValueComp(.C_Eq)){
+
+                        self.throwRuntimeError("Failed to do binary eq");
+                        return .RuntimeError;
+                    }
+                },
+
+                .Op_Neq => {
+                    if (!self.doValueComp(.C_Neq)){
+
+                        self.throwRuntimeError("Failed to do binary noteq");
+                        return .RuntimeError;
+                    }
+                },
+
                 .Op_DefGlob => {
                     const name : *Pobj.OString = frame.readStringConst();
                     self.gc.globals.put(self.gc.getAlc(), name, self.peek(0))
-                        catch return .RuntimeError;
+                        catch {
+                            self.throwRuntimeError("Failed to put value to globals table");
+                            return .RuntimeError;
+                        };
 
-                     _ = self.stack.pop() catch return .RuntimeError;
+                     _ = self.stack.pop() catch {
+                         self.throwRuntimeError("Failed to pop value for def global");
+                         return .RuntimeError;
+                     };
                 },
 
                 .Op_GetGlob => {
                     const name : *Pobj.OString = frame.readStringConst();
 
                     if (self.gc.globals.get(name)) |value| {
-                        self.stack.push(value) catch return .RuntimeError;
+                        self.stack.push(value)
+                            catch {
+                                self.throwRuntimeError("failed to push value for get global");
+                                return .RuntimeError;
+                            };
                     }else{
                         self.throwRuntimeError("Undefined variable");
                         return .RuntimeError;
@@ -671,8 +826,10 @@ pub const Vm = struct {
                     if (self.gc.globals.get(name)) |_| {
                         self.gc.globals.put(self.gc.getAlc(),
                                             name, 
-                                            self.peek(0)) catch 
+                                            self.peek(0)) catch {
+                            self.throwRuntimeError("failed to put value to globals in set global");
                                                 return .RuntimeError;
+                        };
                     }else{
                         self.throwRuntimeError("Undefined variable");
                         return .RuntimeError;
@@ -681,8 +838,10 @@ pub const Vm = struct {
 
                 .Op_GetLocal => {
                     const slot = frame.readRawByte();
-                    self.stack.push(frame.slots[@intCast(usize , slot)]) catch 
+                    self.stack.push(frame.slots[@intCast(usize , slot)]) catch {
+                        self.throwRuntimeError("failed to push value for get local");
                         return .RuntimeError;
+                    };
                 },
 
                 .Op_SetLocal => {
@@ -693,37 +852,22 @@ pub const Vm = struct {
 
                 .Op_True => {
                     self.stack.push(PValue.makeBool(true)) catch {
+                        self.throwRuntimeError("failed to push true value");
                         return .RuntimeError;
                     };
                 },
 
                 .Op_False => {
                     self.stack.push(PValue.makeBool(false)) catch {
+                        self.throwRuntimeError("failed to push false value");
                         return .RuntimeError;
                     };
                 },
 
-                .Op_Eq => {
-                    const b = self.stack.pop() catch return .RuntimeError;
-                    const a = self.stack.pop() catch return .RuntimeError;
-
-                    self.stack.push(PValue.makeBool(a.isEqual(b))) catch {
-                        return .RuntimeError;  
-                    };
-                },
-
-                .Op_Neq => {
-                    const b = self.stack.pop() catch return .RuntimeError;
-                    const a = self.stack.pop() catch return .RuntimeError;
-                    
-                    self.stack.push(PValue.makeBool(!a.isEqual(b))) catch {
-                        return .RuntimeError;  
-                    };
-
-                },
 
                 .Op_Nil => {
                     self.stack.push(PValue.makeNil()) catch {
+                        self.throwRuntimeError("failed to push nil value");
                         return .RuntimeError;    
                     };
                 },
@@ -731,11 +875,14 @@ pub const Vm = struct {
                 .Op_Not => {
                     const val = self.stack.pop() catch return .RuntimeError;
                     self.stack.push(PValue.makeBool(val.isFalsy())) catch {
+                        self.throwRuntimeError("failed to push falsy value");
                         return .RuntimeError;
                     };
                 },
 
                 else => {
+                    self.throwRuntimeError("unknown opcode found");
+                    std.debug.print("OPCODE -> {any}" , .{op});
                     return IntrpResult.RuntimeError;
                 }
             }

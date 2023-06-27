@@ -1,26 +1,5 @@
-dhori gone;
-dhori gtwo;
-
-kaj main()
-	{
-		dhori a = "one"
-		kaj one()
-			 print(a)
-		sesh 
-
-		gone = one 
-	}
-
-	{
-		dhori a = "two"
-		kaj two()
-			print(a , "\n")
-		sesh 
-
-		gtwo = two
-	}
+kaj x(a)
+	show(a)
 sesh
 
-main()
-gone()
-gtwo()
+x("hello")

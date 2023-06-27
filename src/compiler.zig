@@ -169,7 +169,7 @@ pub const Compiler = struct {
         .True = ParseRule{.prefix = Self.rLiteral},
         .False = ParseRule{.prefix = Self.rLiteral},
         .Nil = ParseRule{.prefix = Self.rLiteral},
-        .Show = ParseRule{},
+        //.Show = ParseRule{},
         .Return = ParseRule{},
         .Let = ParseRule{},
         .PWhile = ParseRule{},
@@ -327,7 +327,7 @@ pub const Compiler = struct {
             //}
 
             switch (self.parser.current.toktype) {
-               .Func , .Let , .If , .PWhile , .Show , .Return => {
+               .Func , .Let , .If , .PWhile  , .Return => {
                     return;
                },
 
@@ -472,6 +472,23 @@ pub const Compiler = struct {
         fcomp.beginScope();
 
         fcomp.eat(.Lparen, "Expected (");
+        if (!fcomp.check(.Rparen)) {
+            while (true) {
+                if (fcomp.function.arity == std.math.maxInt(u8)) {
+                    fcomp.parser.errCur("cant have more than 255 arguments");
+                    break;
+                }
+
+                fcomp.function.arity += 1;
+
+                const con = fcomp.parseVariable("Expected param name");
+                try fcomp.defineVar(con);
+
+                if (!fcomp.match(.Comma)) {
+                    break;
+                }
+            }
+        }
         fcomp.eat(.Rparen, "Expected )");
         try fcomp.readToEnd();
 
@@ -670,9 +687,7 @@ pub const Compiler = struct {
     }
 
     fn rStatement(self : *Self) !void{
-        if (self.match(.Show)) {
-            try self.rPrintStatement();
-        } else if (self.match(.Return)){
+        if (self.match(.Return)){
             try self.rReturnStatement();
         } else if (self.match(.If)) {
             try self.rIfStatement();
@@ -973,7 +988,7 @@ pub const Compiler = struct {
         try self.emitBt(.Op_Nil);
         try self.emitBt(.Op_Return);
         const f = self.function;
-        if (flags.DEBUG) {
+        if (flags.DEBUG and flags.DEBUG_OPCODE) {
             const fname = try utils.u32tou8(self.function.getName() , 
                                             self.gc.getAlc());
             self.curIns().disasm(fname);

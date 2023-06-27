@@ -54,6 +54,16 @@ pub const PObj = struct {
         return &ptr.obj;
     }
 
+    pub fn isEqual(self : *PObj , other : *PObj) bool {
+        if (self.getType() != other.getType()) { return false; }
+
+        if (self.isString()) {
+            return self.asString().hash == other.asString().hash;
+        } 
+
+        return false;
+    }
+
     pub fn child(self : *PObj , comptime ChildType : type) *ChildType{
         return @fieldParentPtr(ChildType, "obj", self);
     }

@@ -33,12 +33,17 @@ pub fn main() !void {
     if (args.len == 2) {
         fileToRun = try ga.alloc(u8, args[1].len);
         @memcpy(fileToRun.?, args[1]);
+
+    } else if (args.len == 1){
+        std.debug.print("neopank 0.4.0\n" , .{});
+        std.debug.print("Usage: neopank [FILE]\n" , .{});
     }
     std.process.argsFree(ga, args);
 
     var gcGpa = std.heap.GeneralPurposeAllocator(.{}){};
     const GcGa = gcGpa.allocator();
     _ = GcGa;
+
     defer {
         if (fileToRun) |f| {
             ga.free(f);
@@ -81,4 +86,7 @@ test "AllTest" {
     std.testing.refAllDecls(@This());
     _ = @import("lexer/lexer.zig");
     _ = @import("instruction.zig");
+    _ = @import("vm.zig");
+    _ = @import("compiler.zig");
+
 }

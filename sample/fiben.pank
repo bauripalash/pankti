@@ -1,0 +1,11 @@
+kaj fib(n)
+	if n < 2 then
+		return n
+	end
+
+	return fib(n-2) + fib(n-1)
+end
+
+let start = clock()
+show(fib(20))
+show((clock() - start) / 1000)

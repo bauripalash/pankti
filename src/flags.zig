@@ -11,4 +11,5 @@ pub const DEBUG_GC = false;
 pub const DEBUG_STACK = false;
 pub const DEBUG = true;
 pub const DEBUG_LEXER = false;
+pub const DEBUG_OPCODE = true;
 

@@ -14,7 +14,7 @@ const PValue = value.PValue;
 pub fn nClock(argc : u8 , values : []PValue) PValue{
     _ = values;
     _ = argc;
-    const s = std.time.timestamp();
+    const s = std.time.milliTimestamp();
     return PValue.makeNumber(@intToFloat(f64, s));
 }
 

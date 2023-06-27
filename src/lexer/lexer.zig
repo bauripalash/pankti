@@ -44,7 +44,7 @@ pub const TokenType = enum(u8) {
 
     //keywords
     Let,
-    Show,
+    //Show,
     And,
     Or,
     End,
@@ -95,7 +95,7 @@ pub fn toktypeToString(t: TokenType) []const u8 {
         .Identifer => "Identifer",
         .String => "String",
         .Let => "Let",
-        .Show => "Show",
+        //.Show => "Show",
         .And => "And",
         .Or => "Or",
         .End => "End",
@@ -400,10 +400,10 @@ pub const Lexer = struct {
             or utils.matchU32(lx, &kw.K_BN_LET) 
             or utils.matchU32(lx, &kw.K_PN_LET)) {
             return .Let;
-        } else if (utils.matchU32(lx, &kw.K_EN_SHOW) 
-            or utils.matchU32(lx, &kw.K_BN_SHOW) 
-            or utils.matchU32(lx, &kw.K_PN_SHOW) ) {
-            return .Show;
+       // } else if (utils.matchU32(lx, &kw.K_EN_SHOW) 
+       //     or utils.matchU32(lx, &kw.K_BN_SHOW) 
+       //     or utils.matchU32(lx, &kw.K_PN_SHOW) ) {
+       //     return .Show;
         } else if (utils.matchU32(lx, &kw.K_EN_AND) 
             or utils.matchU32(lx, &kw.K_BN_AND) 
             or utils.matchU32(lx, &kw.K_PN_AND)) {

@@ -155,7 +155,7 @@ pub const PValue = packed struct {
         } else if (self.isNil()) {
             return true; 
         } else if (self.isObj()) {
-            return true; //object equal test 
+           return self.asObj().isEqual(other.asObj()); 
         }
 
         return false;

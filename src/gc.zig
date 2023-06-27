@@ -10,6 +10,9 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const PObj = @import("object.zig").PObj;
+const value_zig = @import("value.zig");
+const PValue = value_zig.PValue;
+const PValueType = value_zig.PValueType;
 const table = @import("table.zig");
 const utils = @import("utils.zig");
 const flags = @import("flags.zig");
@@ -50,45 +53,38 @@ pub const Gc = struct {
 
     pub inline fn allocator(self : *Self) Allocator {
             return .{
-                    .ptr = self,
-                    .vtable = comptime &Allocator.VTable {
-                        .alloc = allocImpl,
-                        .free = freeImpl,
-                        .resize = resizeImpl,
-                    }
+                .ptr = self,
+                .vtable = comptime &Allocator.VTable {
+                    .alloc = allocImpl,
+                    .free = freeImpl,
+                    .resize = resizeImpl,
+                }
             };
         }
 
      pub fn allocImpl(ptr: *anyopaque, len: usize, ptr_align: u8, ret_addr: usize) ?[*]u8 {
-            
-            const self: *Gc = @ptrCast(*Gc, @alignCast(@alignOf(Gc) , ptr));
-            const bts = self.internal_al.rawAlloc(len, ptr_align, ret_addr);
-            self.alocAmount += len;
-            //std.debug.print("ALOC SIZE ->{d}bytes\n" , .{len});
-            return bts;
-
-            
+        const self: *Gc = @ptrCast(*Gc, @alignCast(@alignOf(Gc) , ptr));
+        const bts = self.internal_al.rawAlloc(len, ptr_align, ret_addr);
+        self.alocAmount += len;
+        self.collect() catch return bts;
+        //std.debug.print("ALOC SIZE ->{d}bytes\n" , .{len});
+        return bts;
     }
 
     pub fn freeImpl(ptr : *anyopaque , buf : []u8 , bufalign : u8 , ret_addr : usize) void{
-
         const self: *Gc = @ptrCast(*Gc, @alignCast(@alignOf(Gc) , ptr));
+        self.alocAmount -= buf.len;
         self.internal_al.rawFree(buf, bufalign, ret_addr);
-
-        //self.alocAmount -= buf.len;
-
     }
 
     pub fn resizeImpl(ptr : *anyopaque , buf : []u8 , bufalign : u8 , newlen : usize , ret_addr : usize ) bool {
 
         const self: *Gc = @ptrCast(*Gc, @alignCast(@alignOf(Gc) , ptr));
-            
         if (buf.len > newlen) {
             self.alocAmount = (self.alocAmount - buf.len) + newlen;
         } else if (buf.len < newlen) {
             self.alocAmount = (self.alocAmount - buf.len) + newlen;
         } 
-
         return self.internal_al.rawResize(buf, bufalign, newlen, ret_addr);
 
     }
@@ -115,7 +111,10 @@ pub const Gc = struct {
         
         if (flags.DEBUG_GC) {
             ansicolors.TermColor('b');
-            std.debug.print("[GC] (0x{x}) New Object: {s}" , .{ @ptrToInt(ptr) , ptr.parent().objtype.toString()}); 
+            std.debug.print("[GC] (0x{x}) New Object: {s}" , 
+                .{ @ptrToInt(ptr) , 
+                    ptr.parent().objtype.toString()}); 
+
             ansicolors.ResetColor();
             std.debug.print("\n" , .{});
         }
@@ -204,6 +203,65 @@ pub const Gc = struct {
         self.strings.deinit(self.al);
         self.globals.deinit(self.al);
         self.getAlc().destroy(self);
+    }
+
+    
+    pub fn collect(self : *Self) !void{
+        _ = self;
+        //try self.markRoots();
+        //try self.sweep();
+    }
+
+    pub fn markRoots(self : *Self) !void{
+        try self.markGlobals();
+    }
+
+    pub fn markObject(self : *Self , obj : *PObj) !void{
+        _ = self;
+        if (obj.isMarked) { return;}
+        obj.isMarked = true;
+        
+    }
+
+    pub fn markValue(self : *Self , value : PValue) !void{
+        if (value.isObj()) {
+            try self.markObject(value.asObj());
+        }
+
+        return;
+    }
+    pub fn markGlobals(self : *Self) !void {
+        for (self.globals.values()) |v| {
+            try self.markValue(v);
+        }
+
+        for (self.globals.keys()) |k| {
+            try self.markObject(k.parent());
+        }
+    }
+
+    pub fn sweep(self : *Self) !void{
+        var prev : ?*PObj = null;
+        var object : ?*PObj = self.objects;
+
+        while (object) |obj| {
+            if (obj.isMarked) {
+                obj.isMarked = false;
+                prev = obj;
+                object = obj.next;
+            } else {
+                const x = obj;
+                object = obj.next;
+
+                if (prev) |p| {
+                    p.next = object;
+                }else {
+                    self.objects = object;
+                }
+
+                self.freeSingleObject(x);
+            }
+        }
     }
 
 };
