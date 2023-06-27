@@ -27,4 +27,4 @@ end
 
 #x()
 
-show clock()
+show(clock())

@@ -5,15 +5,16 @@ kaj outer()
 		dhori c = 3
 		dhori d = 4
 		kaj inner()
-			show a+c+b+d 
+			show(a+c+b+d)
 		sesh
 	sesh 
 sesh
 
+
 kaj x()
 	dhori x = "out"
 	kaj y()
-		show x
+		show(x)
 	sesh 
 
 	y()
