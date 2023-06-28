@@ -268,6 +268,7 @@ pub const PObj = struct {
 
         pub fn print(self : *OFunction) void {
             std.debug.print("<fn " , .{});
+            //std.debug.print(" funname ->{x}\n" , .{@intFromPtr(self.name)});
             utils.printu32(self.getName());
             std.debug.print(" >" , .{});
         }

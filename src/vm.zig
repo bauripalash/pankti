@@ -196,6 +196,8 @@ pub const Vm = struct {
         self.compiler = Compiler.new(source, self.gc , comp.FnType.Ft_SCRIPT) 
                         catch return .RuntimeError;
 
+        self.gc.compiler = self.compiler;
+
         const rfunc : ?*Pobj.OFunction = self.compiler.compile(source) catch return .CompileError;
         
         if (rfunc) |f| {

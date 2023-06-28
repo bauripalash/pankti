@@ -150,23 +150,23 @@ pub const Instruction = struct {
     }
 
     pub fn free(self: *Instruction) void {
-        self.code.deinit(self.gc.getAlc());
-        self.pos.deinit(self.gc.getAlc());
-        self.cons.deinit(self.gc.getAlc());
+        self.code.deinit(self.gc.hal());
+        self.pos.deinit(self.gc.hal());
+        self.cons.deinit(self.gc.hal());
     }
 
     pub fn write_raw(self: *Instruction, bt: u8, pos: InstPos) !void {
-        try self.code.append(self.gc.getAlc() , bt);
-        try self.pos.append(self.gc.getAlc(), pos);
+        try self.code.append(self.gc.hal(), bt);
+        try self.pos.append(self.gc.hal(), pos);
     }
 
     pub fn write(self: *Instruction, bt: OpCode, pos: InstPos) !void {
-        try self.code.append(self.gc.getAlc() , @intFromEnum(bt));
-        try self.pos.append(self.gc.getAlc() , pos);
+        try self.code.append(self.gc.hal() , @intFromEnum(bt));
+        try self.pos.append(self.gc.hal() , pos);
     }
 
     pub fn addConst(self : *Instruction , value : PValue) !u8 {
-        try self.cons.append(self.gc.getAlc() , value);
+        try self.cons.append(self.gc.hal() , value);
         return @intCast(self.cons.items.len - 1);
         // catch return false;
         //return true;

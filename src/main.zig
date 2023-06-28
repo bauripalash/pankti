@@ -52,8 +52,8 @@ pub fn main() !void {
 
             std.debug.print("==== GC Deinit ====\n" , .{});
          
-            std.debug.print("[GC] Leaks -> {}\n" , .{gcGpa.detectLeaks()});
-            //std.debug.print("[GC] {}\n" , .{});
+            std.debug.print("[GCA] Leaks -> {}\n" , .{gcGpa.detectLeaks()});
+            std.debug.print("[GPA] Leaks -> {}\n" , .{gpa.detectLeaks()});
 
             std.debug.print("===================\n" , .{});
         }
@@ -76,6 +76,7 @@ pub fn main() !void {
             std.debug.print("VM Result : {s}\n" , .{result.toString()});
         }
         myv.freeVm(ga);
+        gc.freeGc(GcGa);
         ga.free(u);
         ga.free(text);
         

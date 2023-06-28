@@ -185,15 +185,12 @@ pub const Compiler = struct {
     
     pub fn newEnclosed(gc : *Gc , enclosing : ?*Self ,ftype : FnType) !Self{
         
-        var function : *PObj.OFunction = try gc.newObj(.Ot_Function, PObj.OFunction);
-
-        function.init(gc);
-
+        
         var self = Self{
             .gc = gc,
             .enclosing = enclosing,
             .scopeDepth = 0,
-            .function = function,
+            .function = undefined,
             .ftype = ftype,
             .localCount = 0,
             .upvalues = undefined,
@@ -202,9 +199,10 @@ pub const Compiler = struct {
             .locals = [_]Local{Local{ .name = lexer.Token.dummy(), .depth = 0 , .isCaptured = false }} ** std.math.maxInt(u8),
         };
 
-        if (ftype != .Ft_SCRIPT) {
-            self.function.name = try gc.copyString(enclosing.?.parser.previous.lexeme , enclosing.?.parser.previous.length);
-        }
+
+        gc.compiler = &self; 
+
+        
 
         var local = &self.locals[0];
         self.localCount = 1;
@@ -213,7 +211,15 @@ pub const Compiler = struct {
         local.name.length = 0;
         local.isCaptured = false;
 
-       gc.compiler = &self; 
+
+        var function : *PObj.OFunction = try gc.newObj(.Ot_Function, PObj.OFunction);
+
+        function.init(gc);
+        self.function = function;
+        if (ftype != .Ft_SCRIPT) {
+            self.function.name = try gc.copyString(enclosing.?.parser.previous.lexeme , enclosing.?.parser.previous.length);
+        }
+
         
         return self;
 
@@ -470,6 +476,7 @@ pub const Compiler = struct {
         _ = ft;
 
         var fcomp = try Self.newEnclosed(self.gc, self , .Ft_FUNC);
+        self.gc.compiler = &fcomp;
 
         fcomp.beginScope();
 
@@ -513,6 +520,8 @@ pub const Compiler = struct {
 
             try self.emitBtRaw(upv.index);
         }
+
+        self.gc.compiler = self;
 
     }
     
@@ -571,10 +580,10 @@ pub const Compiler = struct {
 
 
     fn rNumber(self : *Self , _ : bool) !void{
-        const stru8 = try utils.u32tou8(self.parser.previous.lexeme , self.gc.getAlc());
+        const stru8 = try utils.u32tou8(self.parser.previous.lexeme , self.gc.hal());
         const rawNum : f64 = try std.fmt.parseFloat(f64,stru8);
         try self.emitConst(PValue.makeNumber(rawNum));
-        self.gc.getAlc().free(stru8);
+        self.gc.hal().free(stru8);
     }
 
     fn rGroup(self : *Self , _ : bool) !void {
@@ -993,9 +1002,9 @@ pub const Compiler = struct {
         const f = self.function;
         if (flags.DEBUG and flags.DEBUG_OPCODE) {
             const fname = try utils.u32tou8(self.function.getName() , 
-                                            self.gc.getAlc());
+                                            self.gc.hal());
             self.curIns().disasm(fname);
-            self.gc.getAlc().free(fname);
+            self.gc.hal().free(fname);
             
         }
 
@@ -1055,9 +1064,9 @@ pub const Parser = struct {
         if (flags.DEBUG and flags.DEBUG_LEXER) {
             var lx = lexer.Lexer.new(source);
             while (!lx.isEof()) {
-                const tokStr =  lx.getToken().toString(self.gc.getAlc()) catch continue;
+                const tokStr =  lx.getToken().toString(self.gc.hal()()) catch continue;
                 std.debug.print("{s}\n", .{tokStr} );
-                self.gc.getAlc().free(tokStr);
+                self.gc.hal()().free(tokStr);
             }
             
         }
@@ -1109,9 +1118,9 @@ pub const Parser = struct {
             if (self.current.toktype != .Err) {
                 break;
             }
-            const lxm = utils.u32tou8(self.current.lexeme, self.gc.getAlc()) catch return;
+            const lxm = utils.u32tou8(self.current.lexeme, self.gc.hal()) catch return;
             self.errCur(lxm);
-            self.gc.getAlc().free(lxm);
+            self.gc.hal().free(lxm);
 
        }
     }
