@@ -25,8 +25,8 @@ pub const Gc = struct {
     al: Allocator,
     handyal : Allocator,
     objects: ?*PObj,
-    strings: table.StringTable(),
-    globals: table.GlobalsTable(),
+    strings: table.PankTable(),
+    globals: table.PankTable(),
     openUps: ?*PObj.OUpValue,
     alocAmount: usize,
     stack: ?*vm.VStack,
@@ -42,8 +42,8 @@ pub const Gc = struct {
             .internal_al = al,
             .al = undefined,
             .handyal = handlyal,
-            .strings = table.StringTable(){},
-            .globals = table.GlobalsTable(){},
+            .strings = table.PankTable(){},
+            .globals = table.PankTable(){},
             .objects = null,
             .openUps = null,
             .alocAmount = 0,
@@ -132,13 +132,14 @@ pub const Gc = struct {
         ptr.obj.isMarked = false;
         ptr.hash = try utils.hashU32(chars);
 
-        try self.strings.put(self.hal(), chars, ptr);
+        try self.strings.put(self.hal(), ptr , PValue.makeNil());
 
         return ptr;
     }
 
     pub fn copyString(self: *Gc, chars: []const u32, len: u32) !*PObj.OString {
-        if (self.strings.get(chars)) |interned| {
+
+        if (table.getString(self.strings, try utils.hashU32(chars), len)) |interned| {
             return interned;
         }
 
@@ -256,11 +257,12 @@ pub const Gc = struct {
         var ite = self.strings.iterator();
 
         while (ite.next()) |n| {
-            try self.markObject(n.value_ptr.*.parent());
+
             std.debug.print("{any}\n" , .{n.value_ptr.*});
-            //if (!n.value_ptr.*.parent().isMarked){
-            //    _ = self.strings.orderedRemove(n.key_ptr.*);
-            //}
+            //try self.markObject(n.value_ptr.*.parent());
+            if (!n.key_ptr.*.parent().isMarked){
+                _ = self.strings.orderedRemove(n.key_ptr.*);
+            }
         }
         
     }
@@ -368,7 +370,7 @@ pub const Gc = struct {
     }
 
     pub fn paintObject(self : *Self , obj : *PObj) !void{
-        if (flags.DEBUG and flags.DEBUG_GC) {
+        if (flags.DEBUG and flags.DEBUG_GC and obj.getType() != .Ot_String and obj.getType() != .Ot_NativeFunc) {
             ansicolors.TermColor('c');
             std.debug.print("[GC] () Painting Object : {s} " , .{obj.getType().toString()});
             ansicolors.ResetColor();
