@@ -16,6 +16,16 @@ pub const PValueType = enum(u8) {
     Pt_Nil,
     Pt_Obj,
     Pt_Unknown,
+
+    pub fn toString(self : PValueType) []const u8{
+        switch (self) {
+            .Pt_Num => return "VAL_NUM",
+            .Pt_Bool => return "VAL_BOOL",
+            .Pt_Nil => return "VAL_NIL",
+            .Pt_Obj => return "VAL_OBJ",
+            .Pt_Unknown => return "VAL_UNKNOWN",
+        }
+    }
 };
 
 pub const PValue = packed struct {
@@ -143,6 +153,19 @@ pub const PValue = packed struct {
 
         return .Pt_Unknown;
     }
+
+    pub fn getTypeAsString(self : Self) []const u8{
+        switch (self.getType()) {
+            .Pt_Num,
+            .Pt_Bool,
+            .Pt_Nil,
+            .Pt_Unknown => return self.getType().toString() ,
+            .Pt_Obj => {
+                return self.asObj().getType().toString();
+            },
+        }
+
+    } 
 
     pub fn isEqual(self : Self , other : PValue) bool {
         if (self.getType() != other.getType()) {

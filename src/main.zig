@@ -42,7 +42,6 @@ pub fn main() !void {
 
     var gcGpa = std.heap.GeneralPurposeAllocator(.{}){};
     const GcGa = gcGpa.allocator();
-    _ = GcGa;
 
     defer {
         if (fileToRun) |f| {
@@ -65,7 +64,7 @@ pub fn main() !void {
     
     if (fileToRun) |f| {
         
-        var gc = try Gc.new(ga);
+        var gc = try Gc.new(GcGa , ga);
         gc.boot();
 
         const text = try openfile(f, ga);

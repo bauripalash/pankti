@@ -212,6 +212,8 @@ pub const Compiler = struct {
         local.name.lexeme = &[_]u32{};
         local.name.length = 0;
         local.isCaptured = false;
+
+       gc.compiler = &self; 
         
         return self;
 
@@ -238,7 +240,7 @@ pub const Compiler = struct {
         function.init(gc);
 
         c.*.function = function;
-
+        c.*.gc.compiler = c;
         //var l = c.*.locals[0];
         //_ = l;
 

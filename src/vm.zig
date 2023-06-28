@@ -54,7 +54,7 @@ pub const VStack = struct {
     
     const Self = @This();
 
-    fn presentcount(self : *Self) u64 {
+    pub fn presentcount(self : *Self) u64 {
         return (@as(u64, @intCast(@intFromPtr(self.top)))
             - @as(u64 , @intCast(@intFromPtr(self.head)))) / @sizeOf(*PValue);
     }
@@ -160,7 +160,8 @@ pub const Vm = struct {
     pub fn bootVm(self : *Self , gc : *Gc) void {
         self.*.gc = gc;
         self.*.compiler = undefined;
-        self.*.callframes = undefined;
+        self.*.callframes.stack = undefined;
+        self.*.callframes.count = 0;
     
         self.*.stack.stack[0] = PValue.makeNil();
 
@@ -168,8 +169,11 @@ pub const Vm = struct {
         self.*.stack.top = self.stack.stack[0..];
         self.*.stack.head = self.stack.stack[0..];
 
+        self.gc.stack = &self.stack;
         self.defineNative(&[_]u32{'c' , 'l' , 'o' , 'c' , 'k'} , builtins.nClock ) catch return;
         self.defineNative(&[_]u32 { 's' , 'h' , 'o' , 'w' } , builtins.nShow) catch return;
+
+        //self.gc.callstack = &self.callframes;
         
         
         //self.*.ip = self.*.ins.code.items.ptr;
@@ -214,6 +218,7 @@ pub const Vm = struct {
             };
 
             self.*.callframes.count = 1;
+            self.gc.callstack = &self.callframes;
 
             return self.run();
         } else {
@@ -302,12 +307,13 @@ pub const Vm = struct {
 
     pub fn debugStack(self : *Self) void{
         std.debug.print("==== STACK ====\n" , .{});
-        if (self.stack.items.len > 0) {
-            for (self.stack.items, 0..) |value, i| {
-                const vs = value.toString(self.gc.getAlc()) catch return;
-                std.debug.print("[ |{:0>2}| {s:>4}" , .{self.stack.items.len - 1 - i , vs } );
+        if (self.stack.presentcount() > 0) {
+            const presentcount = self.stack.presentcount();
+            for (0..presentcount) |i| {
+                const val = self.stack.stack[i];
+                std.debug.print("[ |{:0>2}| {s:>4}" , .{presentcount - 1 - i , " "} );
+                val.printVal();
                 std.debug.print(" ]\n" , .{});
-                self.gc.getAlc().free(vs);
 
             }
         }
@@ -320,12 +326,14 @@ pub const Vm = struct {
         
         
         try self.stack.push(nstr.parent().asValue());
+
         var nf = try self.gc.newObj(.Ot_NativeFunc, Pobj.ONativeFunction);
-        nf.init(func);
 
         try self.stack.push(nf.parent().asValue());
+        nf.init(func);
 
-        try self.gc.globals.put(self.gc.getAlc() , self.stack.stack[0].asObj().asString() , self.stack.stack[1]);
+
+        try self.gc.globals.put(self.gc.hal() , self.stack.stack[0].asObj().asString() , self.stack.stack[1]);
         _ = try self.stack.pop();
         _ = try self.stack.pop();
         
