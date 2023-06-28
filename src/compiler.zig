@@ -183,10 +183,12 @@ pub const Compiler = struct {
         self.parser.gc = gc;
     }
     
-    pub fn newEnclosed(gc : *Gc , enclosing : ?*Self ,ftype : FnType) !Self{
+    pub fn newEnclosed(gc : *Gc , enclosing : ?*Self ,ftype : FnType) !*Self{
         
         
-        var self = Self{
+        var c = try gc.getAlc().create(Compiler);
+
+        c.* = .{
             .gc = gc,
             .enclosing = enclosing,
             .scopeDepth = 0,
@@ -200,12 +202,12 @@ pub const Compiler = struct {
         };
 
 
-        gc.compiler = &self; 
+        gc.compiler = c;
 
         
 
-        var local = &self.locals[0];
-        self.localCount = 1;
+        var local = &c.locals[0];
+        c.localCount = 1;
         local.depth = 0;
         local.name.lexeme = &[_]u32{};
         local.name.length = 0;
@@ -213,15 +215,18 @@ pub const Compiler = struct {
 
 
         var function : *PObj.OFunction = try gc.newObj(.Ot_Function, PObj.OFunction);
+        //function.parent().isMarked = true;
 
         function.init(gc);
-        self.function = function;
+        c.function = function;
+        //function.parent().isMarked = false;
         if (ftype != .Ft_SCRIPT) {
-            self.function.name = try gc.copyString(enclosing.?.parser.previous.lexeme , enclosing.?.parser.previous.length);
+            c.function.name = try gc.copyString(enclosing.?.parser.previous.lexeme , enclosing.?.parser.previous.length);
         }
 
+        gc.compiler = c;
         
-        return self;
+        return c;
 
     }
 
@@ -476,7 +481,7 @@ pub const Compiler = struct {
         _ = ft;
 
         var fcomp = try Self.newEnclosed(self.gc, self , .Ft_FUNC);
-        self.gc.compiler = &fcomp;
+        self.gc.compiler = fcomp;
 
         fcomp.beginScope();
 
@@ -520,6 +525,8 @@ pub const Compiler = struct {
 
             try self.emitBtRaw(upv.index);
         }
+
+        self.gc.getAlc().destroy(fcomp);
 
         self.gc.compiler = self;
 

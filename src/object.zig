@@ -259,17 +259,19 @@ pub const PObj = struct {
         }
 
         pub fn getName(self : *OFunction) []const u32{
-            if (self.name) |n| { 
-                return n.chars[0..n.chars.len];
+            if (self.name != null and self.name.?.chars.len > 0) { 
+                return self.name.?.chars[0..self.name.?.chars.len];
             } else {
                 return &[_]u32 { '<', 's', 'c', 'r', 'i', 'p', 't', '>' };
             }
         }
 
         pub fn print(self : *OFunction) void {
+            _ = self;
             std.debug.print("<fn " , .{});
-            //std.debug.print(" funname ->{x}\n" , .{@intFromPtr(self.name)});
-            utils.printu32(self.getName());
+            
+            //std.debug.print(" funname ->{x}\n" , .{self.getName()});
+            //utils.printu32(self.getName());
             std.debug.print(" >" , .{});
         }
 
