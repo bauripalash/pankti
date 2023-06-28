@@ -353,7 +353,7 @@ pub const Vm = struct {
             const bs = b.asObj().asString();
             const as = b.asObj().asString();
             
-            var temp_chars = self.gc.getAlc().alloc(u32, as.chars.len + bs.chars.len) catch return false;
+            var temp_chars = self.gc.hal().alloc(u32, as.chars.len + bs.chars.len) catch return false;
             var i : usize = 0;
 
             while (i < as.chars.len) {
@@ -368,14 +368,14 @@ pub const Vm = struct {
             
 
             const s = self.gc.copyString(temp_chars, @intCast(temp_chars.len)) catch {
-                 self.gc.getAlc().free(temp_chars);
+                 self.gc.hal().free(temp_chars);
                 return false;
             };
             self.stack.push(s.obj.asValue()) catch {
-                self.gc.getAlc().free(temp_chars);
+                self.gc.hal().free(temp_chars);
                 return false;
             };
-            self.gc.getAlc().free(temp_chars);
+            self.gc.hal().free(temp_chars);
             return true;
         } else {
             return false;
@@ -830,7 +830,7 @@ pub const Vm = struct {
 
                 .Op_DefGlob => {
                     const name : *Pobj.OString = frame.readStringConst();
-                    self.gc.globals.put(self.gc.getAlc(), name, self.peek(0))
+                    self.gc.globals.put(self.gc.hal(), name, self.peek(0))
                         catch {
                             self.throwRuntimeError("Failed to put value to globals table");
                             return .RuntimeError;
@@ -861,7 +861,7 @@ pub const Vm = struct {
                      const name : *Pobj.OString = frame.readStringConst();
 
                     if (self.gc.globals.get(name)) |_| {
-                        self.gc.globals.put(self.gc.getAlc(),
+                        self.gc.globals.put(self.gc.hal(),
                                             name, 
                                             self.peek(0)) catch {
                             self.throwRuntimeError("failed to put value to globals in set global");

@@ -73,7 +73,7 @@ pub const Gc = struct {
         const bts = self.internal_al.rawAlloc(len, ptr_align, ret_addr);
         self.alocAmount += len;
         //self.collect() catch return bts;
-        //std.debug.print("ALOC SIZE ->{d}bytes\n" , .{len});
+        std.debug.print("ALOC SIZE ->{d}bytes\n" , .{len});
         return bts;
     }
 
@@ -163,19 +163,19 @@ pub const Gc = struct {
         if (flags.DEBUG_GC) {
             ansicolors.TermColor('p');
             std.debug.print("[GC] (0x{x}) Free Object: {s} : ", .{ @intFromPtr(obj), obj.objtype.toString() });
-            //obj.printObj();
+            obj.printObj();
             ansicolors.ResetColor();
             std.debug.print("\n", .{});
         }
         switch (obj.objtype) {
-            .Ot_String => {
-                const str_obj = obj.child(PObj.OString);
-                str_obj.free(self);
-            },
 
             .Ot_Function => {
                 const fnObj = obj.child(PObj.OFunction);
                 fnObj.free(self);
+            },
+            .Ot_String => {
+                const str_obj = obj.child(PObj.OString);
+                str_obj.free(self);
             },
 
             .Ot_NativeFunc => {

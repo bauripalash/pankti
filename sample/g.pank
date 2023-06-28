@@ -1,0 +1,5 @@
+let a = "hello"
+
+a = "world"
+
+show(a)
