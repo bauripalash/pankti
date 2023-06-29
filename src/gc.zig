@@ -68,6 +68,7 @@ pub const Gc = struct {
 
     pub fn boot(self: *Self) void {
         self.al = self.allocator();
+        
     }
 
     pub inline fn allocator(self: *Self) Allocator {
@@ -256,6 +257,9 @@ pub const Gc = struct {
 
     pub fn collect(self: *Self) void {
         self.markRoots();
+        dprint('r' , "[GC] Tracing Refs\n" , .{});
+        self.traceRefs();
+        dprint('r' , "[GC] Finished Tracing Refs\n" , .{});
     }
 
     fn markRoots(self: *Self) void {
@@ -309,7 +313,6 @@ pub const Gc = struct {
     }
 
     fn markObject(self: *Self, obj: ?*PObj) void {
-        _ = self;
         if (obj) |o| {
             dprint('g', "[GC] Marking Object : {s} : [ ", .{
                 o.getType().toString(),
@@ -319,6 +322,33 @@ pub const Gc = struct {
             }
             dprint('g', " ] \n", .{});
             o.isMarked = true;
+            self.grayStack.append(self.hal(), o) catch return;
+        }
+    }
+
+    fn traceRefs(self : *Self) void {
+        var i : usize = 0;
+        while (i < self.grayStack.items.len) : (i+=1) {
+            self.paintObject(self.grayStack.items[i]);
+        }
+    }
+
+    fn paintObject(self : *Self , obj : *PObj) void {
+        switch (obj.getType()) {
+            .Ot_Function => {
+                const f = obj.asFunc();
+                if (f.name) |name| {
+
+                    self.markObject(name.parent());
+                }
+
+                for (f.ins.cons.items) |con| {
+                    self.markValue(con);
+                }
+            },
+            else => {
+                return;
+            }
         }
     }
 
@@ -348,7 +378,7 @@ pub const Gc = struct {
         return i;
     }
 
-    fn markCompilerRoots(self: *Self) void {
+    pub fn markCompilerRoots(self: *Self) void {
         if (self.compiler) |scompiler| {
             var comp: ?*compiler.Compiler = scompiler;
             while (comp) |com| {

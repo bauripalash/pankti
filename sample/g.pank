@@ -3,10 +3,10 @@ let a = "hello"
 a = "world"
 
 kaj name(msg)
-	kaj d()
-		show(msg)
+	kaj d(a)
+		show(a)
 	sesh
-	show(msg)
+	d(msg)
 sesh
 
 name(a)

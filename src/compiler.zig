@@ -193,6 +193,7 @@ pub const Compiler = struct {
 
         gc.compiler = c;
 
+
         var local = &c.locals[0];
         c.localCount = 1;
         local.depth = 0;
@@ -214,6 +215,7 @@ pub const Compiler = struct {
         }
 
         gc.compiler = c;
+        gc.markCompilerRoots();
 
         return c;
     }
@@ -245,6 +247,7 @@ pub const Compiler = struct {
 
         c.*.function = function;
         c.*.gc.compiler = c;
+        gc.markCompilerRoots();
         //var l = c.*.locals[0];
         //_ = l;
 
