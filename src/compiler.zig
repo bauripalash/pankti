@@ -283,12 +283,10 @@ pub const Compiler = struct {
     }
 
     fn emitBtRaw(self: *Self, bt: u8) !void {
-        try {
-            self.curIns().write_raw(
-                bt,
-                ins.InstPos.line(self.parser.previous.line),
-            );
-        };
+        try self.curIns().write_raw(
+            bt,
+            ins.InstPos.line(self.parser.previous.line),
+        );
     }
 
     fn emitBt(self: *Self, bt: ins.OpCode) !void {
