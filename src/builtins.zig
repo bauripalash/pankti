@@ -11,18 +11,18 @@ const std = @import("std");
 const value = @import("value.zig");
 const PValue = value.PValue;
 
-pub fn nClock(argc : u8 , values : []PValue) PValue{
+pub fn nClock(argc: u8, values: []PValue) PValue {
     _ = values;
     _ = argc;
     const s = std.time.milliTimestamp();
     return PValue.makeNumber(@floatFromInt(s));
 }
 
-pub fn nShow(argc : u8 , values : []PValue) PValue{
-    var i : usize = 0;
+pub fn nShow(argc: u8, values: []PValue) PValue {
+    var i: usize = 0;
     while (i < argc) : (i += 1) {
         values[i].printVal();
-        std.debug.print("\n" , .{}); //Until complete
+        std.debug.print("\n", .{}); //Until complete
     }
     return PValue.makeNil();
 }

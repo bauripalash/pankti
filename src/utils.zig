@@ -23,22 +23,22 @@ pub fn u8tou32(input: []const u8, alc: std.mem.Allocator) ![]u32 {
             cp = @intCast(bt);
             index += 1;
         } else if (bt > 0xE0) {
-            const x : u32 = @intCast(bt & 0x1F);
+            const x: u32 = @intCast(bt & 0x1F);
             cp |= @intCast(x << 6);
             cp |= @intCast(input[index + 1] & 0x3F);
             index += 2;
         } else if (bt < 0xF0) {
-            const x : u32 = @intCast(bt & 0x0F); 
+            const x: u32 = @intCast(bt & 0x0F);
             cp |= @intCast(x << 12);
-            const y : u32 = @intCast(input[index + 1] & 0x3F);
+            const y: u32 = @intCast(input[index + 1] & 0x3F);
             cp |= @intCast(y << 6);
             cp |= @intCast(input[index + 2] & 0x3F);
             index += 3;
         } else {
-            cp |= @as(u32 , @intCast(bt & 0x07)) << 18;
-            cp |= @as(u32 , @intCast(input[index + 1] & 0x3F)) << 12;
-            cp |= @as(u32 , @intCast(input[index + 2] & 0x3F)) << 6;
-            cp |= @as(u32 , @intCast(input[index + 3] & 0x3F));
+            cp |= @as(u32, @intCast(bt & 0x07)) << 18;
+            cp |= @as(u32, @intCast(input[index + 1] & 0x3F)) << 12;
+            cp |= @as(u32, @intCast(input[index + 2] & 0x3F)) << 6;
+            cp |= @as(u32, @intCast(input[index + 3] & 0x3F));
             index += 4;
         }
         ustr[outindex] = cp;
@@ -61,19 +61,19 @@ pub fn u32tou8(input: []const u32, al: std.mem.Allocator) ![]u8 {
             u8str[i] = @intCast(value); //1
             i += 1;
         } else if (value <= 0x7FF) {
-            u8str[i] = (0xC0 | @as(u8 , @intCast((value >> 6) & 0x1F)));
+            u8str[i] = (0xC0 | @as(u8, @intCast((value >> 6) & 0x1F)));
             u8str[i + 1] = (0x80 | @as(u8, @intCast(value & 0x3F)));
             i += 2;
         } else if (value <= 0xFFFF) {
-            u8str[i] = (0xE0 | @as(u8 , @intCast((value >> 12) & 0x0F)));
-            u8str[i + 1] = (0x80 | @as(u8 , @intCast((value >> 6) & 0x3F)));
-            u8str[i + 2] = (0x80 | @as(u8 , @intCast(value & 0x3F)));
+            u8str[i] = (0xE0 | @as(u8, @intCast((value >> 12) & 0x0F)));
+            u8str[i + 1] = (0x80 | @as(u8, @intCast((value >> 6) & 0x3F)));
+            u8str[i + 2] = (0x80 | @as(u8, @intCast(value & 0x3F)));
             i += 3;
         } else {
-            u8str[i] = (0xF0 | @as(u8 , @intCast((value >> 18) & 0x07)));
-            u8str[i + 1] = (0x80 | @as(u8 , @intCast((value >> 12) & 0x3F)));
-            u8str[i + 2] = (0x80 | @as(u8 , @intCast((value >> 6) & 0x3F)));
-            u8str[i + 3] = (0x80 | @as(u8 , @intCast(value & 0x3F)));
+            u8str[i] = (0xF0 | @as(u8, @intCast((value >> 18) & 0x07)));
+            u8str[i + 1] = (0x80 | @as(u8, @intCast((value >> 12) & 0x3F)));
+            u8str[i + 2] = (0x80 | @as(u8, @intCast((value >> 6) & 0x3F)));
+            u8str[i + 3] = (0x80 | @as(u8, @intCast(value & 0x3F)));
             i += 4;
         }
     }
@@ -83,25 +83,23 @@ pub fn u32tou8(input: []const u32, al: std.mem.Allocator) ![]u8 {
     return u8str;
 }
 
-    
-pub fn hashU32(input : []const u32) !u32{
+pub fn hashU32(input: []const u32) !u32 {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const ga = gpa.allocator();
 
-    
     var x = std.hash.XxHash32.init(@intCast(std.time.timestamp()));
-    const u = try u32tou8(input , ga);
+    const u = try u32tou8(input, ga);
 
     x.update(u);
     ga.free(u);
-    
+
     return x.final();
 }
 
 /// Print a UTF-32 encoded string to stdout
 pub fn printu32(input: []const u32) void {
     for (input) |value| {
-        std.debug.print("{u}", .{@as(u21,@truncate(value))});
+        std.debug.print("{u}", .{@as(u21, @truncate(value))});
     }
 }
 
@@ -132,22 +130,21 @@ pub fn matchU32(a: []const u32, b: []const u32) bool {
     return true;
 }
 
-/// Convert an u16 to u8 
-pub fn u16tou8(a : u16) [2]u8{
-    var result : [2]u8 = undefined;
+/// Convert an u16 to u8
+pub fn u16tou8(a: u16) [2]u8 {
+    var result: [2]u8 = undefined;
     result[0] = @intCast(a >> 8);
     result[1] = @intCast(a & 0xff);
     return result;
-
 }
 
 /// Convert two u8 to u16
-pub fn u8tou16(a :[]const u8) u16{
-    if (a.len > 2) { return 0; }
-    var result : u16 = (@as(u16 , @intCast(a[0])) << 8) | @as(u16 , @intCast(a[1]));
+pub fn u8tou16(a: []const u8) u16 {
+    if (a.len > 2) {
+        return 0;
+    }
+    var result: u16 = (@as(u16, @intCast(a[0])) << 8) | @as(u16, @intCast(a[1]));
     return result;
-
-
 }
 
 test "test utils->u8tou32->english" {
@@ -156,7 +153,51 @@ test "test utils->u8tou32->english" {
 
     const textU32 = try u8tou32(text, al);
 
-    const textU32X = [_]u32{ 84, 104, 101, 32, 113, 117, 105, 99, 107, 32, 98, 114, 111, 119, 110, 32, 102, 111, 120, 32, 106, 117, 109, 112, 115, 32, 111, 118, 101, 114, 32, 116, 104, 101, 32, 108, 97, 122, 121, 32, 100, 111, 103 };
+    const textU32X = [_]u32{
+        84,
+        104,
+        101,
+        32,
+        113,
+        117,
+        105,
+        99,
+        107,
+        32,
+        98,
+        114,
+        111,
+        119,
+        110,
+        32,
+        102,
+        111,
+        120,
+        32,
+        106,
+        117,
+        109,
+        112,
+        115,
+        32,
+        111,
+        118,
+        101,
+        114,
+        32,
+        116,
+        104,
+        101,
+        32,
+        108,
+        97,
+        122,
+        121,
+        32,
+        100,
+        111,
+        103,
+    };
 
     try std.testing.expectEqual(text.len, textU32.len);
     try std.testing.expectEqual(textU32.len, textU32X.len);
@@ -180,7 +221,221 @@ test "test utils->u8tou32->bengali" {
     ;
     const textU32 = try u8tou32(text, al);
 
-    const textU32X = [_]u32{ 2460, 2496, 2480, 2509, 2467, 32, 2474, 2499, 2469, 2495, 2476, 2496, 2468, 2503, 32, 2476, 2509, 2479, 2480, 2509, 2469, 44, 32, 2478, 2499, 2468, 32, 2438, 2480, 32, 2471, 2509, 2476, 2434, 2488, 2488, 2509, 2468, 2498, 2474, 45, 2474, 2495, 2464, 2503, 10, 32, 2458, 2482, 2503, 32, 2479, 2503, 2468, 2503, 32, 2489, 2476, 2503, 32, 2438, 2478, 2494, 2470, 2503, 2480, 2404, 10, 32, 2458, 2482, 2503, 32, 2479, 2494, 2476, 45, 32, 2468, 2476, 2497, 32, 2438, 2460, 32, 2479, 2468, 2453, 2509, 2487, 2467, 32, 2470, 2503, 2489, 2503, 32, 2438, 2459, 2503, 32, 2474, 2509, 2480, 2494, 2467, 10, 32, 2474, 2509, 2480, 2494, 2467, 2474, 2467, 2503, 32, 2474, 2499, 2469, 2495, 2476, 2496, 2480, 32, 2488, 2480, 2494, 2476, 32, 2460, 2462, 2509, 2460, 2494, 2482, 44, 10, 32, 2447, 32, 2476, 2495, 2486, 2509, 2476, 2453, 2503, 32, 2447, 32, 2486, 2495, 2486, 2497, 2480, 32, 2476, 2494, 2488, 2479, 2507, 2455, 2509, 2479, 32, 2453, 128, 38950, 2087, 30752, 27616, 28576, 27424, 2438, 2478, 2495, 10, 2472, 2476, 2460, 2494, 2468, 2453, 2503, 2480, 32, 2453, 2494, 2459, 2503, 32, 2447, 32, 2438, 2478, 2494, 2480, 32, 2470, 2499, 2466, 2492, 32, 2437, 2457, 2509, 2455, 2496, 2453, 2494, 2480, 2404 };
+    const textU32X = [_]u32{
+        2460,
+        2496,
+        2480,
+        2509,
+        2467,
+        32,
+        2474,
+        2499,
+        2469,
+        2495,
+        2476,
+        2496,
+        2468,
+        2503,
+        32,
+        2476,
+        2509,
+        2479,
+        2480,
+        2509,
+        2469,
+        44,
+        32,
+        2478,
+        2499,
+        2468,
+        32,
+        2438,
+        2480,
+        32,
+        2471,
+        2509,
+        2476,
+        2434,
+        2488,
+        2488,
+        2509,
+        2468,
+        2498,
+        2474,
+        45,
+        2474,
+        2495,
+        2464,
+        2503,
+        10,
+        32,
+        2458,
+        2482,
+        2503,
+        32,
+        2479,
+        2503,
+        2468,
+        2503,
+        32,
+        2489,
+        2476,
+        2503,
+        32,
+        2438,
+        2478,
+        2494,
+        2470,
+        2503,
+        2480,
+        2404,
+        10,
+        32,
+        2458,
+        2482,
+        2503,
+        32,
+        2479,
+        2494,
+        2476,
+        45,
+        32,
+        2468,
+        2476,
+        2497,
+        32,
+        2438,
+        2460,
+        32,
+        2479,
+        2468,
+        2453,
+        2509,
+        2487,
+        2467,
+        32,
+        2470,
+        2503,
+        2489,
+        2503,
+        32,
+        2438,
+        2459,
+        2503,
+        32,
+        2474,
+        2509,
+        2480,
+        2494,
+        2467,
+        10,
+        32,
+        2474,
+        2509,
+        2480,
+        2494,
+        2467,
+        2474,
+        2467,
+        2503,
+        32,
+        2474,
+        2499,
+        2469,
+        2495,
+        2476,
+        2496,
+        2480,
+        32,
+        2488,
+        2480,
+        2494,
+        2476,
+        32,
+        2460,
+        2462,
+        2509,
+        2460,
+        2494,
+        2482,
+        44,
+        10,
+        32,
+        2447,
+        32,
+        2476,
+        2495,
+        2486,
+        2509,
+        2476,
+        2453,
+        2503,
+        32,
+        2447,
+        32,
+        2486,
+        2495,
+        2486,
+        2497,
+        2480,
+        32,
+        2476,
+        2494,
+        2488,
+        2479,
+        2507,
+        2455,
+        2509,
+        2479,
+        32,
+        2453,
+        128,
+        38950,
+        2087,
+        30752,
+        27616,
+        28576,
+        27424,
+        2438,
+        2478,
+        2495,
+        10,
+        2472,
+        2476,
+        2460,
+        2494,
+        2468,
+        2453,
+        2503,
+        2480,
+        32,
+        2453,
+        2494,
+        2459,
+        2503,
+        32,
+        2447,
+        32,
+        2438,
+        2478,
+        2494,
+        2480,
+        32,
+        2470,
+        2499,
+        2466,
+        2492,
+        32,
+        2437,
+        2457,
+        2509,
+        2455,
+        2496,
+        2453,
+        2494,
+        2480,
+        2404,
+    };
 
     try std.testing.expectEqual(textU32X.len, textU32.len);
 
@@ -193,7 +448,51 @@ test "test utils->u8tou32->bengali" {
 
 test "test utils->u32tou8->english" {
     const al = std.testing.allocator;
-    const textU32 = [_]u32{ 84, 104, 101, 32, 113, 117, 105, 99, 107, 32, 98, 114, 111, 119, 110, 32, 102, 111, 120, 32, 106, 117, 109, 112, 115, 32, 111, 118, 101, 114, 32, 116, 104, 101, 32, 108, 97, 122, 121, 32, 100, 111, 103 };
+    const textU32 = [_]u32{
+        84,
+        104,
+        101,
+        32,
+        113,
+        117,
+        105,
+        99,
+        107,
+        32,
+        98,
+        114,
+        111,
+        119,
+        110,
+        32,
+        102,
+        111,
+        120,
+        32,
+        106,
+        117,
+        109,
+        112,
+        115,
+        32,
+        111,
+        118,
+        101,
+        114,
+        32,
+        116,
+        104,
+        101,
+        32,
+        108,
+        97,
+        122,
+        121,
+        32,
+        100,
+        111,
+        103,
+    };
 
     const textU8 = try u32tou8(&textU32, al);
 
@@ -207,5 +506,3 @@ test "test utils->u32tou8->english" {
 
     al.free(textU8);
 }
-
-

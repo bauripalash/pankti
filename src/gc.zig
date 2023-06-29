@@ -20,15 +20,14 @@ const ansicolors = @import("ansicolors.zig");
 const vm = @import("vm.zig");
 const compiler = @import("compiler.zig");
 
-const slog : bool = flags.DEBUG and flags.DEBUG_GC;
+const slog: bool = flags.DEBUG and flags.DEBUG_GC;
 
-fn dprint(color : u8 , comptime fmt : []const u8 , args : anytype) void {
+fn dprint(color: u8, comptime fmt: []const u8, args: anytype) void {
     if (slog) {
         ansicolors.TermColor(color);
         std.debug.print(fmt, args);
         ansicolors.ResetColor();
     }
-
 }
 
 pub const Gc = struct {
@@ -171,7 +170,11 @@ pub const Gc = struct {
     }
 
     pub fn copyString(self: *Gc, chars: []const u32, len: u32) !*PObj.OString {
-        if (table.getString(self.strings, try utils.hashU32(chars), len)) |interned| {
+        if (table.getString(
+            self.strings,
+            try utils.hashU32(chars),
+            len,
+        )) |interned| {
             return interned;
         }
 
@@ -191,12 +194,14 @@ pub const Gc = struct {
     }
 
     pub fn freeSingleObject(self: *Self, obj: *PObj) void {
-
-        dprint('p' ,"[GC] (0x{x}) Free Object: {s} : [ ", .{ @intFromPtr(obj), obj.objtype.toString() });
+        dprint('p', "[GC] (0x{x}) Free Object: {s} : [ ", .{
+            @intFromPtr(obj),
+            obj.objtype.toString(),
+        });
         if (slog) {
             obj.printObj();
         }
-        dprint('p' , " ]\n" , .{});
+        dprint('p', " ]\n", .{});
         switch (obj.objtype) {
             .Ot_Function => {
                 const fnObj = obj.child(PObj.OFunction);
@@ -254,44 +259,40 @@ pub const Gc = struct {
     }
 
     fn markRoots(self: *Self) void {
-
-            
         if (self.stack) |stack| {
-            dprint('r' , "[GC] Marking Stack \n" , .{});
+            dprint('r', "[GC] Marking Stack \n", .{});
             var i: usize = 0;
             while (i < stack.presentcount()) : (i += 1) {
                 const val = stack.stack[i];
                 _ = val;
             }
 
-            dprint('r' , "      [GC] Marked ({}) Values \n" , .{i});
-            dprint('r' , "[GC] Finished Marking Stack \n" , .{});
+            dprint('r', "      [GC] Marked ({}) Values \n", .{i});
+            dprint('r', "[GC] Finished Marking Stack \n", .{});
         }
 
-        dprint('r' , "[GC] Marking Globals \n" , .{});
+        dprint('r', "[GC] Marking Globals \n", .{});
         self.markTable(self.globals);
-        dprint('r' , "[GC] Finished Marking Globals \n" , .{});
+        dprint('r', "[GC] Finished Marking Globals \n", .{});
 
-        dprint('r' , "[GC] Marking CallStack\n" , .{});
+        dprint('r', "[GC] Marking CallStack\n", .{});
         const count = self.markCallStack();
 
-        dprint('r' , "      [GC] Marked ({}) CallFrames \n" , .{count});
-        dprint('r'  , "[GC] Finished Marking CallStack\n" , .{});
+        dprint('r', "      [GC] Marked ({}) CallFrames \n", .{count});
+        dprint('r', "[GC] Finished Marking CallStack\n", .{});
 
-        dprint('r' , "[GC] Marking Open Upvalues\n" , .{});
+        dprint('r', "[GC] Marking Open Upvalues\n", .{});
         const ocount = self.markOpenUpvalues();
-        dprint('r' , "      [GC] Marked ({}) Open Upvalues \n" , .{ocount});
-        dprint('r'  , "[GC] Finished Marking Open Upvalues\n" , .{});
+        dprint('r', "      [GC] Marked ({}) Open Upvalues \n", .{ocount});
+        dprint('r', "[GC] Finished Marking Open Upvalues\n", .{});
 
         //dprint('r' , "[GC] Marking Compiler Roots \n" , .{});
         //self.markCompilerRoots();
         //dprint('r' , "[GC] Finished Marking Compiler Roots \n" , .{});
 
-
-
     }
 
-    fn markTable(self : *Self , tab : table.PankTable()) void {
+    fn markTable(self: *Self, tab: table.PankTable()) void {
         var ite = tab.iterator();
 
         while (ite.next()) |val| {
@@ -310,20 +311,20 @@ pub const Gc = struct {
     fn markObject(self: *Self, obj: ?*PObj) void {
         _ = self;
         if (obj) |o| {
-                dprint('g' , "[GC] Marking Object : {s} : [ ", .{
-                    o.getType().toString(),
-                });
-                if (slog) {
-                    o.printObj();
-                }
-                dprint('g' , " ] \n" , .{});
+            dprint('g', "[GC] Marking Object : {s} : [ ", .{
+                o.getType().toString(),
+            });
+            if (slog) {
+                o.printObj();
+            }
+            dprint('g', " ] \n", .{});
             o.isMarked = true;
         }
     }
 
-    fn markCallStack(self : *Self) i32 {
+    fn markCallStack(self: *Self) i32 {
         if (self.callstack) |callstack| {
-            var i : usize = 0;
+            var i: usize = 0;
             while (i < callstack.count) : (i += 1) {
                 self.markObject(callstack.stack[i].closure.parent());
             }
@@ -334,9 +335,9 @@ pub const Gc = struct {
         return -1;
     }
 
-    fn markOpenUpvalues(self : *Self) i32 {
+    fn markOpenUpvalues(self: *Self) i32 {
         var upv = self.openUps;
-        var i : i32 = 0;
+        var i: i32 = 0;
 
         while (upv) |u| {
             upv = u.next;
@@ -347,9 +348,9 @@ pub const Gc = struct {
         return i;
     }
 
-    fn markCompilerRoots(self : *Self) void {
+    fn markCompilerRoots(self: *Self) void {
         if (self.compiler) |scompiler| {
-            var comp : ?*compiler.Compiler = scompiler;
+            var comp: ?*compiler.Compiler = scompiler;
             while (comp) |com| {
                 self.markObject(com.function.parent());
                 comp = com.enclosing;

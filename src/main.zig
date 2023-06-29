@@ -25,7 +25,6 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const ga = gpa.allocator();
 
-
     var fileToRun: ?[]u8 = null;
 
     var args = try std.process.argsAlloc(ga);
@@ -33,10 +32,9 @@ pub fn main() !void {
     if (args.len == 2) {
         fileToRun = try ga.alloc(u8, args[1].len);
         @memcpy(fileToRun.?, args[1]);
-
-    } else if (args.len == 1){
-        std.debug.print("neopank 0.4.0\n" , .{});
-        std.debug.print("Usage: neopank [FILE]\n" , .{});
+    } else if (args.len == 1) {
+        std.debug.print("neopank 0.4.0\n", .{});
+        std.debug.print("Usage: neopank [FILE]\n", .{});
     }
     std.process.argsFree(ga, args);
 
@@ -47,24 +45,22 @@ pub fn main() !void {
         if (fileToRun) |f| {
             ga.free(f);
         }
-        
+
         if (flags.DEBUG_GC) {
+            std.debug.print("==== GC Deinit ====\n", .{});
 
-            std.debug.print("==== GC Deinit ====\n" , .{});
-         
-            std.debug.print("[GCA] Leaks -> {}\n" , .{gcGpa.detectLeaks()});
-            std.debug.print("[GPA] Leaks -> {}\n" , .{gpa.detectLeaks()});
+            std.debug.print("[GCA] Leaks -> {}\n", .{gcGpa.detectLeaks()});
+            std.debug.print("[GPA] Leaks -> {}\n", .{gpa.detectLeaks()});
 
-            std.debug.print("===================\n" , .{});
+            std.debug.print("===================\n", .{});
         }
 
         _ = gpa.deinit();
         _ = gcGpa.deinit();
     }
-    
+
     if (fileToRun) |f| {
-        
-        var gc = try Gc.new(GcGa , ga);
+        var gc = try Gc.new(GcGa, ga);
         gc.boot();
 
         const text = try openfile(f, ga);
@@ -73,16 +69,14 @@ pub fn main() !void {
         myv.bootVm(gc);
         const result = myv.interpret(u);
         if (flags.DEBUG and flags.DEBUG_VM_RESULT) {
-            std.debug.print("VM Result : {s}\n" , .{result.toString()});
+            std.debug.print("VM Result : {s}\n", .{result.toString()});
         }
         myv.freeVm(ga);
         gc.freeGc(GcGa);
         ga.free(u);
         ga.free(text);
-        
-    } 
+    }
 }
-
 
 test "AllTest" {
     std.testing.refAllDecls(@This());
@@ -90,5 +84,4 @@ test "AllTest" {
     _ = @import("instruction.zig");
     _ = @import("vm.zig");
     _ = @import("compiler.zig");
-
 }

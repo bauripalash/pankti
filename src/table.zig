@@ -15,51 +15,49 @@ const Pobj = object.PObj;
 const val = @import("value.zig");
 const PValue = val.PValue;
 
-
-
 const PankTableContext = struct {
-    
-    pub fn eql(self : @This() , a :*Pobj.OString , b :*Pobj.OString , index : usize) bool {
+    pub fn eql(
+        self: @This(),
+        a: *Pobj.OString,
+        b: *Pobj.OString,
+        index: usize,
+    ) bool {
         _ = index;
         _ = self;
         return a.hash == b.hash;
     }
-    pub fn hash(self : @This() , key : *Pobj.OString) u32 {
+    pub fn hash(self: @This(), key: *Pobj.OString) u32 {
         _ = self;
         return key.hash;
     }
 };
 
 pub fn PankTable() type {
-    return std.ArrayHashMapUnmanaged(*Pobj.OString, PValue, PankTableContext, true);
+    return std.ArrayHashMapUnmanaged(
+        *Pobj.OString,
+        PValue,
+        PankTableContext,
+        true,
+    );
 }
 
-pub fn freeGlobalsTable(vm : *Vm , table : PankTable()) bool {
-
+pub fn freeGlobalsTable(vm: *Vm, table: PankTable()) bool {
     for (table.values()) |value| {
         value.free(vm);
     }
 
     return true;
-
 }
 
-
-
-pub fn getString(self : PankTable() , hash : u32 , len : u32) ?*Pobj.OString{
-    
+pub fn getString(self: PankTable(), hash: u32, len: u32) ?*Pobj.OString {
     var ite = self.iterator();
     while (ite.next()) |n| {
-        const rawStr : *Pobj.OString = n.key_ptr.*;
+        const rawStr: *Pobj.OString = n.key_ptr.*;
 
         if (rawStr.len == len and rawStr.hash == hash) {
             return rawStr;
         }
-
-
-        
     }
 
     return null;
-
 }

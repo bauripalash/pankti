@@ -7,8 +7,6 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
-
-
 pub const BN_NUM_0 = 0x09E6;
 pub const BN_NUM_1 = 0x09E7;
 pub const BN_NUM_2 = 0x09E8;

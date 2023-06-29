@@ -123,7 +123,7 @@ pub const InstPos = struct {
         };
     }
 
-    pub fn line(l : u32) InstPos {
+    pub fn line(l: u32) InstPos {
         return InstPos{
             .virtual = true,
             .colpos = 0,
@@ -136,11 +136,10 @@ pub const InstPos = struct {
 pub const Instruction = struct {
     code: std.ArrayListUnmanaged(u8),
     pos: std.ArrayListUnmanaged(InstPos),
-    cons : std.ArrayListUnmanaged(PValue),
-    gc : *Gc,
+    cons: std.ArrayListUnmanaged(PValue),
+    gc: *Gc,
 
-    pub fn init(gc : *Gc) Instruction {
-
+    pub fn init(gc: *Gc) Instruction {
         return Instruction{
             .code = std.ArrayListUnmanaged(u8){},
             .pos = std.ArrayListUnmanaged(InstPos){},
@@ -161,24 +160,24 @@ pub const Instruction = struct {
     }
 
     pub fn write(self: *Instruction, bt: OpCode, pos: InstPos) !void {
-        try self.code.append(self.gc.hal() , @intFromEnum(bt));
-        try self.pos.append(self.gc.hal() , pos);
+        try self.code.append(self.gc.hal(), @intFromEnum(bt));
+        try self.pos.append(self.gc.hal(), pos);
     }
 
-    pub fn addConst(self : *Instruction , value : PValue) !u8 {
-        try self.cons.append(self.gc.hal() , value);
+    pub fn addConst(self: *Instruction, value: PValue) !u8 {
+        try self.cons.append(self.gc.hal(), value);
         return @intCast(self.cons.items.len - 1);
         // catch return false;
         //return true;
     }
 
     /// Return OpCode at offset
-     fn getOpCode(self: *Instruction, offset: usize) OpCode {
+    fn getOpCode(self: *Instruction, offset: usize) OpCode {
         return @enumFromInt(self.code.items[offset]);
     }
 
-     /// Return OpCode at offset
-     fn getRawOpCode(self: *Instruction, offset: usize) u8 {
+    /// Return OpCode at offset
+    fn getRawOpCode(self: *Instruction, offset: usize) u8 {
         return self.code.items[offset];
     }
 
@@ -195,127 +194,148 @@ pub const Instruction = struct {
         std.debug.print("\n", .{});
     }
 
-    fn simpleInstruction(_ : *Instruction , name : []const u8 , offset : usize) usize{
-        std.debug.print("{s}\n" , .{name});
+    fn simpleInstruction(
+        _: *Instruction,
+        name: []const u8,
+        offset: usize,
+    ) usize {
+        std.debug.print("{s}\n", .{name});
         return offset + 1;
-    }   
+    }
 
-    fn constInstruction(self : *Instruction ,  name : []const u8 , offset : usize) usize {
-        const constIndex = self.getRawOpCode(offset+1);
-        std.debug.print("{s} {d} '" , .{name , constIndex});
-        self.cons.items[constIndex].printVal(); 
-        std.debug.print("'\n" , .{});
-         
+    fn constInstruction(
+        self: *Instruction,
+        name: []const u8,
+        offset: usize,
+    ) usize {
+        const constIndex = self.getRawOpCode(offset + 1);
+        std.debug.print("{s} {d} '", .{ name, constIndex });
+        self.cons.items[constIndex].printVal();
+        std.debug.print("'\n", .{});
+
         return offset + 2;
-
-
     }
 
-    fn jumpInstruction(self : *Instruction , name : []const u8 , sign : i32 , offset : usize) usize{
-
-        var jump : u16 = utils.u8tou16(&[_]u8{self.code.items[offset + 1] , self.code.items[offset + 2 ]});
-        std.debug.print("{s} {d} -> {d}\n" , .{name , offset , @as(i64 , @intCast(offset)) + 3 + sign * jump});
-            return offset + 3;
+    fn jumpInstruction(
+        self: *Instruction,
+        name: []const u8,
+        sign: i32,
+        offset: usize,
+    ) usize {
+        var jump: u16 = utils.u8tou16(&[_]u8{
+            self.code.items[offset + 1],
+            self.code.items[offset + 2],
+        });
+        std.debug.print("{s} {d} -> {d}\n", .{
+            name,
+            offset,
+            @as(i64, @intCast(offset)) + 3 + sign * jump,
+        });
+        return offset + 3;
     }
 
-    fn byteInstruction(self : *Instruction , name : []const u8 , offset : usize) usize{
-       const slot = self.code.items[offset + 1];
-       std.debug.print("{s} {:>4}\n" , .{name , slot});
-       return offset + 2;
+    fn byteInstruction(
+        self: *Instruction,
+        name: []const u8,
+        offset: usize,
+    ) usize {
+        const slot = self.code.items[offset + 1];
+        std.debug.print("{s} {:>4}\n", .{ name, slot });
+        return offset + 2;
     }
 
     fn disasmInstruction(self: *Instruction, offset: usize) usize {
-        std.debug.print("{:0>4} " , .{offset});
-        if (offset > 0 and self.pos.items[offset].line == self.pos.items[offset-1].line){
+        std.debug.print("{:0>4} ", .{offset});
+        if (offset > 0 and self.pos.items[offset].line == self.pos.items[offset - 1].line) {
             std.debug.print("   | ", .{});
         } else {
-            std.debug.print("{:>4} " , .{self.pos.items[offset].line});
+            std.debug.print("{:>4} ", .{self.pos.items[offset].line});
         }
 
         const ins = self.getOpCode(offset);
 
         switch (ins) {
             .Op_Return,
-            .Op_Neg, 
-            .Op_Add , 
-            .Op_Sub, 
-            .Op_Mul, 
+            .Op_Neg,
+            .Op_Add,
+            .Op_Sub,
+            .Op_Mul,
             .Op_Pow,
-            .Op_Div, 
-            .Op_Nil, 
-            .Op_True, 
-            .Op_False, 
-            .Op_Not, 
-            .Op_Eq , 
+            .Op_Div,
+            .Op_Nil,
+            .Op_True,
+            .Op_False,
+            .Op_Not,
+            .Op_Eq,
             .Op_Neq,
-            .Op_Lt , 
-            .Op_Gt , 
-            .Op_Pop, 
-            .Op_ClsUp, 
-            .Op_Err, 
-            .Op_Index, 
+            .Op_Lt,
+            .Op_Gt,
+            .Op_Pop,
+            .Op_ClsUp,
+            .Op_Err,
+            .Op_Index,
             .Op_Show,
-            .Op_SubAssign => {
+            .Op_SubAssign,
+            => {
                 return self.simpleInstruction(ins.toString(), offset);
             },
 
-            .Op_SetUp , .Op_GetUp , .Op_GetLocal , .Op_SetLocal  => {
+            .Op_SetUp, .Op_GetUp, .Op_GetLocal, .Op_SetLocal => {
                 return self.byteInstruction(ins.toString(), offset);
             },
-            
-            .Op_JumpIfFalse , .Op_Jump =>  {
+
+            .Op_JumpIfFalse, .Op_Jump => {
                 return self.jumpInstruction(ins.toString(), 1, offset);
             },
 
             .Op_Loop => {
-                return self.jumpInstruction(ins.toString() , -1 , offset);
+                return self.jumpInstruction(ins.toString(), -1, offset);
             },
 
             .Op_Call => {
                 return self.byteInstruction(ins.toString(), offset);
             },
 
-            .Op_Const, 
-            .Op_Import , 
-            .Op_DefGlob, 
-            .Op_GetGlob, 
+            .Op_Const,
+            .Op_Import,
+            .Op_DefGlob,
+            .Op_GetGlob,
             .Op_SetGlob,
-            => { 
-                return self.constInstruction(ins.toString() , offset);
+            => {
+                return self.constInstruction(ins.toString(), offset);
             },
 
             .Op_Closure => {
                 var off = offset + 1;
                 const con = self.code.items[off];
                 off += 1;
-                std.debug.print("{s} {d} " , .{ins.toString() , con});
+                std.debug.print("{s} {d} ", .{ ins.toString(), con });
                 self.cons.items[con].printVal();
-                std.debug.print("\n" , .{});
-                
-                const f : *PObj.OFunction = self.cons.items[con].asObj().asFunc();
-                var i : usize = 0;
+                std.debug.print("\n", .{});
+
+                const f: *PObj.OFunction =
+                    self.cons.items[con].asObj().asFunc();
+                var i: usize = 0;
                 while (i < f.upvCount) : (i += 1) {
                     const isLocal = self.code.items[off];
                     off += 1;
                     const index = self.code.items[off];
                     off += 1;
-                    std.debug.print("{:0>4}   |   ->" , .{off - 2});
+                    std.debug.print("{:0>4}   |   ->", .{off - 2});
                     if (isLocal == 1) {
-                        std.debug.print("local" , .{});
+                        std.debug.print("local", .{});
                     } else {
-                        std.debug.print("upvalue" , .{});
+                        std.debug.print("upvalue", .{});
                     }
-                    
-                    std.debug.print(" {d}\n" , .{index});
+
+                    std.debug.print(" {d}\n", .{index});
                 }
 
                 return off;
-        },
+            },
             else => {
                 return offset + 1;
-            }
+            },
         }
-
-
     }
 };

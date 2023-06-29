@@ -125,15 +125,14 @@ fn isValidIdentChar(c: u32) bool {
     return utils.isValidEn(c) or bn.isBnChar(c);
 }
 
-pub const Token = struct { 
+pub const Token = struct {
     lexeme: []const u32,
     toktype: TokenType,
     length: u32,
     colpos: u32,
     line: u32,
 
-    
-    pub fn dummy() Token{
+    pub fn dummy() Token {
         return Token{
             .lexeme = &[_]u32{'_'},
             .toktype = .Err,
@@ -143,14 +142,16 @@ pub const Token = struct {
         };
     }
 
-    pub fn toString(self : *const Token , al : std.mem.Allocator) ![]u8{
+    pub fn toString(self: *const Token, al: std.mem.Allocator) ![]u8 {
         const lexeme = try utils.u32tou8(self.lexeme, al);
-        const result = try std.fmt.allocPrint(al, "T[{s}|{s}|]" , .{toktypeToString(self.toktype) , lexeme});
+        const result = try std.fmt.allocPrint(
+            al,
+            "T[{s}|{s}|]",
+            .{ toktypeToString(self.toktype), lexeme },
+        );
         al.free(lexeme);
         return result;
     }
-    
-
 };
 
 pub const Lexer = struct {
@@ -396,73 +397,41 @@ pub const Lexer = struct {
     }
 
     fn getIdentifierType(_: *Self, lx: []u32) TokenType {
-        if (utils.matchU32(lx, &kw.K_EN_LET)
-            or utils.matchU32(lx, &kw.K_BN_LET) 
-            or utils.matchU32(lx, &kw.K_PN_LET)) {
+        if (utils.matchU32(lx, &kw.K_EN_LET) or utils.matchU32(lx, &kw.K_BN_LET) or utils.matchU32(lx, &kw.K_PN_LET)) {
             return .Let;
-       // } else if (utils.matchU32(lx, &kw.K_EN_SHOW) 
-       //     or utils.matchU32(lx, &kw.K_BN_SHOW) 
-       //     or utils.matchU32(lx, &kw.K_PN_SHOW) ) {
-       //     return .Show;
-        } else if (utils.matchU32(lx, &kw.K_EN_AND) 
-            or utils.matchU32(lx, &kw.K_BN_AND) 
-            or utils.matchU32(lx, &kw.K_PN_AND)) {
+            // } else if (utils.matchU32(lx, &kw.K_EN_SHOW)
+            //     or utils.matchU32(lx, &kw.K_BN_SHOW)
+            //     or utils.matchU32(lx, &kw.K_PN_SHOW) ) {
+            //     return .Show;
+        } else if (utils.matchU32(lx, &kw.K_EN_AND) or utils.matchU32(lx, &kw.K_BN_AND) or utils.matchU32(lx, &kw.K_PN_AND)) {
             return .And;
-        } else if (utils.matchU32(lx, &kw.K_EN_OR) 
-            or utils.matchU32(lx, &kw.K_BN_OR) 
-            or utils.matchU32(lx, &kw.K_PN_OR)) {
+        } else if (utils.matchU32(lx, &kw.K_EN_OR) or utils.matchU32(lx, &kw.K_BN_OR) or utils.matchU32(lx, &kw.K_PN_OR)) {
             return .Or;
-        } else if (utils.matchU32(lx, &kw.K_EN_END) 
-            or utils.matchU32(lx, &kw.K_BN_END) 
-            or utils.matchU32(lx, &kw.K_PN_END)) {
+        } else if (utils.matchU32(lx, &kw.K_EN_END) or utils.matchU32(lx, &kw.K_BN_END) or utils.matchU32(lx, &kw.K_PN_END)) {
             return .End;
-        } else if (utils.matchU32(lx, &kw.K_EN_IF) 
-            or utils.matchU32(lx, &kw.K_BN_IF) 
-            or utils.matchU32(lx, &kw.K_PN_IF)) {
+        } else if (utils.matchU32(lx, &kw.K_EN_IF) or utils.matchU32(lx, &kw.K_BN_IF) or utils.matchU32(lx, &kw.K_PN_IF)) {
             return .If;
-        } else if (utils.matchU32(lx, &kw.K_EN_THEN) 
-            or utils.matchU32(lx, &kw.K_BN_THEN) 
-            or utils.matchU32(lx, &kw.K_PN_THEN)) {
+        } else if (utils.matchU32(lx, &kw.K_EN_THEN) or utils.matchU32(lx, &kw.K_BN_THEN) or utils.matchU32(lx, &kw.K_PN_THEN)) {
             return .Then;
-        } else if (utils.matchU32(lx, &kw.K_EN_ELSE) 
-            or utils.matchU32(lx, &kw.K_BN_ELSE) 
-            or utils.matchU32(lx, &kw.K_PN_ELSE)) {
+        } else if (utils.matchU32(lx, &kw.K_EN_ELSE) or utils.matchU32(lx, &kw.K_BN_ELSE) or utils.matchU32(lx, &kw.K_PN_ELSE)) {
             return .Else;
-        } else if (utils.matchU32(lx, &kw.K_EN_WHILE) 
-            or utils.matchU32(lx, &kw.K_BN_WHILE) 
-            or utils.matchU32(lx, &kw.K_PN_WHILE)) {
+        } else if (utils.matchU32(lx, &kw.K_EN_WHILE) or utils.matchU32(lx, &kw.K_BN_WHILE) or utils.matchU32(lx, &kw.K_PN_WHILE)) {
             return .PWhile;
-        } else if (utils.matchU32(lx, &kw.K_EN_NIL) 
-            or utils.matchU32(lx, &kw.K_BN_NIL) 
-            or utils.matchU32(lx, &kw.K_PN_NIL)) {
+        } else if (utils.matchU32(lx, &kw.K_EN_NIL) or utils.matchU32(lx, &kw.K_BN_NIL) or utils.matchU32(lx, &kw.K_PN_NIL)) {
             return .Nil;
-        } else if (utils.matchU32(lx, &kw.K_EN_TRUE) 
-            or utils.matchU32(lx, &kw.K_BN_TRUE) 
-            or utils.matchU32(lx, &kw.K_PN_TRUE)) {
+        } else if (utils.matchU32(lx, &kw.K_EN_TRUE) or utils.matchU32(lx, &kw.K_BN_TRUE) or utils.matchU32(lx, &kw.K_PN_TRUE)) {
             return .True;
-        } else if (utils.matchU32(lx, &kw.K_EN_FALSE) 
-            or utils.matchU32(lx, &kw.K_BN_FALSE) 
-            or utils.matchU32(lx, &kw.K_PN_FALSE)) {
+        } else if (utils.matchU32(lx, &kw.K_EN_FALSE) or utils.matchU32(lx, &kw.K_BN_FALSE) or utils.matchU32(lx, &kw.K_PN_FALSE)) {
             return .False;
-        } else if (utils.matchU32(lx, &kw.K_EN_RETURN) 
-            or utils.matchU32(lx, &kw.K_BN_RETURN) 
-            or utils.matchU32(lx, &kw.K_PN_RETURN))  {
+        } else if (utils.matchU32(lx, &kw.K_EN_RETURN) or utils.matchU32(lx, &kw.K_BN_RETURN) or utils.matchU32(lx, &kw.K_PN_RETURN)) {
             return .Return;
-        } else if (utils.matchU32(lx, &kw.K_EN_FUNC) 
-            or utils.matchU32(lx, &kw.K_BN_FUNC) 
-            or utils.matchU32(lx, &kw.K_PN_FUNC)) {
+        } else if (utils.matchU32(lx, &kw.K_EN_FUNC) or utils.matchU32(lx, &kw.K_BN_FUNC) or utils.matchU32(lx, &kw.K_PN_FUNC)) {
             return .Func;
-        } else if (utils.matchU32(lx, &kw.K_EN_IMPORT) 
-            or utils.matchU32(lx, &kw.K_BN_IMPORT) 
-            or utils.matchU32(lx, &kw.K_PN_IMPORT)) {
+        } else if (utils.matchU32(lx, &kw.K_EN_IMPORT) or utils.matchU32(lx, &kw.K_BN_IMPORT) or utils.matchU32(lx, &kw.K_PN_IMPORT)) {
             return .Import;
-        } else if (utils.matchU32(lx, &kw.K_EN_PANIC) 
-            or utils.matchU32(lx, &kw.K_BN_PANIC) 
-            or utils.matchU32(lx, &kw.K_PN_PANIC)) {
+        } else if (utils.matchU32(lx, &kw.K_EN_PANIC) or utils.matchU32(lx, &kw.K_BN_PANIC) or utils.matchU32(lx, &kw.K_PN_PANIC)) {
             return .Panic;
-        } else if (utils.matchU32(lx, &kw.K_EN_DO)
-            or utils.matchU32(lx, &kw.K_BN_DO)
-            or utils.matchU32(lx , &kw.K_PN_DO)){
+        } else if (utils.matchU32(lx, &kw.K_EN_DO) or utils.matchU32(lx, &kw.K_BN_DO) or utils.matchU32(lx, &kw.K_PN_DO)) {
             return .Do;
         }
         return .Identifer;
@@ -484,37 +453,44 @@ pub const Lexer = struct {
             const tok = self.getToken();
             std.debug.print("T['", .{});
             utils.printu32(tok.lexeme);
-            std.debug.print("'|{}|{s}]\n", .{ tok.length, toktypeToString(tok.toktype) });
+            std.debug.print("'|{}|{s}]\n", .{
+                tok.length,
+                toktypeToString(tok.toktype),
+            });
         }
     }
 };
 
-fn tx(t : TokenType) Token{
-        return Token{
-            .lexeme = &[_]u32{'1'},
-            .toktype = t,
-            .length = 0,
-            .colpos = 0,
-            .line = 0,
-        };
+fn tx(t: TokenType) Token {
+    return Token{
+        .lexeme = &[_]u32{'1'},
+        .toktype = t,
+        .length = 0,
+        .colpos = 0,
+        .line = 0,
+    };
 }
 
-
 test "lexer TokenType testing" {
-
     const rawSource = "show(1+2);";
     var a = std.testing.allocator;
-    const source : []u32 = try utils.u8tou32( rawSource , a);
+    const source: []u32 = try utils.u8tou32(rawSource, a);
     var Lx = Lexer.new(source);
-    
-    var toks : []const Token = &[_]Token{ tx(.Identifer) , tx(.Lparen) , tx(.Number) , tx(.Plus) , tx(.Number) , tx(.Rparen) , tx(.Semicolon)  };
-    
+
+    var toks: []const Token = &[_]Token{
+        tx(.Identifer),
+        tx(.Lparen),
+        tx(.Number),
+        tx(.Plus),
+        tx(.Number),
+        tx(.Rparen),
+        tx(.Semicolon),
+    };
+
     for (toks) |t| {
         const tr = Lx.getToken();
         try std.testing.expectEqual(t.toktype, tr.toktype);
     }
 
     a.free(source);
-    
 }
-
