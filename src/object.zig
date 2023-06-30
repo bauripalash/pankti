@@ -20,7 +20,6 @@ pub const PObj = struct {
     objtype: OType,
     next: ?*PObj,
     isMarked: bool,
-    protected : bool,
 
     pub const OType = enum(u8) {
         Ot_String,
@@ -50,7 +49,6 @@ pub const PObj = struct {
             .next = gc.objects,
             .objtype = objtype,
             .isMarked = false,
-            .protected = false,
         };
 
         gc.objects = &ptr.obj;

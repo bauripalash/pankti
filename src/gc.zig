@@ -183,6 +183,9 @@ pub const Gc = struct {
             try utils.hashU32(chars),
             len,
         )) |interned| {
+            dprint('b' , "[GC] Returning interned string : " , .{});
+            interned.print();
+            dprint('n' , "\n", .{});
             return interned;
         }
 
@@ -201,15 +204,33 @@ pub const Gc = struct {
         return try self.newString(chars, len);
     }
 
-    pub fn freeSingleObject(self: *Self, obj: *PObj) void {
-        dprint('p', "[GC] (0x{x}) Free Object: {s} : [ ", .{
-            @intFromPtr(obj),
-            obj.objtype.toString(),
-        });
-        if (slog) {
-            obj.printObj();
+    pub fn printTable(self : *Self , tab : *table.PankTable(), tabname : []const u8) void {
+        _ = self;
+        var ite = tab.iterator();
+
+        std.debug.print("==== {s} ====\n"  ,.{tabname});
+        while (ite.next()) |value| {
+            std.debug.print("[" , .{});
+            value.key_ptr.*.print();
+            std.debug.print("] -> [" , .{});
+            value.value_ptr.*.printVal();
+            std.debug.print("]\n" , . {});
         }
-        dprint('p', " ]\n", .{});
+        std.debug.print("==============\n"  ,.{});
+    }
+
+    pub fn freeSingleObject(self: *Self, obj: *PObj) void {
+        
+        if (flags.DEBUG and (flags.DEBUG_GC or flags.DEBUG_FREE_OBJECTS)) {
+            ansicolors.TermColor('p');
+            std.debug.print("[GC] (0x{x}) Free Object: {s} : [ ", .{
+                @intFromPtr(obj),
+                obj.objtype.toString(),
+            });
+            obj.printObj();
+            std.debug.print(" ]\n", .{});
+            ansicolors.ResetColor();
+        }
         switch (obj.objtype) {
             .Ot_Function => {
                 const fnObj = obj.child(PObj.OFunction);
@@ -285,17 +306,23 @@ pub const Gc = struct {
 
     fn removeTableUnpainted(self : *Self , tab : *table.PankTable()) void {
         _ = self;
-
-        for (tab.keys()) |k| {
+        var i : usize = 0;
+        dprint('b' , "[GC]>>{any}<<\n" , .{tab.keys()});
+        while (i < tab.keys().len) : (i+=1) {
+            const k = tab.keys()[i];
+            dprint('p' , "[GC] Table Mark/Remove " , .{});
+            k.print();
+            dprint('p' , "\n" , .{});
             //std.debug.print("{any} - M{}\n\n" , .{k.chars , k.parent().isMarked});
             if (!k.parent().isMarked) {
                 const r = tab.orderedRemove(k);
-                if (r) {
+                _ = r;
+                //if (r) {
                     dprint('p', "[GC] Removed String : ", .{});
-                    if (slog) {
-                        utils.printu32(k.chars);
-                    }
-                }
+                //    if (slog) {
+                //        utils.printu32(k.chars);
+                //    }
+                //}
             }
         }
 
@@ -374,6 +401,7 @@ pub const Gc = struct {
 
     fn paintObject(self : *Self , obj : *PObj) void {
         switch (obj.getType()) {
+            .Ot_String , .Ot_NativeFunc => {},
             .Ot_Function => {
                 const f = obj.asFunc();
                 if (f.name) |name| {
@@ -399,9 +427,9 @@ pub const Gc = struct {
                     self.markObject(c.upvalues[i].parent());
                 }
             },
-            else => {
-                return;
-            }
+            //else => {
+            //    return;
+            //}
         }
     }
 
@@ -424,9 +452,7 @@ pub const Gc = struct {
                     self.objects = object;
                 }
                 
-                if (!obj.protected) {
                     self.freeSingleObject(ur);
-                }
 
             }
         }

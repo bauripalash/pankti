@@ -1009,8 +1009,9 @@ pub const Compiler = struct {
         try self.emitBt(.Op_Return);
         const f = self.function;
         if (flags.DEBUG and flags.DEBUG_OPCODE) {
+            const gn = self.function.getName() orelse &[_]u32{'_'} ;
             const fname = try utils.u32tou8(
-                self.function.getName(),
+                gn,
                 self.gc.hal(),
             );
             self.curIns().disasm(fname);

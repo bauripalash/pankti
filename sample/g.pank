@@ -1,4 +1,4 @@
-let a = "hello"
+let a = "hello" + "world"
 
 a = "world"
 

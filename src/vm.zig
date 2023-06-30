@@ -345,14 +345,14 @@ pub const Vm = struct {
         const nstr = try self.gc.copyString(name, @intCast(name.len));
 
         try self.stack.push(nstr.parent().asValue());
-        self.debugStack();
+        //self.debugStack();
 
         var nf = try self.gc.newObj(.Ot_NativeFunc, Pobj.ONativeFunction);
 
         nf.init(func);
         try self.stack.push(nf.parent().asValue());
 
-        nf.print();
+        //nf.print();
         try self.gc.globals.put(
             self.gc.hal(),
             self.stack.stack[0].asObj().asString(),
@@ -376,7 +376,7 @@ pub const Vm = struct {
             return true;
         } else if (a.isString() and b.isString()) {
             const bs = b.asObj().asString();
-            const as = b.asObj().asString();
+            const as = a.asObj().asString();
 
             var temp_chars = self.gc.hal().alloc(
                 u32,
@@ -406,6 +406,7 @@ pub const Vm = struct {
                 return false;
             };
             self.gc.hal().free(temp_chars);
+            self.gc.printTable(&self.gc.strings , "STRINGS");
             return true;
         } else {
             return false;
@@ -615,6 +616,10 @@ pub const Vm = struct {
         while (true) {
             if (flags.DEBUG and flags.DEBUG_STACK) {
                 self.debugStack();
+            }
+
+            if (flags.DEBUG and flags.DEBUG_GLOBS) {
+                self.gc.printTable(&self.gc.globals , "GLOBS");
             }
             const op = frame.readByte();
 
@@ -921,7 +926,8 @@ pub const Vm = struct {
                     const name: *Pobj.OString = frame.readStringConst();
 
                     if (self.gc.globals.get(name)) |_| {
-                        self.gc.globals.put(
+                        //_ = self.gc.globals.fetchPut(self.gc.hal(), name, self.peek(0));
+                        _ = self.gc.globals.fetchPut(
                             self.gc.hal(),
                             name,
                             self.peek(0),
