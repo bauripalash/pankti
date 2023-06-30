@@ -21,6 +21,7 @@ const table = @import("table.zig");
 const Allocator = std.mem.Allocator;
 const flags = @import("flags.zig");
 const builtins = @import("builtins.zig");
+const kws = @import("lexer/keywords.zig");
 
 const FRAME_MAX = 64;
 const STACK_MAX = FRAME_MAX * std.math.maxInt(u8);
@@ -178,10 +179,23 @@ pub const Vm = struct {
             &[_]u32{ 'c', 'l', 'o', 'c', 'k' },
             builtins.nClock,
         ) catch return;
+
         self.defineNative(
-            &[_]u32{ 's', 'h', 'o', 'w' },
+            &kws.K_EN_SHOW,
             builtins.nShow,
         ) catch return;
+
+        self.defineNative(
+            &kws.K_BN_SHOW,
+            builtins.nBnShow,
+        ) catch return;
+
+        //self.defineNative(
+        //    &kws.K_PN_SHOW,
+        //    builtins.nShow,
+        //) catch return;
+
+
 
         //self.gc.callstack = &self.callframes;
 

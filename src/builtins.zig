@@ -26,3 +26,12 @@ pub fn nShow(argc: u8, values: []PValue) PValue {
     }
     return PValue.makeNil();
 }
+
+pub fn nBnShow(argc: u8, values: []PValue) PValue { //WILL BE CHANGED?
+    var i: usize = 0;
+    while (i < argc) : (i += 1) {
+        values[i].printVal();
+        std.debug.print("\n", .{}); //Until complete
+    }
+    return PValue.makeNil();
+}
