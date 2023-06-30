@@ -406,7 +406,7 @@ pub const Vm = struct {
                 return false;
             };
             self.gc.hal().free(temp_chars);
-            self.gc.printTable(&self.gc.strings , "STRINGS");
+            //self.gc.printTable(&self.gc.strings , "STRINGS");
             return true;
         } else {
             return false;
@@ -623,7 +623,7 @@ pub const Vm = struct {
                 self.gc.printTable(&self.gc.strings , "STRINGS");
             }
 
-            if (flags.DEBUG and flags.DEBUG_GC) {
+            if (flags.DEBUG and flags.STRESS_GC) {
                 self.gc.collect();
             }
             const op = frame.readByte();

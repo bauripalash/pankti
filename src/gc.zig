@@ -39,6 +39,7 @@ pub const Gc = struct {
     globals: table.PankTable(),
     openUps: ?*PObj.OUpValue,
     alocAmount: usize,
+    nextGc : usize,
     stack: ?*vm.VStack,
     callstack: ?*vm.CallStack,
     compiler: ?*compiler.Compiler,
@@ -57,6 +58,7 @@ pub const Gc = struct {
             .objects = null,
             .openUps = null,
             .alocAmount = 0,
+            .nextGc = 0,
             .stack = null,
             .callstack = null,
             .compiler = null,
@@ -68,14 +70,6 @@ pub const Gc = struct {
 
     pub fn boot(self: *Self) void {
         self.al = self.allocator();
-        //const v = self.copyString(&[_]u32{'_'}, 1) catch return;
-        //v.parent().protected = true;
-        
-        //self.globals.put(self.hal(), 
-        //    v , 
-        //    PValue.makeNil(),) catch return;
-
-        
     }
 
     pub inline fn allocator(self: *Self) Allocator {
@@ -95,8 +89,8 @@ pub const Gc = struct {
         const self: *Gc = @ptrCast(@alignCast(ptr));
         const bts = self.internal_al.rawAlloc(len, ptr_align, ret_addr);
         self.alocAmount += len;
-        self.collect();
-        //std.debug.print("ALOC SIZE ->{d}bytes\n", .{len});
+        self.tryCollect();
+
         return bts;
     }
 
@@ -121,15 +115,13 @@ pub const Gc = struct {
         ret_addr: usize,
     ) bool {
         const self: *Gc = @ptrCast(@alignCast(ptr));
-        if (buf.len > newlen) {
-            self.alocAmount = (self.alocAmount - buf.len) + newlen;
-        } else if (buf.len < newlen) {
-            self.alocAmount = (self.alocAmount - buf.len) + newlen;
-        }
 
+        self.alocAmount += newlen - buf.len;
         const result =  self.internal_al.rawResize(buf, bufalign, newlen, ret_addr,);
 
-        self.collect();
+        if (newlen > buf.len) {
+            self.tryCollect();
+        }
         return result;
     }
 
@@ -190,7 +182,9 @@ pub const Gc = struct {
             len,
         )) |interned| {
             dprint('b' , "[GC] Returning interned string : " , .{});
-            interned.print();
+            if (slog) {
+                interned.print();
+            }
             dprint('n' , "\n", .{});
             return interned;
         }
@@ -290,6 +284,12 @@ pub const Gc = struct {
         //self.getAlc().destroy(self);
     }
 
+    pub fn tryCollect(self : *Self) void{
+       if ((self.alocAmount > self.nextGc) or flags.STRESS_GC) {
+            self.collect();
+       } 
+    }
+
     pub fn collect(self: *Self) void {
         //self.grayStack.deinit(self.hal());
         
@@ -314,14 +314,10 @@ pub const Gc = struct {
 
     fn removeTableUnpainted(self : *Self , tab : *table.PankTable()) void {
         _ = self;
-
         var i : usize = 0;
-
         while (i < tab.count()) : (i+=1) {
             const key = tab.getKeyPtr(tab.keys()[i]);
             if (key) |k| {
-
-
                 if (!k.*.parent().isMarked) {
                     dprint('p', "[GC] Removing String " , .{});
                     if (slog) {
@@ -332,9 +328,6 @@ pub const Gc = struct {
 
                 }
             }
-            
-
-            
         }
  
 
@@ -346,9 +339,6 @@ pub const Gc = struct {
             for (0..stack.presentcount()) |i| {
                 self.markValue(stack.stack[i]);
             }
-
-
-            //dprint('r', "      [GC] Marked ({}) Values \n", .{i});
             dprint('r', "[GC] Finished Marking Stack \n", .{});
         }
 
