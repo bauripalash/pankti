@@ -620,6 +620,11 @@ pub const Vm = struct {
 
             if (flags.DEBUG and flags.DEBUG_GLOBS) {
                 self.gc.printTable(&self.gc.globals , "GLOBS");
+                self.gc.printTable(&self.gc.strings , "STRINGS");
+            }
+
+            if (flags.DEBUG and flags.DEBUG_GC) {
+                self.gc.collect();
             }
             const op = frame.readByte();
 

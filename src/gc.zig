@@ -109,6 +109,8 @@ pub const Gc = struct {
         const self: *Gc = @ptrCast(@alignCast(ptr));
         self.alocAmount -= buf.len;
         self.internal_al.rawFree(buf, bufalign, ret_addr);
+        
+        //self.collect();
     }
 
     pub fn resizeImpl(
@@ -124,7 +126,11 @@ pub const Gc = struct {
         } else if (buf.len < newlen) {
             self.alocAmount = (self.alocAmount - buf.len) + newlen;
         }
-        return self.internal_al.rawResize(buf, bufalign, newlen, ret_addr);
+
+        const result =  self.internal_al.rawResize(buf, bufalign, newlen, ret_addr,);
+
+        self.collect();
+        return result;
     }
 
     pub fn getIntAlc(self: *Self) Allocator {
@@ -168,11 +174,11 @@ pub const Gc = struct {
         var ptr = try self.newObj(.Ot_String, PObj.OString);
         ptr.chars = chars;
         ptr.len = len;
-        //ptr.obj.isMarked = true;
+        ptr.obj.isMarked = true;
         ptr.hash = try utils.hashU32(chars);
 
-        try self.strings.put(self.hal(), ptr, PValue.makeNil());
-        //ptr.obj.isMarked = false;
+        try self.strings.put(self.getAlc(), ptr, PValue.makeNil());
+        ptr.obj.isMarked = false;
 
         return ptr;
     }
@@ -278,13 +284,15 @@ pub const Gc = struct {
             //std.debug.print("TOTAL BYTES ALLOCATED-> {d}bytes\n" , .{self.alocAmount});
         }
         self.freeObjects();
-        self.strings.deinit(self.hal());
+        self.strings.deinit(self.getAlc());
         self.globals.deinit(self.hal());
         self.grayStack.deinit(self.hal());
         //self.getAlc().destroy(self);
     }
 
     pub fn collect(self: *Self) void {
+        //self.grayStack.deinit(self.hal());
+        
 
         dprint('r' , "[GC] Marking Roots\n" , .{});
         self.markRoots();
@@ -306,25 +314,29 @@ pub const Gc = struct {
 
     fn removeTableUnpainted(self : *Self , tab : *table.PankTable()) void {
         _ = self;
+
         var i : usize = 0;
-        dprint('b' , "[GC]>>{any}<<\n" , .{tab.keys()});
-        while (i < tab.keys().len) : (i+=1) {
-            const k = tab.keys()[i];
-            dprint('p' , "[GC] Table Mark/Remove " , .{});
-            k.print();
-            dprint('p' , "\n" , .{});
-            //std.debug.print("{any} - M{}\n\n" , .{k.chars , k.parent().isMarked});
-            if (!k.parent().isMarked) {
-                const r = tab.orderedRemove(k);
-                _ = r;
-                //if (r) {
-                    dprint('p', "[GC] Removed String : ", .{});
-                //    if (slog) {
-                //        utils.printu32(k.chars);
-                //    }
-                //}
+
+        while (i < tab.count()) : (i+=1) {
+            const key = tab.getKeyPtr(tab.keys()[i]);
+            if (key) |k| {
+
+
+                if (!k.*.parent().isMarked) {
+                    dprint('p', "[GC] Removing String " , .{});
+                    if (slog) {
+                        k.*.print();
+                    }
+                    dprint('p' , "\n" , .{});
+                    _ = tab.orderedRemove(k.*);
+
+                }
             }
+            
+
+            
         }
+ 
 
     }
 
@@ -393,9 +405,9 @@ pub const Gc = struct {
     }
 
     fn traceRefs(self : *Self) void {
-        var i : usize = 0;
-        while (i < self.grayStack.items.len) : (i+=1) {
-            self.paintObject(self.grayStack.items[i]);
+        while (self.grayStack.items.len > 0) {
+            const obj = self.grayStack.pop();
+            self.paintObject(obj);
         }
     }
 
