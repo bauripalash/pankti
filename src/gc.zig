@@ -68,6 +68,13 @@ pub const Gc = struct {
 
     pub fn boot(self: *Self) void {
         self.al = self.allocator();
+        //const v = self.copyString(&[_]u32{'_'}, 1) catch return;
+        //v.parent().protected = true;
+        
+        //self.globals.put(self.hal(), 
+        //    v , 
+        //    PValue.makeNil(),) catch return;
+
         
     }
 
@@ -161,11 +168,11 @@ pub const Gc = struct {
         var ptr = try self.newObj(.Ot_String, PObj.OString);
         ptr.chars = chars;
         ptr.len = len;
-        ptr.obj.isMarked = true;
+        //ptr.obj.isMarked = true;
         ptr.hash = try utils.hashU32(chars);
 
         try self.strings.put(self.hal(), ptr, PValue.makeNil());
-        ptr.obj.isMarked = false;
+        //ptr.obj.isMarked = false;
 
         return ptr;
     }
@@ -179,7 +186,7 @@ pub const Gc = struct {
             return interned;
         }
 
-        const mem_chars = try self.al.alloc(u32, len);
+        const mem_chars = try self.getAlc().alloc(u32, len);
         @memcpy(mem_chars, chars);
 
         return self.newString(mem_chars, len);
@@ -206,6 +213,7 @@ pub const Gc = struct {
         switch (obj.objtype) {
             .Ot_Function => {
                 const fnObj = obj.child(PObj.OFunction);
+                //self.getAlc().destroy(obj);
                 fnObj.free(self);
             },
             .Ot_String => {
@@ -256,22 +264,52 @@ pub const Gc = struct {
     }
 
     pub fn collect(self: *Self) void {
+
+        dprint('r' , "[GC] Marking Roots\n" , .{});
         self.markRoots();
+
+        dprint('r' , "[GC] Finished Marking Roots\n" , .{});
         dprint('r' , "[GC] Tracing Refs\n" , .{});
         self.traceRefs();
         dprint('r' , "[GC] Finished Tracing Refs\n" , .{});
+
+        
+        dprint('r' , "[GC] Cleaning Strings\n" , .{});
+            self.removeTableUnpainted(&self.strings);
+        dprint('r' , "[GC] Finished Cleaning Strings\n" , .{});
+        
+        dprint('r' , "[GC] Sweeping\n" , .{});
+        self.sweep();
+        dprint('r' , "[GC] Finished Sweeping\n" , .{});
+    }
+
+    fn removeTableUnpainted(self : *Self , tab : *table.PankTable()) void {
+        _ = self;
+
+        for (tab.keys()) |k| {
+            //std.debug.print("{any} - M{}\n\n" , .{k.chars , k.parent().isMarked});
+            if (!k.parent().isMarked) {
+                const r = tab.orderedRemove(k);
+                if (r) {
+                    dprint('p', "[GC] Removed String : ", .{});
+                    if (slog) {
+                        utils.printu32(k.chars);
+                    }
+                }
+            }
+        }
+
     }
 
     fn markRoots(self: *Self) void {
         if (self.stack) |stack| {
             dprint('r', "[GC] Marking Stack \n", .{});
-            var i: usize = 0;
-            while (i < stack.presentcount()) : (i += 1) {
-                const val = stack.stack[i];
-                _ = val;
+            for (0..stack.presentcount()) |i| {
+                self.markValue(stack.stack[i]);
             }
 
-            dprint('r', "      [GC] Marked ({}) Values \n", .{i});
+
+            //dprint('r', "      [GC] Marked ({}) Values \n", .{i});
             dprint('r', "[GC] Finished Marking Stack \n", .{});
         }
 
@@ -290,9 +328,9 @@ pub const Gc = struct {
         dprint('r', "      [GC] Marked ({}) Open Upvalues \n", .{ocount});
         dprint('r', "[GC] Finished Marking Open Upvalues\n", .{});
 
-        //dprint('r' , "[GC] Marking Compiler Roots \n" , .{});
-        //self.markCompilerRoots();
-        //dprint('r' , "[GC] Finished Marking Compiler Roots \n" , .{});
+        dprint('r' , "[GC] Marking Compiler Roots \n" , .{});
+        self.markCompilerRoots();
+        dprint('r' , "[GC] Finished Marking Compiler Roots \n" , .{});
 
     }
 
@@ -314,6 +352,7 @@ pub const Gc = struct {
 
     fn markObject(self: *Self, obj: ?*PObj) void {
         if (obj) |o| {
+            if (o.isMarked) { return; }
             dprint('g', "[GC] Marking Object : {s} : [ ", .{
                 o.getType().toString(),
             });
@@ -346,8 +385,49 @@ pub const Gc = struct {
                     self.markValue(con);
                 }
             },
+
+            .Ot_UpValue => {
+                const o = obj.asUpvalue();
+                self.markValue(o.closed);
+            },
+
+            .Ot_Closure => {
+                const c = obj.asClosure();
+                self.markObject(c.function.parent());
+                var i : usize = 0;
+                while (i < c.upc) : (i+=1) {
+                    self.markObject(c.upvalues[i].parent());
+                }
+            },
             else => {
                 return;
+            }
+        }
+    }
+
+    fn sweep(self : *Self) void {
+        var previous : ?*PObj = null;
+        var object = self.objects;
+
+        while (object) |obj| {
+            if (obj.isMarked) {
+                obj.isMarked = false;
+                previous = obj;
+                object = obj.next;
+            } else {
+                const ur = obj;
+                object = obj.next;
+
+                if (previous) |prev| {
+                    prev.next = object;
+                } else {
+                    self.objects = object;
+                }
+                
+                if (!obj.protected) {
+                    self.freeSingleObject(ur);
+                }
+
             }
         }
     }

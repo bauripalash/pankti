@@ -345,17 +345,21 @@ pub const Vm = struct {
         const nstr = try self.gc.copyString(name, @intCast(name.len));
 
         try self.stack.push(nstr.parent().asValue());
+        self.debugStack();
 
         var nf = try self.gc.newObj(.Ot_NativeFunc, Pobj.ONativeFunction);
 
-        try self.stack.push(nf.parent().asValue());
         nf.init(func);
+        try self.stack.push(nf.parent().asValue());
 
+        nf.print();
         try self.gc.globals.put(
             self.gc.hal(),
             self.stack.stack[0].asObj().asString(),
             self.stack.stack[1],
         );
+
+        
         _ = try self.stack.pop();
         _ = try self.stack.pop();
     }

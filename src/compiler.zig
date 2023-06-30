@@ -178,7 +178,7 @@ pub const Compiler = struct {
             .gc = gc,
             .enclosing = enclosing,
             .scopeDepth = 0,
-            .function = undefined,
+            .function = try gc.newObj(.Ot_Function, PObj.OFunction),
             .ftype = ftype,
             .localCount = 0,
             .upvalues = undefined,
@@ -191,7 +191,7 @@ pub const Compiler = struct {
             }} ** std.math.maxInt(u8),
         };
 
-        gc.compiler = c;
+        //gc.compiler = c;
 
 
         var local = &c.locals[0];
@@ -201,11 +201,16 @@ pub const Compiler = struct {
         local.name.length = 0;
         local.isCaptured = false;
 
-        var function: *PObj.OFunction = try gc.newObj(.Ot_Function, PObj.OFunction);
+        if (gc.compiler != null) {
+            gc.compiler = c;
+            //compiler.enclosing = c;
+        }
+
+        //var function: *PObj.OFunction = 
         //function.parent().isMarked = true;
 
-        function.init(gc);
-        c.function = function;
+        c.function.init(c.gc);
+        //c.function = function;
         //function.parent().isMarked = false;
         if (ftype != .Ft_SCRIPT) {
             c.function.name = try gc.copyString(
@@ -214,8 +219,8 @@ pub const Compiler = struct {
             );
         }
 
-        gc.compiler = c;
-        gc.markCompilerRoots();
+        //gc.compiler = c;
+        //gc.markCompilerRoots();
 
         return c;
     }
@@ -229,7 +234,7 @@ pub const Compiler = struct {
             .scopeDepth = 0,
             .localCount = 0,
             .enclosing = null,
-            .function = undefined,
+            .function = try gc.newObj(.Ot_Function, PObj.OFunction),
             .upvalues = undefined,
             .ftype = ftype,
             .locals = [_]Local{Local{
@@ -239,15 +244,18 @@ pub const Compiler = struct {
             }} ** std.math.maxInt(u8),
         };
 
-        var function: *PObj.OFunction = try gc.newObj(
-            .Ot_Function,
-            PObj.OFunction,
-        );
-        function.init(gc);
+        //var function: *PObj.OFunction = try gc.newObj(
+        //    .Ot_Function,
+        //    PObj.OFunction,
+        //);
+        //function.init(gc);
 
-        c.*.function = function;
-        c.*.gc.compiler = c;
-        gc.markCompilerRoots();
+
+        c.*.function.init(c.gc);
+        //c.*.gc.compiler = c;
+        c.*.locals[c.localCount].depth = 0;
+        c.*.localCount += 1;
+        //gc.markCompilerRoots();
         //var l = c.*.locals[0];
         //_ = l;
 
@@ -259,8 +267,7 @@ pub const Compiler = struct {
         //local.captured = false;
         //
 
-        c.*.locals[c.localCount].depth = 0;
-        c.*.localCount += 1;
+        
 
         return c;
     }
@@ -507,23 +514,20 @@ pub const Compiler = struct {
 
         var i: usize = 0;
 
-        //std.debug.print("upc -> {d}\n" , .{f.upvCount});
         while (i < f.upvCount) : (i += 1) {
             const upv = &fcomp.upvalues[i];
-            //std.debug.print("u{d} -> {any}\n" , .{i , upv});
             if (upv.isLocal) {
                 try self.emitBtRaw(1);
             } else {
                 try self.emitBtRaw(0);
             }
-            //std.debug.print("-->UPVINDEX{d}\n" , .{upv.index});
 
             try self.emitBtRaw(upv.index);
         }
 
         self.gc.getAlc().destroy(fcomp);
 
-        self.gc.compiler = self;
+        //self.gc.compiler = self;
     }
 
     fn rVariable(self: *Self, canAssign: bool) !void {
@@ -1011,6 +1015,10 @@ pub const Compiler = struct {
             );
             self.curIns().disasm(fname);
             self.gc.hal().free(fname);
+        }
+
+        if (self.enclosing != null) {
+            self.gc.compiler = self.enclosing.?;
         }
 
         return f;

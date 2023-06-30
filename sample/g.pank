@@ -2,12 +2,5 @@ let a = "hello"
 
 a = "world"
 
-kaj name(msg)
-	kaj d(a)
-		show(a)
-	sesh
-	d(msg)
-sesh
-
-name(a)
+show(a)
 
