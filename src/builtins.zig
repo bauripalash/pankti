@@ -9,16 +9,19 @@
 
 const std = @import("std");
 const value = @import("value.zig");
+const Gc = @import("gc.zig").Gc;
 const PValue = value.PValue;
 
-pub fn nClock(argc: u8, values: []PValue) PValue {
+pub fn nClock(gc : *Gc , argc: u8, values: []PValue) PValue {
+    _ = gc;
     _ = values;
     _ = argc;
     const s = std.time.milliTimestamp();
     return PValue.makeNumber(@floatFromInt(s));
 }
 
-pub fn nShow(argc: u8, values: []PValue) PValue {
+pub fn nShow(gc : *Gc , argc: u8, values: []PValue) PValue {
+    _ = gc;
     var i: usize = 0;
     while (i < argc) : (i += 1) {
         values[i].printVal();
@@ -27,7 +30,8 @@ pub fn nShow(argc: u8, values: []PValue) PValue {
     return PValue.makeNil();
 }
 
-pub fn nBnShow(argc: u8, values: []PValue) PValue { //WILL BE CHANGED?
+pub fn nBnShow(gc : *Gc , argc: u8, values: []PValue) PValue {
+    _ = gc; //WILL BE CHANGED?
     var i: usize = 0;
     while (i < argc) : (i += 1) {
         values[i].printVal();

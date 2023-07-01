@@ -81,6 +81,8 @@ pub const Compiler = struct {
         .Rbrace = ParseRule{},
         .LsBracket = ParseRule{
             .prefix = Self.rArray,
+            .infix = Self.rIndexExpr,
+            .prec = .P_Call,
         },
         .RsBracket = ParseRule{},
         .Colon = ParseRule{},
@@ -613,6 +615,17 @@ pub const Compiler = struct {
         try self.emitBtRaw(countU8[0]);
         try self.emitBtRaw(countU8[1]);
         
+    }
+
+    fn rIndexExpr(self : *Self , canAssign : bool) !void{
+
+        try self.parseExpression();
+        self.eat(.RsBracket, "Expected ']' after index expression");
+        if (canAssign and self.match(.Eq)) {
+            try self.emitBt(.Op_SubAssign);
+        }else {
+            try self.emitBt(.Op_Index);
+        }
     }
 
     fn rGroup(self: *Self, _: bool) !void {

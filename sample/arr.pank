@@ -1,3 +1,2 @@
-let a = ["1","2","3"]
-a = ["4"]
-show(a)
+let a = ["1","2","hello world"]
+show(a[2][6])

@@ -86,6 +86,10 @@ pub const PObj = struct {
         return self.is(.Ot_String);
     }
 
+    pub fn isArray(self : *PObj) bool {
+        return self.is(.Ot_Array);
+    }
+
     pub fn asString(self: *PObj) *OString {
         return @fieldParentPtr(OString, "obj", self);
     }
@@ -201,10 +205,12 @@ pub const PObj = struct {
 
         pub fn addItem(self : *OArray , gc : *Gc ,  item : PValue) bool{
             self.values.append(gc.hal() , item) catch return false;
+            self.count += 1;
             return true;
         }
 
         pub fn popItem(self : *OArray) PValue {
+            self.count -= 1;
             return self.values.pop();
         }
 
@@ -298,7 +304,7 @@ pub const PObj = struct {
         obj: PObj,
         func: NativeFn,
 
-        pub const NativeFn = *const fn (u8, []PValue) PValue;
+        pub const NativeFn = *const fn (gc : *Gc , u8, []PValue) PValue;
 
         pub fn init(self: *ONativeFunction, func: NativeFn) void {
             self.func = func;

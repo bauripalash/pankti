@@ -564,6 +564,7 @@ pub const Vm = struct {
                         calle.asObj().asNativeFun();
 
                     const result = f.func(
+                        self.gc,
                         argc,
                         (self.stack.top - argc)[0..argc],
                     );
@@ -643,6 +644,98 @@ pub const Vm = struct {
             const op = frame.readByte();
 
             switch (op) {
+                .Op_Index => {
+                    var rawIndex = self.peek(0);
+                    var rawObj = self.peek(1);
+                    
+                    if (!rawIndex.isNumber()) {
+                        self.throwRuntimeError("Index must be number");
+                        return .RuntimeError;
+                    }
+                
+                    const rawIndexNum = rawIndex.asNumber();
+
+                    if (rawIndexNum < 0 or @ceil(rawIndexNum) != rawIndexNum) {
+                        self.throwRuntimeError("Index must non negetive integer");
+                        return .RuntimeError;
+                    }
+
+                    const index : usize = @intFromFloat(rawIndexNum);
+                    
+
+                    if (rawObj.isObj() and 
+                        (rawObj.asObj().isString() or 
+                         rawObj.asObj().isArray())) {
+                        
+                        if (rawObj.asObj().isArray()) {
+                            const arr = rawObj.asObj().asArray();
+
+                            if (index >= arr.count) {
+                                self.throwRuntimeError("Index out of range");
+                                return .RuntimeError;
+                            }
+
+                            _ = self.stack.pop() catch {
+                                    self.throwRuntimeError("failed to pop");
+                                    return .RuntimeError;
+                            };
+
+                            _ = self.stack.pop() catch {
+                                    self.throwRuntimeError("failed to pop");
+                                    return .RuntimeError;
+                            };
+
+
+                            self.stack.push(arr.values.items[index]) catch {
+                                self.throwRuntimeError(
+                                    "Failed to push value to stack",
+                                    );
+                                return .RuntimeError;
+                            };
+                            
+
+                        } else if (rawObj.asObj().isString()){
+                            const str = rawObj.asObj().asString();
+
+                            if (index >= str.len) {
+                                self.throwRuntimeError("Index out of range");
+                                return .RuntimeError;
+                            }
+
+                            _ = self.stack.pop() catch {
+                                    self.throwRuntimeError("failed to pop");
+                                    return .RuntimeError;
+                            };
+
+                            _ = self.stack.pop() catch {
+                                    self.throwRuntimeError("failed to pop");
+                                    return .RuntimeError;
+                            };
+
+                            const charString = self.gc.copyString(
+                                &[_]u32{str.chars[index]},
+                                1,
+                                ) catch {
+                                self.throwRuntimeError("failed to create a new string for string indexing",);
+                                return .RuntimeError;
+
+                                };
+                            self.stack.push(PValue.makeObj(charString.parent())) catch {
+                                self.throwRuntimeError(
+                                    "Failed to push value to stack",
+                                    );
+                                return .RuntimeError;
+                            };
+
+                        }
+
+                    } else {
+                        self.throwRuntimeError(
+                            "Indexing only works on arrays and strings",
+                            );
+                        return .RuntimeError;
+                    }
+                },
                 .Op_Array => {
                     const itemCount = frame.readU16();
                     var i = itemCount;
