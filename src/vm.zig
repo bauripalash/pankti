@@ -643,6 +643,49 @@ pub const Vm = struct {
             const op = frame.readByte();
 
             switch (op) {
+                .Op_Array => {
+                    const itemCount = frame.readU16();
+                    var i = itemCount;
+                    
+                    const arr = self.gc.newObj(.Ot_Array, Pobj.OArray) catch {
+                            self.throwRuntimeError("Failed to create array");
+                            return .RuntimeError;
+                    };
+
+
+                    self.stack.push(PValue.makeObj(arr.parent())) catch {
+                        self.throwRuntimeError("Failed to push");
+                        return .RuntimeError;
+                    };
+
+                    arr.init();
+
+                    _ = self.stack.pop() catch { 
+                        self.throwRuntimeError("Failed to pop array");
+                        return .RuntimeError ;
+                    };
+                    while (i > 0) : (i -= 1) {
+                        if (!arr.addItem(self.gc, 
+                            self.stack.pop() catch { 
+                                self.throwRuntimeError("Failed to pop array item");
+                                return .RuntimeError;
+                            }
+                        )) {
+                            self.throwRuntimeError(
+                                    "Failed to add item to array",
+                                );
+                            return .RuntimeError;
+                        }
+                    }
+
+                    arr.orderItem(self.gc);
+                    self.stack.push(PValue.makeObj(arr.parent())) catch {
+                        self.throwRuntimeError("Failed to add array to stack");
+                        return .RuntimeError;
+                    };
+                    
+                    //std.debug.print("{d}\n" , .{itemCount});
+                },
                 .Op_ClsUp => {
                     self.closeUpv(self.stack.top - 1);
                     _ = self.stack.pop() catch {

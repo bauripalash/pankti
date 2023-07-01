@@ -15,6 +15,7 @@ const utils = @import("utils.zig");
 const _vm = @import("vm.zig");
 const Vm = _vm.Vm;
 const IntrpResult = _vm.IntrpResult;
+const flags = @import("flags.zig");
 
 const openfile = @import("openfile.zig").openfile;
 
@@ -37,12 +38,16 @@ fn _run(rawSource : []const u8 , gc : *Gc) bool {
     
     myVm.freeVm(gc.hal());
     gc.hal().free(source);
-
+    if (flags.DEBUG) {
+        std.debug.print("VM RESULT -> {s}\n" , .{result.toString()});
+    }
     switch (result) {
         .Ok => return true,
         .RuntimeError => return false,
         .CompileError => return false,
     }
+    
+    
 }
 
 pub fn runCode16(rawSource : []const u16) bool {

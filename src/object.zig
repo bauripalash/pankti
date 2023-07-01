@@ -27,6 +27,7 @@ pub const PObj = struct {
         Ot_NativeFunc,
         Ot_Closure,
         Ot_UpValue,
+        Ot_Array,
 
         pub fn toString(self: OType) []const u8 {
             switch (self) {
@@ -39,6 +40,7 @@ pub const PObj = struct {
                 .Ot_NativeFunc => return "OBJ_NATIVE",
                 .Ot_Closure => return "OBJ_CLOSURE",
                 .Ot_UpValue => return "OBJ_UPVALUE",
+                .Ot_Array => return "OBJ_ARRAY",
             }
         }
     };
@@ -104,6 +106,10 @@ pub const PObj = struct {
         return self.child(PObj.OUpValue);
     }
 
+    pub fn asArray(self : *PObj) *OArray {
+        return self.child(PObj.OArray);
+    }
+
     pub fn free(self: *PObj, vm: *Vm) void {
         switch (self.objtype) {
             .Ot_String => self.asString().free(vm),
@@ -121,11 +127,15 @@ pub const PObj = struct {
             .Ot_NativeFunc => self.asNativeFun().print(),
             .Ot_Closure => self.asClosure().print(),
             .Ot_UpValue => self.asUpvalue().print(),
+            .Ot_Array => self.asArray().print(),
         }
     }
 
     pub fn toString(self: *PObj, al: std.mem.Allocator) ![]u8 {
         switch (self.getType()) {
+            .Ot_Array => {
+                return try utils.u32tou8(&[_]u32{'[' , 'a' , ']' });
+            },
             .Ot_String => {
                 return try utils.u32tou8(self.asString().chars, al);
             },
@@ -168,6 +178,60 @@ pub const PObj = struct {
 
         return try utils.u32tou8([_]u32{'_'}, al);
     }
+
+    pub const OArray = struct {
+        obj : PObj,
+        values : std.ArrayListUnmanaged(PValue),
+        count : usize,
+
+        pub fn init(self : *OArray) void{
+            self.count = 0;
+            self.values = std.ArrayListUnmanaged(PValue){};
+        }
+
+        pub fn print(self : *OArray) void {
+            std.debug.print("[ " , .{});
+            for (self.values.items) |val| {
+                val.printVal();
+                std.debug.print(", " , .{});
+            }
+
+            std.debug.print("]" , .{});
+        }
+
+        pub fn addItem(self : *OArray , gc : *Gc ,  item : PValue) bool{
+            self.values.append(gc.hal() , item) catch return false;
+            return true;
+        }
+
+        pub fn popItem(self : *OArray) PValue {
+            return self.values.pop();
+        }
+
+        pub fn orderItem(self : *OArray , gc : *Gc) void {
+           var tempItems = std.ArrayListUnmanaged(PValue){};
+            
+           var i : usize = self.values.items.len;
+
+           while (i > 0) : (i-=1) {
+                tempItems.append(gc.hal(), self.values.pop()) catch continue;
+           }
+
+           self.values.deinit(gc.hal());
+           self.values = tempItems;
+           
+        }
+
+        pub fn free(self : *OArray , gc : *Gc) void {
+            self.values.deinit(gc.hal());
+            self.count = 0;
+            gc.getAlc().destroy(self);
+        }
+
+        pub fn parent(self : *OArray) *PObj {
+            return @ptrCast(self);
+        }
+    };
 
     pub const OUpValue = struct {
         obj: PObj,

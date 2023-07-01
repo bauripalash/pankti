@@ -79,7 +79,9 @@ pub const Compiler = struct {
         .Rparen = ParseRule{},
         .Lbrace = ParseRule{},
         .Rbrace = ParseRule{},
-        .LsBracket = ParseRule{},
+        .LsBracket = ParseRule{
+            .prefix = Self.rArray,
+        },
         .RsBracket = ParseRule{},
         .Colon = ParseRule{},
         .End = ParseRule{},
@@ -582,6 +584,35 @@ pub const Compiler = struct {
         const rawNum: f64 = try std.fmt.parseFloat(f64, stru8);
         try self.emitConst(PValue.makeNumber(rawNum));
         self.gc.hal().free(stru8);
+    }
+
+    fn rArray(self : *Self , _ : bool) !void {
+
+        var count : u16 = 0;
+
+        if (!self.check(.RsBracket)) {
+            while (true) {
+                try self.parseExpression();
+
+                if (count == std.math.maxInt(u16)) {
+                    self.parser.err("Can't have too many items");
+                }
+
+                count += 1;
+
+                if (!self.match(.Comma)) {
+                    break;
+                }
+            }
+        }
+
+        self.eat(.RsBracket, "Expected ']' after array expression");
+        const countU8 = utils.u16tou8(count);
+
+        try self.emitBt(.Op_Array);
+        try self.emitBtRaw(countU8[0]);
+        try self.emitBtRaw(countU8[1]);
+        
     }
 
     fn rGroup(self: *Self, _: bool) !void {

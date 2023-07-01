@@ -255,6 +255,12 @@ pub const Gc = struct {
             .Ot_UpValue => {
                 obj.asUpvalue().free(self);
             },
+
+            .Ot_Array => {
+                obj.asArray().free(self);
+            },
+
+
         }
 
         return;
@@ -413,6 +419,15 @@ pub const Gc = struct {
 
                 for (f.ins.cons.items) |con| {
                     self.markValue(con);
+                }
+            },
+
+            .Ot_Array => {
+                const arr = obj.asArray();
+                
+                var i : usize = 0;
+                while (i < arr.values.items.len) : ( i += 1 ) {
+                    self.markValue(arr.values.items[i]);
                 }
             },
 
