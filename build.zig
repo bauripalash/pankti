@@ -22,6 +22,7 @@ pub fn build(b: *std.Build) void {
 
     if (target.getOs().tag == .windows) {
         exe.linkLibC();
+        exe.addObjectFile("winres/pankti.res.obj");
     }
     const apilib = b.addStaticLibrary(.{
         .name = "neopankapi",

@@ -14,7 +14,7 @@ const builtin = @import("builtin");
 
 pub fn windowsOsSetup() void {
     if (builtin.target.os.tag == .windows) {
-        std.debug.print("isWindows\n", .{});
+        //std.debug.print("isWindows\n", .{});
         const win = @cImport({
             @cInclude("windows.h");
         });

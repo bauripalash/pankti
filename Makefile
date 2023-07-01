@@ -19,6 +19,9 @@ buildwasm:
 release:
 	$(ZIG) build -Doptimize=ReleaseSafe
 
+buildwin:
+	$(ZIG) build -Dtarget=x86_64-windows -Doptimize=ReleaseSafe
+
 fast:
 	$(ZIG) build -Doptimize=ReleaseFast
 
@@ -27,6 +30,9 @@ debug: $(TARGET)
 
 test:
 	@$(ZIG) test src/main.zig
+
+resobj:
+	llvm-rc winres/pankti.rc /FO winres/pankti.res.obj
 
 perf:
 	@echo "[+] Running Perf"
