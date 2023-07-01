@@ -10,8 +10,32 @@
 const std = @import("std");
 const flags = @import("flags.zig");
 const run = @import("run.zig");
+const builtin = @import("builtin");
+
+pub fn windowsOsSetup() void {
+    if (builtin.target.os.tag == .windows) {
+        std.debug.print("isWindows\n", .{});
+        const win = @cImport({
+            @cInclude("windows.h");
+        });
+
+        const ioh = @cImport({
+            @cInclude("io.h");
+        });
+
+        const locale = @cImport({
+            @cInclude("locale.h");
+        });
+
+        _ = locale.setlocale(@as(c_int, 2), "bn_IN.utf8");
+        _ = win.SetConsoleOutputCP(@as(c_uint, @bitCast(@as(c_int, 65001))));
+        _ = ioh._setmode(@as(c_int, 1), @as(c_int, 131072));
+        //std.debug.print("{any}\n", .{x});
+    }
+}
 
 pub fn main() !void {
+    windowsOsSetup();
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const ga = gpa.allocator();
 
@@ -29,8 +53,6 @@ pub fn main() !void {
     }
     std.process.argsFree(ga, args);
 
-
-
     defer {
         if (fileToRun) |f| {
             ga.free(f);
@@ -39,11 +61,10 @@ pub fn main() !void {
     }
 
     if (fileToRun) |f| {
-        const isOk =  run.runFile(f);
+        const isOk = run.runFile(f);
         if (!isOk) {
             std.process.exit(1);
         }
-        
     }
 }
 

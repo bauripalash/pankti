@@ -20,6 +20,9 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    if (target.getOs().tag == .windows) {
+        exe.linkLibC();
+    }
     const apilib = b.addStaticLibrary(.{
         .name = "neopankapi",
         .root_source_file = .{ .path = "src/api.zig" },
@@ -28,7 +31,7 @@ pub fn build(b: *std.Build) void {
     });
 
     b.installArtifact(exe);
-    
+
     const buildApi = b.addInstallArtifact(apilib);
     buildApi.step.dependOn(b.getInstallStep());
 
