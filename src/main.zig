@@ -8,18 +8,8 @@
 // SPDX-License-Identifier: MPL-2.0
 
 const std = @import("std");
-const openfile = @import("openfile.zig").openfile;
-const lexer = @import("lexer/lexer.zig");
-const print = std.debug.print;
-const utils = @import("utils.zig");
-const ins = @import("instruction.zig");
-const v = @import("vm.zig");
-const g = @import("gc.zig");
-const Gc = g.Gc;
-const Vm = v.Vm;
-const IntrpResult = v.IntrpResult;
-const PValue = @import("value.zig").PValue;
 const flags = @import("flags.zig");
+const run = @import("run.zig");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -35,46 +25,25 @@ pub fn main() !void {
     } else if (args.len == 1) {
         std.debug.print("neopank 0.4.0\n", .{});
         std.debug.print("Usage: neopank [FILE]\n", .{});
+        std.process.exit(0);
     }
     std.process.argsFree(ga, args);
 
-    var gcGpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const GcGa = gcGpa.allocator();
+
 
     defer {
         if (fileToRun) |f| {
             ga.free(f);
         }
-
-        if (flags.DEBUG_GC) {
-            std.debug.print("==== GC Deinit ====\n", .{});
-
-            std.debug.print("[GCA] Leaks -> {}\n", .{gcGpa.detectLeaks()});
-            std.debug.print("[GPA] Leaks -> {}\n", .{gpa.detectLeaks()});
-
-            std.debug.print("===================\n", .{});
-        }
-
         _ = gpa.deinit();
-        _ = gcGpa.deinit();
     }
 
     if (fileToRun) |f| {
-        var gc = try Gc.new(GcGa, ga);
-        gc.boot();
-
-        const text = try openfile(f, ga);
-        const u = try utils.u8tou32(text, ga);
-        var myv = try Vm.newVm(ga);
-        myv.bootVm(gc);
-        const result = myv.interpret(u);
-        if (flags.DEBUG and flags.DEBUG_VM_RESULT) {
-            std.debug.print("VM Result : {s}\n", .{result.toString()});
+        const isOk =  run.runFile(f);
+        if (!isOk) {
+            std.process.exit(1);
         }
-        myv.freeVm(ga);
-        gc.freeGc(GcGa);
-        ga.free(u);
-        ga.free(text);
+        
     }
 }
 

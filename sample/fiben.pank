@@ -6,6 +6,6 @@ kaj fib(n)
 	return fib(n-2) + fib(n-1)
 end
 
-#let start = clock()
+let start = clock()
 show(fib(20))
-#show((clock() - start) / 1000)
+show((clock() - start) / 1000)

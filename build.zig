@@ -20,7 +20,17 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const apilib = b.addStaticLibrary(.{
+        .name = "neopankapi",
+        .root_source_file = .{ .path = "src/api.zig" },
+        .target = target,
+        .optimize = optimize,
+    });
+
     b.installArtifact(exe);
+    
+    const buildApi = b.addInstallArtifact(apilib);
+    buildApi.step.dependOn(b.getInstallStep());
 
     const run_cmd = b.addRunArtifact(exe);
 
@@ -53,4 +63,7 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_unit_tests.step);
+
+    const make_api_lib = b.step("api", "Build api library");
+    make_api_lib.dependOn(&buildApi.step);
 }

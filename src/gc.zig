@@ -165,7 +165,7 @@ pub const Gc = struct {
     pub fn newString(self: *Self, chars: []u32, len: u32) !*PObj.OString {
         var ptr = try self.newObj(.Ot_String, PObj.OString);
         ptr.chars = chars;
-        ptr.len = len;
+        ptr.len = @intCast(len);
         ptr.obj.isMarked = true;
         ptr.hash = try utils.hashU32(chars);
 
@@ -336,7 +336,7 @@ pub const Gc = struct {
     fn markRoots(self: *Self) void {
         if (self.stack) |stack| {
             dprint('r', "[GC] Marking Stack \n", .{});
-            for (0..stack.presentcount()) |i| {
+            for (0..@intCast(stack.presentcount())) |i| {
                 self.markValue(stack.stack[i]);
             }
             dprint('r', "[GC] Finished Marking Stack \n", .{});
