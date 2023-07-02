@@ -622,6 +622,7 @@ pub const Compiler = struct {
         try self.parseExpression();
         self.eat(.RsBracket, "Expected ']' after index expression");
         if (canAssign and self.match(.Eq)) {
+            try self.parseExpression();
             try self.emitBt(.Op_SubAssign);
         }else {
             try self.emitBt(.Op_Index);

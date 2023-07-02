@@ -9,6 +9,7 @@
 
 const std = @import("std");
 const PObj = @import("object.zig").PObj;
+const Gc = @import("gc.zig").Gc;
 
 pub const PValueType = enum(u8) {
     Pt_Num,
@@ -43,6 +44,12 @@ pub const PValue = packed struct {
 
     const Self = @This();
 
+    pub fn hash(self : Self , gc : *Gc) u32 {
+        _ = gc;
+        _ = self;
+
+        return 0;
+    }
     /// is value a bool
     pub fn isBool(self: Self) bool {
         return (self.data | 1) == TRUE_VAL.data;

@@ -1,2 +1,4 @@
 let a = ["1","2","hello world"]
-show(a[2][6])
+a[0] = 4
+show(a)
+show(a[2][a[0]])

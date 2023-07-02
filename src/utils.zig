@@ -147,6 +147,7 @@ pub fn u8tou16(a: []const u8) u16 {
     return result;
 }
 
+
 test "test utils->u8tou32->english" {
     const al = std.testing.allocator;
     const text = "The quick brown fox jumps over the lazy dog";

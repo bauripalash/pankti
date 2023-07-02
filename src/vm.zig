@@ -629,9 +629,7 @@ pub const Vm = struct {
             &self.callframes.stack[self.callframes.count - 1];
 
         while (true) {
-            if (flags.DEBUG and flags.DEBUG_STACK) {
-                self.debugStack();
-            }
+            
 
             if (flags.DEBUG and flags.DEBUG_GLOBS) {
                 self.gc.printTable(&self.gc.globals , "GLOBS");
@@ -643,7 +641,73 @@ pub const Vm = struct {
             }
             const op = frame.readByte();
 
+            if (flags.DEBUG and flags.DEBUG_STACK) {
+                std.debug.print("Op -> {s}\n" , .{op.toString()});
+                self.debugStack();
+            }
+
             switch (op) {
+                .Op_SubAssign => {
+                    var rawObj = self.peek(2);
+                    var rawIndex = self.peek(1);
+                    var newObj = self.peek(0); // New object;
+                    
+
+                    if (!rawIndex.isNumber()) {
+                        self.throwRuntimeError("Index must be a number");
+                        return .RuntimeError;
+                    }
+
+                    const rawIndexNum = rawIndex.asNumber();
+
+                    if (rawIndexNum < 0 or @ceil(rawIndexNum) != rawIndexNum) {
+                        self.throwRuntimeError("index must be non negetive integer");
+                        return .RuntimeError;
+                    }
+
+                    const index : usize = @intFromFloat(rawIndexNum);
+                    
+                    if (rawObj.isObj() and  rawObj.asObj().isArray())  {
+                        
+                        if (rawObj.asObj().isArray()) {
+                            const arr = rawObj.asObj().asArray();
+
+                            if (index >= arr.count) {
+                                self.throwRuntimeError("Index out of range");
+                                return .RuntimeError;
+                            }
+                            arr.values.replaceRange(self.gc.hal(), index, 1 , &[1]PValue{newObj},) catch {
+                                self.throwRuntimeError("failed to replace value");
+                                return .RuntimeError;
+                            };
+
+                            _ = self.stack.pop() catch {
+                                    self.throwRuntimeError("failed to pop");
+                                    return .RuntimeError;
+                            };
+
+                            _ = self.stack.pop() catch {
+                                    self.throwRuntimeError("failed to pop");
+                                    return .RuntimeError;
+                            };
+
+                            _ = self.stack.pop() catch {
+                                    self.throwRuntimeError("failed to pop");
+                                    return .RuntimeError;
+                            };
+
+                            self.stack.push(PValue.makeNil()) catch {
+                                self.throwRuntimeError("failed to push");
+                                return .RuntimeError;
+                            };
+
+                        }
+                    } else {
+                        self.throwRuntimeError("Subscript assignment only works on arrays");
+                        return .RuntimeError;
+                    }
+                    
+                },
                 .Op_Index => {
                     var rawIndex = self.peek(0);
                     var rawObj = self.peek(1);
@@ -656,7 +720,7 @@ pub const Vm = struct {
                     const rawIndexNum = rawIndex.asNumber();
 
                     if (rawIndexNum < 0 or @ceil(rawIndexNum) != rawIndexNum) {
-                        self.throwRuntimeError("Index must non negetive integer");
+                        self.throwRuntimeError("Index must be non negetive integer");
                         return .RuntimeError;
                     }
 
@@ -702,15 +766,6 @@ pub const Vm = struct {
                                 return .RuntimeError;
                             }
 
-                            _ = self.stack.pop() catch {
-                                    self.throwRuntimeError("failed to pop");
-                                    return .RuntimeError;
-                            };
-
-                            _ = self.stack.pop() catch {
-                                    self.throwRuntimeError("failed to pop");
-                                    return .RuntimeError;
-                            };
 
                             const charString = self.gc.copyString(
                                 &[_]u32{str.chars[index]},
@@ -720,6 +775,15 @@ pub const Vm = struct {
                                 return .RuntimeError;
 
                                 };
+
+                            _ = self.stack.pop() catch {
+                                    self.throwRuntimeError("failed to pop");
+                                    return .RuntimeError;
+                            };
+                             _ = self.stack.pop() catch {
+                                    self.throwRuntimeError("failed to pop");
+                                    return .RuntimeError;
+                            };
                             self.stack.push(PValue.makeObj(charString.parent())) catch {
                                 self.throwRuntimeError(
                                     "Failed to push value to stack",
@@ -771,7 +835,7 @@ pub const Vm = struct {
                         }
                     }
 
-                    arr.orderItem(self.gc);
+                    arr.reverseItems();
                     self.stack.push(PValue.makeObj(arr.parent())) catch {
                         self.throwRuntimeError("Failed to add array to stack");
                         return .RuntimeError;

@@ -214,18 +214,18 @@ pub const PObj = struct {
             return self.values.pop();
         }
 
-        pub fn orderItem(self : *OArray , gc : *Gc) void {
-           var tempItems = std.ArrayListUnmanaged(PValue){};
-            
-           var i : usize = self.values.items.len;
+        pub fn reverseItems(self : *OArray) void {
+            var start : usize = 0;
+            var end = self.count - 1;
 
-           while (i > 0) : (i-=1) {
-                tempItems.append(gc.hal(), self.values.pop()) catch continue;
-           }
-
-           self.values.deinit(gc.hal());
-           self.values = tempItems;
-           
+            while (start < end) {
+                var e = self.values.items[end];
+                var s = self.values.items[start];
+                self.values.items[start] = e;
+                self.values.items[end] = s;
+                start += 1;
+                end -= 1;
+            }
         }
 
         pub fn free(self : *OArray , gc : *Gc) void {

@@ -169,7 +169,7 @@ pub const Gc = struct {
         ptr.obj.isMarked = true;
         ptr.hash = try utils.hashU32(chars);
 
-        try self.strings.put(self.getAlc(), ptr, PValue.makeNil());
+        try self.strings.put(self.hal(), ptr, PValue.makeNil());
         ptr.obj.isMarked = false;
 
         return ptr;
@@ -284,7 +284,7 @@ pub const Gc = struct {
             //std.debug.print("TOTAL BYTES ALLOCATED-> {d}bytes\n" , .{self.alocAmount});
         }
         self.freeObjects();
-        self.strings.deinit(self.getAlc());
+        self.strings.deinit(self.hal());
         self.globals.deinit(self.hal());
         self.grayStack.deinit(self.hal());
         //self.getAlc().destroy(self);
