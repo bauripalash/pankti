@@ -378,23 +378,22 @@ pub const Lexer = struct {
         return self.makeNumberToken(colpos);
     }
     fn makeNumberToken(self: *Lexer, colpos: u32) Token {
-
         var lexeme = self.src[self.start..self.current];
-        var i : usize = 0;
+        var i: usize = 0;
         while (i < lexeme.len) : (i += 1) {
             switch (lexeme[i]) {
-               bn.BN_NUM_0 => lexeme[i] = '0',
-               bn.BN_NUM_1 => lexeme[i] = '1',
-               bn.BN_NUM_2 => lexeme[i] = '2',
-               bn.BN_NUM_3 => lexeme[i] = '3',
-               bn.BN_NUM_4 => lexeme[i] = '4',
-               bn.BN_NUM_5 => lexeme[i] = '5',
-               bn.BN_NUM_6 => lexeme[i] = '6',
-               bn.BN_NUM_7 => lexeme[i] = '7',
-               bn.BN_NUM_8 => lexeme[i] = '8',
-               bn.BN_NUM_9 => lexeme[i] = '9',
-               else => {},
-            }        
+                bn.BN_NUM_0 => lexeme[i] = '0',
+                bn.BN_NUM_1 => lexeme[i] = '1',
+                bn.BN_NUM_2 => lexeme[i] = '2',
+                bn.BN_NUM_3 => lexeme[i] = '3',
+                bn.BN_NUM_4 => lexeme[i] = '4',
+                bn.BN_NUM_5 => lexeme[i] = '5',
+                bn.BN_NUM_6 => lexeme[i] = '6',
+                bn.BN_NUM_7 => lexeme[i] = '7',
+                bn.BN_NUM_8 => lexeme[i] = '8',
+                bn.BN_NUM_9 => lexeme[i] = '9',
+                else => {},
+            }
         }
 
         return Token{
@@ -404,9 +403,7 @@ pub const Lexer = struct {
             .colpos = colpos,
             .length = self.current - self.start,
         };
-
     }
-
 
     fn readIdentifierToken(self: *Self) Token {
         const colpos = self.colpos;
@@ -472,12 +469,12 @@ pub const Lexer = struct {
     pub fn debug(self: *Lexer) void {
         while (!self.isEof()) {
             const tok = self.getToken();
-            std.debug.print("T['", .{});
-            utils.printu32(tok.lexeme);
-            std.debug.print("'|{}|{s}]\n", .{
+            std.io.getStdout().print("T['", .{}) catch return;
+            utils.printu32(tok.lexeme, std.io.getStdout().writer);
+            std.io.getStdOut().print("'|{}|{s}]\n", .{
                 tok.length,
                 toktypeToString(tok.toktype),
-            });
+            }) catch return;
         }
     }
 };

@@ -8,6 +8,8 @@
 // SPDX-License-Identifier: MPL-2.0
 
 const std = @import("std");
+const builtin = @import("builtin");
+const writer = @import("writer.zig");
 
 /// Convert a UTF-8 encoded string to UTF-32 encoded string
 /// You must free the result
@@ -97,9 +99,9 @@ pub fn hashU32(input: []const u32) !u32 {
 }
 
 /// Print a UTF-32 encoded string to stdout
-pub fn printu32(input: []const u32) void {
+pub fn printu32(input: []const u32 , w : writer.PanWriter) void {
     for (input) |value| {
-        std.debug.print("{u}", .{@as(u21, @truncate(value))});
+        w.print("{u}", .{@as(u21, @truncate(value))}) catch return;
     }
 }
 
@@ -146,6 +148,10 @@ pub fn u8tou16(a: []const u8) u16 {
     var result: u16 = (@as(u16, @intCast(a[0])) << 8) | @as(u16, @intCast(a[1]));
     return result;
 }
+
+pub const IS_WASM = (
+    builtin.target.isWasm() and builtin.target.os.tag == .freestanding
+);
 
 
 test "test utils->u8tou32->english" {

@@ -10,6 +10,7 @@
 const std = @import("std");
 const PObj = @import("object.zig").PObj;
 const Gc = @import("gc.zig").Gc;
+const writer = @import("writer.zig");
 
 pub const PValueType = enum(u8) {
     Pt_Num,
@@ -194,24 +195,26 @@ pub const PValue = packed struct {
     }
 
     /// Print value of PValue to console
-    pub fn printVal(self: Self) void {
+    pub fn printVal(self: Self , gc : *Gc) bool {
         if (self.isNil()) {
-            std.debug.print("nil", .{});
+            gc.pstdout.print("nil" , .{}) catch return false;
         } else if (self.isBool()) {
             const b: bool = self.asBool();
             if (b) {
-                std.debug.print("true", .{});
+                gc.pstdout.print("true" , .{}) catch return false;
             } else {
-                std.debug.print("false", .{});
+                gc.pstdout.print("false" , .{}) catch return false;
             }
         } else if (self.isNumber()) {
             const n: f64 = self.asNumber();
-            std.debug.print("{d}", .{n});
+            gc.pstdout.print("{d}" , .{n}) catch return false;
         } else if (self.isObj()) {
-            self.asObj().printObj();
+            return self.asObj().printObj(gc);
         } else {
-            std.debug.print("UNKNOWN VALUE", .{});
+            gc.pstdout.print("UNKNOWN VALUE" , .{}) catch return false;
         }
+
+        return true;
     }
 
     /// Convert value to string

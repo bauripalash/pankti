@@ -16,6 +16,7 @@ const _vm = @import("vm.zig");
 const Vm = _vm.Vm;
 const IntrpResult = _vm.IntrpResult;
 const flags = @import("flags.zig");
+const writer = @import("writer.zig");
 
 const openfile = @import("openfile.zig").openfile;
 
@@ -62,7 +63,7 @@ pub fn runCode16(rawSource : []const u16) bool {
         return false;
     };
 
-    gc.boot();
+    gc.boot(std.io.getStdOut().writer() , std.io.getStdErr().writer());
 
     const source : []u8 = std.unicode.utf16leToUtf8Alloc(
             gc.hal(), 
@@ -96,7 +97,8 @@ pub fn runCode(source : []const u8) bool {
         return false;
     };
 
-    gc.boot();
+
+    gc.boot(std.io.getStdOut().writer() , std.io.getStdErr().writer());
 
     defer {
         gc.freeGc(gcAl);
@@ -123,7 +125,8 @@ pub fn runFile(filepath : []const u8) bool {
         return false;
     };
 
-    gc.boot();
+
+    gc.boot(std.io.getStdOut().writer() , std.io.getStdErr().writer());
 
     
     const rawSource : []u8 = openfile(filepath , gc.hal()) catch {

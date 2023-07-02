@@ -21,20 +21,18 @@ pub fn nClock(gc : *Gc , argc: u8, values: []PValue) PValue {
 }
 
 pub fn nShow(gc : *Gc , argc: u8, values: []PValue) PValue {
-    _ = gc;
     var i: usize = 0;
     while (i < argc) : (i += 1) {
-        values[i].printVal();
+        _ = values[i].printVal(gc);
         std.debug.print("\n", .{}); //Until complete
     }
     return PValue.makeNil();
 }
 
-pub fn nBnShow(gc : *Gc , argc: u8, values: []PValue) PValue {
-    _ = gc; //WILL BE CHANGED?
+pub fn nBnShow(gc : *Gc , argc: u8, values: []PValue) PValue { //WILL BE CHANGED?
     var i: usize = 0;
     while (i < argc) : (i += 1) {
-        values[i].printVal();
+        _ = values[i].printVal(gc);
         std.debug.print("\n", .{}); //Until complete
     }
     return PValue.makeNil();

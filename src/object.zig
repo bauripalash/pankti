@@ -15,6 +15,7 @@ const utils = @import("utils.zig");
 const Gc = @import("gc.zig").Gc;
 const instruction = @import("instruction.zig");
 const Instruction = instruction.Instruction;
+const writer = @import("writer.zig");
 
 pub const PObj = struct {
     objtype: OType,
@@ -124,15 +125,15 @@ pub const PObj = struct {
         return PValue.makeObj(self);
     }
 
-    pub fn printObj(self: *PObj) void {
-        switch (self.getType()) {
-            .Ot_String => self.asString().print(),
-            .Ot_Function => self.asFunc().print(),
-            .Ot_NativeFunc => self.asNativeFun().print(),
-            .Ot_Closure => self.asClosure().print(),
-            .Ot_UpValue => self.asUpvalue().print(),
-            .Ot_Array => self.asArray().print(),
-        }
+    pub fn printObj(self: *PObj , gc : *Gc) bool {
+        return switch (self.getType()) {
+            .Ot_String => self.asString().print(gc),
+            .Ot_Function => self.asFunc().print(gc),
+            .Ot_NativeFunc => self.asNativeFun().print(gc),
+            .Ot_Closure => self.asClosure().print(gc),
+            .Ot_UpValue => self.asUpvalue().print(gc),
+            .Ot_Array => self.asArray().print(gc),
+        };
     }
 
     pub fn toString(self: *PObj, al: std.mem.Allocator) ![]u8 {
@@ -193,14 +194,16 @@ pub const PObj = struct {
             self.values = std.ArrayListUnmanaged(PValue){};
         }
 
-        pub fn print(self : *OArray) void {
-            std.debug.print("[ " , .{});
+        pub fn print(self : *OArray , gc : *Gc) bool {
+            
+            gc.pstdout.print("[ " , .{}) catch return false;
             for (self.values.items) |val| {
-                val.printVal();
-                std.debug.print(", " , .{});
+                if (!val.printVal(gc)) return false;
+                gc.pstdout.print(", ",.{}) catch return false;
             }
+            gc.pstdout.print("]" , .{}) catch return false;
 
-            std.debug.print("]" , .{});
+            return true;
         }
 
         pub fn addItem(self : *OArray , gc : *Gc ,  item : PValue) bool{
@@ -251,9 +254,11 @@ pub const PObj = struct {
             self.closed = PValue.makeNil();
         }
 
-        pub fn print(self: *OUpValue) void {
+         pub fn print(self: *OUpValue , gc : *Gc) bool {
             _ = self;
-            std.debug.print("upvalue", .{});
+            gc.pstdout.print("upvalue", .{}) catch return false;
+
+            return true;
         }
 
         pub fn free(self: *OUpValue, gc: *Gc) void {
@@ -284,10 +289,12 @@ pub const PObj = struct {
             return cl;
         }
 
-        pub fn print(self: *OClosure) void {
-            std.debug.print("<cl ", .{});
-            self.function.print();
-            std.debug.print(" >", .{});
+        pub fn print(self: *OClosure , gc : *Gc) bool {
+            gc.pstdout.print("<cls " , .{}) catch return false;
+            if (!self.function.print(gc)) return false;
+            gc.pstdout.print(" >" , .{}) catch return false;
+
+            return true;
         }
 
         pub fn parent(self: *OClosure) *PObj {
@@ -310,9 +317,11 @@ pub const PObj = struct {
             self.func = func;
         }
 
-        pub fn print(self: *ONativeFunction) void {
+        pub fn print(self: *ONativeFunction , gc : *Gc) bool {
             _ = self;
-            std.debug.print("<native fn>", .{});
+            gc.pstdout.print("<Native Fn>" , .{}) catch return false;
+
+            return true;
         }
 
         pub fn parent(self: *ONativeFunction) *PObj {
@@ -354,14 +363,16 @@ pub const PObj = struct {
             }
         }
 
-        pub fn print(self: *OFunction) void {
-            std.debug.print("<fn ", .{});
+        pub fn print(self: *OFunction , gc : *Gc) bool {
+            gc.pstdout.print("<Fun " , .{}) catch return false;
             if (self.getName()) |n| {
-                utils.printu32(n);
+                utils.printu32(n , gc.pstdout);
             } else {
-                std.debug.print("0x{x}", .{@intFromPtr(self.name.?)});
+                gc.pstdout.print("0x{x}" , .{@intFromPtr(self.name.?)}) catch 
+                    return false;
             }
-            std.debug.print(" >", .{});
+            gc.pstdout.print(" >" , .{}) catch return false;
+            return true;
         }
 
         pub fn free(self: *OFunction, gc: *Gc) void {
@@ -393,17 +404,17 @@ pub const PObj = struct {
             gc.getAlc().destroy(self);
         }
 
-        pub fn print(self: *OString) void {
+        pub fn print(self: *OString , gc : *Gc) bool {
             if (self.len < 0) {
-                std.debug.print("0x{x}", .{@intFromPtr(self)});
-                return;
+                gc.pstdout.print("0x{x}", .{@intFromPtr(self)}) catch return false;
+                return true;
             }
-            std.debug.print("\"", .{});
 
-            //const x : ?[]u32 = self.chars;
-            //std.debug.print(" {any} " , .{x});
-            utils.printu32(self.chars);
-            std.debug.print("\"", .{});
+            gc.pstdout.print("\"" , .{}) catch return false;
+            utils.printu32(self.chars , gc.pstdout);
+
+            gc.pstdout.print("\"" , .{}) catch return false;
+            return true;
         }
 
         pub fn size(self: *OString) usize {

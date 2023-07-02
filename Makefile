@@ -13,7 +13,7 @@ $(TARGET): build
 build:
 	@$(ZIG) build 
 
-buildwasm:
+wasm:
 	$(ZIG) build-lib src/api.zig -target wasm32-freestanding -dynamic -O ReleaseSafe -femit-bin=napi.wasm
 
 release:

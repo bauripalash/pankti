@@ -182,24 +182,23 @@ pub const Instruction = struct {
     }
 
     pub fn disasm(self: *Instruction, name: []const u8) void {
-        //std.debug.print("INS{any}" , .{self.code.items});
-        std.debug.print("== {s} | [{any}] ==", .{ name, self.code.items.len });
-        std.debug.print("\n", .{});
+        self.gc.pstdout.print("== {s} | [{any}] ==", .{ name, self.code.items.len }) catch return;
+        self.gc.pstdout.print("\n", .{}) catch return;
 
         var i: usize = 0;
         while (i < self.code.items.len) {
             i = self.disasmInstruction(i);
         }
 
-        std.debug.print("\n", .{});
+        self.gc.pstdout.print("\n", .{}) catch return;
     }
 
     fn simpleInstruction(
-        _: *Instruction,
+        self : *Instruction,
         name: []const u8,
         offset: usize,
     ) usize {
-        std.debug.print("{s}\n", .{name});
+        self.gc.pstdout.print("{s}\n", .{name}) catch return 0;
         return offset + 1;
     }
 
@@ -209,9 +208,9 @@ pub const Instruction = struct {
         offset: usize,
     ) usize {
         const constIndex = self.getRawOpCode(offset + 1);
-        std.debug.print("{s} {d} '", .{ name, constIndex });
-        self.cons.items[constIndex].printVal();
-        std.debug.print("'\n", .{});
+        self.gc.pstdout.print("{s} {d} '", .{ name, constIndex }) catch return 0;
+        _ = self.cons.items[constIndex].printVal(self.gc);
+        self.gc.pstdout.print("'\n", .{}) catch return 0 ;
 
         return offset + 2;
     }
@@ -226,11 +225,11 @@ pub const Instruction = struct {
             self.code.items[offset + 1],
             self.code.items[offset + 2],
         });
-        std.debug.print("{s} {d} -> {d}\n", .{
+        self.gc.pstdout.print("{s} {d} -> {d}\n", .{
             name,
             offset,
             @as(i64, @intCast(offset)) + 3 + sign * jump,
-        });
+        }) catch return 0 ;
         return offset + 3;
     }
 
@@ -240,16 +239,16 @@ pub const Instruction = struct {
         offset: usize,
     ) usize {
         const slot = self.code.items[offset + 1];
-        std.debug.print("{s} {:>4}\n", .{ name, slot });
+        self.gc.pstdout.print("{s} {:>4}\n", .{ name, slot }) catch return 0;
         return offset + 2;
     }
 
     fn disasmInstruction(self: *Instruction, offset: usize) usize {
-        std.debug.print("{:0>4} ", .{offset});
+        self.gc.pstdout.print("{:0>4} ", .{offset}) catch return 0;
         if (offset > 0 and self.pos.items[offset].line == self.pos.items[offset - 1].line) {
-            std.debug.print("   | ", .{});
+            self.gc.pstdout.print("   | ", .{}) catch return 0;
         } else {
-            std.debug.print("{:>4} ", .{self.pos.items[offset].line});
+            self.gc.pstdout.print("{:>4} ", .{self.pos.items[offset].line}) catch return 0;
         }
 
         const ins = self.getOpCode(offset);
@@ -308,7 +307,7 @@ pub const Instruction = struct {
             .Op_Array => {
                 var con1 = self.code.items[offset + 1];
                 var con2 = self.code.items[offset + 2];
-                std.debug.print("{s} {d}\n" , .{ins.toString() , utils.u8tou16(&[_]u8{con1 , con2})});
+                self.gc.pstdout.print("{s} {d}\n" , .{ins.toString() , utils.u8tou16(&[_]u8{con1 , con2})}) catch return 0;
                 return offset + 3;
             },
 
@@ -316,9 +315,9 @@ pub const Instruction = struct {
                 var off = offset + 1;
                 const con = self.code.items[off];
                 off += 1;
-                std.debug.print("{s} {d} ", .{ ins.toString(), con });
-                self.cons.items[con].printVal();
-                std.debug.print("\n", .{});
+                self.gc.pstdout.print("{s} {d} ", .{ ins.toString(), con }) catch return 0;
+                _ = self.cons.items[con].printVal(self.gc);
+                self.gc.pstdout.print("\n", .{}) catch return 0;
 
                 const f: *PObj.OFunction =
                     self.cons.items[con].asObj().asFunc();
@@ -328,14 +327,14 @@ pub const Instruction = struct {
                     off += 1;
                     const index = self.code.items[off];
                     off += 1;
-                    std.debug.print("{:0>4}   |   ->", .{off - 2});
+                    self.gc.pstdout.print("{:0>4}   |   ->", .{off - 2}) catch return 0;
                     if (isLocal == 1) {
-                        std.debug.print("local", .{});
+                        self.gc.pstdout.print("local", .{}) catch return 0;
                     } else {
-                        std.debug.print("upvalue", .{});
+                        self.gc.pstdout.print("upvalue", .{}) catch return 0;
                     }
 
-                    std.debug.print(" {d}\n", .{index});
+                    self.gc.pstdout.print(" {d}\n", .{index}) catch return 0;
                 }
 
                 return off;

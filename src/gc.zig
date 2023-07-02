@@ -19,6 +19,7 @@ const flags = @import("flags.zig");
 const ansicolors = @import("ansicolors.zig");
 const vm = @import("vm.zig");
 const compiler = @import("compiler.zig");
+const writer = @import("writer.zig");
 
 const slog: bool = flags.DEBUG and flags.DEBUG_GC;
 
@@ -44,6 +45,8 @@ pub const Gc = struct {
     callstack: ?*vm.CallStack,
     compiler: ?*compiler.Compiler,
     grayStack: std.ArrayListUnmanaged(*PObj),
+    pstdout : writer.PanWriter,
+    pstderr : writer.PanWriter,
 
     const Self = @This();
 
@@ -63,13 +66,17 @@ pub const Gc = struct {
             .callstack = null,
             .compiler = null,
             .grayStack = std.ArrayListUnmanaged(*PObj){},
+            .pstdout = undefined,
+            .pstderr = undefined,
         };
 
         return newgc;
     }
 
-    pub fn boot(self: *Self) void {
+    pub fn boot(self: *Self , stdout : writer.PanWriter , stderr : writer.PanWriter,) void {
         self.al = self.allocator();
+        self.pstdout = stdout;
+        self.pstderr = stderr;
     }
 
     pub inline fn allocator(self: *Self) Allocator {

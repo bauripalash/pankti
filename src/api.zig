@@ -7,9 +7,50 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
+const std = @import("std");
+const Gc = @import("gc.zig").Gc;
+const utils = @import("utils.zig");
+const _vm = @import("vm.zig");
+const Vm = _vm.Vm;
+const flags = @import("flags.zig");
 
 
-const runCode = @import("run.zig").runCode;
-export fn runCodeApi(source : [*]u8 , len : u32) bool {
-    return runCode(source[0..@intCast(len)]);
+export fn runCodeApi(rawrawSource: [*]u8, len: u32) bool {
+    const rawSource = rawrawSource[0..len];
+    var handyGpa = std.heap.GeneralPurposeAllocator(.{}){};
+    var gcGpa = std.heap.GeneralPurposeAllocator(.{}){};
+
+    const handyAl = handyGpa.allocator();
+    const gcAl = gcGpa.allocator();
+
+    var gc = Gc.new(gcAl, handyAl) catch {
+        //std.debug.print("Failed to create a Garbage Collector\n" , .{});
+        return false;
+    };
+
+    gc.boot(std.io.getStdOut().writer(), std.io.getStdErr().writer());
+    const source = utils.u8tou32(rawSource, gc.hal()) catch {
+        //std.debug.print("Failed to convert UTF-8 encoded source to UTF-32 encoded text\n" , .{});
+        return false;
+    };
+
+    var myVm = Vm.newVm(gc.hal()) catch {
+        //std.debug.print("Failed to create a Vm\n" , .{});
+        return false;
+    };
+
+    myVm.bootVm(gc);
+
+    const result = myVm.interpret(source);
+
+    myVm.freeVm(gc.hal());
+    gc.hal().free(source);
+    if (flags.DEBUG) {
+        //std.debug.print("VM RESULT -> {s}\n" , .{result.toString()});
+    }
+    switch (result) {
+        .Ok => return true,
+        .RuntimeError => return false,
+        .CompileError => return false,
+    }
 }

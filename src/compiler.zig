@@ -1152,7 +1152,7 @@ pub const Parser = struct {
             std.debug.print(" at end", .{});
         } else if (token.toktype == .Err) {} else {
             std.debug.print(" at ''", .{});
-            utils.printu32(token.lexeme);
+            utils.printu32(token.lexeme, self.gc.pstdout);
             std.debug.print("' ", .{});
         }
 
