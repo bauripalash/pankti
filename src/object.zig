@@ -16,6 +16,7 @@ const Gc = @import("gc.zig").Gc;
 const instruction = @import("instruction.zig");
 const Instruction = instruction.Instruction;
 const writer = @import("writer.zig");
+const table = @import("table.zig");
 
 pub const PObj = struct {
     objtype: OType,
@@ -29,6 +30,7 @@ pub const PObj = struct {
         Ot_Closure,
         Ot_UpValue,
         Ot_Array,
+        Ot_Hmap,
 
         pub fn toString(self: OType) []const u8 {
             switch (self) {
@@ -42,6 +44,7 @@ pub const PObj = struct {
                 .Ot_Closure => return "OBJ_CLOSURE",
                 .Ot_UpValue => return "OBJ_UPVALUE",
                 .Ot_Array => return "OBJ_ARRAY",
+                .Ot_Hmap => return "OBJ_HMAP",
             }
         }
     };
@@ -91,6 +94,10 @@ pub const PObj = struct {
         return self.is(.Ot_Array);
     }
 
+    pub fn isHmap(self : *PObj) bool {
+        return self.is(.Ot_Hmap);
+    }
+
     pub fn asString(self: *PObj) *OString {
         return @fieldParentPtr(OString, "obj", self);
     }
@@ -115,6 +122,10 @@ pub const PObj = struct {
         return self.child(PObj.OArray);
     }
 
+    pub fn asHmap(self : *PObj) *OHmap {
+        return self.child(PObj.OHmap);
+    }
+
     pub fn free(self: *PObj, vm: *Vm) void {
         switch (self.objtype) {
             .Ot_String => self.asString().free(vm),
@@ -133,6 +144,7 @@ pub const PObj = struct {
             .Ot_Closure => self.asClosure().print(gc),
             .Ot_UpValue => self.asUpvalue().print(gc),
             .Ot_Array => self.asArray().print(gc),
+            .Ot_Hmap => self.asHmap().print(gc),
         };
     }
 
@@ -184,6 +196,59 @@ pub const PObj = struct {
         return try utils.u32tou8([_]u32{'_'}, al);
     }
 
+
+
+    pub const OHmap = struct {
+        obj : PObj,
+        values : table.MapTable(),
+        count : usize,
+
+        pub fn init(self : *OHmap , gc : *Gc) void {
+            _ = gc;
+            self.count = 0;
+            self.values = table.MapTable(){};
+        }
+
+        pub fn addPair(self : *OHmap , gc : *Gc , k : PValue , v : PValue) bool {
+            //std.debug.print("-->{any}{any}\n" , .{k , v});
+            self.values.put(gc.hal() , k , v) catch return false;
+            self.count += 1;
+            return true;
+        }
+        
+        pub fn getValue(self : *OHmap , k : PValue) ?PValue {
+            if (self.values.get(k)) |v| {
+                return v;
+            } else{
+                return null;
+            }
+        }
+
+        pub fn print(self : *OHmap , gc  : *Gc) bool {
+            gc.pstdout.print("{{ " , .{}) catch return false;
+            var ite = self.values.iterator();
+            while (ite.next()) |item| {
+                if (!item.key_ptr.*.printVal(gc)) return false;
+                gc.pstdout.print(": " , .{}) catch return false;
+                if (!item.value_ptr.*.printVal(gc)) return false;
+
+                gc.pstdout.print(", ",.{}) catch return false;
+            }
+            gc.pstdout.print("}}" , .{}) catch return false;
+
+            return true;
+        }
+
+        pub fn free(self : *OHmap , gc : *Gc) void {
+            self.values.deinit(gc.hal());
+            self.count = 0;
+            gc.getAlc().destroy(self);
+        }
+
+        pub fn parent(self : *OHmap) *PObj {
+            return @ptrCast(self);
+        }
+    };
     pub const OArray = struct {
         obj : PObj,
         values : std.ArrayListUnmanaged(PValue),
@@ -410,10 +475,10 @@ pub const PObj = struct {
                 return true;
             }
 
-            gc.pstdout.print("\"" , .{}) catch return false;
+            //gc.pstdout.print("\"" , .{}) catch return false;
             utils.printu32(self.chars , gc.pstdout);
 
-            gc.pstdout.print("\"" , .{}) catch return false;
+            //gc.pstdout.print("\"" , .{}) catch return false;
             return true;
         }
 

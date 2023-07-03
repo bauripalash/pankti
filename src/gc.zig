@@ -267,6 +267,10 @@ pub const Gc = struct {
                 obj.asArray().free(self);
             },
 
+            .Ot_Hmap => {
+                obj.asHmap().free(self);
+            },
+
 
         }
 
@@ -451,6 +455,18 @@ pub const Gc = struct {
                     self.markObject(c.upvalues[i].parent());
                 }
             },
+
+            .Ot_Hmap => {
+                const hm = obj.asHmap();
+
+                var ite = hm.values.iterator();
+
+                while (ite.next()) |pair| {
+                    
+                    self.markValue(pair.key_ptr.*);
+                    self.markValue(pair.value_ptr.*);
+                }
+            }
             //else => {
             //    return;
             //}

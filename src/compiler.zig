@@ -77,7 +77,9 @@ pub const Compiler = struct {
             .prec = .P_Call,
         },
         .Rparen = ParseRule{},
-        .Lbrace = ParseRule{},
+        .Lbrace = ParseRule{
+            .prefix = Self.rHmap,
+        },
         .Rbrace = ParseRule{},
         .LsBracket = ParseRule{
             .prefix = Self.rArray,
@@ -534,6 +536,37 @@ pub const Compiler = struct {
         //self.gc.compiler = self;
     }
 
+    fn rHmap(self : *Self , canAssign : bool) !void{
+        _ = canAssign;
+
+        var count : u16 = 0;
+
+        if (!self.check(.Rbrace)) {
+            while (true) {
+                
+                if (count == std.math.maxInt(u16)) {
+                    self.parser.err("Can't have too many map items");
+                    return;
+                }
+
+                try self.parseExpression();
+                self.eat(.Colon, "Expected ':' after the key");
+                try self.parseExpression();
+
+                count += 1;
+
+                if (!self.match(.Comma)) {
+                    break;
+                }
+            }
+        }
+
+        self.eat(.Rbrace, "Expected '}' after map");
+        try self.emitBt(.Op_Hmap);
+        const countU8 = utils.u16tou8(count);
+        try self.emitTwoRaw(countU8[0], countU8[1]);
+
+    }
     fn rVariable(self: *Self, canAssign: bool) !void {
         try self.namedVariable(self.parser.previous, canAssign);
     }

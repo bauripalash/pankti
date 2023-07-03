@@ -304,7 +304,7 @@ pub const Instruction = struct {
                 return self.constInstruction(ins.toString(), offset);
             },
 
-            .Op_Array => {
+            .Op_Array , .Op_Hmap => {
                 var con1 = self.code.items[offset + 1];
                 var con2 = self.code.items[offset + 2];
                 self.gc.pstdout.print("{s} {d}\n" , .{ins.toString() , utils.u8tou16(&[_]u8{con1 , con2})}) catch return 0;

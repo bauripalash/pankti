@@ -45,11 +45,12 @@ pub const PValue = packed struct {
 
     const Self = @This();
 
-    pub fn hash(self : Self , gc : *Gc) u32 {
-        _ = gc;
-        _ = self;
-
-        return 0;
+    pub fn hash(self : Self) u32 {
+       const data = self.data; 
+       var hasher = std.hash.XxHash32.init(@intCast(std.time.timestamp()));
+       std.hash.autoHash(&hasher, data);
+    
+       return hasher.final();
     }
     /// is value a bool
     pub fn isBool(self: Self) bool {
