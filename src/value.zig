@@ -45,6 +45,10 @@ pub const PValue = packed struct {
 
     const Self = @This();
 
+    pub fn getLen(self : Self) ?usize{
+        if (self.isObj()) return self.asObj().getLen();
+        return null;
+    }
     pub fn hash(self : Self) u32 {
        const data = self.data; 
        var hasher = std.hash.XxHash32.init(@intCast(std.time.timestamp()));

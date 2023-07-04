@@ -37,3 +37,14 @@ pub fn nBnShow(gc : *Gc , argc: u8, values: []PValue) PValue { //WILL BE CHANGED
     }
     return PValue.makeNil();
 }
+
+pub fn nLen(gc : *Gc , argc : u8 , values : []PValue) PValue {
+    _ = argc;
+    _ = gc;
+
+    if (values[0].getLen()) |len| {
+        return PValue.makeNumber(@floatFromInt(len));
+    }
+
+    return PValue.makeNil();
+}

@@ -170,15 +170,9 @@ pub const Vm = struct {
             builtins.nClock,
         ) catch return;
 
-        self.defineNative(
-            &kws.K_EN_SHOW,
-            builtins.nShow,
-        ) catch return;
-
-        self.defineNative(
-            &kws.K_BN_SHOW,
-            builtins.nBnShow,
-        ) catch return;
+        self.defineNative(&[_]u32{'l', 'e', 'n'}, builtins.nLen) catch return;
+        self.defineNative(&kws.K_EN_SHOW, builtins.nShow ) catch return;
+        self.defineNative(&kws.K_BN_SHOW, builtins.nBnShow) catch return;
 
         //self.defineNative(
         //    &kws.K_PN_SHOW,

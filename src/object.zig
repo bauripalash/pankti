@@ -148,6 +148,27 @@ pub const PObj = struct {
         };
     }
 
+    
+    pub fn getLen(self : *PObj) ?usize {
+        switch (self.getType()) {
+            .Ot_String => {
+                return @intCast(self.asString().len);
+            },
+            .Ot_Hmap => {
+                return self.asHmap().count;
+            },
+            .Ot_Array => {
+                return self.asArray().count;
+            },
+
+            else => {  }
+            
+        }
+        return null;
+
+
+    }
+
     pub fn toString(self: *PObj, al: std.mem.Allocator) ![]u8 {
         switch (self.getType()) {
             .Ot_Array => {
