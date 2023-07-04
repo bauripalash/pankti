@@ -11,6 +11,7 @@ const std = @import("std");
 const flags = @import("flags.zig");
 const run = @import("run.zig");
 const builtin = @import("builtin");
+const utils = @import("utils.zig");
 
 pub fn windowsOsSetup() void {
     if (builtin.target.os.tag == .windows) {
@@ -35,6 +36,7 @@ pub fn windowsOsSetup() void {
 }
 
 pub fn main() !void {
+    if (utils.IS_WASM) return;
     windowsOsSetup();
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const ga = gpa.allocator();

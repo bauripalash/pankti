@@ -23,11 +23,11 @@ const writer = @import("writer.zig");
 
 const slog: bool = flags.DEBUG and flags.DEBUG_GC;
 
-fn dprint(color: u8, comptime fmt: []const u8, args: anytype) void {
+fn dprint(color: u8, w : writer.PanWriter, comptime fmt: []const u8, args: anytype) void {
     if (slog) {
-        ansicolors.TermColor(color);
-        std.debug.print(fmt, args);
-        ansicolors.ResetColor();
+        ansicolors.TermColor(color , w);
+        w.print(fmt, args) catch return;
+        ansicolors.ResetColor(w);
     }
 }
 
@@ -152,15 +152,15 @@ pub const Gc = struct {
         const ptr = try self.al.create(ParentType);
         ptr.parent().objtype = otype;
         if (flags.DEBUG_GC) {
-            ansicolors.TermColor('b');
+            ansicolors.TermColor('b' , self.pstdout);
 
-            std.debug.print("[GC] (0x{x}) New Object: {s}", .{
+            try self.pstdout.print("[GC] (0x{x}) New Object: {s}", .{
                 @intFromPtr(ptr),
                 ptr.parent().objtype.toString(),
             });
 
-            ansicolors.ResetColor();
-            std.debug.print("\n", .{});
+            ansicolors.ResetColor(self.pstdout);
+            try self.pstdout.print("\n", .{});
         }
         ptr.parent().isMarked = false;
         ptr.parent().next = self.objects;
@@ -188,11 +188,11 @@ pub const Gc = struct {
             try utils.hashU32(chars),
             len,
         )) |interned| {
-            dprint('b' , "[GC] Returning interned string : " , .{});
+            dprint('b' , self.pstdout , "[GC] Returning interned string : " , .{});
             if (slog) {
-                interned.print();
+                _ = interned.print(self);
             }
-            dprint('n' , "\n", .{});
+            dprint('n' , self.pstdout , "\n", .{});
             return interned;
         }
 
@@ -200,6 +200,20 @@ pub const Gc = struct {
         @memcpy(mem_chars, chars);
 
         return self.newString(mem_chars, len);
+    }
+
+    pub fn copyStringU8(self : *Gc , chars : []const u8 , len : u32) ?*PObj.OString{
+        _ = len;
+        
+        const msg32 = utils.u8tou32(chars, self.hal()) catch {
+            return null;
+        };
+        
+        const result = self.copyString(msg32, @intCast(msg32.len)) catch return null;
+
+        self.hal().free(msg32);
+
+        return result;
     }
 
     pub fn takeString(self: *Gc, chars: []const u32, len: u32) !*PObj.OString {
@@ -212,31 +226,30 @@ pub const Gc = struct {
     }
 
     pub fn printTable(self : *Self , tab : *table.PankTable(), tabname : []const u8) void {
-        _ = self;
         var ite = tab.iterator();
 
-        std.debug.print("==== {s} ====\n"  ,.{tabname});
+        self.pstdout.print("==== {s} ====\n"  ,.{tabname}) catch return;
         while (ite.next()) |value| {
-            std.debug.print("[" , .{});
-            value.key_ptr.*.print();
-            std.debug.print("] -> [" , .{});
-            value.value_ptr.*.printVal();
-            std.debug.print("]\n" , . {});
+            self.pstdout.print("[" , .{}) catch return;
+            value.key_ptr.*.print(self.pstdout);
+            self.pstdout.print("] -> [" , .{}) catch return;
+            value.value_ptr.*.printVal(self.pstdout);
+            self.pstdout.print("]\n" , . {}) catch return;
         }
-        std.debug.print("==============\n"  ,.{});
+        self.pstdout.print("==============\n"  ,.{}) catch return;
     }
 
     pub fn freeSingleObject(self: *Self, obj: *PObj) void {
         
         if (flags.DEBUG and (flags.DEBUG_GC or flags.DEBUG_FREE_OBJECTS)) {
-            ansicolors.TermColor('p');
-            std.debug.print("[GC] (0x{x}) Free Object: {s} : [ ", .{
+            ansicolors.TermColor('p' , self.pstdout);
+            self.pstdout.print("[GC] (0x{x}) Free Object: {s} : [ ", .{
                 @intFromPtr(obj),
                 obj.objtype.toString(),
-            });
-            obj.printObj();
-            std.debug.print(" ]\n", .{});
-            ansicolors.ResetColor();
+            }) catch return;
+            _ = obj.printObj(self);
+            self.pstdout.print(" ]\n", .{}) catch return;
+            ansicolors.ResetColor(self.pstdout);
         }
         switch (obj.objtype) {
             .Ot_Function => {
@@ -271,6 +284,10 @@ pub const Gc = struct {
                 obj.asHmap().free(self);
             },
 
+            .Ot_Error => {
+                obj.asOErr().free(self);
+            }
+
 
         }
 
@@ -292,7 +309,7 @@ pub const Gc = struct {
     }
     pub fn free(self: *Self) void {
         if (flags.DEBUG and flags.DEBUG_GC) {
-            //std.debug.print("TOTAL BYTES ALLOCATED-> {d}bytes\n" , .{self.alocAmount});
+            //self.pstdout.print("TOTAL BYTES ALLOCATED-> {d}bytes\n" , .{self.alocAmount});
         }
         self.freeObjects();
         self.strings.deinit(self.hal());
@@ -311,36 +328,35 @@ pub const Gc = struct {
         //self.grayStack.deinit(self.hal());
         
 
-        dprint('r' , "[GC] Marking Roots\n" , .{});
+        dprint('r' , self.pstdout , "[GC] Marking Roots\n" , .{});
         self.markRoots();
 
-        dprint('r' , "[GC] Finished Marking Roots\n" , .{});
-        dprint('r' , "[GC] Tracing Refs\n" , .{});
+        dprint('r' , self.pstdout , "[GC] Finished Marking Roots\n" , .{});
+        dprint('r' , self.pstdout , "[GC] Tracing Refs\n" , .{});
         self.traceRefs();
-        dprint('r' , "[GC] Finished Tracing Refs\n" , .{});
+        dprint('r' , self.pstdout , "[GC] Finished Tracing Refs\n" , .{});
 
         
-        dprint('r' , "[GC] Cleaning Strings\n" , .{});
+        dprint('r' , self.pstdout , "[GC] Cleaning Strings\n" , .{});
             self.removeTableUnpainted(&self.strings);
-        dprint('r' , "[GC] Finished Cleaning Strings\n" , .{});
+        dprint('r' , self.pstdout , "[GC] Finished Cleaning Strings\n" , .{});
         
-        dprint('r' , "[GC] Sweeping\n" , .{});
+        dprint('r' , self.pstdout , "[GC] Sweeping\n" , .{});
         self.sweep();
-        dprint('r' , "[GC] Finished Sweeping\n" , .{});
+        dprint('r' , self.pstdout , "[GC] Finished Sweeping\n" , .{});
     }
 
     fn removeTableUnpainted(self : *Self , tab : *table.PankTable()) void {
-        _ = self;
         var i : usize = 0;
         while (i < tab.count()) : (i+=1) {
             const key = tab.getKeyPtr(tab.keys()[i]);
             if (key) |k| {
                 if (!k.*.parent().isMarked) {
-                    dprint('p', "[GC] Removing String " , .{});
+                    dprint('p', self.pstdout , "[GC] Removing String " , .{});
                     if (slog) {
-                        k.*.print();
+                        _ = k.*.print(self);
                     }
-                    dprint('p' , "\n" , .{});
+                    dprint('p' , self.pstdout , "\n" , .{});
                     _ = tab.orderedRemove(k.*);
 
                 }
@@ -352,31 +368,31 @@ pub const Gc = struct {
 
     fn markRoots(self: *Self) void {
         if (self.stack) |stack| {
-            dprint('r', "[GC] Marking Stack \n", .{});
+            dprint('r', self.pstdout , "[GC] Marking Stack \n", .{});
             for (0..@intCast(stack.presentcount())) |i| {
                 self.markValue(stack.stack[i]);
             }
-            dprint('r', "[GC] Finished Marking Stack \n", .{});
+            dprint('r', self.pstdout , "[GC] Finished Marking Stack \n", .{});
         }
 
-        dprint('r', "[GC] Marking Globals \n", .{});
+        dprint('r', self.pstdout , "[GC] Marking Globals \n", .{});
         self.markTable(self.globals);
-        dprint('r', "[GC] Finished Marking Globals \n", .{});
+        dprint('r', self.pstdout , "[GC] Finished Marking Globals \n", .{});
 
-        dprint('r', "[GC] Marking CallStack\n", .{});
+        dprint('r', self.pstdout , "[GC] Marking CallStack\n", .{});
         const count = self.markCallStack();
 
-        dprint('r', "      [GC] Marked ({}) CallFrames \n", .{count});
-        dprint('r', "[GC] Finished Marking CallStack\n", .{});
+        dprint('r', self.pstdout , "      [GC] Marked ({}) CallFrames \n", .{count});
+        dprint('r', self.pstdout, "[GC] Finished Marking CallStack\n", .{});
 
-        dprint('r', "[GC] Marking Open Upvalues\n", .{});
+        dprint('r', self.pstdout , "[GC] Marking Open Upvalues\n", .{});
         const ocount = self.markOpenUpvalues();
-        dprint('r', "      [GC] Marked ({}) Open Upvalues \n", .{ocount});
-        dprint('r', "[GC] Finished Marking Open Upvalues\n", .{});
+        dprint('r', self.pstdout , "      [GC] Marked ({}) Open Upvalues \n", .{ocount});
+        dprint('r', self.pstdout , "[GC] Finished Marking Open Upvalues\n", .{});
 
-        dprint('r' , "[GC] Marking Compiler Roots \n" , .{});
+        dprint('r' , self.pstdout , "[GC] Marking Compiler Roots \n" , .{});
         self.markCompilerRoots();
-        dprint('r' , "[GC] Finished Marking Compiler Roots \n" , .{});
+        dprint('r' , self.pstdout , "[GC] Finished Marking Compiler Roots \n" , .{});
 
     }
 
@@ -385,7 +401,7 @@ pub const Gc = struct {
 
         while (ite.next()) |val| {
             self.markObject(val.key_ptr.*.parent());
-            //std.debug.print("->{any}" , .{val});
+            //self.pstdout.print("->{any}" , .{val});
             self.markValue(val.value_ptr.*);
         }
     }
@@ -399,13 +415,13 @@ pub const Gc = struct {
     fn markObject(self: *Self, obj: ?*PObj) void {
         if (obj) |o| {
             if (o.isMarked) { return; }
-            dprint('g', "[GC] Marking Object : {s} : [ ", .{
+            dprint('g', self.pstdout , "[GC] Marking Object : {s} : [ ", .{
                 o.getType().toString(),
             });
             if (slog) {
-                o.printObj();
+                _ = o.printObj(self);
             }
-            dprint('g', " ] \n", .{});
+            dprint('g', self.pstdout , " ] \n", .{});
             o.isMarked = true;
             self.grayStack.append(self.hal(), o) catch return;
         }
@@ -420,7 +436,7 @@ pub const Gc = struct {
 
     fn paintObject(self : *Self , obj : *PObj) void {
         switch (obj.getType()) {
-            .Ot_String , .Ot_NativeFunc => {},
+            .Ot_String , .Ot_NativeFunc , .Ot_Error => {},
             .Ot_Function => {
                 const f = obj.asFunc();
                 if (f.name) |name| {

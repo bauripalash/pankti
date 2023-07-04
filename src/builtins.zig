@@ -11,20 +11,25 @@ const std = @import("std");
 const value = @import("value.zig");
 const Gc = @import("gc.zig").Gc;
 const PValue = value.PValue;
+const utils = @import("utils.zig");
 
 pub fn nClock(gc : *Gc , argc: u8, values: []PValue) PValue {
     _ = gc;
     _ = values;
     _ = argc;
-    const s = std.time.milliTimestamp();
-    return PValue.makeNumber(@floatFromInt(s));
+    if (!utils.IS_WASM) {
+        const s = std.time.timestamp();
+        return PValue.makeNumber(@floatFromInt(s));
+    } else {
+        return PValue.makeNumber(0);
+    }
 }
 
 pub fn nShow(gc : *Gc , argc: u8, values: []PValue) PValue {
     var i: usize = 0;
     while (i < argc) : (i += 1) {
         _ = values[i].printVal(gc);
-        std.debug.print("\n", .{}); //Until complete
+        gc.pstdout.print("\n", .{}) catch return PValue.makeNil(); //Until complete
     }
     return PValue.makeNil();
 }
@@ -33,14 +38,16 @@ pub fn nBnShow(gc : *Gc , argc: u8, values: []PValue) PValue { //WILL BE CHANGED
     var i: usize = 0;
     while (i < argc) : (i += 1) {
         _ = values[i].printVal(gc);
-        std.debug.print("\n", .{}); //Until complete
+        gc.pstdout.print("\n", .{}) catch return PValue.makeNil(); //Until complete
     }
     return PValue.makeNil();
 }
 
 pub fn nLen(gc : *Gc , argc : u8 , values : []PValue) PValue {
-    _ = argc;
-    _ = gc;
+
+    if (argc != 1) {
+        return PValue.makeError(gc, "len(..) function only takes single argument").?;
+    }
 
     if (values[0].getLen()) |len| {
         return PValue.makeNumber(@floatFromInt(len));

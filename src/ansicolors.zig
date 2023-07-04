@@ -6,9 +6,8 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
 // SPDX-License-Identifier: MPL-2.0
-
 const std = @import("std");
-
+const writer = @import("writer.zig");
 pub const ANSI_COLOR_BLACK = "\x1b[30m";
 pub const ANSI_COLOR_RED = "\x1b[31m";
 pub const ANSI_COLOR_GREEN = "\x1b[32m";
@@ -19,31 +18,31 @@ pub const ANSI_COLOR_CYAN = "\x1b[36m";
 pub const ANSI_COLOR_WHITE = "\x1b[37m";
 pub const ANSI_COLOR_RESET = "\x1b[0m";
 
-pub fn TermColor(color: u8) void {
+pub fn TermColor(color: u8 , w : writer.PanWriter) void {
     switch (color) {
         'B' => {
-            std.debug.print("{s}", .{ANSI_COLOR_BLACK});
+            w.print("{s}", .{ANSI_COLOR_BLACK}) catch return;
         },
         'r' => {
-            std.debug.print("{s}", .{ANSI_COLOR_RED});
+            w.print("{s}", .{ANSI_COLOR_RED}) catch return;
         },
         'g' => {
-            std.debug.print("{s}", .{ANSI_COLOR_GREEN});
+            w.print("{s}", .{ANSI_COLOR_GREEN}) catch return;
         },
         'y' => {
-            std.debug.print("{s}", .{ANSI_COLOR_YELLOW});
+            w.print("{s}", .{ANSI_COLOR_YELLOW}) catch return;
         },
         'b' => {
-            std.debug.print("{s}", .{ANSI_COLOR_BLUE});
+            w.print("{s}", .{ANSI_COLOR_BLUE}) catch return;
         },
         'p' => {
-            std.debug.print("{s}", .{ANSI_COLOR_PURPLE});
+            w.print("{s}", .{ANSI_COLOR_PURPLE}) catch return;
         },
         'c' => {
-            std.debug.print("{s}", .{ANSI_COLOR_CYAN});
+            w.print("{s}", .{ANSI_COLOR_CYAN}) catch return;
         },
         'w' => {
-            std.debug.print("{s}", .{ANSI_COLOR_WHITE});
+            w.print("{s}", .{ANSI_COLOR_WHITE}) catch return;
         },
         else => {
             return;
@@ -51,6 +50,6 @@ pub fn TermColor(color: u8) void {
     }
 }
 
-pub fn ResetColor() void {
-    std.debug.print("{s}", .{ANSI_COLOR_RESET});
+pub fn ResetColor(w : writer.PanWriter) void {
+    w.print("{s}", .{ANSI_COLOR_RESET}) catch return;
 }

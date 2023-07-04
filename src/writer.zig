@@ -9,7 +9,6 @@
 
 
 const std = @import("std");
-const File = std.fs.File;
 const utils = @import("utils.zig");
 
 pub const OutWriter = struct {
@@ -41,4 +40,4 @@ pub const OutWriter = struct {
 
 };
 
-pub const PanWriter = if (utils.IS_WASM) OutWriter else File.Writer;
+pub const PanWriter = if (utils.IS_WASM) OutWriter.Writer else std.fs.File.Writer;

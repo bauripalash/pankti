@@ -76,12 +76,27 @@ pub const PValue = packed struct {
         return (self.data & (QNAN | SIGN_BIT)) == (QNAN | SIGN_BIT);
     }
 
+
+    pub fn isError(self : Self) bool {
+        return self.isObj() and self.asObj().isOError();
+    }
+
     pub fn isString(self: Self) bool {
         if (self.isObj()) {
             return self.asObj().isString();
         }
 
         return false;
+    }
+
+    pub fn makeError(gc : *Gc , msg : []const u8) ?PValue {
+        const rawO = gc.newObj(.Ot_Error, PObj.OError) catch return null;
+        rawO.parent().isMarked = true;
+        if (!rawO.initU8(gc, msg)) return null;
+        const val = PValue.makeObj(rawO.parent());
+        rawO.parent().isMarked = false;
+        return val;
+    
     }
 
     /// get a number value as `f64`

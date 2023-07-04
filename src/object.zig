@@ -31,6 +31,7 @@ pub const PObj = struct {
         Ot_UpValue,
         Ot_Array,
         Ot_Hmap,
+        Ot_Error,
 
         pub fn toString(self: OType) []const u8 {
             switch (self) {
@@ -45,6 +46,7 @@ pub const PObj = struct {
                 .Ot_UpValue => return "OBJ_UPVALUE",
                 .Ot_Array => return "OBJ_ARRAY",
                 .Ot_Hmap => return "OBJ_HMAP",
+                .Ot_Error => return "OBJ_ERROR",
             }
         }
     };
@@ -98,6 +100,10 @@ pub const PObj = struct {
         return self.is(.Ot_Hmap);
     }
 
+    pub fn isOError(self : *PObj) bool {
+        return self.is(.Ot_Error);
+    }
+
     pub fn asString(self: *PObj) *OString {
         return @fieldParentPtr(OString, "obj", self);
     }
@@ -126,6 +132,10 @@ pub const PObj = struct {
         return self.child(PObj.OHmap);
     }
 
+    pub fn asOErr(self : *PObj) *OError{
+        return self.child(PObj.OError);
+    }
+
     pub fn free(self: *PObj, vm: *Vm) void {
         switch (self.objtype) {
             .Ot_String => self.asString().free(vm),
@@ -145,6 +155,7 @@ pub const PObj = struct {
             .Ot_UpValue => self.asUpvalue().print(gc),
             .Ot_Array => self.asArray().print(gc),
             .Ot_Hmap => self.asHmap().print(gc),
+            .Ot_Error => self.asOErr().print(gc),
         };
     }
 
@@ -218,6 +229,38 @@ pub const PObj = struct {
     }
 
 
+    pub const OError = struct {
+        obj : PObj,
+        msg : []u8,
+
+        pub fn initU8(self : *OError , gc : *Gc , msg : []const u8) bool {
+            self.msg = gc.hal().alloc(u8, msg.len) catch return false;
+            @memcpy(self.msg, msg);
+            return true;
+        }
+
+        pub fn initU32(self : *OError , gc : *Gc , msg : []const u32) bool {
+            const msgU8 = utils.u32tou8(msg, gc.hal()) catch return false;
+            self.initU8(gc, msgU8);
+            gc.hal().free(msgU8);
+            return true;
+        }
+
+        pub fn print(self : *OError , gc : *Gc) bool {
+            gc.pstdout.print("{s}" , .{self.msg}) catch return false;
+            return true;
+            
+        }
+
+        pub fn free(self : *OError , gc : *Gc) void{
+            gc.hal().free(self.msg);
+            gc.getAlc().destroy(self);
+        }
+
+        pub fn parent(self : *OError) *PObj {
+            return @ptrCast(self);
+        }
+    };
 
     pub const OHmap = struct {
         obj : PObj,

@@ -275,10 +275,12 @@ pub const Vm = struct {
         const i = @intFromPtr(frame.ip) - @intFromPtr(
             frame.closure.function.ins.code.items.ptr,
         ) - 1;
-        self.gc.pstdout.print("Runtime Error Occured in line {}", .{
+        self.gc.pstdout.print("\nRuntime Error Occured in line {}\n", .{
             frame.closure.function.ins.pos.items[i].line,
         }) catch return;
         self.gc.pstdout.print(msg, args) catch return;
+        self.gc.pstdout.print("\n", .{}) catch return;
+
 
         var j: i64 = @intCast(self.callframes.count - 1);
         while (j >= 0) {
@@ -535,6 +537,13 @@ pub const Vm = struct {
                         (self.stack.top - argc)[0..argc],
                     );
                     self.stack.top -= argc + 1;
+                    
+                    if (result.isError()) {
+                        const eo : *Pobj.OError = result.asObj().asOErr();
+                        _ = eo.print(self.gc);
+                        return false;
+                    }
+
                     self.stack.push(result) catch return false;
                     return true;
                 },

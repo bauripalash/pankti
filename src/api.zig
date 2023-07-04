@@ -13,7 +13,18 @@ const utils = @import("utils.zig");
 const _vm = @import("vm.zig");
 const Vm = _vm.Vm;
 const flags = @import("flags.zig");
+const writer = @import("writer.zig");
 
+extern fn writeOut(ptr : usize , len : usize) void;
+extern fn writeErr(ptr : usize , len : usize) void;
+
+fn writeOutString(bts : []const u8) void {
+    writeOut(@intFromPtr(bts.ptr), bts.len);
+}
+
+fn writeErrString(bts : []const u8) void {
+    writeErr(@intFromPtr(bts.ptr), bts.len);
+}
 
 export fn runCodeApi(rawrawSource: [*]u8, len: u32) bool {
     const rawSource = rawrawSource[0..len];
@@ -28,7 +39,11 @@ export fn runCodeApi(rawrawSource: [*]u8, len: u32) bool {
         return false;
     };
 
-    gc.boot(std.io.getStdOut().writer(), std.io.getStdErr().writer());
+    const StdoutWriter = writer.OutWriter.new(writeOutString);
+    const StderrWriter = writer.OutWriter.new(writeErrString);
+    
+
+    gc.boot(StdoutWriter.writer(), StderrWriter.writer());
     const source = utils.u8tou32(rawSource, gc.hal()) catch {
         //std.debug.print("Failed to convert UTF-8 encoded source to UTF-32 encoded text\n" , .{});
         return false;

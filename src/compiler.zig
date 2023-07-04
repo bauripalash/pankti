@@ -1157,10 +1157,10 @@ pub const Parser = struct {
             var lx = lexer.Lexer.new(source);
             while (!lx.isEof()) {
                 const tokStr = lx.getToken().toString(
-                    self.gc.had(),
+                    gc.hal(),
                 ) catch continue;
-                std.debug.print("{s}\n", .{tokStr});
-                self.gc.hal()().free(tokStr);
+                gc.pstdout.print("{s}\n", .{tokStr});
+                gc.hal().free(tokStr);
             }
         }
 
@@ -1180,16 +1180,16 @@ pub const Parser = struct {
         if (self.panicMode) {
             return;
         }
-        std.debug.print("[L {d}] Error", .{token.line});
+        self.gc.pstdout.print("[L {d}] Error", .{token.line}) catch return;
         if (token.toktype == .Eof) {
-            std.debug.print(" at end", .{});
+            self.gc.pstdout.print(" at end", .{}) catch return;
         } else if (token.toktype == .Err) {} else {
-            std.debug.print(" at ''", .{});
+            self.gc.pstdout.print(" at ''", .{}) catch return;
             utils.printu32(token.lexeme, self.gc.pstdout);
-            std.debug.print("' ", .{});
+            self.gc.pstdout.print("' ", .{}) catch return;
         }
 
-        std.debug.print(": {s}\n", .{msg});
+        self.gc.pstdout.print(": {s}\n", .{msg}) catch return;
         self.hadErr = true;
     }
 
