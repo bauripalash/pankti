@@ -28,14 +28,11 @@ fn writeErrString(bts : []const u8) void {
 
 export fn runCodeApi(rawrawSource: [*]u8, len: u32) bool {
     const rawSource = rawrawSource[0..len];
-    var handyGpa = std.heap.GeneralPurposeAllocator(.{}){};
-    var gcGpa = std.heap.GeneralPurposeAllocator(.{}){};
 
-    const handyAl = handyGpa.allocator();
-    const gcAl = gcGpa.allocator();
+    const handyAl = std.heap.wasm_allocator;
+    const gcAl = std.heap.wasm_allocator;
 
     var gc = Gc.new(gcAl, handyAl) catch {
-        //std.debug.print("Failed to create a Garbage Collector\n" , .{});
         return false;
     };
 
@@ -45,12 +42,10 @@ export fn runCodeApi(rawrawSource: [*]u8, len: u32) bool {
 
     gc.boot(StdoutWriter.writer(), StderrWriter.writer());
     const source = utils.u8tou32(rawSource, gc.hal()) catch {
-        //std.debug.print("Failed to convert UTF-8 encoded source to UTF-32 encoded text\n" , .{});
         return false;
     };
 
     var myVm = Vm.newVm(gc.hal()) catch {
-        //std.debug.print("Failed to create a Vm\n" , .{});
         return false;
     };
 
@@ -60,9 +55,6 @@ export fn runCodeApi(rawrawSource: [*]u8, len: u32) bool {
 
     myVm.freeVm(gc.hal());
     gc.hal().free(source);
-    if (flags.DEBUG) {
-        //std.debug.print("VM RESULT -> {s}\n" , .{result.toString()});
-    }
     switch (result) {
         .Ok => return true,
         .RuntimeError => return false,

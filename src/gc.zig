@@ -174,7 +174,7 @@ pub const Gc = struct {
         ptr.chars = chars;
         ptr.len = @intCast(len);
         ptr.obj.isMarked = true;
-        ptr.hash = try utils.hashU32(chars);
+        ptr.hash = try utils.hashU32(chars , self);
 
         try self.strings.put(self.hal(), ptr, PValue.makeNil());
         ptr.obj.isMarked = false;
@@ -185,7 +185,7 @@ pub const Gc = struct {
     pub fn copyString(self: *Gc, chars: []const u32, len: u32) !*PObj.OString {
         if (table.getString(
             self.strings,
-            try utils.hashU32(chars),
+            try utils.hashU32(chars , self),
             len,
         )) |interned| {
             dprint('b' , self.pstdout , "[GC] Returning interned string : " , .{});

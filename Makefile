@@ -14,7 +14,9 @@ build:
 	@$(ZIG) build 
 
 wasm:
-	$(ZIG) build-lib src/api.zig -target wasm32-freestanding -dynamic -rdynamic -freference-trace
+	mkdir -p zig-out/wasm/
+	$(ZIG) build-lib src/api.zig -target wasm32-freestanding -dynamic -rdynamic -freference-trace -femit-bin=zig-out/wasm/napi.wasm
+
 release:
 	$(ZIG) build -Doptimize=ReleaseSafe
 

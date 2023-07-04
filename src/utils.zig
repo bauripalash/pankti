@@ -10,6 +10,7 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const writer = @import("writer.zig");
+const Gc = @import("gc.zig").Gc;
 
 /// Convert a UTF-8 encoded string to UTF-32 encoded string
 /// You must free the result
@@ -85,15 +86,18 @@ pub fn u32tou8(input: []const u32, al: std.mem.Allocator) ![]u8 {
     return u8str;
 }
 
-pub fn hashU32(input: []const u32) !u32 {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const ga = gpa.allocator();
+pub fn hashU32(input: []const u32 , gc : *Gc) !u32 {
+    
+    var timestamp : u32 = 0;
+    if (!IS_WASM) {
+        timestamp = @intCast(std.time.timestamp());
+    }
+    var x = std.hash.XxHash32.init(timestamp);
 
-    var x = std.hash.XxHash32.init(@intCast(std.time.timestamp()));
-    const u = try u32tou8(input, ga);
+    const u = try u32tou8(input, gc.hal());
 
     x.update(u);
-    ga.free(u);
+    gc.hal().free(u);
 
     return x.final();
 }

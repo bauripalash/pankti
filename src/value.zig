@@ -11,6 +11,7 @@ const std = @import("std");
 const PObj = @import("object.zig").PObj;
 const Gc = @import("gc.zig").Gc;
 const writer = @import("writer.zig");
+const utils = @import("utils.zig");
 
 pub const PValueType = enum(u8) {
     Pt_Num,
@@ -51,7 +52,11 @@ pub const PValue = packed struct {
     }
     pub fn hash(self : Self) u32 {
        const data = self.data; 
-       var hasher = std.hash.XxHash32.init(@intCast(std.time.timestamp()));
+       var timestamp : u32  = 0;
+       if (!utils.IS_WASM) {
+            timestamp = @intCast(std.time.timestamp());
+       }
+       var hasher = std.hash.XxHash32.init(timestamp);
        std.hash.autoHash(&hasher, data);
     
        return hasher.final();
