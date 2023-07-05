@@ -4,3 +4,4 @@ zig-out/
 neopank.perf
 perf.data
 perf.data.old
+*.wasm

@@ -13,6 +13,8 @@ const Gc = @import("gc.zig").Gc;
 const PValue = value.PValue;
 const utils = @import("utils.zig");
 
+extern fn getTimestamp() usize;
+
 pub fn nClock(gc : *Gc , argc: u8, values: []PValue) PValue {
     _ = gc;
     _ = values;
@@ -21,7 +23,7 @@ pub fn nClock(gc : *Gc , argc: u8, values: []PValue) PValue {
         const s = std.time.timestamp();
         return PValue.makeNumber(@floatFromInt(s));
     } else {
-        return PValue.makeNumber(0);
+        return PValue.makeNumber(@floatFromInt(getTimestamp()));
     }
 }
 

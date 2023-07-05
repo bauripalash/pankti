@@ -3,6 +3,7 @@ BUILD_DIR:=zig-out
 TARGET:=$(BUILD_DIR)/bin/neopank
 SAMPLE:=sample/map.pank
 DEBUGGER:=gdb
+WASMBIN:=zig-out/wasm/napi.wasm
 
 run: $(TARGET)
 	@./$(TARGET) $(SAMPLE)
@@ -13,9 +14,11 @@ $(TARGET): build
 build:
 	@$(ZIG) build 
 
+
 wasm:
 	mkdir -p zig-out/wasm/
-	$(ZIG) build-lib src/api.zig -target wasm32-freestanding -dynamic -rdynamic -freference-trace -femit-bin=zig-out/wasm/napi.wasm
+	$(ZIG) build-lib src/api.zig -target wasm32-freestanding -O ReleaseSafe -dynamic -rdynamic -freference-trace -femit-bin=$(WASMBIN)
+	cp $(WASMBIN) ./web/
 
 release:
 	$(ZIG) build -Doptimize=ReleaseSafe
