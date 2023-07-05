@@ -87,19 +87,23 @@ pub fn u32tou8(input: []const u32, al: std.mem.Allocator) ![]u8 {
 }
 
 pub fn hashU32(input: []const u32 , gc : *Gc) !u32 {
-    
-    var timestamp : u32 = 0;
-    if (!IS_WASM) {
-        timestamp = @intCast(std.time.timestamp());
+    var result : u32 = 0;
+
+    if (IS_WASM) {
+        var hasher = std.hash.Fnv1a_32.init();
+        const u = try u32tou8(input, gc.hal());
+        hasher.update(u);
+        gc.hal().free(u);
+        result = hasher.final();
+        
+    }else{
+        var hasher = std.hash.XxHash32.init(@intCast(std.time.timestamp()));
+        const u = try u32tou8(input, gc.hal());
+        hasher.update(u);
+        gc.hal().free(u);
+        result = hasher.final();
     }
-    var x = std.hash.XxHash32.init(timestamp);
-
-    const u = try u32tou8(input, gc.hal());
-
-    x.update(u);
-    gc.hal().free(u);
-
-    return x.final();
+    return result;
 }
 
 /// Print a UTF-32 encoded string to stdout

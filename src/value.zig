@@ -52,14 +52,21 @@ pub const PValue = packed struct {
     }
     pub fn hash(self : Self) u32 {
        const data = self.data; 
-       var timestamp : u32  = 0;
-       if (!utils.IS_WASM) {
-            timestamp = @intCast(std.time.timestamp());
+       var result : u32 = 0;
+
+       if (utils.IS_WASM) {
+           var hasher = std.hash.Fnv1a_32.init();
+           std.hash.autoHash(&hasher, data);
+           result = hasher.final();
+
+       }else {
+           var hasher = std.hash.XxHash32.init(@intCast(std.time.timestamp()));
+           std.hash.autoHash(&hasher, data);    
+           result = hasher.final();
+
        }
-       var hasher = std.hash.XxHash32.init(timestamp);
-       std.hash.autoHash(&hasher, data);
     
-       return hasher.final();
+       return result;
     }
     /// is value a bool
     pub fn isBool(self: Self) bool {
