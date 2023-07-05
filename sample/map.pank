@@ -1,4 +1,4 @@
 let a = {1 : "a"}
 
 show(a[1])
-show(len("palash" , "bauri"));
+show(len("palash"));

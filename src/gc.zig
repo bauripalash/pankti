@@ -20,6 +20,7 @@ const ansicolors = @import("ansicolors.zig");
 const vm = @import("vm.zig");
 const compiler = @import("compiler.zig");
 const writer = @import("writer.zig");
+const stck = @import("stack.zig");
 
 const slog: bool = flags.DEBUG and flags.DEBUG_GC;
 
@@ -31,6 +32,35 @@ fn dprint(color: u8, w : writer.PanWriter, comptime fmt: []const u8, args: anyty
     }
 }
 
+
+pub const StdLibMod = struct {
+    items : table.PankTable(),
+    name : []u32,
+    hash : u32,
+    owners : std.ArrayListUnmanaged(u32),
+};
+
+pub const StdLibProxy = struct {
+    stdmod : *StdLibMod,
+    originName : []u32,
+    proxyName : []u32,
+    proxyHash : u32
+};
+
+pub const Module = struct {
+    globals : table.PankTable(),
+    stdProxies : std.ArrayListUnmanaged(StdLibProxy),
+    stdlibCount: u32 ,
+    frames : stck.CallStack,
+    frameCount : u32,
+    name : []u32,
+    hash : u32,
+    openValues : *PObj.OUpValue,
+    isDefault : bool,
+    origin : *Module,
+    sourceCode : []u32,
+};
+
 pub const Gc = struct {
     internal_al: Allocator,
     al: Allocator,
@@ -41,8 +71,8 @@ pub const Gc = struct {
     openUps: ?*PObj.OUpValue,
     alocAmount: usize,
     nextGc : usize,
-    stack: ?*vm.VStack,
-    callstack: ?*vm.CallStack,
+    stack: ?*stck.VStack,
+    callstack: ?*stck.CallStack,
     compiler: ?*compiler.Compiler,
     grayStack: std.ArrayListUnmanaged(*PObj),
     pstdout : writer.PanWriter,

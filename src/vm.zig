@@ -15,22 +15,18 @@ const Compiler = comp.Compiler;
 const Gc = @import("gc.zig").Gc;
 const vl = @import("value.zig");
 const PValue = vl.PValue;
-const Pobj = @import("object.zig").PObj;
+const PObj = @import("object.zig").PObj;
 const utils = @import("utils.zig");
 const table = @import("table.zig");
 const Allocator = std.mem.Allocator;
 const flags = @import("flags.zig");
 const builtins = @import("builtins.zig");
 const kws = @import("lexer/keywords.zig");
+const _stack = @import("stack.zig");
+const VStack = _stack.VStack;
+const CallStack = _stack.CallStack;
+const CallFrame = _stack.CallFrame;
 
-const FRAME_MAX = 64;
-const STACK_MAX = FRAME_MAX * std.math.maxInt(u8);
-
-pub const StackError = error{
-    StackOverflow,
-    StackUnderflow,
-    StackFailPush,
-};
 
 pub const IntrpResult = enum(u8) {
     Ok,
@@ -52,92 +48,7 @@ pub const IntrpResult = enum(u8) {
     }
 };
 
-pub const VStack = struct {
-    stack: [STACK_MAX]PValue,
-    head: [*]PValue,
-    top: [*]PValue,
-    count: usize,
 
-    const Self = @This();
-
-    pub fn presentcount(self: *Self) u64 {
-        return (@as(
-            u64,
-            @intCast(@intFromPtr(self.top)),
-        ) - @as(
-            u64,
-            @intCast(@intFromPtr(self.head)),
-        )) / @sizeOf(*PValue);
-    }
-
-    pub fn clear(self: *Self) StackError!void {
-        while (self.presentcount() != 0) {
-            _ = try self.pop();
-        }
-    }
-
-    pub fn push(self: *Self, value: PValue) StackError!void {
-        if (self.presentcount() >= STACK_MAX) {
-            return StackError.StackOverflow;
-        }
-        self.top[0] = value;
-        self.top += 1;
-        self.count += 1;
-    }
-
-    pub fn pop(self: *Self) StackError!PValue {
-        if (self.presentcount() == 0) {
-            return StackError.StackUnderflow;
-        }
-        self.top -= 1;
-        self.count -= 1;
-        return self.top[0];
-    }
-};
-
-pub const CallFrame = struct {
-    closure: *Pobj.OClosure,
-    ip: [*]u8,
-    slots: [*]PValue,
-    const Self = @This();
-
-    pub inline fn readByte(self: *Self) ins.OpCode {
-        const bt: ins.OpCode = @enumFromInt(self.ip[0]);
-
-        self.ip += 1;
-
-        return bt;
-    }
-
-    pub inline fn readU16(self: *Self) u16 {
-        const b1 = self.readRawByte();
-        const b2 = self.readRawByte();
-
-        return (@as(u16, @intCast(b1)) << 8) | @as(u16, @intCast(b2));
-    }
-
-    pub inline fn readRawByte(self: *Self) u8 {
-        const bt = self.ip[0];
-
-        self.ip += 1;
-
-        return bt;
-    }
-
-    pub inline fn readConst(self: *Self) PValue {
-        return self.closure.function.ins.cons.items[self.readRawByte()];
-        //return self.ins.cons.items[self.readRawByte()];
-    }
-
-    pub inline fn readStringConst(self: *Self) *Pobj.OString {
-        return self.readConst().asObj().asString();
-    }
-};
-
-pub const CallStack = struct {
-    stack: [FRAME_MAX]CallFrame,
-    count: u32 = 0,
-};
 
 pub const Vm = struct {
     callframes: CallStack,
@@ -205,7 +116,7 @@ pub const Vm = struct {
 
         self.gc.compiler = self.compiler;
 
-        const rfunc: ?*Pobj.OFunction = self.compiler.compile(
+        const rfunc: ?*PObj.OFunction = self.compiler.compile(
             source,
         ) catch return .CompileError;
 
@@ -214,7 +125,7 @@ pub const Vm = struct {
                 self.throwRuntimeError("failed to push function to stack", .{});
                 return .RuntimeError;
             };
-            const cls = Pobj.OClosure.new(self.gc, f) catch {
+            const cls = PObj.OClosure.new(self.gc, f) catch {
                 self.throwRuntimeError("failed to create a closure", .{});
                 return .RuntimeError;
             };
@@ -323,14 +234,14 @@ pub const Vm = struct {
     fn defineNative(
         self: *Self,
         name: []const u32,
-        func: Pobj.ONativeFunction.NativeFn,
+        func: PObj.ONativeFunction.NativeFn,
     ) !void {
         const nstr = try self.gc.copyString(name, @intCast(name.len));
 
         try self.stack.push(nstr.parent().asValue());
         //self.debugStack();
 
-        var nf = try self.gc.newObj(.Ot_NativeFunc, Pobj.ONativeFunction);
+        var nf = try self.gc.newObj(.Ot_NativeFunc, PObj.ONativeFunction);
 
         nf.init(func);
         try self.stack.push(nf.parent().asValue());
@@ -507,7 +418,7 @@ pub const Vm = struct {
         return true;
     }
 
-    fn call(self: *Self, closure: *Pobj.OClosure, argc: u8) bool {
+    fn call(self: *Self, closure: *PObj.OClosure, argc: u8) bool {
         if (argc != closure.function.arity) {
             self.throwRuntimeError("Function Expected Arg != Got", .{});
             return false;
@@ -528,7 +439,7 @@ pub const Vm = struct {
                     return self.call(calle.asObj().asClosure(), argc);
                 },
                 .Ot_NativeFunc => {
-                    const f: *Pobj.ONativeFunction =
+                    const f: *PObj.ONativeFunction =
                         calle.asObj().asNativeFun();
 
                     const result = f.func(
@@ -539,7 +450,7 @@ pub const Vm = struct {
                     self.stack.top -= argc + 1;
                     
                     if (result.isError()) {
-                        const eo : *Pobj.OError = result.asObj().asOErr();
+                        const eo : *PObj.OError = result.asObj().asOErr();
                         _ = eo.print(self.gc);
                         return false;
                     }
@@ -556,8 +467,8 @@ pub const Vm = struct {
         return false;
     }
 
-    fn captureUpval(self: *Self, local: *PValue) !*Pobj.OUpValue {
-        var prevup: ?*Pobj.OUpValue = null;
+    fn captureUpval(self: *Self, local: *PValue) !*PObj.OUpValue {
+        var prevup: ?*PObj.OUpValue = null;
         var upval = self.gc.openUps;
 
         while (upval != null and @intFromPtr(upval.?.location) > @intFromPtr(
@@ -573,7 +484,7 @@ pub const Vm = struct {
             return upval.?;
         }
 
-        const newUp = try self.gc.newObj(.Ot_UpValue, Pobj.OUpValue);
+        const newUp = try self.gc.newObj(.Ot_UpValue, PObj.OUpValue);
         newUp.init(local);
         newUp.next = upval;
 
@@ -622,7 +533,7 @@ pub const Vm = struct {
             switch (op) {
                 .Op_Hmap => {
                     const count = frame.readU16();
-                    const mapObj = self.gc.newObj(.Ot_Hmap, Pobj.OHmap) catch {
+                    const mapObj = self.gc.newObj(.Ot_Hmap, PObj.OHmap) catch {
                         self.throwRuntimeError(
                             "Failed to create a new map object",
                             .{},
@@ -888,7 +799,7 @@ pub const Vm = struct {
                     const itemCount = frame.readU16();
                     var i = itemCount;
 
-                    const arr = self.gc.newObj(.Ot_Array, Pobj.OArray) catch {
+                    const arr = self.gc.newObj(.Ot_Array, PObj.OArray) catch {
                         self.throwRuntimeError("Failed to create array", .{});
                         return .RuntimeError;
                     };
@@ -963,7 +874,7 @@ pub const Vm = struct {
 
                 .Op_Closure => {
                     const func = frame.readConst().asObj().asFunc();
-                    const cls = Pobj.OClosure.new(self.gc, func) catch {
+                    const cls = PObj.OClosure.new(self.gc, func) catch {
                         self.throwRuntimeError(
                             "Failed to create new closure for function",
                             .{},
@@ -1193,7 +1104,7 @@ pub const Vm = struct {
                 },
 
                 .Op_DefGlob => {
-                    const name: *Pobj.OString = frame.readStringConst();
+                    const name: *PObj.OString = frame.readStringConst();
                     self.gc.globals.put(
                         self.gc.hal(),
                         name,
@@ -1216,7 +1127,7 @@ pub const Vm = struct {
                 },
 
                 .Op_GetGlob => {
-                    const name: *Pobj.OString = frame.readStringConst();
+                    const name: *PObj.OString = frame.readStringConst();
 
                     if (self.gc.globals.get(name)) |value| {
                         self.stack.push(value) catch {
@@ -1233,7 +1144,7 @@ pub const Vm = struct {
                 },
 
                 .Op_SetGlob => {
-                    const name: *Pobj.OString = frame.readStringConst();
+                    const name: *PObj.OString = frame.readStringConst();
 
                     if (self.gc.globals.get(name)) |_| {
                         //_ = self.gc.globals.fetchPut(self.gc.hal(), name, self.peek(0));
