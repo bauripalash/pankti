@@ -12,6 +12,7 @@ const ins = @import("instruction.zig");
 const OpCode = @import("instruction.zig").OpCode;
 const comp = @import("compiler.zig");
 const Compiler = comp.Compiler;
+const gcz = @import("gc.zig");
 const Gc = @import("gc.zig").Gc;
 const vl = @import("value.zig");
 const PValue = vl.PValue;
@@ -51,10 +52,10 @@ pub const IntrpResult = enum(u8) {
 
 
 pub const Vm = struct {
-    callframes: CallStack,
     compiler: *Compiler,
     stack: VStack,
     gc: *Gc,
+    cmod : *gcz.Module,
 
     const Self = @This();
 
@@ -66,14 +67,17 @@ pub const Vm = struct {
     pub fn bootVm(self: *Self, gc: *Gc) void {
         self.*.gc = gc;
         self.*.compiler = undefined;
-        self.*.callframes.stack = undefined;
-        self.*.callframes.count = 0;
+        self.*.gc.modules.append(gc.hal(),gcz.Module.new(gc).?) catch return;
+        self.*.gc.modCount += 1;
+
+        self.cmod = self.*.gc.modules.items[0];
 
         self.*.stack.stack[0] = PValue.makeNil();
 
         self.*.stack.count = 0;
         self.*.stack.top = self.stack.stack[0..];
         self.*.stack.head = self.stack.stack[0..];
+
 
         self.gc.stack = &self.stack;
         self.defineNative(
@@ -134,14 +138,16 @@ pub const Vm = struct {
                 cls.parent().asValue(),
             ) catch return .RuntimeError;
 
-            self.*.callframes.stack[0] = .{
+            self.*.gc.modules.items[0].frames.stack[0] = .{
                 .closure = cls,
                 .ip = f.ins.code.items.ptr,
                 .slots = self.stack.stack[0..],
             };
 
-            self.*.callframes.count = 1;
-            self.gc.callstack = &self.callframes;
+            self.*.gc.modules.items[0].frames.count = 1;
+            //self.gc.callstack = &self.callframes;
+            self.cmod = self.*.gc.modules.items[0];
+            self.cmod.frameCount = 1;
 
             return self.run();
         } else {
@@ -182,7 +188,8 @@ pub const Vm = struct {
     }
 
     fn throwRuntimeError(self: *Self, comptime msg: []const u8, args: anytype) void {
-        const frame = &self.callframes.stack[self.callframes.count - 1];
+        const frame = self.cmod.frames.stack[self.cmod.frameCount - 1];
+        //const frame = &self.callframes.stack[self.callframes.count - 1];
         const i = @intFromPtr(frame.ip) - @intFromPtr(
             frame.closure.function.ins.code.items.ptr,
         ) - 1;
@@ -193,9 +200,9 @@ pub const Vm = struct {
         self.gc.pstdout.print("\n", .{}) catch return;
 
 
-        var j: i64 = @intCast(self.callframes.count - 1);
+        var j: i64 = @intCast(self.cmod.frameCount - 1);
         while (j >= 0) {
-            const f = &self.callframes.stack[@intCast(j)];
+            const f = &self.cmod.frames.stack[@intCast(j)];
             const fun = f.closure.function;
             const instr = @intFromPtr(f.ip) - @intFromPtr(
                 fun.ins.code.items.ptr,
@@ -247,7 +254,7 @@ pub const Vm = struct {
         try self.stack.push(nf.parent().asValue());
 
         //nf.print();
-        try self.gc.globals.put(
+        try self.cmod.globals.put(
             self.gc.hal(),
             self.stack.stack[0].asObj().asString(),
             self.stack.stack[1],
@@ -424,8 +431,10 @@ pub const Vm = struct {
             return false;
         }
 
-        var frame = &self.callframes.stack[self.callframes.count];
-        self.callframes.count += 1;
+        var frame = &self.cmod.frames.stack[self.cmod.frameCount];
+            //&self.callframes.stack[self.callframes.count];
+        //self.callframes.count += 1;
+        self.cmod.frameCount += 1;
         frame.closure = closure;
         frame.ip = closure.function.ins.code.items.ptr;
         frame.slots = self.stack.top - argc - 1;
@@ -511,8 +520,10 @@ pub const Vm = struct {
     }
 
     fn run(self: *Self) IntrpResult {
-        var frame: *CallFrame =
-            &self.callframes.stack[self.callframes.count - 1];
+        //std.debug.print("{any}\n" , .{self.cmod});
+        var frame: *CallFrame = &self.cmod.frames.stack[self.cmod.frameCount - 1];
+            //&self.callframes.stack[self.callframes.count - 1];
+
 
         while (true) {
             if (flags.DEBUG and flags.DEBUG_GLOBS) {
@@ -521,7 +532,7 @@ pub const Vm = struct {
             }
 
             if (flags.DEBUG and flags.STRESS_GC) {
-                self.gc.collect();
+                self.gc.tryCollect();
             }
             const op = frame.readByte();
 
@@ -921,7 +932,8 @@ pub const Vm = struct {
                         );
                         return .RuntimeError;
                     }
-                    frame = &self.callframes.stack[self.callframes.count - 1];
+                    frame = &self.cmod.frames.stack[self.cmod.frameCount - 1];
+                    //frame = &self.callframes.stack[self.callframes.count - 1];
                 },
 
                 .Op_JumpIfFalse => {
@@ -940,7 +952,7 @@ pub const Vm = struct {
                     frame.ip -= offset;
                 },
                 .Op_Return => {
-                    if (self.callframes.count == 1) {
+                    if (self.cmod.frameCount == 1) {
                         _ = self.stack.pop() catch {
                             self.throwRuntimeError(
                                 "Failed to pop stack for return",
@@ -959,7 +971,7 @@ pub const Vm = struct {
                     };
 
                     self.closeUpv(frame.slots);
-                    self.callframes.count -= 1;
+                    self.cmod.frameCount -= 1;
 
                     self.stack.top = frame.slots;
                     self.stack.push(result) catch {
@@ -969,7 +981,8 @@ pub const Vm = struct {
                         );
                         return .RuntimeError;
                     };
-                    frame = &self.callframes.stack[self.callframes.count - 1];
+                    //frame = &self.callframes.stack[self.callframes.count - 1];
+                    frame = &self.cmod.frames.stack[self.cmod.frameCount - 1];
                 },
 
                 .Op_Show => {
@@ -1105,7 +1118,7 @@ pub const Vm = struct {
 
                 .Op_DefGlob => {
                     const name: *PObj.OString = frame.readStringConst();
-                    self.gc.globals.put(
+                    self.cmod.globals.put(
                         self.gc.hal(),
                         name,
                         self.peek(0),
@@ -1129,7 +1142,7 @@ pub const Vm = struct {
                 .Op_GetGlob => {
                     const name: *PObj.OString = frame.readStringConst();
 
-                    if (self.gc.globals.get(name)) |value| {
+                    if (self.cmod.globals.get(name)) |value| {
                         self.stack.push(value) catch {
                             self.throwRuntimeError(
                                 "failed to push value for get global",
@@ -1146,9 +1159,9 @@ pub const Vm = struct {
                 .Op_SetGlob => {
                     const name: *PObj.OString = frame.readStringConst();
 
-                    if (self.gc.globals.get(name)) |_| {
+                    if (self.cmod.globals.get(name)) |_| {
                         //_ = self.gc.globals.fetchPut(self.gc.hal(), name, self.peek(0));
-                        _ = self.gc.globals.fetchPut(
+                        _ = self.cmod.globals.fetchPut(
                             self.gc.hal(),
                             name,
                             self.peek(0),

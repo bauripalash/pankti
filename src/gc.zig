@@ -53,12 +53,71 @@ pub const Module = struct {
     stdlibCount: u32 ,
     frames : stck.CallStack,
     frameCount : u32,
-    name : []u32,
+    name : []const u32,
     hash : u32,
-    openValues : *PObj.OUpValue,
+    openValues : ?*PObj.OUpValue,
     isDefault : bool,
-    origin : *Module,
-    sourceCode : []u32,
+    origin : ?*Module,
+    sourceCode : ?[]u32,
+    
+    const Self = @This();
+    pub fn free(self : *Self , gc : *Gc) bool {
+        
+        self.globals.deinit(gc.hal());
+        gc.hal().destroy(self);
+        return true;
+    }
+    
+    fn markFrames(self : *Self , gc : *Gc) usize {
+        var i : usize = 0;
+        while (i < self.frameCount) : (i += 1) {
+            gc.markObject(self.frames.stack[i].closure.parent());
+        }
+        return i;
+    }
+    fn markOpenUpvalues(self : *Self , gc : *Gc) i32 {
+        var upv = self.openValues;
+        var i : i32 = 0;
+
+        while (upv) |u| {
+            upv = u.next;
+            gc.markObject(u.parent());
+            i += 1;
+        }
+
+        return i;
+    }
+    pub fn mark(self : *Self , gc : *Gc) bool {
+
+        _ = self.markFrames(gc);
+        _ = self.markOpenUpvalues(gc);
+        gc.markTable(self.globals);
+
+        return true;
+       
+    }
+
+    pub fn new(gc : *Gc) ?*Module {
+        var mod = gc.hal().create(Module) catch return null;
+
+        mod.* = .{
+            .origin = null,
+            .globals = table.PankTable(){},
+            .stdProxies = std.ArrayListUnmanaged(StdLibProxy){},
+            .stdlibCount = 0,
+            .frameCount = 0,
+            .name = &[_]u32{'_'},
+            .openValues = null,
+            .isDefault = false,
+            .sourceCode = null,
+            .frames = undefined,
+            .hash = 0,
+
+        };
+        mod.*.frames.stack[0] = undefined;
+        mod.*.frames.count = 0;
+        return mod;
+    }
 };
 
 pub const Gc = struct {
@@ -67,16 +126,17 @@ pub const Gc = struct {
     handyal: Allocator,
     objects: ?*PObj,
     strings: table.PankTable(),
-    globals: table.PankTable(),
+    //globals: table.PankTable(),
     openUps: ?*PObj.OUpValue,
     alocAmount: usize,
     nextGc : usize,
     stack: ?*stck.VStack,
-    callstack: ?*stck.CallStack,
     compiler: ?*compiler.Compiler,
     grayStack: std.ArrayListUnmanaged(*PObj),
     pstdout : writer.PanWriter,
     pstderr : writer.PanWriter,
+    modules : std.ArrayListUnmanaged(*Module),
+    modCount : usize,
 
     const Self = @This();
 
@@ -87,17 +147,19 @@ pub const Gc = struct {
             .al = undefined,
             .handyal = handlyal,
             .strings = table.PankTable(){},
-            .globals = table.PankTable(){},
+            //.globals = table.PankTable(){},
             .objects = null,
             .openUps = null,
             .alocAmount = 0,
             .nextGc = 0,
             .stack = null,
-            .callstack = null,
+            //.callstack = null,
             .compiler = null,
             .grayStack = std.ArrayListUnmanaged(*PObj){},
             .pstdout = undefined,
             .pstderr = undefined,
+            .modules = undefined,
+            .modCount = 0,
         };
 
         return newgc;
@@ -107,6 +169,7 @@ pub const Gc = struct {
         self.al = self.allocator();
         self.pstdout = stdout;
         self.pstderr = stderr;
+        self.modules = std.ArrayListUnmanaged(*Module){};
     }
 
     pub inline fn allocator(self: *Self) Allocator {
@@ -343,15 +406,25 @@ pub const Gc = struct {
         }
         self.freeObjects();
         self.strings.deinit(self.hal());
-        self.globals.deinit(self.hal());
+        //self.globals.deinit(self.hal());
         self.grayStack.deinit(self.hal());
+        
+        var i : usize = 0;
+
+        while (i < self.modules.items.len) : (i += 1) {
+            _ = self.modules.items[i].free(self);
+            //self.hal().destroy(self.modules.items[i]);
+        }
+        self.modules.deinit(self.hal());
         //self.getAlc().destroy(self);
     }
 
     pub fn tryCollect(self : *Self) void{
-       if ((self.alocAmount > self.nextGc) or flags.STRESS_GC) {
-            self.collect();
-       } 
+        if (!flags.DISABLE_GC) {
+           if ((self.alocAmount > self.nextGc) or flags.STRESS_GC) {
+                self.collect();
+           } 
+        }
     }
 
     pub fn collect(self: *Self) void {
@@ -396,6 +469,13 @@ pub const Gc = struct {
 
     }
 
+    fn markModules(self : *Self) void {
+        var i : usize = 0;
+        while (i < self.modCount) : (i += 1) {
+            _ = self.modules.items[i].mark(self);
+
+        }
+    }
     fn markRoots(self: *Self) void {
         if (self.stack) |stack| {
             dprint('r', self.pstdout , "[GC] Marking Stack \n", .{});
@@ -405,20 +485,9 @@ pub const Gc = struct {
             dprint('r', self.pstdout , "[GC] Finished Marking Stack \n", .{});
         }
 
-        dprint('r', self.pstdout , "[GC] Marking Globals \n", .{});
-        self.markTable(self.globals);
-        dprint('r', self.pstdout , "[GC] Finished Marking Globals \n", .{});
-
-        dprint('r', self.pstdout , "[GC] Marking CallStack\n", .{});
-        const count = self.markCallStack();
-
-        dprint('r', self.pstdout , "      [GC] Marked ({}) CallFrames \n", .{count});
-        dprint('r', self.pstdout, "[GC] Finished Marking CallStack\n", .{});
-
-        dprint('r', self.pstdout , "[GC] Marking Open Upvalues\n", .{});
-        const ocount = self.markOpenUpvalues();
-        dprint('r', self.pstdout , "      [GC] Marked ({}) Open Upvalues \n", .{ocount});
-        dprint('r', self.pstdout , "[GC] Finished Marking Open Upvalues\n", .{});
+        dprint('r', self.pstdout ,"[GC] Marking Modules \n" , .{});
+        self.markModules();
+        dprint('r', self.pstdout ,"[GC] Finished Marking Modules \n" , .{});
 
         dprint('r' , self.pstdout , "[GC] Marking Compiler Roots \n" , .{});
         self.markCompilerRoots();
@@ -431,7 +500,6 @@ pub const Gc = struct {
 
         while (ite.next()) |val| {
             self.markObject(val.key_ptr.*.parent());
-            //self.pstdout.print("->{any}" , .{val});
             self.markValue(val.value_ptr.*);
         }
     }
@@ -544,31 +612,7 @@ pub const Gc = struct {
         }
     }
 
-    fn markCallStack(self: *Self) i32 {
-        if (self.callstack) |callstack| {
-            var i: usize = 0;
-            while (i < callstack.count) : (i += 1) {
-                self.markObject(callstack.stack[i].closure.parent());
-            }
 
-            return @intCast(i);
-        }
-
-        return -1;
-    }
-
-    fn markOpenUpvalues(self: *Self) i32 {
-        var upv = self.openUps;
-        var i: i32 = 0;
-
-        while (upv) |u| {
-            upv = u.next;
-            self.markObject(u.parent());
-            i += 1;
-        }
-
-        return i;
-    }
 
     pub fn markCompilerRoots(self: *Self) void {
         if (self.compiler) |scompiler| {
