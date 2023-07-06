@@ -413,10 +413,8 @@ pub const Gc = struct {
 
         while (i < self.modules.items.len) : (i += 1) {
             _ = self.modules.items[i].free(self);
-            //self.hal().destroy(self.modules.items[i]);
         }
         self.modules.deinit(self.hal());
-        //self.getAlc().destroy(self);
     }
 
     pub fn tryCollect(self : *Self) void{
@@ -428,9 +426,6 @@ pub const Gc = struct {
     }
 
     pub fn collect(self: *Self) void {
-        //self.grayStack.deinit(self.hal());
-        
-
         dprint('r' , self.pstdout , "[GC] Marking Roots\n" , .{});
         self.markRoots();
 

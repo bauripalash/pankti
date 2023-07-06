@@ -148,6 +148,7 @@ pub const Vm = struct {
             //self.gc.callstack = &self.callframes;
             self.cmod = self.*.gc.modules.items[0];
             self.cmod.frameCount = 1;
+            self.cmod.isDefault = true;
 
             return self.run();
         } else {
@@ -167,21 +168,6 @@ pub const Vm = struct {
         self.stack.top = self.stack.stack[0..];
         self.stack.count = 0;
     }
-
-    //pub fn push(self : *Self , value : PValue) StackError!void {
-    //    self.stack.append(self.gc.getAlc() , value) catch {
-    //        return StackError.StackFailPush;
-    //    };
-    //
-    //}
-
-    //pub fn pop(self : *Self) StackError!PValue {
-    //    if (self.stack.items.len == 0) {
-    //        self.throwRuntimeError("Stack Underflow Occured");
-    //        return StackError.StackUnderflow;
-    //    }
-    //    return self.stack.pop();
-    //}
 
     fn peek(self: *Self, dist: usize) PValue {
         return (self.stack.top - 1 - dist)[0];
@@ -793,10 +779,6 @@ pub const Vm = struct {
                             self.gc.pstdout.print("\n" , .{}) catch return .RuntimeError;
                             return .RuntimeError;
                         }
-
-                        
-                        
-
                         
                     } else {
                         self.throwRuntimeError(
@@ -952,7 +934,7 @@ pub const Vm = struct {
                     frame.ip -= offset;
                 },
                 .Op_Return => {
-                    if (self.cmod.frameCount == 1) {
+                    if (self.cmod.frameCount == 1 and self.cmod.isDefault) {
                         _ = self.stack.pop() catch {
                             self.throwRuntimeError(
                                 "Failed to pop stack for return",
