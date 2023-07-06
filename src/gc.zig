@@ -126,7 +126,7 @@ pub const Gc = struct {
     handyal: Allocator,
     objects: ?*PObj,
     strings: table.PankTable(),
-    //globals: table.PankTable(),
+    builtins: table.PankTable(),
     openUps: ?*PObj.OUpValue,
     alocAmount: usize,
     nextGc : usize,
@@ -147,7 +147,7 @@ pub const Gc = struct {
             .al = undefined,
             .handyal = handlyal,
             .strings = table.PankTable(){},
-            //.globals = table.PankTable(){},
+            .builtins = table.PankTable(){},
             .objects = null,
             .openUps = null,
             .alocAmount = 0,
@@ -406,7 +406,7 @@ pub const Gc = struct {
         }
         self.freeObjects();
         self.strings.deinit(self.hal());
-        //self.globals.deinit(self.hal());
+        self.builtins.deinit(self.hal());
         self.grayStack.deinit(self.hal());
         
         var i : usize = 0;
@@ -441,7 +441,7 @@ pub const Gc = struct {
 
         
         dprint('r' , self.pstdout , "[GC] Cleaning Strings\n" , .{});
-            self.removeTableUnpainted(&self.strings);
+        self.removeTableUnpainted(&self.strings);
         dprint('r' , self.pstdout , "[GC] Finished Cleaning Strings\n" , .{});
         
         dprint('r' , self.pstdout , "[GC] Sweeping\n" , .{});
@@ -485,9 +485,17 @@ pub const Gc = struct {
             dprint('r', self.pstdout , "[GC] Finished Marking Stack \n", .{});
         }
 
+        dprint('r', self.pstdout ,"[GC] Marking Builtins \n" , .{});
+
+        dprint('r', self.pstdout ,"[GC] Finished Marking Builtins \n" , .{});
+
+        self.markTable(self.builtins);
         dprint('r', self.pstdout ,"[GC] Marking Modules \n" , .{});
         self.markModules();
         dprint('r', self.pstdout ,"[GC] Finished Marking Modules \n" , .{});
+
+        
+
 
         dprint('r' , self.pstdout , "[GC] Marking Compiler Roots \n" , .{});
         self.markCompilerRoots();

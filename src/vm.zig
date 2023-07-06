@@ -254,7 +254,7 @@ pub const Vm = struct {
         try self.stack.push(nf.parent().asValue());
 
         //nf.print();
-        try self.cmod.globals.put(
+        try self.gc.builtins.put(
             self.gc.hal(),
             self.stack.stack[0].asObj().asString(),
             self.stack.stack[1],
@@ -1150,8 +1150,18 @@ pub const Vm = struct {
                             );
                             return .RuntimeError;
                         };
+                    }else if (self.gc.builtins.get(name)) |value| {
+                        self.stack.push(value) catch {
+                            self.throwRuntimeError(
+                                "failed to push builtin function to stack",
+                                .{},
+                            );
+                            return .RuntimeError;
+                        };
                     } else {
-                        self.throwRuntimeError("Undefined variable", .{});
+                        self.throwRuntimeError("Undefined variable -> ", .{});
+                        //_ = name.print(self.gc); //TO_DO
+                        
                         return .RuntimeError;
                     }
                 },
