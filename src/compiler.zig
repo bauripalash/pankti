@@ -789,6 +789,8 @@ pub const Compiler = struct {
             try self.rIfStatement();
         } else if (self.match(.PWhile)) {
             try self.rWhileStatement();
+        } else if (self.match(.Import)){
+            try self.rImportStatement();
         } else if (self.match(.Lbrace)) {
             self.beginScope();
             try self.rBlock();
@@ -810,6 +812,17 @@ pub const Compiler = struct {
             self.skipSemicolon();
             try self.emitBt(.Op_Return);
         }
+    }
+
+    fn rImportStatement(self : *Self) !void{
+        const glob = self.parseVariable("Expected Import name");
+        
+        try self.parseExpression();
+
+        self.skipSemicolon();
+
+        try self.emitBt(.Op_Import);
+        try self.emitBtRaw(glob);
     }
 
     fn rExprStatement(self: *Self) !void {
