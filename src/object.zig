@@ -450,18 +450,34 @@ pub const PObj = struct {
         globOwner : u32,
         globals : ?*table.PankTable(),
 
+        pub fn init(self : *OClosure , gc : *Gc , func : *OFunction) !void {
+            const upvalues = try gc.getAlc().alloc(?*OUpValue, func.upvCount);
+            for (upvalues) |*v| {
+                v.* = std.mem.zeroes(?*OUpValue); 
+            }
+            const ptr : [*]*OUpValue = @ptrCast(upvalues);
+            self.function = func;
+            self.upvalues = ptr;
+            self.upc = func.upvCount;
+            self.globals = null;
+            self.globOwner = 0;
+
+        }
+
         pub fn new(gc: *Gc, func: *OFunction) !*PObj.OClosure {
             const upvalues = try gc.getAlc().alloc(?*OUpValue, func.upvCount);
             for (upvalues) |*v| {
                 v.* = std.mem.zeroes(?*OUpValue);
             }
             const cl = try gc.newObj(.Ot_Closure, PObj.OClosure);
+            //cl.parent().isMarked = true;
             const ptr: [*]*OUpValue = @ptrCast(upvalues);
             cl.upvalues = ptr;
             cl.upc = func.upvCount;
             cl.function = func;
             cl.globals = null;
             cl.globOwner = 0;
+            //cl.parent().isMarked = false;
             return cl;
         }
 
@@ -515,12 +531,14 @@ pub const PObj = struct {
         name: ?*OString,
         upvCount: u32,
         ins: Instruction,
+        fromMod : bool,
 
         pub fn init(self: *OFunction, gc: *Gc) void {
             self.arity = 0;
             self.name = null;
             self.upvCount = 0;
             self.ins = Instruction.init(gc);
+            self.fromMod = false;
         }
 
         pub inline fn parent(self: *OFunction) *PObj {
@@ -534,6 +552,8 @@ pub const PObj = struct {
                 } else {
                     return name.chars[0..name.chars.len];
                 }
+            } else if (self.fromMod){
+                return &[_]u32 {'<' , 'm'  , 'o' , 'd' , '>'}; 
             } else {
                 return &[_]u32{ '<', 's', 'c', 'r', 'i', 'p', 't', '>' };
             }

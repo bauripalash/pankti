@@ -151,7 +151,7 @@ pub const Instruction = struct {
     pub fn makeChangesForModule(self : *Instruction) bool {
         const len = self.code.items.len;
         if (len < 2) return false;
-        self.code.items[len - 1] = .Op_EndMod;
+        self.code.items[len - 1] = @intFromEnum(OpCode.Op_EndMod);
         return true;
     }
 

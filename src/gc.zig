@@ -100,7 +100,7 @@ pub const Module = struct {
     
     fn markFrames(self : *Self , gc : *Gc) usize {
         var i : usize = 0;
-        while (i < self.frameCount) : (i += 1) {
+        while (i < self.frames.count) : (i += 1) {
             gc.markObject(self.frames.stack[i].closure.parent());
         }
         return i;
@@ -480,7 +480,7 @@ pub const Gc = struct {
 
     fn markModules(self : *Self) void {
         var i : usize = 0;
-        while (i < self.modCount) : (i += 1) {
+        while (i < self.modules.items.len) : (i += 1) {
             _ = self.modules.items[i].mark(self);
 
         }
@@ -530,13 +530,15 @@ pub const Gc = struct {
     fn markObject(self: *Self, obj: ?*PObj) void {
         if (obj) |o| {
             if (o.isMarked) { return; }
+
+            if (slog) {
             dprint('g', self.pstdout , "[GC] Marking Object : {s} : [ ", .{
                 o.getType().toString(),
             });
-            if (slog) {
                 _ = o.printObj(self);
-            }
+            
             dprint('g', self.pstdout , " ] \n", .{});
+            }
             o.isMarked = true;
             self.grayStack.append(self.hal(), o) catch return;
         }
@@ -550,6 +552,7 @@ pub const Gc = struct {
     }
 
     fn paintObject(self : *Self , obj : *PObj) void {
+        //std.debug.print("self -> {any}\n" , .{obj.objtype});
         switch (obj.getType()) {
             .Ot_String , .Ot_NativeFunc , .Ot_Error => {},
             .Ot_Function => {

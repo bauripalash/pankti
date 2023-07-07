@@ -127,11 +127,15 @@ pub const Vm = struct {
             source,
         ) catch return .CompileError;
 
+        
+
         if (rfunc) |f| {
+            
             self.stack.push(f.parent().asValue()) catch {
                 self.throwRuntimeError("failed to push function to stack", .{});
                 return .RuntimeError;
             };
+            //f.name = self.gc.copyString(&[_]u32{'_' , 'd' , '_'}, 3) catch return .RuntimeError;
             const cls = PObj.OClosure.new(self.gc, f) catch {
                 self.throwRuntimeError("failed to create a closure", .{});
                 return .RuntimeError;
@@ -156,6 +160,7 @@ pub const Vm = struct {
             cls.globals = &self.*.gc.modules.items[0].globals;
             self.cmod = self.*.gc.modules.items[0];
             self.cmod.frameCount = 1;
+            self.cmod.frames.count = 1;
             self.cmod.isDefault = true;
 
             return self.run();
@@ -426,8 +431,7 @@ pub const Vm = struct {
         }
 
         var frame = &self.cmod.frames.stack[self.cmod.frameCount];
-            //&self.callframes.stack[self.callframes.count];
-        //self.callframes.count += 1;
+        self.cmod.frames.count += 1;
         self.cmod.frameCount += 1;
         frame.closure = closure;
         frame.ip = closure.function.ins.code.items.ptr;
@@ -517,21 +521,34 @@ pub const Vm = struct {
         }
     }
 
-    fn compileModule(self : *Self , rawSource: []const u8) void {
+    fn compileModule(self : *Self , rawSource: []const u8) ?*PObj.OFunction {
 
-        const source = utils.u8tou32(rawSource, self.gc.hal());
+        const source = utils.u8tou32(rawSource, self.gc.hal()) catch return null;
         
-        const modComp = Compiler.new(source, self.gc, .Ft_SCRIPT) catch return;
+        const modComp = Compiler.new(source, self.gc, .Ft_SCRIPT) catch return null;
 
-        const f = modComp.compileModule(source) catch return;
-        if (f) |ofunu| {
-            ofunu.ins.disasm("import");
-            
+        self.compiler.enclosing = modComp;
+
+        if (self.gc.compiler) |compiler| {
+            compiler.enclosing = modComp;
         }
 
-        
+        const f = modComp.compileModule(source) catch return null;
+
+        if (f) |ofunu| {
+            ofunu.ins.disasm("import");
+
+            self.stack.push(PValue.makeObj(ofunu.parent())) catch {
+                self.gc.hal().free(source);
+                return null;
+            };
+        }
 
         self.gc.hal().free(source);
+
+        modComp.free(self.gc.getAlc());
+
+        return f;
     }
 
     fn importModule(self : *Self , customName : []const u32 , importName : []const u32) void{
@@ -547,14 +564,13 @@ pub const Vm = struct {
 
 
         self.gc.hal().free(filename);
-        self.gc.hal().free(src);
 
 
         const newModule : *gcz.Module = gcz.Module.new(self.gc) orelse return;
-        
         if (!newModule.init(self.gc, customName)) return;
         newModule.origin = self.cmod;
         newModule.isDefault = false;
+
 
         self.gc.modules.append(self.gc.hal() , newModule) catch return;
         self.gc.modCount += 1;
@@ -567,10 +583,34 @@ pub const Vm = struct {
         self.stack.push(PValue.makeObj(objString.parent())) catch return;
 
         self.cmod.globals.put(self.gc.hal(), self.peek(0).asObj().asString() , self.peek(1)) catch return;
-        //self.cmod = newModule;
-        
-        
 
+
+
+        const f = self.compileModule(src) orelse return;
+
+
+        f.fromMod = true;
+
+        const cls = self.gc.newObj(.Ot_Closure, PObj.OClosure) catch return;
+        cls.init(self.gc, f) catch return;
+        cls.parent().isMarked = true;
+        self.stack.push(PValue.makeObj(cls.parent())) catch {
+            self.gc.hal().free(src);
+            return;
+        };
+
+
+        cls.globals = &newModule.globals;
+        cls.globOwner = newModule.hash;
+
+        _ = self.stack.pop() catch return; //closure 
+        _ = self.stack.pop() catch return; //function 
+        _ = self.stack.pop() catch return; //objmod
+        self.gc.hal().free(src);
+
+
+        self.cmod = newModule;
+        _ = self.call(cls, 0);
 
     }
 
@@ -605,9 +645,9 @@ pub const Vm = struct {
             }
             const op = frame.readByte();
 
-            if (flags.DEBUG and flags.DEBUG_STACK) {
+            if (flags.DEBUG) {
                 self.gc.pstdout.print("Op -> {s}\n", .{op.toString()}) catch return .RuntimeError;
-                self.debugStack();
+                //self.debugStack();
             }
 
             switch (op) {
@@ -970,6 +1010,7 @@ pub const Vm = struct {
 
                 .Op_Closure => {
                     const func = frame.readConst().asObj().asFunc();
+                    _ = func.print(self.gc);
                     const cls = PObj.OClosure.new(self.gc, func) catch {
                         self.throwRuntimeError(
                             "Failed to create new closure for function",
@@ -977,8 +1018,7 @@ pub const Vm = struct {
                         );
                         return .RuntimeError;
                     };
-                    cls.globOwner = frame.globOwner;
-                    cls.globals = &self.getModuleByHash(frame.globOwner).?.globals;
+
 
                     self.stack.push(cls.parent().asValue()) catch {
                         self.throwRuntimeError(
@@ -988,6 +1028,8 @@ pub const Vm = struct {
                         return .RuntimeError;
                     };
 
+                    cls.globOwner = frame.globOwner;
+                    cls.globals = &self.getModuleByHash(frame.globOwner).?.globals;
                     var i: usize = 0;
                     while (i < cls.upc) : (i += 1) {
                         const islocal = frame.readRawByte();

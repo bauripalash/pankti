@@ -240,7 +240,7 @@ pub const Compiler = struct {
             .scopeDepth = 0,
             .localCount = 0,
             .enclosing = null,
-            .function = try gc.newObj(.Ot_Function, PObj.OFunction),
+            .function = undefined,
             .upvalues = undefined,
             .ftype = ftype,
             .locals = [_]Local{Local{
@@ -249,6 +249,7 @@ pub const Compiler = struct {
                 .isCaptured = false,
             }} ** std.math.maxInt(u8),
         };
+        c.*.function = try gc.newObj(.Ot_Function, PObj.OFunction);
 
         //var function: *PObj.OFunction = try gc.newObj(
         //    .Ot_Function,
@@ -1146,13 +1147,13 @@ pub const Compiler = struct {
 
         const f = try self.endCompiler();
 
-        self.gc.markCompilerRoots();
+        //self.gc.markCompilerRoots();
 
         if (!self.parser.hadErr) {
             if (!f.ins.makeChangesForModule()) return null;
             return f;
         } else {
-            return null;
+            return f;
         }
 
 
