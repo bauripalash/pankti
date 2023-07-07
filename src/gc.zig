@@ -53,7 +53,7 @@ pub const Module = struct {
     stdlibCount: u32 ,
     frames : stck.CallStack,
     frameCount : u32,
-    name : []const u32,
+    name : []u32,
     hash : u32,
     openValues : ?*PObj.OUpValue,
     isDefault : bool,
@@ -61,8 +61,38 @@ pub const Module = struct {
     sourceCode : ?[]u32,
     
     const Self = @This();
+    
+    pub fn init(self : *Self , gc : *Gc , name : []const u32) bool {
+        self.name = gc.hal().alloc(u32, name.len) catch return false;
+        @memcpy(self.name, name);
+        return true;
+    }
+
+    pub fn new(gc : *Gc) ?*Module {
+        var mod = gc.hal().create(Module) catch return null;
+
+        mod.* = .{
+            .origin = null,
+            .globals = table.PankTable(){},
+            .stdProxies = std.ArrayListUnmanaged(StdLibProxy){},
+            .stdlibCount = 0,
+            .frameCount = 0,
+            .name = undefined,
+            .openValues = null,
+            .isDefault = false,
+            .sourceCode = null,
+            .frames = undefined,
+            .hash = 0,
+
+        };
+        mod.*.frames.stack[0] = undefined;
+        mod.*.frames.count = 0;
+        return mod;
+    }
+
     pub fn free(self : *Self , gc : *Gc) bool {
         
+        gc.hal().free(self.name);
         self.globals.deinit(gc.hal());
         gc.hal().destroy(self);
         return true;
@@ -97,27 +127,7 @@ pub const Module = struct {
        
     }
 
-    pub fn new(gc : *Gc) ?*Module {
-        var mod = gc.hal().create(Module) catch return null;
 
-        mod.* = .{
-            .origin = null,
-            .globals = table.PankTable(){},
-            .stdProxies = std.ArrayListUnmanaged(StdLibProxy){},
-            .stdlibCount = 0,
-            .frameCount = 0,
-            .name = &[_]u32{'_'},
-            .openValues = null,
-            .isDefault = false,
-            .sourceCode = null,
-            .frames = undefined,
-            .hash = 0,
-
-        };
-        mod.*.frames.stack[0] = undefined;
-        mod.*.frames.count = 0;
-        return mod;
-    }
 };
 
 pub const Gc = struct {
@@ -379,6 +389,10 @@ pub const Gc = struct {
 
             .Ot_Error => {
                 obj.asOErr().free(self);
+            },
+
+            .Ot_Module => {
+                obj.asMod().free(self);
             }
 
 
@@ -583,6 +597,10 @@ pub const Gc = struct {
                     self.markValue(pair.key_ptr.*);
                     self.markValue(pair.value_ptr.*);
                 }
+            },
+
+            .Ot_Module => {
+                self.markObject(obj.asMod().name.parent());
             }
             //else => {
             //    return;

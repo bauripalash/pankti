@@ -27,6 +27,7 @@ const _stack = @import("stack.zig");
 const VStack = _stack.VStack;
 const CallStack = _stack.CallStack;
 const CallFrame = _stack.CallFrame;
+const openfile = @import("openfile.zig");
 
 
 pub const IntrpResult = enum(u8) {
@@ -67,7 +68,9 @@ pub const Vm = struct {
     pub fn bootVm(self: *Self, gc: *Gc) void {
         self.*.gc = gc;
         self.*.compiler = undefined;
-        self.*.gc.modules.append(gc.hal(),gcz.Module.new(gc).?) catch return;
+        const mod = gcz.Module.new(gc).?;
+        if (!mod.init(self.gc, &[_]u32{'_' , 'd' , '_'})) return;
+        self.*.gc.modules.append(self.gc.hal() , mod) catch return;
         self.*.gc.modCount += 1;
 
         self.cmod = self.*.gc.modules.items[0];
@@ -133,6 +136,7 @@ pub const Vm = struct {
                 self.throwRuntimeError("failed to create a closure", .{});
                 return .RuntimeError;
             };
+            cls.globOwner = 0;
             _ = self.stack.pop() catch return .RuntimeError;
             _ = self.stack.push(
                 cls.parent().asValue(),
@@ -142,10 +146,14 @@ pub const Vm = struct {
                 .closure = cls,
                 .ip = f.ins.code.items.ptr,
                 .slots = self.stack.stack[0..],
+                .globOwner = 0,
+                .globals = &self.*.gc.modules.items[0].globals,
             };
 
             self.*.gc.modules.items[0].frames.count = 1;
             //self.gc.callstack = &self.callframes;
+
+            cls.globals = &self.*.gc.modules.items[0].globals;
             self.cmod = self.*.gc.modules.items[0];
             self.cmod.frameCount = 1;
             self.cmod.isDefault = true;
@@ -424,6 +432,10 @@ pub const Vm = struct {
         frame.closure = closure;
         frame.ip = closure.function.ins.code.items.ptr;
         frame.slots = self.stack.top - argc - 1;
+        frame.globOwner = closure.globOwner;
+        if (closure.globals) |g| {
+            frame.globals = g;
+        }
         return true;
     }
 
@@ -505,6 +517,77 @@ pub const Vm = struct {
         }
     }
 
+    fn compileModule(self : *Self , rawSource: []const u8) void {
+
+        const source = utils.u8tou32(rawSource, self.gc.hal());
+        
+        const modComp = Compiler.new(source, self.gc, .Ft_SCRIPT) catch return;
+
+        const f = modComp.compileModule(source) catch return;
+        if (f) |ofunu| {
+            ofunu.ins.disasm("import");
+            
+        }
+
+        
+
+        self.gc.hal().free(source);
+    }
+
+    fn importModule(self : *Self , customName : []const u32 , importName : []const u32) void{
+
+        const filename = utils.u32tou8(importName, self.gc.hal()) catch {
+            self.gc.pstdout.print("failed to convert filename" , .{}) catch return;
+            return;
+        };
+        const src = openfile.openfile(filename , self.gc.hal()) catch {
+            self.gc.hal().free(filename);
+            return;
+        };
+
+
+        self.gc.hal().free(filename);
+        self.gc.hal().free(src);
+
+
+        const newModule : *gcz.Module = gcz.Module.new(self.gc) orelse return;
+        
+        if (!newModule.init(self.gc, customName)) return;
+        newModule.origin = self.cmod;
+        newModule.isDefault = false;
+
+        self.gc.modules.append(self.gc.hal() , newModule) catch return;
+        self.gc.modCount += 1;
+
+        const objmod = PObj.OModule.new(self, self.gc, customName) orelse return;
+        self.stack.push(PValue.makeObj(objmod.parent())) catch return;
+        self.gc.modules.items[self.gc.modCount - 1].hash = objmod.name.hash;
+
+        const objString = self.gc.copyString(customName, @intCast(customName.len)) catch return;
+        self.stack.push(PValue.makeObj(objString.parent())) catch return;
+
+        self.cmod.globals.put(self.gc.hal(), self.peek(0).asObj().asString() , self.peek(1)) catch return;
+        //self.cmod = newModule;
+        
+        
+
+
+    }
+
+    fn getModuleByHash(self : *Self , hash : u32) ?*gcz.Module {
+        var i : usize = 0;
+
+        while (i < self.gc.modules.items.len) {
+
+            const mod = self.gc.modules.items[i];
+            if (mod.hash == hash) {
+                return mod;
+            }
+        }
+
+        return null;
+    } 
+
     fn run(self: *Self) IntrpResult {
         //std.debug.print("{any}\n" , .{self.cmod});
         var frame: *CallFrame = &self.cmod.frames.stack[self.cmod.frameCount - 1];
@@ -528,6 +611,26 @@ pub const Vm = struct {
             }
 
             switch (op) {
+                .Op_Import => {
+                    const rawCustomName = frame.readConst();
+                    if (!rawCustomName.isString()) {
+                        self.throwRuntimeError("Import name must be a identifier", .{});
+                        return .RuntimeError;
+                    }
+                    const rawFileName = self.peek(0);
+
+                    if (!rawFileName.isString()) {
+                        self.throwRuntimeError("import filename must be a string", .{});
+                        return .RuntimeError;
+                    }
+
+                    self.importModule(
+                        rawCustomName.asObj().asString().chars, 
+                        rawFileName.asObj().asString().chars,
+                    );
+
+                     
+                },
                 .Op_Hmap => {
                     const count = frame.readU16();
                     const mapObj = self.gc.newObj(.Ot_Hmap, PObj.OHmap) catch {
@@ -874,6 +977,9 @@ pub const Vm = struct {
                         );
                         return .RuntimeError;
                     };
+                    cls.globOwner = frame.globOwner;
+                    cls.globals = &self.getModuleByHash(frame.globOwner).?.globals;
+
                     self.stack.push(cls.parent().asValue()) catch {
                         self.throwRuntimeError(
                             "Failed to push newly created closure",
@@ -932,6 +1038,13 @@ pub const Vm = struct {
                 .Op_Loop => {
                     const offset = frame.readU16();
                     frame.ip -= offset;
+                },
+                .Op_EndMod => {
+                    _ = self.stack.pop() catch return .RuntimeError;
+                    self.cmod.frameCount -= 1;
+                    self.cmod = self.cmod.origin.?;
+                    frame = &self.cmod.frames.stack[self.cmod.frameCount - 1];
+                    continue;
                 },
                 .Op_Return => {
                     if (self.cmod.frameCount == 1 and self.cmod.isDefault) {
@@ -1100,7 +1213,7 @@ pub const Vm = struct {
 
                 .Op_DefGlob => {
                     const name: *PObj.OString = frame.readStringConst();
-                    self.cmod.globals.put(
+                    frame.globals.put(
                         self.gc.hal(),
                         name,
                         self.peek(0),
@@ -1124,7 +1237,7 @@ pub const Vm = struct {
                 .Op_GetGlob => {
                     const name: *PObj.OString = frame.readStringConst();
 
-                    if (self.cmod.globals.get(name)) |value| {
+                    if (frame.globals.get(name)) |value| {
                         self.stack.push(value) catch {
                             self.throwRuntimeError(
                                 "failed to push value for get global",

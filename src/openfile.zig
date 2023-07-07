@@ -15,3 +15,4 @@ pub fn openfile(path: []const u8, aloc: std.mem.Allocator) ![]u8 {
     const read_buf = try f.readToEndAlloc(aloc, 1024);
     return read_buf;
 }
+

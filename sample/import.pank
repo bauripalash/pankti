@@ -1,1 +1,6 @@
-import a "a"
+import a "sample/map.pank"
+
+kaj x(z)
+	show(z)
+end
+show(x(100))

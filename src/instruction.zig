@@ -148,6 +148,13 @@ pub const Instruction = struct {
         };
     }
 
+    pub fn makeChangesForModule(self : *Instruction) bool {
+        const len = self.code.items.len;
+        if (len < 2) return false;
+        self.code.items[len - 1] = .Op_EndMod;
+        return true;
+    }
+
     pub fn free(self: *Instruction) void {
         self.code.deinit(self.gc.hal());
         self.pos.deinit(self.gc.hal());

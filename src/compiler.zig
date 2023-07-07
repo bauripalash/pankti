@@ -1135,6 +1135,29 @@ pub const Compiler = struct {
         }
     }
 
+    pub fn compileModule(self : *Self , source : []u32) !?*PObj.OFunction {
+        
+        self.parser.init(source, self.gc);
+        self.parser.advance();
+
+        while (!self.match(.Eof)) {
+            try self.rDeclaration();
+        }
+
+        const f = try self.endCompiler();
+
+        self.gc.markCompilerRoots();
+
+        if (!self.parser.hadErr) {
+            if (!f.ins.makeChangesForModule()) return null;
+            return f;
+        } else {
+            return null;
+        }
+
+
+    }
+
     pub fn free(self: *Self, al: std.mem.Allocator) void {
         self.parser.free(self.gc.getAlc());
         al.destroy(self);

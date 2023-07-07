@@ -32,6 +32,7 @@ pub const PObj = struct {
         Ot_Array,
         Ot_Hmap,
         Ot_Error,
+        Ot_Module,
 
         pub fn toString(self: OType) []const u8 {
             switch (self) {
@@ -47,6 +48,7 @@ pub const PObj = struct {
                 .Ot_Array => return "OBJ_ARRAY",
                 .Ot_Hmap => return "OBJ_HMAP",
                 .Ot_Error => return "OBJ_ERROR",
+                .Ot_Module => return "OBJ_MODULE",
             }
         }
     };
@@ -136,6 +138,10 @@ pub const PObj = struct {
         return self.child(PObj.OError);
     }
 
+    pub fn asMod(self : *PObj) *OModule {
+        return self.child(PObj.OModule);
+    }
+
     pub fn free(self: *PObj, vm: *Vm) void {
         switch (self.objtype) {
             .Ot_String => self.asString().free(vm),
@@ -156,6 +162,7 @@ pub const PObj = struct {
             .Ot_Array => self.asArray().print(gc),
             .Ot_Hmap => self.asHmap().print(gc),
             .Ot_Error => self.asOErr().print(gc),
+            .Ot_Module => self.asMod().print(gc),
         };
     }
 
@@ -229,6 +236,42 @@ pub const PObj = struct {
     }
 
 
+    pub const OModule = struct {
+        obj : PObj,
+        name : *OString,
+
+        pub fn new(vm : *Vm , gc : *Gc , name : []const u32) ?*OModule {
+            
+            const om : *OModule = gc.newObj(.Ot_Module, PObj.OModule) catch return null;
+            om.name = undefined;
+
+            vm.stack.push(PValue.makeObj(om.parent())) catch return null;
+
+            om.name = gc.copyString(name, @intCast(name.len)) catch {
+                _ = vm.stack.pop() catch return null;
+                return null;
+            };
+
+            _ = vm.stack.pop() catch return null;
+            return om;
+
+        }
+
+        pub fn free(self : *OModule , gc : *Gc) void {
+            gc.getAlc().destroy(self);
+        }
+
+        pub fn print(self : *OModule , gc : *Gc) bool {
+            gc.pstdout.print("<oMod " , .{}) catch return false;
+            _ = self.name.print(gc);
+            gc.pstdout.print(" >" , .{}) catch return false;
+            return true;
+        }
+
+        pub fn parent(self : *OModule) *PObj {
+            return @ptrCast(self);
+        }
+    };
     pub const OError = struct {
         obj : PObj,
         msg : []u8,
@@ -404,6 +447,8 @@ pub const PObj = struct {
         function: *OFunction,
         upvalues: [*]*OUpValue,
         upc: u32,
+        globOwner : u32,
+        globals : ?*table.PankTable(),
 
         pub fn new(gc: *Gc, func: *OFunction) !*PObj.OClosure {
             const upvalues = try gc.getAlc().alloc(?*OUpValue, func.upvCount);
@@ -415,6 +460,8 @@ pub const PObj = struct {
             cl.upvalues = ptr;
             cl.upc = func.upvCount;
             cl.function = func;
+            cl.globals = null;
+            cl.globOwner = 0;
             return cl;
         }
 
