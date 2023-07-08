@@ -29,7 +29,6 @@ const CallStack = _stack.CallStack;
 const CallFrame = _stack.CallFrame;
 const openfile = @import("openfile.zig");
 
-
 pub const IntrpResult = enum(u8) {
     Ok,
     CompileError,
@@ -50,13 +49,11 @@ pub const IntrpResult = enum(u8) {
     }
 };
 
-
-
 pub const Vm = struct {
     compiler: *Compiler,
     stack: VStack,
     gc: *Gc,
-    cmod : *gcz.Module,
+    cmod: *gcz.Module,
 
     const Self = @This();
 
@@ -69,8 +66,8 @@ pub const Vm = struct {
         self.*.gc = gc;
         self.*.compiler = undefined;
         const mod = gcz.Module.new(gc).?;
-        if (!mod.init(self.gc, &[_]u32{'_' , 'd' , '_'})) return;
-        self.*.gc.modules.append(self.gc.hal() , mod) catch return;
+        if (!mod.init(self.gc, &[_]u32{ '_', 'd', '_' })) return;
+        self.*.gc.modules.append(self.gc.hal(), mod) catch return;
         self.*.gc.modCount += 1;
 
         self.cmod = self.*.gc.modules.items[0];
@@ -81,15 +78,14 @@ pub const Vm = struct {
         self.*.stack.top = self.stack.stack[0..];
         self.*.stack.head = self.stack.stack[0..];
 
-
         self.gc.stack = &self.stack;
         self.defineNative(
             &[_]u32{ 'c', 'l', 'o', 'c', 'k' },
             builtins.nClock,
         ) catch return;
 
-        self.defineNative(&[_]u32{'l', 'e', 'n'}, builtins.nLen) catch return;
-        self.defineNative(&kws.K_EN_SHOW, builtins.nShow ) catch return;
+        self.defineNative(&[_]u32{ 'l', 'e', 'n' }, builtins.nLen) catch return;
+        self.defineNative(&kws.K_EN_SHOW, builtins.nShow) catch return;
         self.defineNative(&kws.K_BN_SHOW, builtins.nBnShow) catch return;
 
         //self.defineNative(
@@ -127,10 +123,7 @@ pub const Vm = struct {
             source,
         ) catch return .CompileError;
 
-        
-
         if (rfunc) |f| {
-            
             self.stack.push(f.parent().asValue()) catch {
                 self.throwRuntimeError("failed to push function to stack", .{});
                 return .RuntimeError;
@@ -186,7 +179,11 @@ pub const Vm = struct {
         return (self.stack.top - 1 - dist)[0];
     }
 
-    fn throwRuntimeError(self: *Self, comptime msg: []const u8, args: anytype) void {
+    fn throwRuntimeError(
+        self: *Self,
+        comptime msg: []const u8,
+        args: anytype,
+    ) void {
         const frame = self.cmod.frames.stack[self.cmod.frameCount - 1];
         //const frame = &self.callframes.stack[self.callframes.count - 1];
         const i = @intFromPtr(frame.ip) - @intFromPtr(
@@ -198,7 +195,6 @@ pub const Vm = struct {
         self.gc.pstdout.print(msg, args) catch return;
         self.gc.pstdout.print("\n", .{}) catch return;
 
-
         var j: i64 = @intCast(self.cmod.frameCount - 1);
         while (j >= 0) {
             const f = &self.cmod.frames.stack[@intCast(j)];
@@ -206,7 +202,9 @@ pub const Vm = struct {
             const instr = @intFromPtr(f.ip) - @intFromPtr(
                 fun.ins.code.items.ptr,
             ) - 1;
-            self.gc.pstdout.print("[line {d}] in ", .{fun.ins.pos.items[instr].line}) catch return;
+            self.gc.pstdout.print("[line {d}] in ", .{
+                fun.ins.pos.items[instr].line,
+            }) catch return;
             if (fun.name) |n| {
                 utils.printu32(n.chars, self.gc.pstdout);
                 self.gc.pstdout.print("()\n", .{}) catch return;
@@ -349,7 +347,9 @@ pub const Vm = struct {
 
         if (a.isNumber() and b.isNumber()) {
             self.stack.push(
-                PValue.makeNumber(std.math.pow(f64, a.asNumber(), b.asNumber())),
+                PValue.makeNumber(
+                    std.math.pow(f64, a.asNumber(), b.asNumber()),
+                ),
             ) catch return false;
             return true;
         } else {
@@ -459,9 +459,9 @@ pub const Vm = struct {
                         (self.stack.top - argc)[0..argc],
                     );
                     self.stack.top -= argc + 1;
-                    
+
                     if (result.isError()) {
-                        const eo : *PObj.OError = result.asObj().asOErr();
+                        const eo: *PObj.OError = result.asObj().asOErr();
                         _ = eo.print(self.gc);
                         return false;
                     }
@@ -521,12 +521,18 @@ pub const Vm = struct {
         }
     }
 
-    fn compileModule(self : *Self , rawSource: []const u8) (?*PObj.OFunction) {
+    fn compileModule(self: *Self, rawSource: []const u8) (?*PObj.OFunction) {
+        const source = utils.u8tou32(
+            rawSource,
+            self.gc.hal(),
+        ) catch return null;
 
-        const source = utils.u8tou32(rawSource, self.gc.hal()) catch return null;
-        
-        const modComp = Compiler.new(source, self.gc, .Ft_SCRIPT) catch return null;
-    
+        const modComp = Compiler.new(
+            source,
+            self.gc,
+            .Ft_SCRIPT,
+        ) catch return null;
+
         self.gc.compiler = modComp;
 
         const f = modComp.compileModule(source) catch return null;
@@ -549,39 +555,44 @@ pub const Vm = struct {
         return f;
     }
 
-    fn importModule(self : *Self , customName : []const u32 , importName : []const u32) void{
-
+    fn importModule(self: *Self, customName: []const u32, importName: []const u32) void {
         const filename = utils.u32tou8(importName, self.gc.hal()) catch {
-            self.gc.pstdout.print("failed to convert filename" , .{}) catch return;
+            self.gc.pstdout.print(
+                "failed to convert filename",
+                .{},
+            ) catch return;
             return;
         };
-        const src = openfile.openfile(filename , self.gc.hal()) catch {
+        const src = openfile.openfile(filename, self.gc.hal()) catch {
             self.gc.hal().free(filename);
             return;
         };
 
-
         self.gc.hal().free(filename);
 
-
-        const newModule : *gcz.Module = gcz.Module.new(self.gc) orelse return;
+        const newModule: *gcz.Module = gcz.Module.new(self.gc) orelse return;
         if (!newModule.init(self.gc, customName)) return;
         newModule.origin = self.cmod;
         newModule.isDefault = false;
 
-
-        self.gc.modules.append(self.gc.hal() , newModule) catch return;
+        self.gc.modules.append(self.gc.hal(), newModule) catch return;
         self.gc.modCount += 1;
 
         const objmod = PObj.OModule.new(self, self.gc, customName) orelse return;
         self.stack.push(PValue.makeObj(objmod.parent())) catch return;
         self.gc.modules.items[self.gc.modCount - 1].hash = objmod.name.hash;
 
-        const objString = self.gc.copyString(customName, @intCast(customName.len)) catch return;
+        const objString = self.gc.copyString(
+            customName,
+            @intCast(customName.len),
+        ) catch return;
         self.stack.push(PValue.makeObj(objString.parent())) catch return;
 
-        self.cmod.globals.put(self.gc.hal(), self.peek(0).asObj().asString() , self.peek(1)) catch return;
-
+        self.cmod.globals.put(
+            self.gc.hal(),
+            self.peek(0).asObj().asString(),
+            self.peek(1),
+        ) catch return;
 
         const source = utils.u8tou32(src, self.gc.hal()) catch return;
         const modComp = Compiler.new(source, self.gc, .Ft_SCRIPT) catch return;
@@ -605,7 +616,6 @@ pub const Vm = struct {
         self.gc.hal().free(source);
         const f = rawFunc.?;
 
-
         f.fromMod = true;
 
         const cls = self.gc.newObj(.Ot_Closure, PObj.OClosure) catch return;
@@ -617,29 +627,25 @@ pub const Vm = struct {
             return;
         };
 
-
         cls.globals = &newModule.globals;
         cls.globOwner = newModule.hash;
 
-        _ = self.stack.pop() catch return; //closure 
-        _ = self.stack.pop() catch return; //function 
+        _ = self.stack.pop() catch return; //closure
+        _ = self.stack.pop() catch return; //function
         _ = self.stack.pop() catch return; //objmod
         self.gc.hal().free(src);
-
 
         modComp.markRoots(self.gc);
         self.compiler.markRoots(self.gc);
         //self.compiler = modComp;
         self.cmod = newModule;
         _ = self.call(cls, 0);
-
     }
 
-    fn getModuleByHash(self : *Self , hash : u32) ?*gcz.Module {
-        var i : usize = 0;
+    fn getModuleByHash(self: *Self, hash: u32) ?*gcz.Module {
+        var i: usize = 0;
 
-        while (i < self.gc.modules.items.len) : (i+=1){
-
+        while (i < self.gc.modules.items.len) : (i += 1) {
             const mod = self.gc.modules.items[i];
             if (mod.hash == hash) {
                 return mod;
@@ -647,13 +653,13 @@ pub const Vm = struct {
         }
 
         return null;
-    } 
+    }
 
     fn run(self: *Self) IntrpResult {
         //std.debug.print("{any}\n" , .{self.cmod});
-        var frame: *CallFrame = &self.cmod.frames.stack[self.cmod.frameCount - 1];
-            //&self.callframes.stack[self.callframes.count - 1];
-
+        var frame: *CallFrame =
+            &self.cmod.frames.stack[self.cmod.frameCount - 1];
+        //&self.callframes.stack[self.callframes.count - 1];
 
         while (true) {
             if (flags.DEBUG and flags.DEBUG_GLOBS) {
@@ -675,20 +681,26 @@ pub const Vm = struct {
                 .Op_GetModProp => {
                     const rawMod = self.peek(0);
                     if (!rawMod.isMod()) {
-                        self.throwRuntimeError("Dot field can be accessed used on modules", .{});
+                        self.throwRuntimeError(
+                            "Dot field can be accessed used on modules",
+                            .{},
+                        );
                         return .RuntimeError;
                     }
                     const modObj = rawMod.asObj().asMod();
                     const prop = frame.readStringConst();
                     //_ = self.stack.pop() catch return .RuntimeError;
                     const module = self.getModuleByHash(modObj.name.hash) orelse {
-                        self.throwRuntimeError("This module cannot be found? {d}", .{modObj.name.hash});
+                        self.throwRuntimeError(
+                            "This module cannot be found? {d}",
+                            .{modObj.name.hash},
+                        );
                         return .RuntimeError;
                     };
 
                     if (module.globals.get(prop)) |value| {
                         _ = self.stack.pop() catch {
-                            self.throwRuntimeError("failed to pop" , .{});
+                            self.throwRuntimeError("failed to pop", .{});
                             return .RuntimeError;
                         };
 
@@ -696,9 +708,11 @@ pub const Vm = struct {
                             self.throwRuntimeError("failed to push value", .{});
                             return .RuntimeError;
                         };
-  
                     } else {
-                        self.throwRuntimeError("Undefined module variable", .{});
+                        self.throwRuntimeError(
+                            "Undefined module variable",
+                            .{},
+                        );
                         return .RuntimeError;
                     }
                     //std.debug.print("MODULE -> {any}\n" , .{module});
@@ -707,24 +721,28 @@ pub const Vm = struct {
                 .Op_Import => {
                     const rawCustomName = frame.readConst();
                     if (!rawCustomName.isString()) {
-                        self.throwRuntimeError("Import name must be a identifier", .{});
+                        self.throwRuntimeError(
+                            "Import name must be a identifier",
+                            .{},
+                        );
                         return .RuntimeError;
                     }
                     const rawFileName = self.peek(0);
 
                     if (!rawFileName.isString()) {
-                        self.throwRuntimeError("import filename must be a string", .{});
+                        self.throwRuntimeError(
+                            "import filename must be a string",
+                            .{},
+                        );
                         return .RuntimeError;
                     }
 
                     self.importModule(
-                        rawCustomName.asObj().asString().chars, 
+                        rawCustomName.asObj().asString().chars,
                         rawFileName.asObj().asString().chars,
                     );
 
                     frame = &self.cmod.frames.stack[self.cmod.frames.count - 1];
-
-                     
                 },
                 .Op_Hmap => {
                     const count = frame.readU16();
@@ -748,8 +766,15 @@ pub const Vm = struct {
                     var i: usize = count * 2;
 
                     while (i > 0) : (i -= 2) {
-                        if (!mapObj.addPair(self.gc, self.peek(i), self.peek(i - 1))) {
-                            self.throwRuntimeError("Failed to add pair to map", .{});
+                        if (!mapObj.addPair(
+                            self.gc,
+                            self.peek(i),
+                            self.peek(i - 1),
+                        )) {
+                            self.throwRuntimeError(
+                                "Failed to add pair to map",
+                                .{},
+                            );
                             return .RuntimeError;
                         }
                     }
@@ -858,14 +883,22 @@ pub const Vm = struct {
                         rawObj.asObj().isArray()))
                     {
                         if (!rawIndex.isNumber()) {
-                            self.throwRuntimeError("Index must be number", .{});
+                            self.throwRuntimeError(
+                                "Index must be number",
+                                .{},
+                            );
                             return .RuntimeError;
                         }
 
                         const rawIndexNum = rawIndex.asNumber();
 
-                        if (rawIndexNum < 0 or @ceil(rawIndexNum) != rawIndexNum) {
-                            self.throwRuntimeError("Index must be non negetive integer", .{});
+                        if (rawIndexNum < 0 or
+                            @ceil(rawIndexNum) != rawIndexNum)
+                        {
+                            self.throwRuntimeError(
+                                "Index must be non negetive integer",
+                                .{},
+                            );
                             return .RuntimeError;
                         }
 
@@ -875,7 +908,10 @@ pub const Vm = struct {
                             const arr = rawObj.asObj().asArray();
 
                             if (index >= arr.count) {
-                                self.throwRuntimeError("Index out of range", .{});
+                                self.throwRuntimeError(
+                                    "Index out of range",
+                                    .{},
+                                );
                                 return .RuntimeError;
                             }
 
@@ -944,7 +980,6 @@ pub const Vm = struct {
                         const hmap = rawObj.asObj().asHmap();
 
                         if (hmap.getValue(rawIndex)) |val| {
-                             
                             _ = self.stack.pop() catch {
                                 self.throwRuntimeError(
                                     "failed to pop",
@@ -967,17 +1002,18 @@ pub const Vm = struct {
                                 );
                                 return .RuntimeError;
                             };
-
                         } else {
                             self.throwRuntimeError(
                                 "Value couldn't be found for key : ",
                                 .{},
                             );
                             _ = rawIndex.printVal(self.gc);
-                            self.gc.pstdout.print("\n" , .{}) catch return .RuntimeError;
+                            self.gc.pstdout.print(
+                                "\n",
+                                .{},
+                            ) catch return .RuntimeError;
                             return .RuntimeError;
                         }
-                        
                     } else {
                         self.throwRuntimeError(
                             "Indexing only works on arrays and strings",
@@ -1011,7 +1047,10 @@ pub const Vm = struct {
                     };
                     while (i > 0) : (i -= 1) {
                         if (!arr.addItem(self.gc, self.stack.pop() catch {
-                            self.throwRuntimeError("Failed to pop array item", .{});
+                            self.throwRuntimeError(
+                                "Failed to pop array item",
+                                .{},
+                            );
                             return .RuntimeError;
                         })) {
                             self.throwRuntimeError(
@@ -1074,7 +1113,6 @@ pub const Vm = struct {
                         return .RuntimeError;
                     };
 
-
                     self.stack.push(cls.parent().asValue()) catch {
                         self.throwRuntimeError(
                             "Failed to push newly created closure",
@@ -1084,7 +1122,9 @@ pub const Vm = struct {
                     };
 
                     cls.globOwner = frame.globOwner;
-                    cls.globals = &self.getModuleByHash(frame.globOwner).?.globals;
+                    cls.globals = &self.getModuleByHash(
+                        frame.globOwner,
+                    ).?.globals;
                     var i: usize = 0;
                     while (i < cls.upc) : (i += 1) {
                         const islocal = frame.readRawByte();
@@ -1145,7 +1185,7 @@ pub const Vm = struct {
                         com.free(self.gc.getAlc());
                         self.gc.compiler = self.compiler;
                     }
-                    
+
                     continue;
                 },
                 .Op_Return => {
@@ -1196,7 +1236,10 @@ pub const Vm = struct {
                 .Op_Const => {
                     const con: PValue = frame.readConst();
                     self.stack.push(con) catch |err| {
-                        self.throwRuntimeError("Failed to push constant to stack Because of {}", .{err});
+                        self.throwRuntimeError(
+                            "Failed to push constant to stack Because of {}",
+                            .{err},
+                        );
                         return .RuntimeError;
                     };
                 },
@@ -1213,7 +1256,10 @@ pub const Vm = struct {
 
                 .Op_Neg => {
                     var v = self.stack.pop() catch {
-                        self.throwRuntimeError("Failed to pop stack for neg", .{});
+                        self.throwRuntimeError(
+                            "Failed to pop stack for neg",
+                            .{},
+                        );
                         return .RuntimeError;
                     };
                     if (v.isNumber()) {
@@ -1235,14 +1281,20 @@ pub const Vm = struct {
 
                 .Op_Add => {
                     if (!self.doBinaryOpAdd()) {
-                        self.throwRuntimeError("Failed to do binary add", .{});
+                        self.throwRuntimeError(
+                            "Failed to do binary add",
+                            .{},
+                        );
                         return .RuntimeError;
                     }
                 },
 
                 .Op_Sub => {
                     if (!self.doBinaryOpSub()) {
-                        self.throwRuntimeError("Failed to do binary sub", .{});
+                        self.throwRuntimeError(
+                            "Failed to do binary sub",
+                            .{},
+                        );
                         return .RuntimeError;
                     }
                 },
@@ -1308,7 +1360,10 @@ pub const Vm = struct {
 
                 .Op_Neq => {
                     if (!self.doValueComp(.C_Neq)) {
-                        self.throwRuntimeError("Failed to do binary noteq", .{});
+                        self.throwRuntimeError(
+                            "Failed to do binary noteq",
+                            .{},
+                        );
                         return .RuntimeError;
                     }
                 },
@@ -1347,7 +1402,7 @@ pub const Vm = struct {
                             );
                             return .RuntimeError;
                         };
-                    }else if (self.gc.builtins.get(name)) |value| {
+                    } else if (self.gc.builtins.get(name)) |value| {
                         self.stack.push(value) catch {
                             self.throwRuntimeError(
                                 "failed to push builtin function to stack",
@@ -1358,7 +1413,7 @@ pub const Vm = struct {
                     } else {
                         self.throwRuntimeError("Undefined variable -> ", .{});
                         //_ = name.print(self.gc); //TO_DO
-                        
+
                         return .RuntimeError;
                     }
                 },
@@ -1444,7 +1499,10 @@ pub const Vm = struct {
 
                 else => {
                     self.throwRuntimeError("unknown opcode found", .{});
-                    self.gc.pstdout.print("OPCODE -> {any}", .{op}) catch return .RuntimeError;
+                    self.gc.pstdout.print(
+                        "OPCODE -> {any}",
+                        .{op},
+                    ) catch return .RuntimeError;
                     return IntrpResult.RuntimeError;
                 },
             }
