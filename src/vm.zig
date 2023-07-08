@@ -521,19 +521,17 @@ pub const Vm = struct {
         }
     }
 
-    fn compileModule(self : *Self , rawSource: []const u8) ?*PObj.OFunction {
+    fn compileModule(self : *Self , rawSource: []const u8) (?*PObj.OFunction) {
 
         const source = utils.u8tou32(rawSource, self.gc.hal()) catch return null;
         
         const modComp = Compiler.new(source, self.gc, .Ft_SCRIPT) catch return null;
-
-        self.compiler.enclosing = modComp;
-
-        if (self.gc.compiler) |compiler| {
-            compiler.enclosing = modComp;
-        }
+    
+        self.gc.compiler = modComp;
 
         const f = modComp.compileModule(source) catch return null;
+        modComp.markRoots(self.gc);
+        self.compiler.markRoots(self.gc);
 
         if (f) |ofunu| {
             ofunu.ins.disasm("import");
@@ -546,7 +544,7 @@ pub const Vm = struct {
 
         self.gc.hal().free(source);
 
-        modComp.free(self.gc.getAlc());
+        //modComp.free(self.gc.getAlc());
 
         return f;
     }
@@ -585,15 +583,35 @@ pub const Vm = struct {
         self.cmod.globals.put(self.gc.hal(), self.peek(0).asObj().asString() , self.peek(1)) catch return;
 
 
+        const source = utils.u8tou32(src, self.gc.hal()) catch return;
+        const modComp = Compiler.new(source, self.gc, .Ft_SCRIPT) catch return;
+        self.gc.compiler = modComp;
+        const rawFunc = modComp.compileModule(source) catch return;
 
-        const f = self.compileModule(src) orelse return;
+        modComp.markRoots(self.gc);
+        self.compiler.markRoots(self.gc);
+
+        if (rawFunc) |ofunu| {
+            ofunu.ins.disasm("import");
+
+            self.stack.push(PValue.makeObj(ofunu.parent())) catch {
+                self.gc.hal().free(source);
+                return;
+            };
+        } else {
+            return;
+        }
+
+        self.gc.hal().free(source);
+        const f = rawFunc.?;
 
 
         f.fromMod = true;
 
         const cls = self.gc.newObj(.Ot_Closure, PObj.OClosure) catch return;
-        cls.init(self.gc, f) catch return;
+
         cls.parent().isMarked = true;
+        cls.init(self.gc, f) catch return;
         self.stack.push(PValue.makeObj(cls.parent())) catch {
             self.gc.hal().free(src);
             return;
@@ -609,6 +627,9 @@ pub const Vm = struct {
         self.gc.hal().free(src);
 
 
+        modComp.markRoots(self.gc);
+        self.compiler.markRoots(self.gc);
+        //self.compiler = modComp;
         self.cmod = newModule;
         _ = self.call(cls, 0);
 
@@ -646,7 +667,7 @@ pub const Vm = struct {
             const op = frame.readByte();
 
             if (flags.DEBUG) {
-                self.gc.pstdout.print("Op -> {s}\n", .{op.toString()}) catch return .RuntimeError;
+                //self.gc.pstdout.print("Op -> {s}\n", .{op.toString()}) catch return .RuntimeError;
                 //self.debugStack();
             }
 
@@ -668,6 +689,8 @@ pub const Vm = struct {
                         rawCustomName.asObj().asString().chars, 
                         rawFileName.asObj().asString().chars,
                     );
+
+                    frame = &self.cmod.frames.stack[self.cmod.frames.count - 1];
 
                      
                 },
@@ -1086,6 +1109,11 @@ pub const Vm = struct {
                     self.cmod.frameCount -= 1;
                     self.cmod = self.cmod.origin.?;
                     frame = &self.cmod.frames.stack[self.cmod.frameCount - 1];
+                    if (self.gc.compiler) |com| {
+                        com.free(self.gc.getAlc());
+                        self.gc.compiler = self.compiler;
+                    }
+                    
                     continue;
                 },
                 .Op_Return => {

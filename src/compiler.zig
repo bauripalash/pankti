@@ -177,6 +177,13 @@ pub const Compiler = struct {
         self.parser.gc = gc;
     }
 
+    pub fn markRoots(self : *Self, gc : *Gc) void {
+        var comp: ?*Compiler = self;
+        while (comp) |com| {
+            gc.markObject(com.function.parent());
+            comp = com.enclosing;
+        }
+    }
     pub fn newEnclosed(gc: *Gc, enclosing: ?*Self, ftype: FnType) !*Self {
         var c = try gc.getAlc().create(Compiler);
 
@@ -1147,7 +1154,7 @@ pub const Compiler = struct {
 
         const f = try self.endCompiler();
 
-        //self.gc.markCompilerRoots();
+        self.markRoots(self.gc);
 
         if (!self.parser.hadErr) {
             if (!f.ins.makeChangesForModule()) return null;

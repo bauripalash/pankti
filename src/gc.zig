@@ -521,13 +521,13 @@ pub const Gc = struct {
         }
     }
 
-    fn markValue(self: *Self, v: PValue) void {
+    pub fn markValue(self: *Self, v: PValue) void {
         if (v.isObj()) {
             self.markObject(v.asObj());
         }
     }
 
-    fn markObject(self: *Self, obj: ?*PObj) void {
+    pub fn markObject(self: *Self, obj: ?*PObj) void {
         if (obj) |o| {
             if (o.isMarked) { return; }
 

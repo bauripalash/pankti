@@ -1,7 +1,7 @@
+import mymap "sample/map.pank"
 
 kaj x(z)
 	show(z)
 end
 show(x(100))
 
-import mymap "sample/map.pank"
