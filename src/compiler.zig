@@ -95,7 +95,10 @@ pub const Compiler = struct {
         .Panic = ParseRule{},
         .Unknown = ParseRule{},
         .Comma = ParseRule{},
-        .Dot = ParseRule{},
+        .Dot = ParseRule{
+            .infix = Self.rDot,
+            .prec = .P_Call,
+        },
         .Minus = ParseRule{
             .prefix = Self.rUnary,
             .infix = Self.rBinary,
@@ -477,6 +480,17 @@ pub const Compiler = struct {
 
         self.eat(.Rparen, "Expected ')' after arguments");
         return argc;
+    }
+    fn rDot(self : *Self , canAssign : bool) !void {
+        const name = self.parseVariable("expected id i guess?");
+        if (canAssign and self.match(.Eq)) {
+            try self.parseExpression();
+            try self.emitBt(.Op_SetModProp);
+            try self.emitBtRaw(name);
+        }else{
+            try self.emitBt(.Op_GetModProp);
+            try self.emitBtRaw(name);
+        }
     }
 
     fn rCall(self: *Self, canAssign: bool) !void {

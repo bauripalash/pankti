@@ -638,7 +638,7 @@ pub const Vm = struct {
     fn getModuleByHash(self : *Self , hash : u32) ?*gcz.Module {
         var i : usize = 0;
 
-        while (i < self.gc.modules.items.len) {
+        while (i < self.gc.modules.items.len) : (i+=1){
 
             const mod = self.gc.modules.items[i];
             if (mod.hash == hash) {
@@ -672,6 +672,38 @@ pub const Vm = struct {
             }
 
             switch (op) {
+                .Op_GetModProp => {
+                    const rawMod = self.peek(0);
+                    if (!rawMod.isMod()) {
+                        self.throwRuntimeError("Dot field can be accessed used on modules", .{});
+                        return .RuntimeError;
+                    }
+                    const modObj = rawMod.asObj().asMod();
+                    const prop = frame.readStringConst();
+                    //_ = self.stack.pop() catch return .RuntimeError;
+                    const module = self.getModuleByHash(modObj.name.hash) orelse {
+                        self.throwRuntimeError("This module cannot be found? {d}", .{modObj.name.hash});
+                        return .RuntimeError;
+                    };
+
+                    if (module.globals.get(prop)) |value| {
+                        _ = self.stack.pop() catch {
+                            self.throwRuntimeError("failed to pop" , .{});
+                            return .RuntimeError;
+                        };
+
+                        self.stack.push(value) catch {
+                            self.throwRuntimeError("failed to push value", .{});
+                            return .RuntimeError;
+                        };
+  
+                    } else {
+                        self.throwRuntimeError("Undefined module variable", .{});
+                        return .RuntimeError;
+                    }
+                    //std.debug.print("MODULE -> {any}\n" , .{module});
+                    //_ = rawMod.printVal(self.gc);
+                },
                 .Op_Import => {
                     const rawCustomName = frame.readConst();
                     if (!rawCustomName.isString()) {
@@ -1033,7 +1065,7 @@ pub const Vm = struct {
 
                 .Op_Closure => {
                     const func = frame.readConst().asObj().asFunc();
-                    _ = func.print(self.gc);
+                    //_ = func.print(self.gc);
                     const cls = PObj.OClosure.new(self.gc, func) catch {
                         self.throwRuntimeError(
                             "Failed to create new closure for function",
@@ -1334,7 +1366,7 @@ pub const Vm = struct {
                 .Op_SetGlob => {
                     const name: *PObj.OString = frame.readStringConst();
 
-                    if (self.cmod.globals.get(name)) |_| {
+                    if (frame.globals.get(name)) |_| {
                         //_ = self.gc.globals.fetchPut(self.gc.hal(), name, self.peek(0));
                         _ = self.cmod.globals.fetchPut(
                             self.gc.hal(),

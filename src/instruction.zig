@@ -95,8 +95,8 @@ pub const OpCode = enum(u8) {
             .Op_SetUp => "OP_SET_UP",
             .Op_ClsUp => "OP_CLOSE_UP",
             .Op_Import => "OP_IMPORT",
-            .Op_SetModProp => "OP_GET_MOD_PROP",
-            .Op_GetModProp => "OP_SET_MOD_PROP",
+            .Op_SetModProp => "OP_SET_MOD_PROP",
+            .Op_GetModProp => "OP_GET_MOD_PROP",
             .Op_EndMod => "OP_END_MOD",
             .Op_Err => "OP_ERR",
             .Op_Array => "OP_ARRAY",
@@ -307,6 +307,7 @@ pub const Instruction = struct {
             .Op_DefGlob,
             .Op_GetGlob,
             .Op_SetGlob,
+            .Op_GetModProp,
             => {
                 return self.constInstruction(ins.toString(), offset);
             },

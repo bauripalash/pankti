@@ -88,6 +88,12 @@ pub const PValue = packed struct {
         return (self.data & (QNAN | SIGN_BIT)) == (QNAN | SIGN_BIT);
     }
 
+    pub fn isMod(self : Self) bool {
+        if (!self.isObj()) return false;
+        if (!self.asObj().isMod()) return false;
+        return true;
+    }
+
 
     pub fn isError(self : Self) bool {
         return self.isObj() and self.asObj().isOError();

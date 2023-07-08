@@ -106,6 +106,11 @@ pub const PObj = struct {
         return self.is(.Ot_Error);
     }
 
+    pub fn isMod(self : *PObj) bool {
+        return self.is(.Ot_Module);
+    }
+
+
     pub fn asString(self: *PObj) *OString {
         return @fieldParentPtr(OString, "obj", self);
     }
@@ -141,6 +146,7 @@ pub const PObj = struct {
     pub fn asMod(self : *PObj) *OModule {
         return self.child(PObj.OModule);
     }
+
 
     pub fn free(self: *PObj, vm: *Vm) void {
         switch (self.objtype) {

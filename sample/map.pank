@@ -2,3 +2,8 @@ let a = {1 : "a"}
 
 show(a[1])
 show(len("palash"));
+
+kaj getId() 
+	pi = 100
+	return {"name" : "Palash"}
+end
