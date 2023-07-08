@@ -28,6 +28,7 @@ const VStack = _stack.VStack;
 const CallStack = _stack.CallStack;
 const CallFrame = _stack.CallFrame;
 const openfile = @import("openfile.zig");
+const stdlib = @import("stdlib/stdlib.zig");
 
 pub const IntrpResult = enum(u8) {
     Ok,
@@ -235,7 +236,7 @@ pub const Vm = struct {
         self.gc.pstdout.print("===============\n\n", .{}) catch return;
     }
 
-    fn defineNative(
+    pub fn defineNative(
         self: *Self,
         name: []const u32,
         func: PObj.ONativeFunction.NativeFn,
@@ -473,7 +474,7 @@ pub const Vm = struct {
             }
         }
 
-        //calle.printVal();
+        _ = calle.printVal(self.gc);
         self.throwRuntimeError("Can only call functions", .{});
         return false;
     }
@@ -555,7 +556,66 @@ pub const Vm = struct {
         return f;
     }
 
+    pub fn pushStdlib(self : *Self , importName : []const u32) void {
+
+        if (utils.matchU32(&[_]u32{'o' , 's'}, importName)) {
+            std.debug.print("ADDING OS MOD\n" , .{});
+            stdlib.pushStdlibMath(self);
+        }
+    }
+
+    fn importStdlib(self : *Self , customName : []const u32 , importName : []const u32) void{
+
+        const strname = self.gc.copyString(customName, @intCast(customName.len)) catch return;
+
+        self.stack.push(PValue.makeObj(strname.parent())) catch return;
+
+
+        const objmod = PObj.OModule.new(self, self.gc, customName) orelse return;
+
+        self.stack.push(PValue.makeObj(objmod.parent())) catch return;
+
+        self.cmod.globals.put(
+            self.gc.hal(),
+            self.peek(1).asObj().asString(),
+            self.peek(0),
+        ) catch {
+            self.throwRuntimeError("failed to push objmodule to glob table", .{});
+            return;
+        };
+
+        var newProxy = gcz.StdLibProxy.new(objmod.name.hash , objmod.name.chars);
+        //newProxy.proxyHash = objmod.name.hash;
+        //newProxy.proxyName = objmod.name.chars;
+
+        if (self.gc.stdlibCount < 1) {
+            
+            self.pushStdlib(importName);
+
+            //self.gc.stdlibs[0] = gcz.StdLibMod.new();
+            self.gc.stdlibs[0].owners.append(self.gc.hal(), self.cmod.hash) catch {
+                self.throwRuntimeError("failed to push owners", .{});
+                return;
+            };
+            //newProxy.proxyName =  
+            newProxy.originName = self.gc.stdlibs[0].name;
+            newProxy.stdmod = &self.gc.stdlibs[0];
+            
+        }
+
+        _ = self.stack.pop() catch return;
+        _ = self.stack.pop() catch return;
+
+
+
+    }
+
     fn importModule(self: *Self, customName: []const u32, importName: []const u32) void {
+
+        if (utils.matchU32(&[_]u32{'o' , 's'}, importName)) {
+            self.importStdlib(customName, importName);
+            return;
+        }
         const filename = utils.u32tou8(importName, self.gc.hal()) catch {
             self.gc.pstdout.print(
                 "failed to convert filename",
@@ -655,6 +715,42 @@ pub const Vm = struct {
         return null;
     }
 
+    fn getModProxy(self : *Self , name : u32 , mod : *gcz.Module) u32 {
+        _ = self;
+        var i : usize = 0;
+
+        while (i < mod.stdlibCount) : (i += 1) {
+            const proxy = mod.stdProxies.items[i];
+
+            if (proxy.proxyHash == name) {
+                return proxy.proxyHash;
+            }
+        }
+
+        return 0;
+    }
+    
+    fn getStdlibByHash(self : *Self , hash : u32 , mod : *gcz.Module) ?*gcz.StdLibMod{
+        const modHash = mod.hash;
+        var i : usize = 0;
+
+        while (i < self.gc.stdlibCount) : (i += 1) {
+            const m = &self.gc.stdlibs[i];
+
+            if (m.hash == hash) {
+                var j : usize = 0;
+                while (j < m.ownerCount) : (j+=1) {
+                    if (m.owners.items[j] == modHash) {
+                        return m;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+
     fn run(self: *Self) IntrpResult {
         //std.debug.print("{any}\n" , .{self.cmod});
         var frame: *CallFrame =
@@ -690,14 +786,9 @@ pub const Vm = struct {
                     const modObj = rawMod.asObj().asMod();
                     const prop = frame.readStringConst();
                     //_ = self.stack.pop() catch return .RuntimeError;
-                    const module = self.getModuleByHash(modObj.name.hash) orelse {
-                        self.throwRuntimeError(
-                            "This module cannot be found? {d}",
-                            .{modObj.name.hash},
-                        );
-                        return .RuntimeError;
-                    };
+                    const rawModule = self.getModuleByHash(modObj.name.hash); 
 
+                    if (rawModule) |module| {
                     if (module.globals.get(prop)) |value| {
                         _ = self.stack.pop() catch {
                             self.throwRuntimeError("failed to pop", .{});
@@ -715,8 +806,39 @@ pub const Vm = struct {
                         );
                         return .RuntimeError;
                     }
+                    }else{
+                        
+                        const mhash = self.getModProxy(modObj.name.hash , self.cmod);
+
+                        if (mhash != 0) {
+                            const rawSmod = self.getStdlibByHash(mhash, self.cmod);
+
+                            if (rawSmod) |smod| {
+                                if (smod.items.get(prop)) |value| {
+                                _ = self.stack.pop() catch {
+                                    self.throwRuntimeError("failed to pop", .{});
+                                    return .RuntimeError;
+                                };
+
+                                self.stack.push(value) catch {
+                                    self.throwRuntimeError("failed to push value", .{});
+                                    return .RuntimeError;
+                                };
+                            } else {
+                                self.throwRuntimeError(
+                                    "Undefined stlib module variable",
+                                    .{},
+                                );
+                                return .RuntimeError;
+                            }
+                            }
+                        }
+
+                        self.throwRuntimeError("module not found", .{});
+                        return .RuntimeError;
                     //std.debug.print("MODULE -> {any}\n" , .{module});
                     //_ = rawMod.printVal(self.gc);
+                    }
                 },
                 .Op_Import => {
                     const rawCustomName = frame.readConst();

@@ -35,16 +35,41 @@ fn dprint(color: u8, w : writer.PanWriter, comptime fmt: []const u8, args: anyty
 
 pub const StdLibMod = struct {
     items : table.PankTable(),
-    name : []u32,
+    name : []const u32,
     hash : u32,
     owners : std.ArrayListUnmanaged(u32),
+    ownerCount : u32,
+
+    pub fn new() StdLibMod {
+        return StdLibMod{
+            .items = table.PankTable(){},
+            .name = undefined,
+            .hash = 0,
+            .owners = std.ArrayListUnmanaged(u32){},
+            .ownerCount = 0,
+        };
+    }
+
+    pub fn free(self : *StdLibMod, gc : *Gc) void {
+        self.owners.deinit(gc.hal());
+        self.items.deinit(gc.hal());
+    }
 };
 
 pub const StdLibProxy = struct {
     stdmod : *StdLibMod,
-    originName : []u32,
+    originName : []const u32,
     proxyName : []u32,
-    proxyHash : u32
+    proxyHash : u32,
+
+    pub fn new(hash : u32 , proxyname : []u32) StdLibProxy {
+        return StdLibProxy{
+            .stdmod = undefined,
+            .originName = undefined,
+            .proxyName = proxyname,
+            .proxyHash = hash,
+        };
+    }
 };
 
 pub const Module = struct {
@@ -94,6 +119,7 @@ pub const Module = struct {
         
         gc.hal().free(self.name);
         self.globals.deinit(gc.hal());
+        self.stdProxies.deinit(gc.hal());
         gc.hal().destroy(self);
         return true;
     }
@@ -129,6 +155,7 @@ pub const Module = struct {
 
 
 };
+const STDMAX : usize = 64;
 
 pub const Gc = struct {
     internal_al: Allocator,
@@ -147,6 +174,8 @@ pub const Gc = struct {
     pstderr : writer.PanWriter,
     modules : std.ArrayListUnmanaged(*Module),
     modCount : usize,
+    stdlibs : [STDMAX]StdLibMod,
+    stdlibCount : u32,
 
     const Self = @This();
 
@@ -170,6 +199,8 @@ pub const Gc = struct {
             .pstderr = undefined,
             .modules = undefined,
             .modCount = 0,
+            .stdlibs = undefined,
+            .stdlibCount = 0,
         };
 
         return newgc;
@@ -180,6 +211,8 @@ pub const Gc = struct {
         self.pstdout = stdout;
         self.pstderr = stderr;
         self.modules = std.ArrayListUnmanaged(*Module){};
+        self.stdlibs[0] = StdLibMod.new();
+        
     }
 
     pub inline fn allocator(self: *Self) Allocator {
@@ -428,6 +461,12 @@ pub const Gc = struct {
         while (i < self.modules.items.len) : (i += 1) {
             _ = self.modules.items[i].free(self);
         }
+        
+        i = 0;
+        while (i < self.stdlibCount) : (i += 1) {
+            self.stdlibs[i].free(self);
+        }
+
         self.modules.deinit(self.hal());
     }
 
@@ -509,6 +548,12 @@ pub const Gc = struct {
         dprint('r' , self.pstdout , "[GC] Marking Compiler Roots \n" , .{});
         self.markCompilerRoots();
         dprint('r' , self.pstdout , "[GC] Finished Marking Compiler Roots \n" , .{});
+
+        var i : usize = 0;
+
+        while (i < self.stdlibCount) : (i +=1) {
+            self.markTable(self.stdlibs[i].items);
+        }
 
     }
 
