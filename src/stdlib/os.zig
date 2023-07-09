@@ -23,13 +23,7 @@ pub fn os_Name(gc: *Gc, argc: u8, values: []PValue) PValue {
             .ios,.macos,.watchos,.tvos => "darwin",
             .kfreebsd , .freebsd , .openbsd , .netbsd , .dragonfly => "bsd",
             .plan9 => "plan9",
-            else => {
-                if (builtin.target.abi == .android) {
-                    "android";
-                } else {
-                    "unknown";
-                }
-            },
+            else => if (builtin.target.abi == .android) "android" else if (utils.IS_WASM) "wasm" else "unknown",
         };
     
     return gc.makeString(nm);
@@ -51,6 +45,7 @@ pub fn os_Arch(gc : *Gc , argc : u8 , values : []PValue) PValue {
            .aarch64_32 => "arm",
            .x86 => "32",
            .x86_64 => "64",
+           .wasm32, .wasm64 => "wasm",
            else => "unknown",
     };
 

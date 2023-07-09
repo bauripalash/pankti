@@ -633,6 +633,11 @@ pub const Vm = struct {
             self.importStdlib(customName, importName);
             return;
         }
+
+        if (utils.IS_WASM) {
+            self.throwRuntimeError("File module import in wasm is unsupported", .{});
+            return;
+        }
         const filename = utils.u32tou8(importName, self.gc.hal()) catch {
             self.gc.pstdout.print(
                 "failed to convert filename",
