@@ -367,9 +367,9 @@ pub const Gc = struct {
         self.pstdout.print("==== {s} ====\n"  ,.{tabname}) catch return;
         while (ite.next()) |value| {
             self.pstdout.print("[" , .{}) catch return;
-            value.key_ptr.*.print(self.pstdout);
+            _ = value.key_ptr.*.print(self);
             self.pstdout.print("] -> [" , .{}) catch return;
-            value.value_ptr.*.printVal(self.pstdout);
+            _ = value.value_ptr.*.printVal(self);
             self.pstdout.print("]\n" , . {}) catch return;
         }
         self.pstdout.print("==============\n"  ,.{}) catch return;

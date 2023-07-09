@@ -1,3 +1,4 @@
+const std = @import("std");
 const osMod = @import("os.zig");
 const vm = @import("../vm.zig");
 const utils = @import("../utils.zig");
@@ -34,8 +35,8 @@ pub fn _addStdlib(
 
     try tab.put(
         v.gc.hal(),
-        v.stack.stack[0].asObj().asString(),
-        v.stack.stack[1],
+        nstr,
+        v.peek(0),
     );
 
     _ = try v.stack.pop();
@@ -50,17 +51,25 @@ fn _pushStdlib(v : *vm.Vm ,modname : []const u32 , items : []const msl) void {
     v.gc.stdlibs[v.gc.stdlibCount].hash = nameHash;
     v.gc.stdlibs[v.gc.stdlibCount].ownerCount = 0;
 
-    v.gc.stdlibCount+=1;
+    //std.debug.print("\n\n->{any}\n\n" , .{v.gc.stdlibs[0]});
 
     var i : usize = 0;
 
     while (i < items.len) : (i += 1) {
-        _addStdlib(v, &v.gc.stdlibs[v.gc.stdlibCount - 1].items , items[i].key , items[i].func) catch continue;
+        _addStdlib(v, &v.gc.stdlibs[v.gc.stdlibCount].items , items[i].key , items[i].func) catch {
+           return; 
+        };
     }
+
+
+    //v.gc.printTable(&v.gc.stdlibs[v.gc.stdlibCount].items, "stdlib");
+
+
+    v.gc.stdlibCount+=1;
 
 }
 
-pub fn pushStdlibMath(v : *vm.Vm) void {
+pub fn pushStdlibOs(v : *vm.Vm) void {
     _pushStdlib(v, 
             &[_]u32{'o' , 's'}, 
             &[_]msl{

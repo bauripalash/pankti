@@ -176,7 +176,7 @@ pub const Vm = struct {
         self.stack.count = 0;
     }
 
-    fn peek(self: *Self, dist: usize) PValue {
+    pub fn peek(self: *Self, dist: usize) PValue {
         return (self.stack.top - 1 - dist)[0];
     }
 
@@ -559,47 +559,64 @@ pub const Vm = struct {
     pub fn pushStdlib(self : *Self , importName : []const u32) void {
 
         if (utils.matchU32(&[_]u32{'o' , 's'}, importName)) {
-            std.debug.print("ADDING OS MOD\n" , .{});
-            stdlib.pushStdlibMath(self);
+            //std.debug.print("ADDING OS MOD\n" , .{});
+            stdlib.pushStdlibOs(self);
         }
     }
 
     fn importStdlib(self : *Self , customName : []const u32 , importName : []const u32) void{
 
-        const strname = self.gc.copyString(customName, @intCast(customName.len)) catch return;
+        const strname = self.gc.copyString(customName, @intCast(customName.len)) catch {
+            self.throwRuntimeError("failed to convert import name to string", .{});
+            return;
+        };
 
-        self.stack.push(PValue.makeObj(strname.parent())) catch return;
+        self.stack.push(PValue.makeObj(strname.parent())) catch {
+            self.throwRuntimeError("Failed to push import name to stack", .{});
+        };
 
 
-        const objmod = PObj.OModule.new(self, self.gc, customName) orelse return;
+        const objmod = PObj.OModule.new(self, self.gc, customName) orelse {
+            self.throwRuntimeError("Failed to create a new module object", .{});
+            return;
+        };
 
-        self.stack.push(PValue.makeObj(objmod.parent())) catch return;
+        self.stack.push(PValue.makeObj(objmod.parent())) catch { 
+            self.throwRuntimeError("failed to push module object to stack", .{});
+            return;
+        };
 
         self.cmod.globals.put(
             self.gc.hal(),
             self.peek(1).asObj().asString(),
             self.peek(0),
         ) catch {
-            self.throwRuntimeError("failed to push objmodule to glob table", .{});
+            self.throwRuntimeError("failed to push module object to global table", .{});
             return;
         };
 
+    
+        //std.debug.print("\n\nNew Module -> C{any}|H{d}\n\n", .{objmod.name.chars , objmod.name.hash} );
         var newProxy = gcz.StdLibProxy.new(objmod.name.hash , objmod.name.chars);
-        //newProxy.proxyHash = objmod.name.hash;
-        //newProxy.proxyName = objmod.name.chars;
 
         if (self.gc.stdlibCount < 1) {
             
             self.pushStdlib(importName);
-
-            //self.gc.stdlibs[0] = gcz.StdLibMod.new();
             self.gc.stdlibs[0].owners.append(self.gc.hal(), self.cmod.hash) catch {
                 self.throwRuntimeError("failed to push owners", .{});
                 return;
             };
+            self.gc.stdlibs[0].ownerCount += 1;
             //newProxy.proxyName =  
             newProxy.originName = self.gc.stdlibs[0].name;
             newProxy.stdmod = &self.gc.stdlibs[0];
+            self.cmod.stdProxies.append(self.gc.hal(), newProxy) catch {
+                self.throwRuntimeError("failed to add stdlib proxy to current module", .{});
+                return;
+            };
+            self.cmod.stdlibCount += 1;
+
+            //std.debug.print("\n\nProxy -> {any}{d}\n\n" , .{self.gc.stdlibs[0].owners , self.cmod.hash});
             
         }
 
@@ -789,30 +806,29 @@ pub const Vm = struct {
                     const rawModule = self.getModuleByHash(modObj.name.hash); 
 
                     if (rawModule) |module| {
-                    if (module.globals.get(prop)) |value| {
-                        _ = self.stack.pop() catch {
-                            self.throwRuntimeError("failed to pop", .{});
-                            return .RuntimeError;
-                        };
+                        if (module.globals.get(prop)) |value| {
+                            _ = self.stack.pop() catch {
+                                self.throwRuntimeError("failed to pop", .{});
+                                return .RuntimeError;
+                            };
 
-                        self.stack.push(value) catch {
-                            self.throwRuntimeError("failed to push value", .{});
+                            self.stack.push(value) catch {
+                                self.throwRuntimeError("failed to push value", .{});
+                                return .RuntimeError;
+                            };
+                        } else {
+                            self.throwRuntimeError(
+                                "Undefined module variable",
+                                .{},
+                            );
                             return .RuntimeError;
-                        };
-                    } else {
-                        self.throwRuntimeError(
-                            "Undefined module variable",
-                            .{},
-                        );
-                        return .RuntimeError;
-                    }
+                        }
                     }else{
-                        
                         const mhash = self.getModProxy(modObj.name.hash , self.cmod);
+                        //std.debug.print("\n\nmhash->{d}\n\n" , .{mhash});
 
                         if (mhash != 0) {
                             const rawSmod = self.getStdlibByHash(mhash, self.cmod);
-
                             if (rawSmod) |smod| {
                                 if (smod.items.get(prop)) |value| {
                                 _ = self.stack.pop() catch {
@@ -832,10 +848,11 @@ pub const Vm = struct {
                                 return .RuntimeError;
                             }
                             }
-                        }
+                        } else {
 
                         self.throwRuntimeError("module not found", .{});
                         return .RuntimeError;
+                        }
                     //std.debug.print("MODULE -> {any}\n" , .{module});
                     //_ = rawMod.printVal(self.gc);
                     }

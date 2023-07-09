@@ -10,4 +10,4 @@
 #show(pi)
 
 import os "os"
-os.name()
+show(os.name())
