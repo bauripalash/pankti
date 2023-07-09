@@ -1,0 +1,5 @@
+import os "os"
+
+show(os.name())
+show(os.arch())
+show(os.user())

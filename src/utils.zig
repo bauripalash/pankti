@@ -161,6 +161,10 @@ pub const IS_WASM = (
     builtin.target.isWasm() and builtin.target.os.tag == .freestanding
 );
 
+pub const IS_WIN : bool = builtin.target.os.tag == .windows;
+pub const IS_MAC : bool = builtin.target.isDarwin();
+pub const IS_LINUX : bool = builtin.target.os.tag == .linux;
+
 
 test "test utils->u8tou32->english" {
     const al = std.testing.allocator;

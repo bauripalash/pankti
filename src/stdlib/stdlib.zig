@@ -25,7 +25,7 @@ pub fn _addStdlib(
     name: []const u32,
     func: PObj.ONativeFunction.NativeFn,
 ) !void {
-    const nstr = try v.gc.copyString(name, @intCast(name.len));
+    const nstr = try v.gc.copyString(name, @truncate(name.len));
 
     try v.stack.push(nstr.parent().asValue());
     var nf = try v.gc.newObj(.Ot_NativeFunc, PObj.ONativeFunction);
@@ -51,8 +51,6 @@ fn _pushStdlib(v : *vm.Vm ,modname : []const u32 , items : []const msl) void {
     v.gc.stdlibs[v.gc.stdlibCount].hash = nameHash;
     v.gc.stdlibs[v.gc.stdlibCount].ownerCount = 0;
 
-    //std.debug.print("\n\n->{any}\n\n" , .{v.gc.stdlibs[0]});
-
     var i : usize = 0;
 
     while (i < items.len) : (i += 1) {
@@ -60,19 +58,14 @@ fn _pushStdlib(v : *vm.Vm ,modname : []const u32 , items : []const msl) void {
            return; 
         };
     }
-
-
-    //v.gc.printTable(&v.gc.stdlibs[v.gc.stdlibCount].items, "stdlib");
-
-
     v.gc.stdlibCount+=1;
 
 }
 
 pub fn pushStdlibOs(v : *vm.Vm) void {
-    _pushStdlib(v, 
-            &[_]u32{'o' , 's'}, 
-            &[_]msl{
-                msl.m(&[_]u32{'n' , 'a' , 'm' , 'e'}, osMod.os_Name),
+    _pushStdlib(v, &[_]u32{'o' , 's'}, &[_]msl{
+        msl.m(&[_]u32{ 'n', 'a', 'm', 'e' }, osMod.os_Name),
+      //  msl.m(&[_]u32{ 'a', 'r', 'c', 'h' }, osMod.os_Arch),
+      //  msl.m(&[_]u32{ 'u', 's', 'e', 'r' }, osMod.os_Username),
     });
 }

@@ -361,6 +361,14 @@ pub const Gc = struct {
         return try self.newString(chars, len);
     }
 
+    pub fn makeString(self : *Gc , chars : []const u8) PValue {
+        if (self.copyStringU8(chars, 0)) |s| {
+            return PValue.makeObj(s.parent());
+        } else {
+            return PValue.makeNil();
+        }
+    }
+
     pub fn printTable(self : *Self , tab : *table.PankTable(), tabname : []const u8) void {
         var ite = tab.iterator();
 
