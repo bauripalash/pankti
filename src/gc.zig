@@ -318,6 +318,15 @@ pub const Gc = struct {
         return ptr;
     }
 
+    pub fn newNative(self : *Self , v : *vm.Vm, n : PObj.ONativeFunction.NativeFn) ?PValue {
+       const o = self.newObj(PObj.OType.Ot_NativeFunc, PObj.ONativeFunction) catch return null;
+       v.stack.push(PValue.makeObj(o.parent())) catch return null;
+       o.init(n);
+
+       return v.stack.pop() catch return null;
+
+    }
+
     pub fn copyString(self: *Gc, chars: []const u32, len: u32) !*PObj.OString {
         if (table.getString(
             self.strings,
