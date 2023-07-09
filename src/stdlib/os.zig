@@ -32,11 +32,7 @@ pub fn os_Name(gc: *Gc, argc: u8, values: []PValue) PValue {
             },
         };
     
-    const v = gc.copyStringU8( nm, 0) orelse {
-        return PValue.makeNil();
-    };
-
-    return PValue.makeObj(v.parent());
+    return gc.makeString(nm);
 }
 
 pub fn os_Arch(gc : *Gc , argc : u8 , values : []PValue) PValue {
@@ -58,11 +54,7 @@ pub fn os_Arch(gc : *Gc , argc : u8 , values : []PValue) PValue {
            else => "unknown",
     };
 
-    const v = gc.copyStringU8(anm, 0) orelse {
-        return PValue.makeNil();
-    };
-
-    return PValue.makeObj(v.parent());
+    return gc.makeString(anm);
 }
 
 pub fn os_Username(gc : *Gc , argc : u8 , values : []PValue) PValue {
@@ -72,6 +64,10 @@ pub fn os_Username(gc : *Gc , argc : u8 , values : []PValue) PValue {
             gc, 
             "user() function only takes single argument"
         ).?;
+    }
+
+    if (utils.IS_WASM) {
+        return gc.makeString("wasm");
     }
 
     var unm : ?[]const u8 = null;
@@ -85,8 +81,7 @@ pub fn os_Username(gc : *Gc , argc : u8 , values : []PValue) PValue {
     }
     
     if (unm) |n| {
-        const v = gc.copyStringU8(n, 0) orelse return PValue.makeNil();
-        return PValue.makeObj(v.parent());
+        return gc.makeString(n);
     } else {
         return PValue.makeNil();
     }
