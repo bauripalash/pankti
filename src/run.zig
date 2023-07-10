@@ -39,7 +39,7 @@ fn _run(rawSource : []const u8 , gc : *Gc) bool {
     
     myVm.freeVm(gc.hal());
     gc.hal().free(source);
-    if (flags.DEBUG) {
+    if (flags.DEBUG_FINAL) {
         std.debug.print("VM RESULT -> {s}\n" , .{result.toString()});
     }
     switch (result) {

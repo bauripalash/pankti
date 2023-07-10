@@ -1,0 +1,7 @@
+import m "math"
+show(m.pi());
+show(m.e());
+show(m.sqrt(10.9999))
+show(m.log10(100))
+show(m.log(100))
+show(m.logx(10 , 100))

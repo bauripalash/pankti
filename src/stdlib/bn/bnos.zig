@@ -1,3 +1,12 @@
+//
+// Copyright (C) Palash Bauri
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+//
+// SPDX-License-Identifier: MPL-2.0
+
 const std = @import("std");
 const value = @import("../../value.zig");
 const Gc = @import("../../gc.zig").Gc;
@@ -7,7 +16,7 @@ const stdlib = @import("../stdlib.zig");
 const msl = stdlib.msl;
 const builtin = @import("builtin");
 
-pub const Name = &[_]u32{0x0993,0x098f,0x09b8 };
+pub const Name = &[_]u32{ 0x0993, 0x098f, 0x09b8 };
 // নাম
 pub const BnNameFuncName = &[_]u32{ 0x09a8, 0x09be, 0x09ae };
 pub fn bnos_Name(gc: *Gc, argc: u8, values: []PValue) PValue {

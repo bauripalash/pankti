@@ -557,15 +557,7 @@ pub const Vm = struct {
     }
 
     pub fn pushStdlib(self: *Self, importName: []const u32) bool {
-        if (utils.matchU32(stdlib.OsName, importName)) {
-            stdlib.pushStdlibOs(self);
-            return true;
-        } else if (utils.matchU32(stdlib.BnOsName, importName)) {
-            stdlib.pushStdlibBnOs(self);
-            return true;
-        }
-
-        return false;
+        return stdlib.PushStdlib(self, importName);
     }
 
     fn importStdlib(self: *Self, customName: []const u32, importName: []const u32) bool {
