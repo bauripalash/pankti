@@ -3,3 +3,5 @@ import os "os"
 show(os.name())
 show(os.arch())
 show(os.user())
+show(os.home())
+show(os.curdir())

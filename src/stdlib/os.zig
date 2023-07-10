@@ -7,6 +7,8 @@ const stdlib = @import("stdlib.zig");
 const msl = stdlib.msl;
 const builtin = @import("builtin");
 
+pub const Name = &[_]u32{'o' , 's'};
+pub const NameFuncName = &[_]u32{ 'n' , 'a' , 'm' , 'e' };
 pub fn os_Name(gc: *Gc, argc: u8, values: []PValue) PValue {
     _ = values;
     
@@ -29,6 +31,7 @@ pub fn os_Name(gc: *Gc, argc: u8, values: []PValue) PValue {
     return gc.makeString(nm);
 }
 
+pub const ArchFuncName = &[_]u32{ 'a' , 'r' , 'c' , 'h' };
 pub fn os_Arch(gc : *Gc , argc : u8 , values : []PValue) PValue {
     _ = values;
     if (argc != 0) {
@@ -52,6 +55,8 @@ pub fn os_Arch(gc : *Gc , argc : u8 , values : []PValue) PValue {
     return gc.makeString(anm);
 }
 
+
+pub const UsernameFuncName = &[_]u32{ 'u' , 's' , 'e' , 'r' };
 pub fn os_Username(gc : *Gc , argc : u8 , values : []PValue) PValue {
       _ = values;
     if (argc != 0) {
@@ -78,9 +83,64 @@ pub fn os_Username(gc : *Gc , argc : u8 , values : []PValue) PValue {
     if (unm) |n| {
         return gc.makeString(n);
     } else {
-        return PValue.makeNil();
+        return gc.makeString("unknown");
     }
 
 }
 
+
+
+pub const HomedirFuncName = &[_]u32{ 'h' , 'o' , 'm' , 'e' };
+pub fn os_Homerdir(gc : *Gc , argc : u8 , values : []PValue) PValue {
+    _ = values;
+    if (argc != 0) {
+        return PValue.makeError(
+            gc, 
+            "home() function only takes single argument"
+        ).?;
+    }
+
+    if (utils.IS_WASM) { return gc.makeString("wasm"); }
+    var hdir : ?[]const u8 = if (utils.IS_WIN) 
+        std.os.getenv("USERPROFILE")
+    else if (utils.IS_MAC or utils.IS_LINUX) 
+        std.os.getenv("HOME")
+    else 
+        "unknown";
+    
+    if (hdir) |h| {
+        return gc.makeString(h);
+    } else {
+        return gc.makeString("unknown");
+    }
+
+}
+
+pub const CurdirFuncName = &[_]u32{ 'c' , 'u' , 'r' , 'd' , 'i' , 'r' };
+pub fn os_Curdir(gc : *Gc , argc : u8 , values : []PValue) PValue {
+    _ = values;
+    if (argc != 0) {
+        return PValue.makeError(
+            gc, 
+            "home() function only takes single argument"
+        ).?;
+    }
+
+    if (utils.IS_WASM) { return gc.makeString("wasm"); }
+
+    var tempPath = gc.hal().alloc(u8, 1024) catch {
+        return gc.makeString("unknown");
+    };
+
+    const dir = std.os.getcwd(tempPath) catch return {
+        gc.hal().free(tempPath);
+        return gc.makeString("unknown");
+    };
+    
+    const result = gc.makeString(dir);
+
+    gc.hal().free(tempPath);
+
+    return result;
+}
 
