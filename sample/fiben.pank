@@ -7,5 +7,5 @@ kaj fib(n)
 end
 
 let start = clock()
-show(fib(20))
+show(fib(35))
 show((clock() - start) / 1000)

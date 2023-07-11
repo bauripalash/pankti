@@ -24,21 +24,20 @@ const stck = @import("stack.zig");
 
 const slog: bool = flags.DEBUG and flags.DEBUG_GC;
 
-fn dprint(color: u8, w : writer.PanWriter, comptime fmt: []const u8, args: anytype) void {
+fn dprint(color: u8, w: writer.PanWriter, comptime fmt: []const u8, args: anytype) void {
     if (slog) {
-        ansicolors.TermColor(color , w);
+        ansicolors.TermColor(color, w);
         w.print(fmt, args) catch return;
         ansicolors.ResetColor(w);
     }
 }
 
-
 pub const StdLibMod = struct {
-    items : table.PankTable(),
-    name : []const u32,
-    hash : u32,
-    owners : std.ArrayListUnmanaged(u32),
-    ownerCount : u32,
+    items: table.PankTable(),
+    name: []const u32,
+    hash: u32,
+    owners: std.ArrayListUnmanaged(u32),
+    ownerCount: u32,
 
     pub fn new() StdLibMod {
         return StdLibMod{
@@ -50,19 +49,19 @@ pub const StdLibMod = struct {
         };
     }
 
-    pub fn free(self : *StdLibMod, gc : *Gc) void {
+    pub fn free(self: *StdLibMod, gc: *Gc) void {
         self.owners.deinit(gc.hal());
         self.items.deinit(gc.hal());
     }
 };
 
 pub const StdLibProxy = struct {
-    stdmod : *StdLibMod,
-    originName : []const u32,
-    proxyName : []u32,
-    proxyHash : u32,
+    stdmod: *StdLibMod,
+    originName: []const u32,
+    proxyName: []u32,
+    proxyHash: u32,
 
-    pub fn new(hash : u32 , proxyname : []u32) StdLibProxy {
+    pub fn new(hash: u32, proxyname: []u32) StdLibProxy {
         return StdLibProxy{
             .stdmod = undefined,
             .originName = undefined,
@@ -73,27 +72,27 @@ pub const StdLibProxy = struct {
 };
 
 pub const Module = struct {
-    globals : table.PankTable(),
-    stdProxies : std.ArrayListUnmanaged(StdLibProxy),
-    stdlibCount: u32 ,
-    frames : stck.CallStack,
-    frameCount : u32,
-    name : []u32,
-    hash : u32,
-    openValues : ?*PObj.OUpValue,
-    isDefault : bool,
-    origin : ?*Module,
-    sourceCode : ?[]u32,
-    
+    globals: table.PankTable(),
+    stdProxies: std.ArrayListUnmanaged(StdLibProxy),
+    stdlibCount: u32,
+    frames: stck.CallStack,
+    frameCount: u32,
+    name: []u32,
+    hash: u32,
+    openValues: ?*PObj.OUpValue,
+    isDefault: bool,
+    origin: ?*Module,
+    sourceCode: ?[]u32,
+
     const Self = @This();
-    
-    pub fn init(self : *Self , gc : *Gc , name : []const u32) bool {
+
+    pub fn init(self: *Self, gc: *Gc, name: []const u32) bool {
         self.name = gc.hal().alloc(u32, name.len) catch return false;
         @memcpy(self.name, name);
         return true;
     }
 
-    pub fn new(gc : *Gc) ?*Module {
+    pub fn new(gc: *Gc) ?*Module {
         var mod = gc.hal().create(Module) catch return null;
 
         mod.* = .{
@@ -108,32 +107,30 @@ pub const Module = struct {
             .sourceCode = null,
             .frames = undefined,
             .hash = 0,
-
         };
         mod.*.frames.stack[0] = undefined;
         mod.*.frames.count = 0;
         return mod;
     }
 
-    pub fn free(self : *Self , gc : *Gc) bool {
-        
+    pub fn free(self: *Self, gc: *Gc) bool {
         gc.hal().free(self.name);
         self.globals.deinit(gc.hal());
         self.stdProxies.deinit(gc.hal());
         gc.hal().destroy(self);
         return true;
     }
-    
-    fn markFrames(self : *Self , gc : *Gc) usize {
-        var i : usize = 0;
-        while (i < self.frames.count) : (i += 1) {
+
+    fn markFrames(self: *Self, gc: *Gc) usize {
+        var i: usize = 0;
+        while (i < self.frameCount) : (i += 1) {
             gc.markObject(self.frames.stack[i].closure.parent());
         }
         return i;
     }
-    fn markOpenUpvalues(self : *Self , gc : *Gc) i32 {
+    fn markOpenUpvalues(self: *Self, gc: *Gc) i32 {
         var upv = self.openValues;
-        var i : i32 = 0;
+        var i: i32 = 0;
 
         while (upv) |u| {
             upv = u.next;
@@ -143,19 +140,15 @@ pub const Module = struct {
 
         return i;
     }
-    pub fn mark(self : *Self , gc : *Gc) bool {
-
+    pub fn mark(self: *Self, gc: *Gc) bool {
         _ = self.markFrames(gc);
         _ = self.markOpenUpvalues(gc);
         gc.markTable(self.globals);
 
         return true;
-       
     }
-
-
 };
-const STDMAX : usize = 64;
+const STDMAX: usize = 64;
 
 pub const Gc = struct {
     internal_al: Allocator,
@@ -166,16 +159,16 @@ pub const Gc = struct {
     builtins: table.PankTable(),
     openUps: ?*PObj.OUpValue,
     alocAmount: usize,
-    nextGc : usize,
+    nextGc: usize,
     stack: ?*stck.VStack,
     compiler: ?*compiler.Compiler,
     grayStack: std.ArrayListUnmanaged(*PObj),
-    pstdout : writer.PanWriter,
-    pstderr : writer.PanWriter,
-    modules : std.ArrayListUnmanaged(*Module),
-    modCount : usize,
-    stdlibs : [STDMAX]StdLibMod,
-    stdlibCount : u32,
+    pstdout: writer.PanWriter,
+    pstderr: writer.PanWriter,
+    modules: std.ArrayListUnmanaged(*Module),
+    modCount: usize,
+    stdlibs: [STDMAX]StdLibMod,
+    stdlibCount: u32,
 
     const Self = @This();
 
@@ -206,13 +199,16 @@ pub const Gc = struct {
         return newgc;
     }
 
-    pub fn boot(self: *Self , stdout : writer.PanWriter , stderr : writer.PanWriter,) void {
+    pub fn boot(
+        self: *Self,
+        stdout: writer.PanWriter,
+        stderr: writer.PanWriter,
+    ) void {
         self.al = self.allocator();
         self.pstdout = stdout;
         self.pstderr = stderr;
         self.modules = std.ArrayListUnmanaged(*Module){};
         self.stdlibs[0] = StdLibMod.new();
-        
     }
 
     pub inline fn allocator(self: *Self) Allocator {
@@ -246,7 +242,7 @@ pub const Gc = struct {
         const self: *Gc = @ptrCast(@alignCast(ptr));
         self.alocAmount -= buf.len;
         self.internal_al.rawFree(buf, bufalign, ret_addr);
-        
+
         //self.collect();
     }
 
@@ -260,7 +256,12 @@ pub const Gc = struct {
         const self: *Gc = @ptrCast(@alignCast(ptr));
 
         self.alocAmount += newlen - buf.len;
-        const result =  self.internal_al.rawResize(buf, bufalign, newlen, ret_addr,);
+        const result = self.internal_al.rawResize(
+            buf,
+            bufalign,
+            newlen,
+            ret_addr,
+        );
 
         if (newlen > buf.len) {
             self.tryCollect();
@@ -288,7 +289,7 @@ pub const Gc = struct {
         const ptr = try self.al.create(ParentType);
         ptr.parent().objtype = otype;
         if (flags.DEBUG_GC) {
-            ansicolors.TermColor('b' , self.pstdout);
+            ansicolors.TermColor('b', self.pstdout);
 
             try self.pstdout.print("[GC] (0x{x}) New Object: {s}", .{
                 @intFromPtr(ptr),
@@ -310,7 +311,7 @@ pub const Gc = struct {
         ptr.chars = chars;
         ptr.len = @intCast(len);
         ptr.obj.isMarked = true;
-        ptr.hash = try utils.hashU32(chars , self);
+        ptr.hash = try utils.hashU32(chars, self);
 
         try self.strings.put(self.hal(), ptr, PValue.makeNil());
         ptr.obj.isMarked = false;
@@ -318,26 +319,25 @@ pub const Gc = struct {
         return ptr;
     }
 
-    pub fn newNative(self : *Self , v : *vm.Vm, n : PObj.ONativeFunction.NativeFn) ?PValue {
-       const o = self.newObj(PObj.OType.Ot_NativeFunc, PObj.ONativeFunction) catch return null;
-       v.stack.push(PValue.makeObj(o.parent())) catch return null;
-       o.init(n);
+    pub fn newNative(self: *Self, v: *vm.Vm, n: PObj.ONativeFunction.NativeFn) ?PValue {
+        const o = self.newObj(PObj.OType.Ot_NativeFunc, PObj.ONativeFunction) catch return null;
+        v.stack.push(PValue.makeObj(o.parent())) catch return null;
+        o.init(n);
 
-       return v.stack.pop() catch return null;
-
+        return v.stack.pop() catch return null;
     }
 
     pub fn copyString(self: *Gc, chars: []const u32, len: u32) !*PObj.OString {
         if (table.getString(
             self.strings,
-            try utils.hashU32(chars , self),
+            try utils.hashU32(chars, self),
             len,
         )) |interned| {
-            dprint('b' , self.pstdout , "[GC] Returning interned string : " , .{});
+            dprint('b', self.pstdout, "[GC] Returning interned string : ", .{});
             if (slog) {
                 _ = interned.print(self);
             }
-            dprint('n' , self.pstdout , "\n", .{});
+            dprint('n', self.pstdout, "\n", .{});
             return interned;
         }
 
@@ -347,13 +347,13 @@ pub const Gc = struct {
         return self.newString(mem_chars, len);
     }
 
-    pub fn copyStringU8(self : *Gc , chars : []const u8 , len : u32) ?*PObj.OString{
+    pub fn copyStringU8(self: *Gc, chars: []const u8, len: u32) ?*PObj.OString {
         _ = len;
-        
+
         const msg32 = utils.u8tou32(chars, self.hal()) catch {
             return null;
         };
-        
+
         const result = self.copyString(msg32, @intCast(msg32.len)) catch return null;
 
         self.hal().free(msg32);
@@ -370,7 +370,7 @@ pub const Gc = struct {
         return try self.newString(chars, len);
     }
 
-    pub fn makeString(self : *Gc , chars : []const u8) PValue {
+    pub fn makeString(self: *Gc, chars: []const u8) PValue {
         if (self.copyStringU8(chars, 0)) |s| {
             return PValue.makeObj(s.parent());
         } else {
@@ -378,24 +378,23 @@ pub const Gc = struct {
         }
     }
 
-    pub fn printTable(self : *Self , tab : *table.PankTable(), tabname : []const u8) void {
+    pub fn printTable(self: *Self, tab: *table.PankTable(), tabname: []const u8) void {
         var ite = tab.iterator();
 
-        self.pstdout.print("==== {s} ====\n"  ,.{tabname}) catch return;
+        self.pstdout.print("==== {s} ====\n", .{tabname}) catch return;
         while (ite.next()) |value| {
-            self.pstdout.print("[" , .{}) catch return;
+            self.pstdout.print("[", .{}) catch return;
             _ = value.key_ptr.*.print(self);
-            self.pstdout.print("] -> [" , .{}) catch return;
+            self.pstdout.print("] -> [", .{}) catch return;
             _ = value.value_ptr.*.printVal(self);
-            self.pstdout.print("]\n" , . {}) catch return;
+            self.pstdout.print("]\n", .{}) catch return;
         }
-        self.pstdout.print("==============\n"  ,.{}) catch return;
+        self.pstdout.print("==============\n", .{}) catch return;
     }
 
     pub fn freeSingleObject(self: *Self, obj: *PObj) void {
-        
         if (flags.DEBUG and (flags.DEBUG_GC or flags.DEBUG_FREE_OBJECTS)) {
-            ansicolors.TermColor('p' , self.pstdout);
+            ansicolors.TermColor('p', self.pstdout);
             self.pstdout.print("[GC] (0x{x}) Free Object: {s} : [ ", .{
                 @intFromPtr(obj),
                 obj.objtype.toString(),
@@ -443,9 +442,7 @@ pub const Gc = struct {
 
             .Ot_Module => {
                 obj.asMod().free(self);
-            }
-
-
+            },
         }
 
         return;
@@ -472,13 +469,13 @@ pub const Gc = struct {
         self.strings.deinit(self.hal());
         self.builtins.deinit(self.hal());
         self.grayStack.deinit(self.hal());
-        
-        var i : usize = 0;
+
+        var i: usize = 0;
 
         while (i < self.modules.items.len) : (i += 1) {
             _ = self.modules.items[i].free(self);
         }
-        
+
         i = 0;
         while (i < self.stdlibCount) : (i += 1) {
             self.stdlibs[i].free(self);
@@ -487,91 +484,82 @@ pub const Gc = struct {
         self.modules.deinit(self.hal());
     }
 
-    pub fn tryCollect(self : *Self) void{
+    pub fn tryCollect(self: *Self) void {
         if (!flags.DISABLE_GC) {
-           if ((self.alocAmount > self.nextGc) or flags.STRESS_GC) {
+            if ((self.alocAmount > self.nextGc) or flags.STRESS_GC) {
                 self.collect();
-           } 
+            }
         }
     }
 
     pub fn collect(self: *Self) void {
-        dprint('r' , self.pstdout , "[GC] Marking Roots\n" , .{});
+        dprint('r', self.pstdout, "[GC] Marking Roots\n", .{});
         self.markRoots();
 
-        dprint('r' , self.pstdout , "[GC] Finished Marking Roots\n" , .{});
-        dprint('r' , self.pstdout , "[GC] Tracing Refs\n" , .{});
+        dprint('r', self.pstdout, "[GC] Finished Marking Roots\n", .{});
+        dprint('r', self.pstdout, "[GC] Tracing Refs\n", .{});
         self.traceRefs();
-        dprint('r' , self.pstdout , "[GC] Finished Tracing Refs\n" , .{});
+        dprint('r', self.pstdout, "[GC] Finished Tracing Refs\n", .{});
 
-        
-        dprint('r' , self.pstdout , "[GC] Cleaning Strings\n" , .{});
+        dprint('r', self.pstdout, "[GC] Cleaning Strings\n", .{});
         self.removeTableUnpainted(&self.strings);
-        dprint('r' , self.pstdout , "[GC] Finished Cleaning Strings\n" , .{});
-        
-        dprint('r' , self.pstdout , "[GC] Sweeping\n" , .{});
+        dprint('r', self.pstdout, "[GC] Finished Cleaning Strings\n", .{});
+
+        dprint('r', self.pstdout, "[GC] Sweeping\n", .{});
         self.sweep();
-        dprint('r' , self.pstdout , "[GC] Finished Sweeping\n" , .{});
+        dprint('r', self.pstdout, "[GC] Finished Sweeping\n", .{});
     }
 
-    fn removeTableUnpainted(self : *Self , tab : *table.PankTable()) void {
-        var i : usize = 0;
-        while (i < tab.count()) : (i+=1) {
+    fn removeTableUnpainted(self: *Self, tab: *table.PankTable()) void {
+        var i: usize = 0;
+        while (i < tab.count()) : (i += 1) {
             const key = tab.getKeyPtr(tab.keys()[i]);
             if (key) |k| {
                 if (!k.*.parent().isMarked) {
-                    dprint('p', self.pstdout , "[GC] Removing String " , .{});
+                    dprint('p', self.pstdout, "[GC] Removing String ", .{});
                     if (slog) {
                         _ = k.*.print(self);
                     }
-                    dprint('p' , self.pstdout , "\n" , .{});
+                    dprint('p', self.pstdout, "\n", .{});
                     _ = tab.orderedRemove(k.*);
-
                 }
             }
         }
- 
-
     }
 
-    fn markModules(self : *Self) void {
-        var i : usize = 0;
+    fn markModules(self: *Self) void {
+        var i: usize = 0;
         while (i < self.modules.items.len) : (i += 1) {
             _ = self.modules.items[i].mark(self);
-
         }
     }
     fn markRoots(self: *Self) void {
         if (self.stack) |stack| {
-            dprint('r', self.pstdout , "[GC] Marking Stack \n", .{});
+            dprint('r', self.pstdout, "[GC] Marking Stack \n", .{});
             for (0..@intCast(stack.presentcount())) |i| {
                 self.markValue(stack.stack[i]);
             }
-            dprint('r', self.pstdout , "[GC] Finished Marking Stack \n", .{});
+            dprint('r', self.pstdout, "[GC] Finished Marking Stack \n", .{});
         }
 
-        dprint('r', self.pstdout ,"[GC] Marking Builtins \n" , .{});
+        dprint('r', self.pstdout, "[GC] Marking Builtins \n", .{});
 
-        dprint('r', self.pstdout ,"[GC] Finished Marking Builtins \n" , .{});
+        dprint('r', self.pstdout, "[GC] Finished Marking Builtins \n", .{});
 
         self.markTable(self.builtins);
-        dprint('r', self.pstdout ,"[GC] Marking Modules \n" , .{});
+        dprint('r', self.pstdout, "[GC] Marking Modules \n", .{});
         self.markModules();
-        dprint('r', self.pstdout ,"[GC] Finished Marking Modules \n" , .{});
+        dprint('r', self.pstdout, "[GC] Finished Marking Modules \n", .{});
 
-        
-
-
-        dprint('r' , self.pstdout , "[GC] Marking Compiler Roots \n" , .{});
+        dprint('r', self.pstdout, "[GC] Marking Compiler Roots \n", .{});
         self.markCompilerRoots();
-        dprint('r' , self.pstdout , "[GC] Finished Marking Compiler Roots \n" , .{});
+        dprint('r', self.pstdout, "[GC] Finished Marking Compiler Roots \n", .{});
 
-        var i : usize = 0;
+        var i: usize = 0;
 
-        while (i < self.stdlibCount) : (i +=1) {
+        while (i < self.stdlibCount) : (i += 1) {
             self.markTable(self.stdlibs[i].items);
         }
-
     }
 
     fn markTable(self: *Self, tab: table.PankTable()) void {
@@ -591,36 +579,37 @@ pub const Gc = struct {
 
     pub fn markObject(self: *Self, obj: ?*PObj) void {
         if (obj) |o| {
-            if (o.isMarked) { return; }
+            if (o.isMarked) {
+                return;
+            }
 
             if (slog) {
-            dprint('g', self.pstdout , "[GC] Marking Object : {s} : [ ", .{
-                o.getType().toString(),
-            });
+                dprint('g', self.pstdout, "[GC] Marking Object : {s} : [ ", .{
+                    o.getType().toString(),
+                });
                 _ = o.printObj(self);
-            
-            dprint('g', self.pstdout , " ] \n", .{});
+
+                dprint('g', self.pstdout, " ] \n", .{});
             }
             o.isMarked = true;
             self.grayStack.append(self.hal(), o) catch return;
         }
     }
 
-    fn traceRefs(self : *Self) void {
+    fn traceRefs(self: *Self) void {
         while (self.grayStack.items.len > 0) {
             const obj = self.grayStack.pop();
             self.paintObject(obj);
         }
     }
 
-    fn paintObject(self : *Self , obj : *PObj) void {
+    fn paintObject(self: *Self, obj: *PObj) void {
         //std.debug.print("self -> {any}\n" , .{obj.objtype});
         switch (obj.getType()) {
-            .Ot_String , .Ot_NativeFunc , .Ot_Error => {},
+            .Ot_String, .Ot_NativeFunc, .Ot_Error => {},
             .Ot_Function => {
                 const f = obj.asFunc();
                 if (f.name) |name| {
-
                     self.markObject(name.parent());
                 }
 
@@ -631,9 +620,9 @@ pub const Gc = struct {
 
             .Ot_Array => {
                 const arr = obj.asArray();
-                
-                var i : usize = 0;
-                while (i < arr.values.items.len) : ( i += 1 ) {
+
+                var i: usize = 0;
+                while (i < arr.values.items.len) : (i += 1) {
                     self.markValue(arr.values.items[i]);
                 }
             },
@@ -646,8 +635,8 @@ pub const Gc = struct {
             .Ot_Closure => {
                 const c = obj.asClosure();
                 self.markObject(c.function.parent());
-                var i : usize = 0;
-                while (i < c.upc) : (i+=1) {
+                var i: usize = 0;
+                while (i < c.upc) : (i += 1) {
                     self.markObject(c.upvalues[i].parent());
                 }
             },
@@ -658,7 +647,6 @@ pub const Gc = struct {
                 var ite = hm.values.iterator();
 
                 while (ite.next()) |pair| {
-                    
                     self.markValue(pair.key_ptr.*);
                     self.markValue(pair.value_ptr.*);
                 }
@@ -666,15 +654,15 @@ pub const Gc = struct {
 
             .Ot_Module => {
                 self.markObject(obj.asMod().name.parent());
-            }
+            },
             //else => {
             //    return;
             //}
         }
     }
 
-    fn sweep(self : *Self) void {
-        var previous : ?*PObj = null;
+    fn sweep(self: *Self) void {
+        var previous: ?*PObj = null;
         var object = self.objects;
 
         while (object) |obj| {
@@ -691,14 +679,11 @@ pub const Gc = struct {
                 } else {
                     self.objects = object;
                 }
-                
-                    self.freeSingleObject(ur);
 
+                self.freeSingleObject(ur);
             }
         }
     }
-
-
 
     pub fn markCompilerRoots(self: *Self) void {
         if (self.compiler) |scompiler| {
