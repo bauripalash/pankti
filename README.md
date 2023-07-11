@@ -32,7 +32,7 @@ ventured into the dark world of language design.
 ## Functions:
 ```go
     কাজ ঘুমানো(নায়ক)
-        দেখাও নায়ক + " এখন ঘুমোচ্ছে!"
+        দেখাও(নায়ক + " এখন ঘুমোচ্ছে!")
     শেষ
     ঘুমানো("পলাশ")
 ```
