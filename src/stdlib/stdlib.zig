@@ -18,6 +18,7 @@ const PObj = @import("../object.zig").PObj;
 const osMod = @import("os.zig");
 const bnOsMod = @import("bn/bnos.zig");
 const mathMod = @import("math.zig");
+const bnMathMod = @import("bn/bnmath.zig");
 
 pub const msl = struct {
     key: []const u32,
@@ -80,11 +81,13 @@ fn _pushStdlib(v: *vm.Vm, modname: []const u32, items: []const msl) void {
 pub const OsName = osMod.Name;
 pub const BnOsName = bnOsMod.Name;
 pub const MathName = mathMod.Name;
+pub const BnMathName = bnMathMod.Name;
 
 pub fn IsStdlib(name: []const u32) bool {
     if (utils.matchU32(name, OsName) or
         utils.matchU32(name, BnOsName) or
-        utils.matchU32(name, MathName))
+        utils.matchU32(name, MathName) or
+        utils.matchU32(name, BnMathName))
     {
         return true;
     }
@@ -101,6 +104,9 @@ pub fn PushStdlib(v: *vm.Vm, name: []const u32) bool {
         return true;
     } else if (utils.matchU32(name, MathName)) {
         pushStdlibMath(v);
+        return true;
+    } else if (utils.matchU32(name, BnMathName)) {
+        pushStdlibBnMath(v);
         return true;
     }
 
@@ -135,5 +141,40 @@ pub fn pushStdlibMath(v: *vm.Vm) void {
         msl.m(mathMod.NameFuncLog10, mathMod.math_Log10),
         msl.m(mathMod.NameFuncLog, mathMod.math_Log),
         msl.m(mathMod.NameFuncLogX, mathMod.math_LogX),
+        msl.m(mathMod.NameFuncGcd, mathMod.math_Gcd),
+        msl.m(mathMod.NameFuncLcm, mathMod.math_Lcm),
+        msl.m(mathMod.NameFuncSine, mathMod.math_Sine),
+        msl.m(mathMod.NameFuncCosine, mathMod.math_Cosine),
+        msl.m(mathMod.NameFuncTangent, mathMod.math_Tangent),
+        msl.m(mathMod.NameFuncDegree, mathMod.math_Degree),
+        msl.m(mathMod.NameFuncRadians, mathMod.math_Radians),
+        msl.m(mathMod.NameFuncNumber, mathMod.math_Number),
+        msl.m(mathMod.NameFuncAbs, mathMod.math_Abs),
+        msl.m(mathMod.NameFuncRound, mathMod.math_Round),
+        msl.m(mathMod.NameFuncFloor, mathMod.math_Floor),
+        msl.m(mathMod.NameFuncCeil, mathMod.math_Ceil),
+    });
+}
+
+pub fn pushStdlibBnMath(v: *vm.Vm) void {
+    _pushStdlib(v, bnMathMod.Name, &[_]msl{
+        msl.m(bnMathMod.BnNameFuncPi, bnMathMod.bnmath_Pi),
+        msl.m(bnMathMod.BnNameFuncE, bnMathMod.bnmath_E),
+        msl.m(bnMathMod.BnNameFuncSqrt, bnMathMod.bnmath_Sqrt),
+        msl.m(bnMathMod.BnNameFuncLog10, bnMathMod.bnmath_Log10),
+        msl.m(bnMathMod.BnNameFuncLog, bnMathMod.bnmath_Log),
+        msl.m(bnMathMod.BnNameFuncLogX, bnMathMod.bnmath_LogX),
+        msl.m(bnMathMod.BnNameFuncGcd, bnMathMod.bnmath_Gcd),
+        msl.m(bnMathMod.BnNameFuncLcm, bnMathMod.bnmath_Lcm),
+        msl.m(bnMathMod.BnNameFuncSine, bnMathMod.bnmath_Sine),
+        msl.m(bnMathMod.BnNameFuncCosine, bnMathMod.bnmath_Cosine),
+        msl.m(bnMathMod.BnNameFuncTangent, bnMathMod.bnmath_Tangent),
+        msl.m(bnMathMod.BnNameFuncDegree, bnMathMod.bnmath_Degree),
+        msl.m(bnMathMod.BnNameFuncRadians, bnMathMod.bnmath_Radians),
+        msl.m(bnMathMod.BnNameFuncNumber, bnMathMod.bnmath_Number),
+        msl.m(bnMathMod.BnNameFuncAbs, bnMathMod.bnmath_Abs),
+        msl.m(bnMathMod.BnNameFuncRound, bnMathMod.bnmath_Round),
+        msl.m(bnMathMod.BnNameFuncFloor, bnMathMod.bnmath_Floor),
+        msl.m(bnMathMod.BnNameFuncCeil, bnMathMod.bnmath_Ceil),
     });
 }

@@ -121,11 +121,270 @@ pub fn math_LogX(gc: *Gc, argc: u8, values: []PValue) PValue {
     if (!values[0].isNumber() or !values[1].isNumber()) {
         return PValue.makeError(
             gc,
-            "logx(a,b) required both argument to be numbers",
+            "logx(a,b) requires both argument to be numbers",
         ).?;
     }
     const rawBase = values[0].asNumber();
     const rawNum = values[1].asNumber();
 
     return PValue.makeNumber(@log(rawNum) / @log(rawBase));
+}
+
+pub fn getGcd(a: f64, b: f64) f64 {
+    var x = if (a > 0) a else -a;
+    var y = if (b > 0) b else -b;
+
+    while (x != y) {
+        if (x > y) {
+            x -= y;
+        } else {
+            y -= x;
+        }
+    }
+
+    return x;
+}
+
+pub const NameFuncGcd = &[_]u32{ 'g', 'c', 'd' };
+pub fn math_Gcd(gc: *Gc, argc: u8, values: []PValue) PValue {
+    if (argc != 2) {
+        return PValue.makeError(
+            gc,
+            "gcd() function only takes 2 argument",
+        ).?;
+    }
+
+    if (!values[0].isNumber() or !values[1].isNumber()) {
+        return PValue.makeError(
+            gc,
+            "gcd(a,b) requires both argument to be numbers",
+        ).?;
+    }
+
+    return PValue.makeNumber(getGcd(
+        values[0].asNumber(),
+        values[1].asNumber(),
+    ));
+}
+
+pub const NameFuncLcm = &[_]u32{ 'l', 'c', 'm' };
+pub fn math_Lcm(gc: *Gc, argc: u8, values: []PValue) PValue {
+    if (argc != 2) {
+        return PValue.makeError(
+            gc,
+            "lcm() function only takes 2 argument",
+        ).?;
+    }
+
+    if (!values[0].isNumber() or !values[1].isNumber()) {
+        return PValue.makeError(
+            gc,
+            "lcm(a,b) requires both argument to be numbers",
+        ).?;
+    }
+
+    const a = values[0].asNumber();
+    const b = values[1].asNumber();
+
+    return PValue.makeNumber((a * b) / getGcd(a, b));
+}
+
+pub const NameFuncSine = &[_]u32{ 's', 'i', 'n' };
+pub fn math_Sine(gc: *Gc, argc: u8, values: []PValue) PValue {
+    if (argc != 1) {
+        return PValue.makeError(
+            gc,
+            "sin(a) function only takes 1 argument",
+        ).?;
+    }
+
+    if (!values[0].isNumber()) {
+        return PValue.makeError(
+            gc,
+            "lcm(a) requires argument to be numbers",
+        ).?;
+    }
+
+    return PValue.makeNumber(@sin(values[0].asNumber()));
+}
+
+pub const NameFuncCosine = &[_]u32{ 'c', 'o', 's' };
+pub fn math_Cosine(gc: *Gc, argc: u8, values: []PValue) PValue {
+    if (argc != 1) {
+        return PValue.makeError(
+            gc,
+            "cos(a) function only takes 1 argument",
+        ).?;
+    }
+
+    if (!values[0].isNumber()) {
+        return PValue.makeError(
+            gc,
+            "cos(a) requires argument to be numbers",
+        ).?;
+    }
+
+    return PValue.makeNumber(@cos(values[0].asNumber()));
+}
+
+pub const NameFuncTangent = &[_]u32{ 't', 'a', 'n' };
+pub fn math_Tangent(gc: *Gc, argc: u8, values: []PValue) PValue {
+    if (argc != 1) {
+        return PValue.makeError(
+            gc,
+            "tan(a) function only takes 1 argument",
+        ).?;
+    }
+
+    if (!values[0].isNumber()) {
+        return PValue.makeError(
+            gc,
+            "tan(a) requires argument to be numbers",
+        ).?;
+    }
+
+    return PValue.makeNumber(@tan(values[0].asNumber()));
+}
+
+pub const NameFuncDegree = &[_]u32{ 'd', 'e', 'g' };
+pub fn math_Degree(gc: *Gc, argc: u8, values: []PValue) PValue {
+    if (argc != 1) {
+        return PValue.makeError(
+            gc,
+            "deg(a) function only takes 1 argument",
+        ).?;
+    }
+
+    if (!values[0].isNumber()) {
+        return PValue.makeError(
+            gc,
+            "deg(a) requires argument to be numbers",
+        ).?;
+    }
+
+    return PValue.makeNumber(values[0].asNumber() * (180 / CONST_PI));
+}
+
+pub const NameFuncRadians = &[_]u32{ 'r', 'a', 'd' };
+pub fn math_Radians(gc: *Gc, argc: u8, values: []PValue) PValue {
+    if (argc != 1) {
+        return PValue.makeError(
+            gc,
+            "rad(a) function only takes 1 argument",
+        ).?;
+    }
+
+    if (!values[0].isNumber()) {
+        return PValue.makeError(
+            gc,
+            "rad(a) requires argument to be numbers",
+        ).?;
+    }
+
+    return PValue.makeNumber(values[0].asNumber() * (CONST_PI / 180));
+}
+
+pub const NameFuncNumber = &[_]u32{ 'n', 'u', 'm' };
+pub fn math_Number(gc: *Gc, argc: u8, values: []PValue) PValue {
+    if (argc != 1) {
+        return PValue.makeError(
+            gc,
+            "num(a) function only takes 1 argument",
+        ).?;
+    }
+
+    if (!values[0].isString()) {
+        return PValue.makeError(
+            gc,
+            "num(a) requires argument to be string",
+        ).?;
+    }
+
+    const stringU8 = utils.u32tou8(
+        values[0].asObj().asString().chars,
+        gc.hal(),
+    ) catch return PValue.makeNumber(0);
+    const rawNum: f64 = std.fmt.parseFloat(f64, stringU8) catch 0;
+
+    const result = PValue.makeNumber(rawNum);
+
+    gc.hal().free(stringU8);
+
+    return result;
+}
+
+pub const NameFuncAbs = &[_]u32{ 'a', 'b', 's' };
+pub fn math_Abs(gc: *Gc, argc: u8, values: []PValue) PValue {
+    if (argc != 1) {
+        return PValue.makeError(
+            gc,
+            "num(a) function only takes 1 argument",
+        ).?;
+    }
+
+    if (!values[0].isNumber()) {
+        return PValue.makeError(
+            gc,
+            "num(a) requires argument to be number",
+        ).?;
+    }
+
+    return PValue.makeNumber(@fabs(values[0].asNumber()));
+}
+
+pub const NameFuncRound = &[_]u32{ 'r', 'o', 'u', 'n', 'd' };
+pub fn math_Round(gc: *Gc, argc: u8, values: []PValue) PValue {
+    if (argc != 1) {
+        return PValue.makeError(
+            gc,
+            "round(a) function only takes 1 argument",
+        ).?;
+    }
+
+    if (!values[0].isNumber()) {
+        return PValue.makeError(
+            gc,
+            "round(a) requires argument to be number",
+        ).?;
+    }
+
+    return PValue.makeNumber(@round(values[0].asNumber()));
+}
+
+pub const NameFuncFloor = &[_]u32{ 'f', 'l', 'o', 'o', 'r' };
+pub fn math_Floor(gc: *Gc, argc: u8, values: []PValue) PValue {
+    if (argc != 1) {
+        return PValue.makeError(
+            gc,
+            "floor(a) function only takes 1 argument",
+        ).?;
+    }
+
+    if (!values[0].isNumber()) {
+        return PValue.makeError(
+            gc,
+            "floor(a) requires argument to be number",
+        ).?;
+    }
+
+    return PValue.makeNumber(@floor(values[0].asNumber()));
+}
+
+pub const NameFuncCeil = &[_]u32{ 'c', 'e', 'i', 'l' };
+pub fn math_Ceil(gc: *Gc, argc: u8, values: []PValue) PValue {
+    if (argc != 1) {
+        return PValue.makeError(
+            gc,
+            "ceil(a) function only takes 1 argument",
+        ).?;
+    }
+
+    if (!values[0].isNumber()) {
+        return PValue.makeError(
+            gc,
+            "ceil(a) requires argument to be number",
+        ).?;
+    }
+
+    return PValue.makeNumber(@ceil(values[0].asNumber()));
 }
