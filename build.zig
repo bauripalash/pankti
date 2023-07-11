@@ -14,7 +14,7 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     const exe = b.addExecutable(.{
-        .name = "neopank",
+        .name = "pankti",
         .root_source_file = .{ .path = "src/main.zig" },
         .target = target,
         .optimize = optimize,
@@ -53,7 +53,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    const output_exe = "zig-out/bin/neopank";
+    const output_exe = "zig-out/bin/pankti";
     const source_to_run = "sample/c.txt";
     const run_interp_step = b.addSystemCommand(&[_][]const u8{
         output_exe,

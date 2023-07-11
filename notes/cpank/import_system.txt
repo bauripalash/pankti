@@ -1,0 +1,68 @@
+Pankti Internal Memo #1
+========
+
+Title: Pankti Import and Module System
+Author: Palash Bauri <me [at] palashbauri [dot] in>
+		<palashbauri1 [at] gmail [dot] com>
+Status: Draft
+Created: April 10, 2023 09:23:32 IST
+Last Modified: April 10, 2023 10:35:30 IST
+
+========
+Abstract
+========
+
+Due to pankti programming language's dynamic nature it has been proved to be 
+really difficult to implement a module and import system which is not only 
+easy to implement but also efficient. Here I provide description and notes on 
+the current prototype module/import system implemented in this C implementation
+of Pankti programming language
+
+========
+Description 
+========
+
+The VM (struct) will hold a static array of `MODULE_MAX` (prototype : 64) 
+number of module objects (1). It also include an integer field of module count 
+which specified how many modules are in use currently(2); the names of modules 
+will be hashed and stored in a array of module names which will help us fetch
+modules faster than comparing strings(3); The VM will also have a pointer the 
+current module being executed(4).
+
+```
+typedef struct _Vm{
+	...
+	Module modules[MODULE_MAX]; <-----(1)
+	int mod_count; 				<-----(2)
+	uint32_t mod_names[MODULE_MAX]; <-(3)
+	Module * current_mod;       <-----(4)
+	...
+}_Vm;
+```
+
+Each Module object has a table of globals (`htable.c`)(5), A array of standard 
+library proxy(6) and count of how many standard library are imported in this 
+current module(7). [Discussed later; see `Standard Library`]. `FRAME_SIZE` 
+number of call frames(8); number of frames in current module (9); module 
+name(10); hash of the module name which gets stored in the `mod_names` field 
+of VM(11); list of open upvalues(12); a boolean to check if the module is the 
+default or 'genesis' module(13); a pointer to the module this module was 
+imported from(14); the whole source code (for error reporting; Not yet 
+implemented) (25)
+
+```
+typedef struct Module {
+    Htable globals;					<----- (5)
+    StdProxy stdproxy[STDLIB_MAX];	<----- (6)
+    int stdlib_count;				<----- (7)
+    CallFrame frames[FRAME_SIZE];	<----- (8)
+    int frame_count;				<----- (9)
+    char32_t *name;					<----- (10)
+    uint32_t hash;					<----- (11)
+    ObjUpVal *open_upvs;			<----- (12)
+    bool is_default;				<----- (13)
+    struct Module *origin;			<----- (14)
+    char32_t *source_code;			<----- (15)
+
+} Module;
+```
