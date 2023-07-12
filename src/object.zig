@@ -190,49 +190,33 @@ pub const PObj = struct {
     pub fn toString(self: *PObj, al: std.mem.Allocator) ![]u8 {
         switch (self.getType()) {
             .Ot_Array => {
-                return try utils.u32tou8(&[_]u32{ '[', 'a', ']' });
+                return self.asArray().toString(al) orelse return std.mem.Allocator.Error.OutOfMemory;
             },
             .Ot_String => {
                 return try utils.u32tou8(self.asString().chars, al);
             },
 
             .Ot_Function => {
-                return try utils.u32tou8(&[_]u32{ '<', 'f', 'n', '>' }, al);
+                return try std.fmt.allocPrint(al, "<func>", .{});
             },
 
             .Ot_Closure => {
-                return try utils.u32tou8(
-                    &[_]u32{ 'c', 'l', 'o', 's', 'u', 'r', 'e' },
-                    al,
-                );
+                return try std.fmt.allocPrint(al, "<closure>", .{});
             },
 
             .Ot_NativeFunc => {
-                return try utils.u32tou8(
-                    &[_]u32{
-                        '<',
-                        'n',
-                        'a',
-                        't',
-                        'i',
-                        'v',
-                        ' ',
-                        'f',
-                        'n',
-                        '>',
-                    },
-                    al,
-                );
+                return try std.fmt.allocPrint(al, "<native fn>", .{});
             },
             .Ot_UpValue => {
-                return try utils.u32tou8(
-                    &[_]u32{ 'u', 'p', 'v', 'a', 'l', 'u', 'e' },
-                    al,
-                );
+                return try std.fmt.allocPrint(al, "<upvalue>", .{});
+            },
+
+            else => {
+                return try std.fmt.allocPrint(al, "<object>", .{});
             },
         }
 
-        return try utils.u32tou8([_]u32{'_'}, al);
+        return try std.fmt.allocPrint(al, "<object>", .{});
     }
 
     pub const OModule = struct {
@@ -371,6 +355,39 @@ pub const PObj = struct {
             gc.pstdout.print("]", .{}) catch return false;
 
             return true;
+        }
+
+        pub fn toString(self: *OArray, al: std.mem.Allocator) ?[]u8 {
+            var totalLen: usize = 3; //comma (2) + lbrack (1) + rbrack(2)
+
+            for (self.values.items) |val| {
+                const x = val.toString(al) catch return null;
+                totalLen += x.len + 2;
+                al.free(x);
+            }
+
+            var sarr = al.alloc(u8, totalLen) catch return null;
+
+            var ptr: [*]u8 = sarr.ptr;
+
+            @memcpy(ptr, "[ ");
+            ptr += 2;
+
+            for (self.values.items) |val| {
+                const x = val.toString(al) catch return null;
+
+                @memcpy(ptr, x);
+                ptr += x.len;
+                @memcpy(ptr, ", ");
+                ptr += 2;
+
+                al.free(x);
+            }
+
+            @memcpy(ptr, "]");
+            ptr += 1;
+
+            return sarr;
         }
 
         pub fn addItem(self: *OArray, gc: *Gc, item: PValue) bool {

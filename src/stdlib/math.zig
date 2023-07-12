@@ -66,7 +66,7 @@ pub fn math_Sqrt(vm: *Vm, argc: u8, values: []PValue) PValue {
         ).?;
     }
 
-    return PValue.makeNumber(@sqrt(rawValue.asNumber()));
+    return PValue.makeNumber(std.math.sqrt(rawValue.asNumber()));
 }
 
 pub const NameFuncLog10 = &[_]u32{ 'l', 'o', 'g', '1', '0' };
@@ -86,7 +86,7 @@ pub fn math_Log10(vm: *Vm, argc: u8, values: []PValue) PValue {
         ).?;
     }
 
-    return PValue.makeNumber(@log10(rawValue.asNumber()));
+    return PValue.makeNumber(std.math.log10(rawValue.asNumber()));
 }
 
 pub const NameFuncLog = &[_]u32{ 'l', 'o', 'g' };
@@ -127,7 +127,7 @@ pub fn math_LogX(vm: *Vm, argc: u8, values: []PValue) PValue {
     const rawBase = values[0].asNumber();
     const rawNum = values[1].asNumber();
 
-    return PValue.makeNumber(@log(rawNum) / @log(rawBase));
+    return PValue.makeNumber(std.math.log(f64, rawBase, rawNum));
 }
 
 pub fn getGcd(a: f64, b: f64) f64 {
@@ -205,7 +205,7 @@ pub fn math_Sine(vm: *Vm, argc: u8, values: []PValue) PValue {
         ).?;
     }
 
-    return PValue.makeNumber(@sin(values[0].asNumber()));
+    return PValue.makeNumber(std.math.sin(values[0].asNumber()));
 }
 
 pub const NameFuncCosine = &[_]u32{ 'c', 'o', 's' };
@@ -224,7 +224,7 @@ pub fn math_Cosine(vm: *Vm, argc: u8, values: []PValue) PValue {
         ).?;
     }
 
-    return PValue.makeNumber(@cos(values[0].asNumber()));
+    return PValue.makeNumber(std.math.cos(values[0].asNumber()));
 }
 
 pub const NameFuncTangent = &[_]u32{ 't', 'a', 'n' };
@@ -243,7 +243,7 @@ pub fn math_Tangent(vm: *Vm, argc: u8, values: []PValue) PValue {
         ).?;
     }
 
-    return PValue.makeNumber(@tan(values[0].asNumber()));
+    return PValue.makeNumber(std.math.tan(values[0].asNumber()));
 }
 
 pub const NameFuncDegree = &[_]u32{ 'd', 'e', 'g' };
@@ -329,7 +329,7 @@ pub fn math_Abs(vm: *Vm, argc: u8, values: []PValue) PValue {
         ).?;
     }
 
-    return PValue.makeNumber(@fabs(values[0].asNumber()));
+    return PValue.makeNumber(std.math.fabs(values[0].asNumber()));
 }
 
 pub const NameFuncRound = &[_]u32{ 'r', 'o', 'u', 'n', 'd' };
@@ -348,7 +348,7 @@ pub fn math_Round(vm: *Vm, argc: u8, values: []PValue) PValue {
         ).?;
     }
 
-    return PValue.makeNumber(@round(values[0].asNumber()));
+    return PValue.makeNumber(std.math.round(values[0].asNumber()));
 }
 
 pub const NameFuncFloor = &[_]u32{ 'f', 'l', 'o', 'o', 'r' };
@@ -367,7 +367,7 @@ pub fn math_Floor(vm: *Vm, argc: u8, values: []PValue) PValue {
         ).?;
     }
 
-    return PValue.makeNumber(@floor(values[0].asNumber()));
+    return PValue.makeNumber(std.math.floor(values[0].asNumber()));
 }
 
 pub const NameFuncCeil = &[_]u32{ 'c', 'e', 'i', 'l' };
@@ -386,5 +386,5 @@ pub fn math_Ceil(vm: *Vm, argc: u8, values: []PValue) PValue {
         ).?;
     }
 
-    return PValue.makeNumber(@ceil(values[0].asNumber()));
+    return PValue.makeNumber(std.math.ceil(values[0].asNumber()));
 }
