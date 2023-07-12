@@ -455,7 +455,7 @@ pub const Vm = struct {
                         calle.asObj().asNativeFun();
 
                     const result = f.func(
-                        self.gc,
+                        self,
                         argc,
                         (self.stack.top - argc)[0..argc],
                     );

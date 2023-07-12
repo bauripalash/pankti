@@ -94,22 +94,21 @@ pub const PObj = struct {
         return self.is(.Ot_String);
     }
 
-    pub fn isArray(self : *PObj) bool {
+    pub fn isArray(self: *PObj) bool {
         return self.is(.Ot_Array);
     }
 
-    pub fn isHmap(self : *PObj) bool {
+    pub fn isHmap(self: *PObj) bool {
         return self.is(.Ot_Hmap);
     }
 
-    pub fn isOError(self : *PObj) bool {
+    pub fn isOError(self: *PObj) bool {
         return self.is(.Ot_Error);
     }
 
-    pub fn isMod(self : *PObj) bool {
+    pub fn isMod(self: *PObj) bool {
         return self.is(.Ot_Module);
     }
-
 
     pub fn asString(self: *PObj) *OString {
         return @fieldParentPtr(OString, "obj", self);
@@ -131,22 +130,21 @@ pub const PObj = struct {
         return self.child(PObj.OUpValue);
     }
 
-    pub fn asArray(self : *PObj) *OArray {
+    pub fn asArray(self: *PObj) *OArray {
         return self.child(PObj.OArray);
     }
 
-    pub fn asHmap(self : *PObj) *OHmap {
+    pub fn asHmap(self: *PObj) *OHmap {
         return self.child(PObj.OHmap);
     }
 
-    pub fn asOErr(self : *PObj) *OError{
+    pub fn asOErr(self: *PObj) *OError {
         return self.child(PObj.OError);
     }
 
-    pub fn asMod(self : *PObj) *OModule {
+    pub fn asMod(self: *PObj) *OModule {
         return self.child(PObj.OModule);
     }
-
 
     pub fn free(self: *PObj, vm: *Vm) void {
         switch (self.objtype) {
@@ -158,7 +156,7 @@ pub const PObj = struct {
         return PValue.makeObj(self);
     }
 
-    pub fn printObj(self: *PObj , gc : *Gc) bool {
+    pub fn printObj(self: *PObj, gc: *Gc) bool {
         return switch (self.getType()) {
             .Ot_String => self.asString().print(gc),
             .Ot_Function => self.asFunc().print(gc),
@@ -172,8 +170,7 @@ pub const PObj = struct {
         };
     }
 
-    
-    pub fn getLen(self : *PObj) ?usize {
+    pub fn getLen(self: *PObj) ?usize {
         switch (self.getType()) {
             .Ot_String => {
                 return @intCast(self.asString().len);
@@ -185,18 +182,15 @@ pub const PObj = struct {
                 return self.asArray().count;
             },
 
-            else => {  }
-            
+            else => {},
         }
         return null;
-
-
     }
 
     pub fn toString(self: *PObj, al: std.mem.Allocator) ![]u8 {
         switch (self.getType()) {
             .Ot_Array => {
-                return try utils.u32tou8(&[_]u32{'[' , 'a' , ']' });
+                return try utils.u32tou8(&[_]u32{ '[', 'a', ']' });
             },
             .Ot_String => {
                 return try utils.u32tou8(self.asString().chars, al);
@@ -241,14 +235,12 @@ pub const PObj = struct {
         return try utils.u32tou8([_]u32{'_'}, al);
     }
 
-
     pub const OModule = struct {
-        obj : PObj,
-        name : *OString,
+        obj: PObj,
+        name: *OString,
 
-        pub fn new(vm : *Vm , gc : *Gc , name : []const u32) ?*OModule {
-            
-            const om : *OModule = gc.newObj(.Ot_Module, PObj.OModule) catch return null;
+        pub fn new(vm: *Vm, gc: *Gc, name: []const u32) ?*OModule {
+            const om: *OModule = gc.newObj(.Ot_Module, PObj.OModule) catch return null;
             om.name = undefined;
 
             vm.stack.push(PValue.makeObj(om.parent())) catch return null;
@@ -260,143 +252,140 @@ pub const PObj = struct {
 
             _ = vm.stack.pop() catch return null;
             return om;
-
         }
 
-        pub fn free(self : *OModule , gc : *Gc) void {
+        pub fn free(self: *OModule, gc: *Gc) void {
             gc.getAlc().destroy(self);
         }
 
-        pub fn print(self : *OModule , gc : *Gc) bool {
-            gc.pstdout.print("<oMod " , .{}) catch return false;
+        pub fn print(self: *OModule, gc: *Gc) bool {
+            gc.pstdout.print("<oMod ", .{}) catch return false;
             _ = self.name.print(gc);
-            gc.pstdout.print(" >" , .{}) catch return false;
+            gc.pstdout.print(" >", .{}) catch return false;
             return true;
         }
 
-        pub fn parent(self : *OModule) *PObj {
+        pub fn parent(self: *OModule) *PObj {
             return @ptrCast(self);
         }
     };
     pub const OError = struct {
-        obj : PObj,
-        msg : []u8,
+        obj: PObj,
+        msg: []u8,
 
-        pub fn initU8(self : *OError , gc : *Gc , msg : []const u8) bool {
+        pub fn initU8(self: *OError, gc: *Gc, msg: []const u8) bool {
             self.msg = gc.hal().alloc(u8, msg.len) catch return false;
             @memcpy(self.msg, msg);
             return true;
         }
 
-        pub fn initU32(self : *OError , gc : *Gc , msg : []const u32) bool {
+        pub fn initU32(self: *OError, gc: *Gc, msg: []const u32) bool {
             const msgU8 = utils.u32tou8(msg, gc.hal()) catch return false;
             self.initU8(gc, msgU8);
             gc.hal().free(msgU8);
             return true;
         }
 
-        pub fn print(self : *OError , gc : *Gc) bool {
-            gc.pstdout.print("{s}" , .{self.msg}) catch return false;
+        pub fn print(self: *OError, gc: *Gc) bool {
+            gc.pstdout.print("{s}", .{self.msg}) catch return false;
             return true;
-            
         }
 
-        pub fn free(self : *OError , gc : *Gc) void{
+        pub fn free(self: *OError, gc: *Gc) void {
             gc.hal().free(self.msg);
             gc.getAlc().destroy(self);
         }
 
-        pub fn parent(self : *OError) *PObj {
+        pub fn parent(self: *OError) *PObj {
             return @ptrCast(self);
         }
     };
 
     pub const OHmap = struct {
-        obj : PObj,
-        values : table.MapTable(),
-        count : usize,
+        obj: PObj,
+        values: table.MapTable(),
+        count: usize,
 
-        pub fn init(self : *OHmap , gc : *Gc) void {
+        pub fn init(self: *OHmap, gc: *Gc) void {
             _ = gc;
             self.count = 0;
             self.values = table.MapTable(){};
         }
 
-        pub fn addPair(self : *OHmap , gc : *Gc , k : PValue , v : PValue) bool {
+        pub fn addPair(self: *OHmap, gc: *Gc, k: PValue, v: PValue) bool {
             //std.debug.print("-->{any}{any}\n" , .{k , v});
-            self.values.put(gc.hal() , k , v) catch return false;
+            self.values.put(gc.hal(), k, v) catch return false;
             self.count += 1;
             return true;
         }
-        
-        pub fn getValue(self : *OHmap , k : PValue) ?PValue {
+
+        pub fn getValue(self: *OHmap, k: PValue) ?PValue {
             if (self.values.get(k)) |v| {
                 return v;
-            } else{
+            } else {
                 return null;
             }
         }
 
-        pub fn print(self : *OHmap , gc  : *Gc) bool {
-            gc.pstdout.print("{{ " , .{}) catch return false;
+        pub fn print(self: *OHmap, gc: *Gc) bool {
+            gc.pstdout.print("{{ ", .{}) catch return false;
             var ite = self.values.iterator();
             while (ite.next()) |item| {
                 if (!item.key_ptr.*.printVal(gc)) return false;
-                gc.pstdout.print(": " , .{}) catch return false;
+                gc.pstdout.print(": ", .{}) catch return false;
                 if (!item.value_ptr.*.printVal(gc)) return false;
 
-                gc.pstdout.print(", ",.{}) catch return false;
+                gc.pstdout.print(", ", .{}) catch return false;
             }
-            gc.pstdout.print("}}" , .{}) catch return false;
+            gc.pstdout.print("}}", .{}) catch return false;
 
             return true;
         }
 
-        pub fn free(self : *OHmap , gc : *Gc) void {
+        pub fn free(self: *OHmap, gc: *Gc) void {
             self.values.deinit(gc.hal());
             self.count = 0;
             gc.getAlc().destroy(self);
         }
 
-        pub fn parent(self : *OHmap) *PObj {
+        pub fn parent(self: *OHmap) *PObj {
             return @ptrCast(self);
         }
     };
     pub const OArray = struct {
-        obj : PObj,
-        values : std.ArrayListUnmanaged(PValue),
-        count : usize,
+        obj: PObj,
+        values: std.ArrayListUnmanaged(PValue),
+        count: usize,
 
-        pub fn init(self : *OArray) void{
+        pub fn init(self: *OArray) void {
             self.count = 0;
             self.values = std.ArrayListUnmanaged(PValue){};
         }
 
-        pub fn print(self : *OArray , gc : *Gc) bool {
-            
-            gc.pstdout.print("[ " , .{}) catch return false;
+        pub fn print(self: *OArray, gc: *Gc) bool {
+            gc.pstdout.print("[ ", .{}) catch return false;
             for (self.values.items) |val| {
                 if (!val.printVal(gc)) return false;
-                gc.pstdout.print(", ",.{}) catch return false;
+                gc.pstdout.print(", ", .{}) catch return false;
             }
-            gc.pstdout.print("]" , .{}) catch return false;
+            gc.pstdout.print("]", .{}) catch return false;
 
             return true;
         }
 
-        pub fn addItem(self : *OArray , gc : *Gc ,  item : PValue) bool{
-            self.values.append(gc.hal() , item) catch return false;
+        pub fn addItem(self: *OArray, gc: *Gc, item: PValue) bool {
+            self.values.append(gc.hal(), item) catch return false;
             self.count += 1;
             return true;
         }
 
-        pub fn popItem(self : *OArray) PValue {
+        pub fn popItem(self: *OArray) PValue {
             self.count -= 1;
             return self.values.pop();
         }
 
-        pub fn reverseItems(self : *OArray) void {
-            var start : usize = 0;
+        pub fn reverseItems(self: *OArray) void {
+            var start: usize = 0;
             var end = self.count - 1;
 
             while (start < end) {
@@ -409,13 +398,13 @@ pub const PObj = struct {
             }
         }
 
-        pub fn free(self : *OArray , gc : *Gc) void {
+        pub fn free(self: *OArray, gc: *Gc) void {
             self.values.deinit(gc.hal());
             self.count = 0;
             gc.getAlc().destroy(self);
         }
 
-        pub fn parent(self : *OArray) *PObj {
+        pub fn parent(self: *OArray) *PObj {
             return @ptrCast(self);
         }
     };
@@ -432,7 +421,7 @@ pub const PObj = struct {
             self.closed = PValue.makeNil();
         }
 
-         pub fn print(self: *OUpValue , gc : *Gc) bool {
+        pub fn print(self: *OUpValue, gc: *Gc) bool {
             _ = self;
             gc.pstdout.print("upvalue", .{}) catch return false;
 
@@ -453,21 +442,20 @@ pub const PObj = struct {
         function: *OFunction,
         upvalues: [*]*OUpValue,
         upc: u32,
-        globOwner : u32,
-        globals : ?*table.PankTable(),
+        globOwner: u32,
+        globals: ?*table.PankTable(),
 
-        pub fn init(self : *OClosure , gc : *Gc , func : *OFunction) !void {
+        pub fn init(self: *OClosure, gc: *Gc, func: *OFunction) !void {
             const upvalues = try gc.getAlc().alloc(?*OUpValue, func.upvCount);
             for (upvalues) |*v| {
-                v.* = std.mem.zeroes(?*OUpValue); 
+                v.* = std.mem.zeroes(?*OUpValue);
             }
-            const ptr : [*]*OUpValue = @ptrCast(upvalues);
+            const ptr: [*]*OUpValue = @ptrCast(upvalues);
             self.function = func;
             self.upvalues = ptr;
             self.upc = func.upvCount;
             self.globals = null;
             self.globOwner = 0;
-
         }
 
         pub fn new(gc: *Gc, func: *OFunction) !*PObj.OClosure {
@@ -487,10 +475,10 @@ pub const PObj = struct {
             return cl;
         }
 
-        pub fn print(self: *OClosure , gc : *Gc) bool {
-            gc.pstdout.print("<cls " , .{}) catch return false;
+        pub fn print(self: *OClosure, gc: *Gc) bool {
+            gc.pstdout.print("<cls ", .{}) catch return false;
             if (!self.function.print(gc)) return false;
-            gc.pstdout.print(" >" , .{}) catch return false;
+            gc.pstdout.print(" >", .{}) catch return false;
 
             return true;
         }
@@ -509,15 +497,15 @@ pub const PObj = struct {
         obj: PObj,
         func: NativeFn,
 
-        pub const NativeFn = *const fn (gc : *Gc , u8, []PValue) PValue;
+        pub const NativeFn = *const fn (v: *Vm, u8, []PValue) PValue;
 
         pub fn init(self: *ONativeFunction, func: NativeFn) void {
             self.func = func;
         }
 
-        pub fn print(self: *ONativeFunction , gc : *Gc) bool {
+        pub fn print(self: *ONativeFunction, gc: *Gc) bool {
             _ = self;
-            gc.pstdout.print("<Native Fn>" , .{}) catch return false;
+            gc.pstdout.print("<Native Fn>", .{}) catch return false;
 
             return true;
         }
@@ -537,7 +525,7 @@ pub const PObj = struct {
         name: ?*OString,
         upvCount: u32,
         ins: Instruction,
-        fromMod : bool,
+        fromMod: bool,
 
         pub fn init(self: *OFunction, gc: *Gc) void {
             self.arity = 0;
@@ -558,22 +546,22 @@ pub const PObj = struct {
                 } else {
                     return name.chars[0..name.chars.len];
                 }
-            } else if (self.fromMod){
-                return &[_]u32 {'<' , 'm'  , 'o' , 'd' , '>'}; 
+            } else if (self.fromMod) {
+                return &[_]u32{ '<', 'm', 'o', 'd', '>' };
             } else {
                 return &[_]u32{ '<', 's', 'c', 'r', 'i', 'p', 't', '>' };
             }
         }
 
-        pub fn print(self: *OFunction , gc : *Gc) bool {
-            gc.pstdout.print("<Fun " , .{}) catch return false;
+        pub fn print(self: *OFunction, gc: *Gc) bool {
+            gc.pstdout.print("<Fun ", .{}) catch return false;
             if (self.getName()) |n| {
-                utils.printu32(n , gc.pstdout);
+                utils.printu32(n, gc.pstdout);
             } else {
-                gc.pstdout.print("0x{x}" , .{@intFromPtr(self.name.?)}) catch 
+                gc.pstdout.print("0x{x}", .{@intFromPtr(self.name.?)}) catch
                     return false;
             }
-            gc.pstdout.print(" >" , .{}) catch return false;
+            gc.pstdout.print(" >", .{}) catch return false;
             return true;
         }
 
@@ -606,14 +594,14 @@ pub const PObj = struct {
             gc.getAlc().destroy(self);
         }
 
-        pub fn print(self: *OString , gc : *Gc) bool {
+        pub fn print(self: *OString, gc: *Gc) bool {
             if (self.len < 0) {
                 gc.pstdout.print("0x{x}", .{@intFromPtr(self)}) catch return false;
                 return true;
             }
 
             //gc.pstdout.print("\"" , .{}) catch return false;
-            utils.printu32(self.chars , gc.pstdout);
+            utils.printu32(self.chars, gc.pstdout);
 
             //gc.pstdout.print("\"" , .{}) catch return false;
             return true;

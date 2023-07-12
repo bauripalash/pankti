@@ -9,14 +9,14 @@
 
 const std = @import("std");
 const value = @import("value.zig");
-const Gc = @import("gc.zig").Gc;
+const Vm = @import("vm.zig").Vm;
 const PValue = value.PValue;
 const utils = @import("utils.zig");
 
 extern fn getTimestamp() usize;
 
-pub fn nClock(gc : *Gc , argc: u8, values: []PValue) PValue {
-    _ = gc;
+pub fn nClock(vm: *Vm, argc: u8, values: []PValue) PValue {
+    _ = vm;
     _ = values;
     _ = argc;
     if (!utils.IS_WASM) {
@@ -27,28 +27,27 @@ pub fn nClock(gc : *Gc , argc: u8, values: []PValue) PValue {
     }
 }
 
-pub fn nShow(gc : *Gc , argc: u8, values: []PValue) PValue {
+pub fn nShow(vm: *Vm, argc: u8, values: []PValue) PValue {
     var i: usize = 0;
     while (i < argc) : (i += 1) {
-        _ = values[i].printVal(gc);
-        gc.pstdout.print("\n", .{}) catch return PValue.makeNil(); //Until complete
+        _ = values[i].printVal(vm.gc);
+        vm.gc.pstdout.print("\n", .{}) catch return PValue.makeNil(); //Until complete
     }
     return PValue.makeNil();
 }
 
-pub fn nBnShow(gc : *Gc , argc: u8, values: []PValue) PValue { //WILL BE CHANGED?
+pub fn nBnShow(vm: *Vm, argc: u8, values: []PValue) PValue { //WILL BE CHANGED?
     var i: usize = 0;
     while (i < argc) : (i += 1) {
-        _ = values[i].printVal(gc);
-        gc.pstdout.print("\n", .{}) catch return PValue.makeNil(); //Until complete
+        _ = values[i].printVal(vm.gc);
+        vm.gc.pstdout.print("\n", .{}) catch return PValue.makeNil(); //Until complete
     }
     return PValue.makeNil();
 }
 
-pub fn nLen(gc : *Gc , argc : u8 , values : []PValue) PValue {
-
+pub fn nLen(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
-        return PValue.makeError(gc, "len(..) function only takes single argument").?;
+        return PValue.makeError(vm.gc, "len(..) function only takes single argument").?;
     }
 
     if (values[0].getLen()) |len| {

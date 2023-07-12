@@ -9,7 +9,7 @@
 
 const std = @import("std");
 const value = @import("../../value.zig");
-const Gc = @import("../../gc.zig").Gc;
+const Vm = @import("../../vm.zig").Vm;
 const PValue = value.PValue;
 const utils = @import("../../utils.zig");
 const stdlib = @import("../stdlib.zig");
@@ -19,11 +19,11 @@ const builtin = @import("builtin");
 pub const Name = &[_]u32{ 0x0993, 0x098f, 0x09b8 };
 // নাম
 pub const BnNameFuncName = &[_]u32{ 0x09a8, 0x09be, 0x09ae };
-pub fn bnos_Name(gc: *Gc, argc: u8, values: []PValue) PValue {
+pub fn bnos_Name(vm: *Vm, argc: u8, values: []PValue) PValue {
     _ = values;
     if (argc != 0) {
         return PValue.makeError(
-            gc,
+            vm.gc,
             "ওএস -এর নাম() কাজটি কোনো চলরাশি গ্রহণ করে না",
         ).?;
     }
@@ -41,14 +41,14 @@ pub fn bnos_Name(gc: *Gc, argc: u8, values: []PValue) PValue {
             "অজানা",
     };
 
-    return gc.makeString(nm);
+    return vm.gc.makeString(nm);
 }
 
 pub const BnNameFuncArch = &[_]u32{ 0x0986, 0x09b0, 0x09cd, 0x099a };
-pub fn bnos_Arch(gc: *Gc, argc: u8, values: []PValue) PValue {
+pub fn bnos_Arch(vm: *Vm, argc: u8, values: []PValue) PValue {
     _ = values;
     if (argc != 0) {
-        return PValue.makeError(gc, "ওএস -এর আর্চ() কাজটি কোনো চলরাশি গ্রহণ করে না").?;
+        return PValue.makeError(vm.gc, "ওএস -এর আর্চ() কাজটি কোনো চলরাশি গ্রহণ করে না").?;
     }
 
     const anm = switch (builtin.target.cpu.arch) {
@@ -59,16 +59,16 @@ pub fn bnos_Arch(gc: *Gc, argc: u8, values: []PValue) PValue {
         else => "অজানা",
     };
 
-    return gc.makeString(anm);
+    return vm.gc.makeString(anm);
 }
 pub const BnNameFuncUsername = &[_]u32{ 0x09ac, 0x09cd, 0x09af, 0x09ac, 0x09b9, 0x09be, 0x09b0, 0x0995, 0x09be, 0x09b0, 0x09c0 };
-pub fn bnos_Username(gc: *Gc, argc: u8, values: []PValue) PValue {
+pub fn bnos_Username(vm: *Vm, argc: u8, values: []PValue) PValue {
     _ = values;
     if (argc != 0) {
-        return PValue.makeError(gc, "ওএস -এর ব্যবহারকারী() কাজটি কোনো চলরাশি গ্রহণ করে না").?;
+        return PValue.makeError(vm.gc, "ওএস -এর ব্যবহারকারী() কাজটি কোনো চলরাশি গ্রহণ করে না").?;
     }
     if (utils.IS_WASM) {
-        return gc.makeString("wasm");
+        return vm.gc.makeString("wasm");
     }
 
     var unm: ?[]const u8 = null;
@@ -82,19 +82,19 @@ pub fn bnos_Username(gc: *Gc, argc: u8, values: []PValue) PValue {
     }
 
     if (unm) |n| {
-        return gc.makeString(n);
+        return vm.gc.makeString(n);
     } else {
-        return gc.makeString("অজানা");
+        return vm.gc.makeString("অজানা");
     }
 }
 pub const BnNameFuncHomdir = &[_]u32{ 0x0998, 0x09b0 };
-pub fn bnos_Homedir(gc: *Gc, argc: u8, values: []PValue) PValue {
+pub fn bnos_Homedir(vm: *Vm, argc: u8, values: []PValue) PValue {
     _ = values;
     if (argc != 0) {
-        return PValue.makeError(gc, "ওএস -এর ঘর() কাজটি কোনো চলরাশি গ্রহণ করে না").?;
+        return PValue.makeError(vm.gc, "ওএস -এর ঘর() কাজটি কোনো চলরাশি গ্রহণ করে না").?;
     }
     if (utils.IS_WASM) {
-        return gc.makeString("wasm");
+        return vm.gc.makeString("wasm");
     }
     var hdir: ?[]const u8 = if (utils.IS_WIN)
         std.os.getenv("USERPROFILE")
@@ -104,33 +104,33 @@ pub fn bnos_Homedir(gc: *Gc, argc: u8, values: []PValue) PValue {
         "অজানা";
 
     if (hdir) |h| {
-        return gc.makeString(h);
+        return vm.gc.makeString(h);
     } else {
-        return gc.makeString("অজানা");
+        return vm.gc.makeString("অজানা");
     }
 }
 pub const BnNameFuncCurdir = &[_]u32{ 0x09ac, 0x09b0, 0x09cd, 0x09a4, 0x09ae, 0x09be, 0x09a8 };
-pub fn bnos_Curdir(gc: *Gc, argc: u8, values: []PValue) PValue {
+pub fn bnos_Curdir(vm: *Vm, argc: u8, values: []PValue) PValue {
     _ = values;
     if (argc != 0) {
-        return PValue.makeError(gc, "ওএস -এর বর্তমান() কাজটি কোনো চলরাশি গ্রহণ করে না").?;
+        return PValue.makeError(vm.gc, "ওএস -এর বর্তমান() কাজটি কোনো চলরাশি গ্রহণ করে না").?;
     }
     if (utils.IS_WASM) {
-        return gc.makeString("wasm");
+        return vm.gc.makeString("wasm");
     }
 
-    var tempPath = gc.hal().alloc(u8, 1024) catch {
-        return gc.makeString("অজানা");
+    var tempPath = vm.gc.hal().alloc(u8, 1024) catch {
+        return vm.gc.makeString("অজানা");
     };
 
     const dir = std.os.getcwd(tempPath) catch return {
-        gc.hal().free(tempPath);
-        return gc.makeString("অজানা");
+        vm.gc.hal().free(tempPath);
+        return vm.gc.makeString("অজানা");
     };
 
-    const result = gc.makeString(dir);
+    const result = vm.gc.makeString(dir);
 
-    gc.hal().free(tempPath);
+    vm.gc.hal().free(tempPath);
 
     return result;
 }
