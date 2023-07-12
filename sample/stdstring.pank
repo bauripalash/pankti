@@ -1,4 +1,4 @@
 import s "string"
 
 show(s.split("hello.world." , "."))
-show(s.str([1,2,3]))
+show(s.str({"hello" : "world" , "name" : "palash"}))

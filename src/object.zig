@@ -211,6 +211,10 @@ pub const PObj = struct {
                 return try std.fmt.allocPrint(al, "<upvalue>", .{});
             },
 
+            .Ot_Hmap => {
+                return self.asHmap().toString(al) orelse return std.mem.Allocator.Error.OutOfMemory;
+            },
+
             else => {
                 return try std.fmt.allocPrint(al, "<object>", .{});
             },
@@ -309,6 +313,48 @@ pub const PObj = struct {
             } else {
                 return null;
             }
+        }
+
+        pub fn toString(self: *OHmap, al: std.mem.Allocator) ?[]u8 {
+            var totalLen: usize = 3; //comma (2) + lbrack (1) + rbrack(2)
+
+            var ite = self.values.iterator();
+            while (ite.next()) |x| {
+                const k = x.key_ptr.*.toString(al) catch return null;
+                totalLen += k.len + 2;
+                const v = x.value_ptr.*.toString(al) catch return null;
+                totalLen += v.len + 2;
+                al.free(k);
+                al.free(v);
+            }
+
+            var sarr = al.alloc(u8, totalLen) catch return null;
+
+            var ptr: [*]u8 = sarr.ptr;
+
+            @memcpy(ptr, "{ ");
+            ptr += 2;
+
+            var iter = self.values.iterator();
+            while (iter.next()) |x| {
+                const k = x.key_ptr.*.toString(al) catch return null;
+                @memcpy(ptr, k);
+                ptr += k.len;
+                @memcpy(ptr, ": ");
+                ptr += 2;
+                const v = x.value_ptr.*.toString(al) catch return null;
+                @memcpy(ptr, v);
+                ptr += v.len;
+                @memcpy(ptr, ", ");
+                ptr += 2;
+                totalLen += v.len + 2;
+                al.free(k);
+                al.free(v);
+            }
+            @memcpy(ptr, "}");
+            ptr += 1;
+
+            return sarr;
         }
 
         pub fn print(self: *OHmap, gc: *Gc) bool {
