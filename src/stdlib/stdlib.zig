@@ -20,6 +20,7 @@ const bnOsMod = @import("bn/bnos.zig");
 const mathMod = @import("math.zig");
 const bnMathMod = @import("bn/bnmath.zig");
 const stringMod = @import("string.zig");
+const bnStringMod = @import("bn/bnstring.zig");
 
 pub const msl = struct {
     key: []const u32,
@@ -84,13 +85,15 @@ pub const BnOsName = bnOsMod.Name;
 pub const MathName = mathMod.Name;
 pub const BnMathName = bnMathMod.Name;
 pub const StringName = stringMod.Name;
+pub const BnStringName = bnStringMod.Name;
 
 pub fn IsStdlib(name: []const u32) bool {
     if (utils.matchU32(name, OsName) or
         utils.matchU32(name, BnOsName) or
         utils.matchU32(name, MathName) or
         utils.matchU32(name, BnMathName) or
-        utils.matchU32(name, StringName))
+        utils.matchU32(name, StringName) or
+        utils.matchU32(name, BnStringName))
     {
         return true;
     }
@@ -113,6 +116,9 @@ pub fn PushStdlib(v: *vm.Vm, name: []const u32) bool {
         return true;
     } else if (utils.matchU32(name, StringName)) {
         pushStdlibString(v);
+        return true;
+    } else if (utils.matchU32(name, BnStringName)) {
+        pushStdlibBnString(v);
         return true;
     }
 
@@ -189,5 +195,12 @@ pub fn pushStdlibString(v: *vm.Vm) void {
     _pushStdlib(v, stringMod.Name, &[_]msl{
         msl.m(stringMod.NameFuncSplit, stringMod.str_Split),
         msl.m(stringMod.NameFuncString, stringMod.str_String),
+    });
+}
+
+pub fn pushStdlibBnString(v: *vm.Vm) void {
+    _pushStdlib(v, bnStringMod.Name, &[_]msl{
+        msl.m(bnStringMod.BnNameFuncSplit, bnStringMod.bnstr_Split),
+        msl.m(bnStringMod.BnNameFuncString, bnStringMod.bnstr_String),
     });
 }
