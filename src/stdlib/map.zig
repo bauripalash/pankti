@@ -39,3 +39,75 @@ pub fn map_Exists(vm: *Vm, argc: u8, values: []PValue) PValue {
         return PValue.makeBool(false);
     }
 }
+
+pub const NameFuncKeys = &[_]u32{ 'k', 'e', 'y', 's' };
+
+pub fn map_Keys(vm: *Vm, argc: u8, values: []PValue) PValue {
+    if (argc != 1) {
+        return PValue.makeError(vm.gc, "keys(m) function only takes a single argument").?;
+    }
+
+    if (!values[0].isObj()) {
+        return PValue.makeError(vm.gc, "keys(m) argument must be a map").?;
+    }
+
+    if (!values[0].asObj().isHmap()) {
+        return PValue.makeError(vm.gc, "keys(m) argument must be a map").?;
+    }
+
+    const rawMap = values[0].asObj().asHmap();
+
+    var objArr = vm.gc.newObj(PObj.OType.Ot_Array, PObj.OArray) catch {
+        return PValue.makeNil();
+    };
+
+    objArr.init();
+
+    vm.stack.push(PValue.makeObj(objArr.parent())) catch {
+        return PValue.makeNil();
+    };
+
+    var ite = rawMap.values.keyIterator();
+
+    while (ite.next()) |key| {
+        if (!objArr.addItem(vm.gc, key.*)) return PValue.makeNil();
+    }
+
+    return vm.stack.pop() catch return PValue.makeNil();
+}
+
+pub const NameFuncValues = &[_]u32{ 'v', 'a', 'l', 'u', 'e', 's' };
+
+pub fn map_Values(vm: *Vm, argc: u8, values: []PValue) PValue {
+    if (argc != 1) {
+        return PValue.makeError(vm.gc, "values(m) function only takes a single argument").?;
+    }
+
+    if (!values[0].isObj()) {
+        return PValue.makeError(vm.gc, "values(m) argument must be a map").?;
+    }
+
+    if (!values[0].asObj().isHmap()) {
+        return PValue.makeError(vm.gc, "values(m) argument must be a map").?;
+    }
+
+    const rawMap = values[0].asObj().asHmap();
+
+    var objArr = vm.gc.newObj(PObj.OType.Ot_Array, PObj.OArray) catch {
+        return PValue.makeNil();
+    };
+
+    objArr.init();
+
+    vm.stack.push(PValue.makeObj(objArr.parent())) catch {
+        return PValue.makeNil();
+    };
+
+    var ite = rawMap.values.valueIterator();
+
+    while (ite.next()) |val| {
+        if (!objArr.addItem(vm.gc, val.*)) return PValue.makeNil();
+    }
+
+    return vm.stack.pop() catch return PValue.makeNil();
+}

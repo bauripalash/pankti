@@ -214,5 +214,7 @@ pub fn pushStdlibBnString(v: *vm.Vm) void {
 pub fn pushStdlibMap(v: *vm.Vm) void {
     _pushStdlib(v, mapMod.Name, &[_]msl{
         msl.m(mapMod.NameFuncExists, mapMod.map_Exists),
+        msl.m(mapMod.NameFuncKeys, mapMod.map_Keys),
+        msl.m(mapMod.NameFuncValues, mapMod.map_Values),
     });
 }
