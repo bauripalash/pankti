@@ -511,20 +511,32 @@ pub const Gc = struct {
     }
 
     fn removeTableUnpainted(self: *Self, tab: *table.PankTable()) void {
-        var i: usize = 0;
-        while (i < tab.count()) : (i += 1) {
-            const key = tab.getKeyPtr(tab.keys()[i]);
-            if (key) |k| {
-                if (!k.*.parent().isMarked) {
-                    dprint('p', self.pstdout, "[GC] Removing String ", .{});
-                    if (slog) {
-                        _ = k.*.print(self);
-                    }
-                    dprint('p', self.pstdout, "\n", .{});
-                    _ = tab.orderedRemove(k.*);
+        var ite = tab.keyIterator();
+
+        while (ite.next()) |key| {
+            if (!key.*.parent().isMarked) {
+                dprint('p', self.pstdout, "[GC] Removing String ", .{});
+                if (slog) {
+                    _ = key.*.print(self);
                 }
+                dprint('p', self.pstdout, "\n", .{});
+                _ = tab.removeByPtr(key);
             }
         }
+        //var i: usize = 0;
+        //while (i < tab.count()) : (i += 1) {
+        //    const key = tab.getKeyPtr(tab.keys()[i]);
+        //    if (key) |k| {
+        //        if (!k.*.parent().isMarked) {
+        //            dprint('p', self.pstdout, "[GC] Removing String ", .{});
+        //            if (slog) {
+        //                _ = k.*.print(self);
+        //            }
+        //            dprint('p', self.pstdout, "\n", .{});
+        //            _ = tab.orderedRemove(k.*);
+        //        }
+        //    }
+        //}
     }
 
     fn markModules(self: *Self) void {

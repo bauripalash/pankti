@@ -1,7 +1,7 @@
 ZIG:=zig
 BUILD_DIR:=zig-out
 TARGET:=$(BUILD_DIR)/bin/pankti
-SAMPLE:=sample/stdstring.pank
+SAMPLE:=sample/stdmap.pank
 DEBUGGER:=gdb
 WASMBIN:=zig-out/wasm/napi.wasm
 
@@ -39,8 +39,10 @@ resobj:
 	llvm-rc winres/pankti.rc /FO winres/pankti.res.obj
 
 perf:
+	@echo "Building Release"
+	$(ZIG) build -Doptimize=ReleaseSafe
 	@echo "[+] Running Perf"
-	perf record -g -F 999 ./$(TARGET) $(SAMPLE)
+	perf record -g -F 999 ./$(TARGET) ./sample/fib35.pank
 	perf script -F +pid > neopank.perf
 	@echo "[+] Finished Running Perf"
 

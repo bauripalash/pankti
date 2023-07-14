@@ -1,0 +1,6 @@
+import m "map"
+
+let a = {"name" : "palash" , 1 : 2};
+show(a)
+show(m.exists(a , "name"))
+show(m.exists(a , 2))
