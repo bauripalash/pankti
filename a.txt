@@ -1,0 +1,766 @@
+[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[34m[GC] (0x7fb2d577a000) New Object: OBJ_STRING[0m
+[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[34m[GC] (0x7fb2d5776020) New Object: OBJ_NATIVE[0m
+[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[34m[GC] (0x7fb2d577a040) New Object: OBJ_STRING[0m
+[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[34m[GC] (0x7fb2d5776040) New Object: OBJ_NATIVE[0m
+[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[34m[GC] (0x7fb2d577a080) New Object: OBJ_STRING[0m
+[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[34m[GC] (0x7fb2d5776060) New Object: OBJ_NATIVE[0m
+[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[34m[GC] (0x7fb2d577a0c0) New Object: OBJ_STRING[0m
+[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mদেখাও[32m ] 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[34m[GC] (0x7fb2d57760a0) New Object: OBJ_NATIVE[0m
+[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mদেখাও[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mদেখাও[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mদেখাও[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[34m[GC] (0x7fb2d5795080) New Object: OBJ_FUNC[0m
+[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mদেখাও[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[32m[GC] Marking Object : OBJ_FUNC : [ [0m<Fun <script> >[32m ] 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mদেখাও[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[32m[GC] Marking Object : OBJ_FUNC : [ [0m<Fun <script> >[32m ] 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[34m[GC] (0x7fb2d577a100) New Object: OBJ_STRING[0m
+[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mদেখাও[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[32m[GC] Marking Object : OBJ_FUNC : [ [0m<Fun <script> >[32m ] 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mb[32m ] 
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mদেখাও[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[32m[GC] Marking Object : OBJ_FUNC : [ [0m<Fun <script> >[32m ] 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mb[32m ] 
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[34m[GC] (0x7fb2d577a140) New Object: OBJ_STRING[0m
+[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mদেখাও[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[32m[GC] Marking Object : OBJ_FUNC : [ [0m<Fun <script> >[32m ] 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mb[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mbig[32m ] 
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mদেখাও[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[32m[GC] Marking Object : OBJ_FUNC : [ [0m<Fun <script> >[32m ] 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mb[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mbig[32m ] 
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[34m[GC] (0x7fb2d577a180) New Object: OBJ_STRING[0m
+[34m[GC] Returning interned string : [0mb
+[0m[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mদেখাও[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[32m[GC] Marking Object : OBJ_FUNC : [ [0m<Fun <script> >[32m ] 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mb[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mbig[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mx[32m ] 
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mদেখাও[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[32m[GC] Marking Object : OBJ_FUNC : [ [0m<Fun <script> >[32m ] 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mb[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mbig[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mx[32m ] 
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[34m[GC] (0x7fb2d577a1c0) New Object: OBJ_STRING[0m
+[34m[GC] Returning interned string : [0mshow
+[0m[34m[GC] Returning interned string : [0mx
+[0m[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[32m[GC] Marking Object : OBJ_FUNC : [ [0m<Fun <script> >[32m ] 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mদেখাও[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mb[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mbig[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mx[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mnew[32m ] 
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[34m[GC] (0x7fb2d577a200) New Object: OBJ_CLOSURE[0m
+[34m[GC] Returning interned string : [0mb
+[0m[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[32m[GC] Marking Object : OBJ_CLOSURE : [ [0m<cls <Fun <script> > >[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mbig[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mb[32m ] 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mদেখাও[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[32m[GC] Marking Object : OBJ_FUNC : [ [0m<Fun <script> >[32m ] 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mx[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mnew[32m ] 
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[34m[GC] (0x7fb2d57760c0) New Object: OBJ_MODULE[0m
+[34m[GC] Returning interned string : [0mb
+[0m[34m[GC] Returning interned string : [0mnew
+[0m[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[32m[GC] Marking Object : OBJ_CLOSURE : [ [0m<cls <Fun <script> > >[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mbig[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mb[32m ] 
+[0m[32m[GC] Marking Object : OBJ_MODULE : [ [0m<oMod b >[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mnew[32m ] 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mদেখাও[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[32m[GC] Marking Object : OBJ_FUNC : [ [0m<Fun <script> >[32m ] 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mx[32m ] 
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[34m[GC] (0x7fb2d57760e0) New Object: OBJ_NATIVE[0m
+[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[32m[GC] Marking Object : OBJ_CLOSURE : [ [0m<cls <Fun <script> > >[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mbig[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mb[32m ] 
+[0m[32m[GC] Marking Object : OBJ_MODULE : [ [0m<oMod b >[32m ] 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mদেখাও[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[32m[GC] Marking Object : OBJ_FUNC : [ [0m<Fun <script> >[32m ] 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mnew[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mx[32m ] 
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[32m[GC] Marking Object : OBJ_CLOSURE : [ [0m<cls <Fun <script> > >[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mbig[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mb[32m ] 
+[0m[32m[GC] Marking Object : OBJ_MODULE : [ [0m<oMod b >[32m ] 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mদেখাও[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[32m[GC] Marking Object : OBJ_FUNC : [ [0m<Fun <script> >[32m ] 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mnew[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mx[32m ] 
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[34m[GC] (0x7fb2d577a240) New Object: OBJ_STRING[0m
+[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[32m[GC] Marking Object : OBJ_CLOSURE : [ [0m<cls <Fun <script> > >[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mbig[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mb[32m ] 
+[0m[32m[GC] Marking Object : OBJ_MODULE : [ [0m<oMod b >[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mfloat[32m ] 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mদেখাও[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[32m[GC] Marking Object : OBJ_FUNC : [ [0m<Fun <script> >[32m ] 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mnew[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mx[32m ] 
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[34m[GC] (0x7fb2d5776120) New Object: OBJ_NATIVE[0m
+[31m[GC] Marking Roots
+[0m[31m[GC] Marking Stack 
+[0m[32m[GC] Marking Object : OBJ_CLOSURE : [ [0m<cls <Fun <script> > >[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mbig[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Finished Marking Stack 
+[0m[31m[GC] Marking Builtins 
+[0m[31m[GC] Finished Marking Builtins 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mlen[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mclock[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mshow[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mদেখাও[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[31m[GC] Marking Modules 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mb[32m ] 
+[0m[32m[GC] Marking Object : OBJ_MODULE : [ [0m<oMod b >[32m ] 
+[0m[31m[GC] Finished Marking Modules 
+[0m[31m[GC] Marking Compiler Roots 
+[0m[32m[GC] Marking Object : OBJ_FUNC : [ [0m<Fun <script> >[32m ] 
+[0m[31m[GC] Finished Marking Compiler Roots 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mfloat[32m ] 
+[0m[32m[GC] Marking Object : OBJ_NATIVE : [ [0m<Native Fn>[32m ] 
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mnew[32m ] 
+[0m[31m[GC] Finished Marking Roots
+[0m[31m[GC] Tracing Refs
+[0m[32m[GC] Marking Object : OBJ_STRING : [ [0mx[32m ] 
+[0m[31m[GC] Finished Tracing Refs
+[0m[31m[GC] Cleaning Strings
+[0m[31m[GC] Finished Cleaning Strings
+[0m[31m[GC] Sweeping
+[0m[31m[GC] Finished Sweeping
+[0m[34m[GC] (0x7fb2d577a280) New Object: OBJ_BIGNUM[0m
+<bignum>
+[35m[GC] (0x7fb2d577a280) Free Object: OBJ_BIGNUM : [ <bignum> ]
+[0m[35m[GC] (0x7fb2d576e100) Free Object: OBJ_STRING : [ 0x7fb2d576e100 ]
+[0m

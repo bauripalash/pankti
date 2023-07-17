@@ -1,7 +1,7 @@
 ZIG:=zig
 BUILD_DIR:=zig-out
 TARGET:=$(BUILD_DIR)/bin/pankti
-SAMPLE:=sample/stdmap.pank
+SAMPLE:=sample/stdbig.pank
 DEBUGGER:=gdb
 WASMBIN:=zig-out/wasm/napi.wasm
 
@@ -12,7 +12,7 @@ $(TARGET): build
 
 
 build:
-	@$(ZIG) build 
+	@$(ZIG) build -freference-trace
 
 
 wasm:

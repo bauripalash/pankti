@@ -22,6 +22,9 @@ const bnMathMod = @import("bn/bnmath.zig");
 const stringMod = @import("string.zig");
 const bnStringMod = @import("bn/bnstring.zig");
 const mapMod = @import("map.zig");
+//Bengali Mapmod
+//const bnMapMod = @import("bn/bnmap.zig");
+const bigMod = @import("big.zig");
 
 pub const msl = struct {
     key: []const u32,
@@ -88,6 +91,7 @@ pub const BnMathName = bnMathMod.Name;
 pub const StringName = stringMod.Name;
 pub const BnStringName = bnStringMod.Name;
 pub const MapName = mapMod.Name;
+pub const BigName = bigMod.Name;
 
 pub fn IsStdlib(name: []const u32) bool {
     if (utils.matchU32(name, OsName) or
@@ -96,7 +100,8 @@ pub fn IsStdlib(name: []const u32) bool {
         utils.matchU32(name, BnMathName) or
         utils.matchU32(name, StringName) or
         utils.matchU32(name, BnStringName) or
-        utils.matchU32(name, MapName))
+        utils.matchU32(name, MapName) or
+        utils.matchU32(name, BigName))
     {
         return true;
     }
@@ -125,6 +130,9 @@ pub fn PushStdlib(v: *vm.Vm, name: []const u32) bool {
         return true;
     } else if (utils.matchU32(name, MapName)) {
         pushStdlibMap(v);
+        return true;
+    } else if (utils.matchU32(name, BigName)) {
+        pushStdlibBig(v);
         return true;
     }
 
@@ -216,5 +224,15 @@ pub fn pushStdlibMap(v: *vm.Vm) void {
         msl.m(mapMod.NameFuncExists, mapMod.map_Exists),
         msl.m(mapMod.NameFuncKeys, mapMod.map_Keys),
         msl.m(mapMod.NameFuncValues, mapMod.map_Values),
+    });
+}
+
+// Bengali Map
+//
+
+pub fn pushStdlibBig(v: *vm.Vm) void {
+    _pushStdlib(v, bigMod.Name, &[_]msl{
+        msl.m(bigMod.NameFuncNew, bigMod.big_New),
+        //msl.m(bigMod.NameFuncFloat, bigMod.big_Float),
     });
 }

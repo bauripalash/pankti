@@ -12,6 +12,10 @@ const builtin = @import("builtin");
 const writer = @import("writer.zig");
 const Gc = @import("gc.zig").Gc;
 
+pub fn isInt(v: f64) bool {
+    return @ceil(v) == v;
+}
+
 /// Convert a UTF-8 encoded string to UTF-32 encoded string
 /// You must free the result
 pub fn u8tou32(input: []const u8, alc: std.mem.Allocator) ![]u32 {
@@ -86,8 +90,8 @@ pub fn u32tou8(input: []const u32, al: std.mem.Allocator) ![]u8 {
     return u8str;
 }
 
-pub fn hashU32(input: []const u32 , gc : *Gc) !u32 {
-    var result : u32 = 0;
+pub fn hashU32(input: []const u32, gc: *Gc) !u32 {
+    var result: u32 = 0;
 
     if (IS_WASM) {
         var hasher = std.hash.Fnv1a_32.init();
@@ -95,8 +99,7 @@ pub fn hashU32(input: []const u32 , gc : *Gc) !u32 {
         hasher.update(u);
         gc.hal().free(u);
         result = hasher.final();
-        
-    }else{
+    } else {
         var hasher = std.hash.XxHash32.init(@intCast(std.time.timestamp()));
         const u = try u32tou8(input, gc.hal());
         hasher.update(u);
@@ -107,7 +110,7 @@ pub fn hashU32(input: []const u32 , gc : *Gc) !u32 {
 }
 
 /// Print a UTF-32 encoded string to stdout
-pub fn printu32(input: []const u32 , w : writer.PanWriter) void {
+pub fn printu32(input: []const u32, w: writer.PanWriter) void {
     for (input) |value| {
         w.print("{u}", .{@as(u21, @truncate(value))}) catch return;
     }
@@ -157,14 +160,11 @@ pub fn u8tou16(a: []const u8) u16 {
     return result;
 }
 
-pub const IS_WASM = (
-    builtin.target.isWasm() and builtin.target.os.tag == .freestanding
-);
+pub const IS_WASM = (builtin.target.isWasm() and builtin.target.os.tag == .freestanding);
 
-pub const IS_WIN : bool = builtin.target.os.tag == .windows;
-pub const IS_MAC : bool = builtin.target.isDarwin();
-pub const IS_LINUX : bool = builtin.target.os.tag == .linux;
-
+pub const IS_WIN: bool = builtin.target.os.tag == .windows;
+pub const IS_MAC: bool = builtin.target.isDarwin();
+pub const IS_LINUX: bool = builtin.target.os.tag == .linux;
 
 test "test utils->u8tou32->english" {
     const al = std.testing.allocator;

@@ -17,6 +17,7 @@ const instruction = @import("instruction.zig");
 const Instruction = instruction.Instruction;
 const writer = @import("writer.zig");
 const table = @import("table.zig");
+const Bnum = @import("ext/baurinum/src/bnum.zig").Bnum;
 
 pub const PObj = struct {
     objtype: OType,
@@ -33,6 +34,7 @@ pub const PObj = struct {
         Ot_Hmap,
         Ot_Error,
         Ot_Module,
+        Ot_BigNum,
 
         pub fn toString(self: OType) []const u8 {
             switch (self) {
@@ -49,6 +51,7 @@ pub const PObj = struct {
                 .Ot_Hmap => return "OBJ_HMAP",
                 .Ot_Error => return "OBJ_ERROR",
                 .Ot_Module => return "OBJ_MODULE",
+                .Ot_BigNum => return "OBJ_BIGNUM",
             }
         }
     };
@@ -146,6 +149,10 @@ pub const PObj = struct {
         return self.child(PObj.OModule);
     }
 
+    pub fn asBigNum(self: *PObj) *OBigNum {
+        return self.child(PObj.OBigNum);
+    }
+
     pub fn free(self: *PObj, vm: *Vm) void {
         switch (self.objtype) {
             .Ot_String => self.asString().free(vm),
@@ -167,6 +174,7 @@ pub const PObj = struct {
             .Ot_Hmap => self.asHmap().print(gc),
             .Ot_Error => self.asOErr().print(gc),
             .Ot_Module => self.asMod().print(gc),
+            .Ot_BigNum => self.asBigNum().print(gc),
         };
     }
 
@@ -223,6 +231,57 @@ pub const PObj = struct {
         return try std.fmt.allocPrint(al, "<object>", .{});
     }
 
+    pub const OBigNum = struct {
+        obj: PObj,
+        fval: ?f128,
+        ival: ?*Bnum,
+        isFloat: bool,
+
+        pub fn newFloat(vm: *Vm) ?*OBigNum {
+            const bn: *OBigNum = vm.gc.newObj(.Ot_BigNum, PObj.OBigNum) catch {
+                return null;
+            };
+
+            bn.isFloat = true;
+            bn.fval = 0;
+            bn.ival = null;
+            return bn;
+        }
+
+        pub fn newInt(vm: *Vm) ?*OBigNum {
+            const bn: *OBigNum = vm.gc.newObj(.Ot_BigNum, PObj.OBigNum) catch {
+                return null;
+            };
+            vm.stack.push(PValue.makeObj(bn.parent())) catch return null;
+            bn.isFloat = false;
+            bn.ival = Bnum.new(vm.gc.hal()) catch {
+                return null;
+            };
+            bn.fval = null;
+
+            _ = vm.stack.pop() catch return null;
+            return bn;
+        }
+
+        pub fn print(self: *OBigNum, gc: *Gc) bool {
+            _ = self;
+            gc.pstdout.print("<bignum>", .{}) catch return false;
+
+            return true;
+        }
+
+        pub fn free(self: *OBigNum, gc: *Gc) void {
+            if (!self.isFloat) {
+                self.ival.?.free(gc.hal());
+            }
+
+            gc.getAlc().destroy(self);
+        }
+
+        pub fn parent(self: *OBigNum) *PObj {
+            return @ptrCast(self);
+        }
+    };
     pub const OModule = struct {
         obj: PObj,
         name: *OString,

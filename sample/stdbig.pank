@@ -1,0 +1,7 @@
+import big "big"
+show(big.int(1))
+#show(o.name())
+
+#let x = b.int(100)
+
+#show(x)

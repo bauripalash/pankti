@@ -414,6 +414,10 @@ pub const Gc = struct {
                 str_obj.free(self);
             },
 
+            .Ot_BigNum => {
+                //obj.asBigNum().free(self);
+            },
+
             .Ot_NativeFunc => {
                 const nfObj = obj.asNativeFun();
                 nfObj.free(self);
@@ -618,7 +622,7 @@ pub const Gc = struct {
     fn paintObject(self: *Self, obj: *PObj) void {
         //std.debug.print("self -> {any}\n" , .{obj.objtype});
         switch (obj.getType()) {
-            .Ot_String, .Ot_NativeFunc, .Ot_Error => {},
+            .Ot_String, .Ot_NativeFunc, .Ot_Error, .Ot_BigNum => {},
             .Ot_Function => {
                 const f = obj.asFunc();
                 if (f.name) |name| {
