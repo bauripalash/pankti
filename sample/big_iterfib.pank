@@ -1,0 +1,8 @@
+import b "big"
+
+kaj fib(n)
+	let a = b.add
+	return a
+end
+
+show(fib(35))

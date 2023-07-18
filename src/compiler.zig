@@ -180,7 +180,7 @@ pub const Compiler = struct {
         self.parser.gc = gc;
     }
 
-    pub fn markRoots(self : *Self, gc : *Gc) void {
+    pub fn markRoots(self: *Self, gc: *Gc) void {
         var comp: ?*Compiler = self;
         while (comp) |com| {
             gc.markObject(com.function.parent());
@@ -209,10 +209,9 @@ pub const Compiler = struct {
 
         //gc.compiler = c;
 
-
         var local = &c.locals[0];
         c.localCount = 1;
-        local.depth = 0;
+        local.depth = @intCast(enclosing.?.scopeDepth);
         local.name.lexeme = &[_]u32{};
         local.name.length = 0;
         local.isCaptured = false;
@@ -222,7 +221,7 @@ pub const Compiler = struct {
             //compiler.enclosing = c;
         }
 
-        //var function: *PObj.OFunction = 
+        //var function: *PObj.OFunction =
         //function.parent().isMarked = true;
 
         c.function.init(c.gc);
@@ -267,10 +266,12 @@ pub const Compiler = struct {
         //);
         //function.init(gc);
 
-
         c.*.function.init(c.gc);
         //c.*.gc.compiler = c;
         c.*.locals[c.localCount].depth = 0;
+        c.*.locals[c.localCount].name.lexeme = &[_]u32{};
+        c.*.locals[c.localCount].name.length = 0;
+
         c.*.localCount += 1;
         //gc.markCompilerRoots();
         //var l = c.*.locals[0];
@@ -283,8 +284,6 @@ pub const Compiler = struct {
         //local.name.length = 0;
         //local.captured = false;
         //
-
-        
 
         return c;
     }
@@ -428,7 +427,7 @@ pub const Compiler = struct {
         }
 
         self.locals[self.localCount].name = name;
-        self.locals[self.localCount].depth = -1;
+        self.locals[self.localCount].depth = @intCast(self.scopeDepth);
         self.locals[self.localCount].isCaptured = false;
         self.localCount += 1;
     }
@@ -445,8 +444,6 @@ pub const Compiler = struct {
 
         while (i >= 0) : (i -= 1) {
             const local: Local = locals[@intCast(i)];
-
-            //            std.debug.print("FROM RESOLVE LOCAL ->> " , .{});
             if (idEqual(name, &local.name)) {
                 if (local.depth == -1) {
                     self.parser.err("Can't read local variable in its own init");
@@ -481,13 +478,13 @@ pub const Compiler = struct {
         self.eat(.Rparen, "Expected ')' after arguments");
         return argc;
     }
-    fn rDot(self : *Self , canAssign : bool) !void {
+    fn rDot(self: *Self, canAssign: bool) !void {
         const name = self.parseVariable("expected id i guess?");
         if (canAssign and self.match(.Eq)) {
             try self.parseExpression();
             try self.emitBt(.Op_SetModProp);
             try self.emitBtRaw(name);
-        }else{
+        } else {
             try self.emitBt(.Op_GetModProp);
             try self.emitBtRaw(name);
         }
@@ -558,14 +555,13 @@ pub const Compiler = struct {
         //self.gc.compiler = self;
     }
 
-    fn rHmap(self : *Self , canAssign : bool) !void{
+    fn rHmap(self: *Self, canAssign: bool) !void {
         _ = canAssign;
 
-        var count : u16 = 0;
+        var count: u16 = 0;
 
         if (!self.check(.Rbrace)) {
             while (true) {
-                
                 if (count == std.math.maxInt(u16)) {
                     self.parser.err("Can't have too many map items");
                     return;
@@ -587,7 +583,6 @@ pub const Compiler = struct {
         try self.emitBt(.Op_Hmap);
         const countU8 = utils.u16tou8(count);
         try self.emitTwoRaw(countU8[0], countU8[1]);
-
     }
     fn rVariable(self: *Self, canAssign: bool) !void {
         try self.namedVariable(self.parser.previous, canAssign);
@@ -643,9 +638,8 @@ pub const Compiler = struct {
         self.gc.hal().free(stru8);
     }
 
-    fn rArray(self : *Self , _ : bool) !void {
-
-        var count : u16 = 0;
+    fn rArray(self: *Self, _: bool) !void {
+        var count: u16 = 0;
 
         if (!self.check(.RsBracket)) {
             while (true) {
@@ -669,17 +663,15 @@ pub const Compiler = struct {
         try self.emitBt(.Op_Array);
         try self.emitBtRaw(countU8[0]);
         try self.emitBtRaw(countU8[1]);
-        
     }
 
-    fn rIndexExpr(self : *Self , canAssign : bool) !void{
-
+    fn rIndexExpr(self: *Self, canAssign: bool) !void {
         try self.parseExpression();
         self.eat(.RsBracket, "Expected ']' after index expression");
         if (canAssign and self.match(.Eq)) {
             try self.parseExpression();
             try self.emitBt(.Op_SubAssign);
-        }else {
+        } else {
             try self.emitBt(.Op_Index);
         }
     }
@@ -811,7 +803,7 @@ pub const Compiler = struct {
             try self.rIfStatement();
         } else if (self.match(.PWhile)) {
             try self.rWhileStatement();
-        } else if (self.match(.Import)){
+        } else if (self.match(.Import)) {
             try self.rImportStatement();
         } else if (self.match(.Lbrace)) {
             self.beginScope();
@@ -836,9 +828,9 @@ pub const Compiler = struct {
         }
     }
 
-    fn rImportStatement(self : *Self) !void{
+    fn rImportStatement(self: *Self) !void {
         const glob = self.parseVariable("Expected Import name");
-        
+
         try self.parseExpression();
 
         self.skipSemicolon();
@@ -909,6 +901,9 @@ pub const Compiler = struct {
     }
 
     fn markInit(self: *Self) void {
+        if (self.scopeDepth == 0) {
+            return;
+        }
         self.locals[self.localCount - 1].depth = @intCast(self.scopeDepth);
     }
 
@@ -1122,7 +1117,7 @@ pub const Compiler = struct {
         try self.emitBt(.Op_Return);
         const f = self.function;
         if (flags.DEBUG and flags.DEBUG_OPCODE) {
-            const gn = self.function.getName() orelse &[_]u32{'_'} ;
+            const gn = self.function.getName() orelse &[_]u32{'_'};
             const fname = try utils.u32tou8(
                 gn,
                 self.gc.hal(),
@@ -1157,8 +1152,7 @@ pub const Compiler = struct {
         }
     }
 
-    pub fn compileModule(self : *Self , source : []u32) !?*PObj.OFunction {
-        
+    pub fn compileModule(self: *Self, source: []u32) !?*PObj.OFunction {
         self.parser.init(source, self.gc);
         self.parser.advance();
 
@@ -1176,8 +1170,6 @@ pub const Compiler = struct {
         } else {
             return f;
         }
-
-
     }
 
     pub fn free(self: *Self, al: std.mem.Allocator) void {
