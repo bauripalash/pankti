@@ -414,10 +414,6 @@ pub const Gc = struct {
                 str_obj.free(self);
             },
 
-            .Ot_BigNum => {
-                //obj.asBigNum().free(self);
-            },
-
             .Ot_NativeFunc => {
                 const nfObj = obj.asNativeFun();
                 nfObj.free(self);
@@ -447,6 +443,11 @@ pub const Gc = struct {
             .Ot_Module => {
                 obj.asMod().free(self);
             },
+
+            .Ot_BigInt => {
+                const bobj = obj.child(PObj.OBigInt);
+                bobj.free(self);
+            },
         }
 
         return;
@@ -467,6 +468,7 @@ pub const Gc = struct {
     }
     pub fn free(self: *Self) void {
         if (flags.DEBUG and flags.DEBUG_GC) {
+            dprint('r', self.pstdout, "-> FINISHING GC <-\n", .{});
             //self.pstdout.print("TOTAL BYTES ALLOCATED-> {d}bytes\n" , .{self.alocAmount});
         }
         self.freeObjects();
@@ -486,6 +488,11 @@ pub const Gc = struct {
         }
 
         self.modules.deinit(self.hal());
+
+        if (flags.DEBUG and flags.DEBUG_GC) {
+            dprint('r', self.pstdout, "<- TERMINATE GC ->\n", .{});
+            //self.pstdout.print("TOTAL BYTES ALLOCATED-> {d}bytes\n" , .{self.alocAmount});
+        }
     }
 
     pub fn tryCollect(self: *Self) void {
@@ -622,7 +629,8 @@ pub const Gc = struct {
     fn paintObject(self: *Self, obj: *PObj) void {
         //std.debug.print("self -> {any}\n" , .{obj.objtype});
         switch (obj.getType()) {
-            .Ot_String, .Ot_NativeFunc, .Ot_Error, .Ot_BigNum => {},
+            .Ot_String, .Ot_NativeFunc, .Ot_Error => {},
+            .Ot_BigInt => {},
             .Ot_Function => {
                 const f = obj.asFunc();
                 if (f.name) |name| {

@@ -1,7 +1,8 @@
 import big "big"
-show(big.int(1))
-#show(o.name())
 
-#let x = b.int(100)
+let a = big.new(1)
+let b = big.new(2)
 
-#show(x)
+let c = big.add(a , b)
+
+show(c)

@@ -233,6 +233,6 @@ pub fn pushStdlibMap(v: *vm.Vm) void {
 pub fn pushStdlibBig(v: *vm.Vm) void {
     _pushStdlib(v, bigMod.Name, &[_]msl{
         msl.m(bigMod.NameFuncNew, bigMod.big_New),
-        //msl.m(bigMod.NameFuncFloat, bigMod.big_Float),
+        msl.m(bigMod.NamefuncAdd, bigMod.big_Add),
     });
 }
