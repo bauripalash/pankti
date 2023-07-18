@@ -479,15 +479,12 @@ pub const Compiler = struct {
         return argc;
     }
     fn rDot(self: *Self, canAssign: bool) !void {
-        const name = self.parseVariable("expected id i guess?");
-        if (canAssign and self.match(.Eq)) {
-            try self.parseExpression();
-            try self.emitBt(.Op_SetModProp);
-            try self.emitBtRaw(name);
-        } else {
-            try self.emitBt(.Op_GetModProp);
-            try self.emitBtRaw(name);
-        }
+        _ = canAssign;
+        self.eat(.Identifer, "Expected a mod name");
+        const name = self.rIdentConst(&self.parser.previous);
+        //self.parseVariable("expected id i guess?");
+        try self.emitBt(.Op_GetModProp);
+        try self.emitBtRaw(name);
     }
 
     fn rCall(self: *Self, canAssign: bool) !void {

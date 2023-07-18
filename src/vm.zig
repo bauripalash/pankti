@@ -229,7 +229,7 @@ pub const Vm = struct {
                     presentcount - 1 - i,
                     " ",
                 }) catch return;
-                val.printVal(self.gc);
+                _ = val.printVal(self.gc);
                 self.gc.pstdout.print(" ]\n", .{}) catch return;
             }
         }
@@ -824,9 +824,9 @@ pub const Vm = struct {
             }
             const op = frame.readByte();
 
-            if (flags.DEBUG) {
+            if (flags.DEBUG_STACK) {
                 //self.gc.pstdout.print("Op -> {s}\n", .{op.toString()}) catch return .RuntimeError;
-                //self.debugStack();
+                self.debugStack();
             }
 
             switch (op) {
