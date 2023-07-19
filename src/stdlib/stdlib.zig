@@ -22,9 +22,9 @@ const bnMathMod = @import("bn/bnmath.zig");
 const stringMod = @import("string.zig");
 const bnStringMod = @import("bn/bnstring.zig");
 const mapMod = @import("map.zig");
-//Bengali Mapmod
-//const bnMapMod = @import("bn/bnmap.zig");
+const bnMapMod = @import("bn/bnmap.zig");
 const bigMod = @import("big.zig");
+const bnBigMod = @import("bn/bnbig.zig");
 
 pub const msl = struct {
     key: []const u32,
@@ -91,7 +91,9 @@ pub const BnMathName = bnMathMod.Name;
 pub const StringName = stringMod.Name;
 pub const BnStringName = bnStringMod.Name;
 pub const MapName = mapMod.Name;
+pub const BnMapName = bnMapMod.Name;
 pub const BigName = bigMod.Name;
+pub const BnBigName = bnBigMod.Name;
 
 pub fn IsStdlib(name: []const u32) bool {
     if (utils.matchU32(name, OsName) or
@@ -101,7 +103,9 @@ pub fn IsStdlib(name: []const u32) bool {
         utils.matchU32(name, StringName) or
         utils.matchU32(name, BnStringName) or
         utils.matchU32(name, MapName) or
-        utils.matchU32(name, BigName))
+        utils.matchU32(name, BnMapName) or
+        utils.matchU32(name, BigName) or
+        utils.matchU32(name, BnBigName))
     {
         return true;
     }
@@ -131,8 +135,14 @@ pub fn PushStdlib(v: *vm.Vm, name: []const u32) bool {
     } else if (utils.matchU32(name, MapName)) {
         pushStdlibMap(v);
         return true;
+    } else if (utils.matchU32(name, BnMapName)) {
+        pushStdlibBnMap(v);
+        return true;
     } else if (utils.matchU32(name, BigName)) {
         pushStdlibBig(v);
+        return true;
+    } else if (utils.matchU32(name, BnBigName)) {
+        pushStdlibBnBig(v);
         return true;
     }
 
@@ -227,12 +237,26 @@ pub fn pushStdlibMap(v: *vm.Vm) void {
     });
 }
 
-// Bengali Map
-//
+pub fn pushStdlibBnMap(v: *vm.Vm) void {
+    _pushStdlib(v, bnMapMod.Name, &[_]msl{
+        msl.m(bnMapMod.BnNameFuncExists, bnMapMod.bnmap_Exists),
+        msl.m(bnMapMod.BnNameFuncKeys, bnMapMod.bnmap_Keys),
+        msl.m(bnMapMod.BnNameFuncValues, bnMapMod.bnmap_Values),
+    });
+}
 
 pub fn pushStdlibBig(v: *vm.Vm) void {
     _pushStdlib(v, bigMod.Name, &[_]msl{
         msl.m(bigMod.NameFuncNew, bigMod.big_New),
         msl.m(bigMod.NamefuncAdd, bigMod.big_Add),
+        msl.m(bigMod.NamefuncSub, bigMod.big_Sub),
+    });
+}
+
+pub fn pushStdlibBnBig(v: *vm.Vm) void {
+    _pushStdlib(v, bnBigMod.Name, &[_]msl{
+        msl.m(bnBigMod.BnNameFuncNew, bnBigMod.bnbig_New),
+        msl.m(bnBigMod.BnNamefuncAdd, bnBigMod.bnbig_Add),
+        msl.m(bnBigMod.BnNamefuncSub, bnBigMod.bnbig_Sub),
     });
 }

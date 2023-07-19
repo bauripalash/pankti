@@ -17,6 +17,7 @@ const msl = stdlib.msl;
 const builtin = @import("builtin");
 const enmod = @import("../math.zig");
 
+//গণিত
 pub const Name = &[_]u32{ 0x0997, 0x09a3, 0x09bf, 0x09a4 };
 pub const BnNameFuncPi = &[_]u32{ 0x09aa, 0x09be, 0x0987 };
 pub fn bnmath_Pi(vm: *Vm, argc: u8, values: []PValue) PValue {

@@ -12,6 +12,7 @@ const Vm = @import("../../vm.zig").Vm;
 const PValue = value.PValue;
 const enstring = @import("../string.zig");
 
+//স্ট্রিং
 pub const Name = &[_]u32{ 0x09b8, 0x09cd, 0x099f, 0x09cd, 0x09b0, 0x09bf, 0x0982 };
 
 pub const BnNameFuncString = &[_]u32{ 0x09b8, 0x09cd, 0x099f, 0x09cd, 0x09b0, 0x09bf, 0x0982 };

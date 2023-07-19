@@ -8,6 +8,48 @@ const PObj = @import("../object.zig").PObj;
 
 pub const Name = &[_]u32{ 'b', 'i', 'g' };
 
+pub const NamefuncSub = &[_]u32{ 's', 'u', 'b' };
+pub fn big_Sub(vm: *Vm, argc: u8, values: []PValue) PValue {
+    if (argc != 2) {
+        return PValue.makeError(
+            vm.gc,
+            "sub(a,b) function only takes 2 arguments",
+        ).?;
+    }
+
+    const a = values[0];
+    const b = values[1];
+
+    if (!a.isObj() or !a.asObj().isBigInt()) {
+        return PValue.makeError(
+            vm.gc,
+            "sub(a,b) takes only big numbers",
+        ).?;
+    }
+
+    if (!b.isObj() or !b.asObj().isBigInt()) {
+        return PValue.makeError(
+            vm.gc,
+            "sub(a,b) takes only big numbers",
+        ).?;
+    }
+
+    const aInt = a.asObj().asBigInt();
+    const bInt = b.asObj().asBigInt();
+
+    const resultInt = aInt.ival.sub(bInt.ival, vm.gc.hal()) orelse return PValue.makeNil();
+
+    const x: *PObj.OBigInt = vm.gc.newObj(.Ot_BigInt, PObj.OBigInt) catch {
+        return PValue.makeNil();
+    };
+
+    x.ival = resultInt;
+
+    vm.stack.push(x.parent().asValue()) catch return PValue.makeNil();
+
+    return vm.stack.pop() catch return PValue.makeNil();
+}
+
 pub const NamefuncAdd = &[_]u32{ 'a', 'd', 'd' };
 pub fn big_Add(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 2) {

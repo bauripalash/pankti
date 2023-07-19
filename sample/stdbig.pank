@@ -2,7 +2,10 @@ import big "big"
 
 let a = big.new(1)
 let b = big.new(2)
-
 let c = big.add(a , b)
+let d = big.sub(c , a);
 
+show(a)
+show(b)
 show(c)
+show(d)

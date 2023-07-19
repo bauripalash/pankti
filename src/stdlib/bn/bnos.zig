@@ -16,6 +16,7 @@ const stdlib = @import("../stdlib.zig");
 const msl = stdlib.msl;
 const builtin = @import("builtin");
 
+//ওএস
 pub const Name = &[_]u32{ 0x0993, 0x098f, 0x09b8 };
 // নাম
 pub const BnNameFuncName = &[_]u32{ 0x09a8, 0x09be, 0x09ae };
