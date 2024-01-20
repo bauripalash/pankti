@@ -362,7 +362,7 @@ pub const PObj = struct {
                 al.free(v);
             }
 
-            var sarr = al.alloc(u8, totalLen) catch return null;
+            const sarr = al.alloc(u8, totalLen) catch return null;
 
             var ptr: [*]u8 = sarr.ptr;
 
@@ -446,7 +446,7 @@ pub const PObj = struct {
                 al.free(x);
             }
 
-            var sarr = al.alloc(u8, totalLen) catch return null;
+            const sarr = al.alloc(u8, totalLen) catch return null;
 
             var ptr: [*]u8 = sarr.ptr;
 
@@ -486,8 +486,8 @@ pub const PObj = struct {
             var end = self.count - 1;
 
             while (start < end) {
-                var e = self.values.items[end];
-                var s = self.values.items[start];
+                const e = self.values.items[end];
+                const s = self.values.items[start];
                 self.values.items[start] = e;
                 self.values.items[end] = s;
                 start += 1;
@@ -677,7 +677,7 @@ pub const PObj = struct {
         fn allocate(gc: *Gc, chars: []const u32) !*OString {
             const obj = try PObj.create(gc, PObj.OString, .Ot_String);
             const str = obj.asString();
-            var temp_chars = try gc.getAlc().alloc(u32, chars.len);
+            const temp_chars = try gc.getAlc().alloc(u32, chars.len);
             str.len = @intCast(chars.len);
             str.hash = utils.hashU32(chars) catch 0;
             @memcpy(temp_chars.ptr, chars);

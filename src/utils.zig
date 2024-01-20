@@ -156,7 +156,7 @@ pub fn u8tou16(a: []const u8) u16 {
     if (a.len > 2) {
         return 0;
     }
-    var result: u16 = (@as(u16, @intCast(a[0])) << 8) | @as(u16, @intCast(a[1]));
+    const result: u16 = (@as(u16, @intCast(a[0])) << 8) | @as(u16, @intCast(a[1]));
     return result;
 }
 

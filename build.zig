@@ -20,9 +20,10 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    if (target.getOs().tag == .windows) {
+    if (target.result.os.tag == .windows) {
         exe.linkLibC();
-        exe.addObjectFile("winres/pankti.res.obj");
+        //exe.addObjectFile("winres/pankti.res.obj");
+        exe.addObjectFile(std.Build.LazyPath.relative("winres/pankti.res.obj"));
     }
     const apilib = b.addStaticLibrary(.{
         .name = "neopankapi",
@@ -33,7 +34,7 @@ pub fn build(b: *std.Build) void {
 
     b.installArtifact(exe);
 
-    const buildApi = b.addInstallArtifact(apilib);
+    const buildApi = b.addInstallArtifact(apilib, .{});
     buildApi.step.dependOn(b.getInstallStep());
 
     const run_cmd = b.addRunArtifact(exe);

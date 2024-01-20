@@ -495,7 +495,7 @@ test "lexer TokenType testing" {
     const source: []u32 = try utils.u8tou32(rawSource, a);
     var Lx = Lexer.new(source);
 
-    var toks: []const Token = &[_]Token{
+    const toks: []const Token = &[_]Token{
         tx(.Identifer),
         tx(.Lparen),
         tx(.Number),

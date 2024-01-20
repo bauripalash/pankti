@@ -43,7 +43,7 @@ pub fn main() !void {
 
     var fileToRun: ?[]u8 = null;
 
-    var args = try std.process.argsAlloc(ga);
+    const args = try std.process.argsAlloc(ga);
 
     if (args.len == 2) {
         fileToRun = try ga.alloc(u8, args[1].len);

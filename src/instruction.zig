@@ -148,7 +148,7 @@ pub const Instruction = struct {
         };
     }
 
-    pub fn makeChangesForModule(self : *Instruction) bool {
+    pub fn makeChangesForModule(self: *Instruction) bool {
         const len = self.code.items.len;
         if (len < 2) return false;
         self.code.items[len - 1] = @intFromEnum(OpCode.Op_EndMod);
@@ -201,7 +201,7 @@ pub const Instruction = struct {
     }
 
     fn simpleInstruction(
-        self : *Instruction,
+        self: *Instruction,
         name: []const u8,
         offset: usize,
     ) usize {
@@ -217,7 +217,7 @@ pub const Instruction = struct {
         const constIndex = self.getRawOpCode(offset + 1);
         self.gc.pstdout.print("{s} {d} '", .{ name, constIndex }) catch return 0;
         _ = self.cons.items[constIndex].printVal(self.gc);
-        self.gc.pstdout.print("'\n", .{}) catch return 0 ;
+        self.gc.pstdout.print("'\n", .{}) catch return 0;
 
         return offset + 2;
     }
@@ -228,7 +228,7 @@ pub const Instruction = struct {
         sign: i32,
         offset: usize,
     ) usize {
-        var jump: u16 = utils.u8tou16(&[_]u8{
+        const jump: u16 = utils.u8tou16(&[_]u8{
             self.code.items[offset + 1],
             self.code.items[offset + 2],
         });
@@ -236,7 +236,7 @@ pub const Instruction = struct {
             name,
             offset,
             @as(i64, @intCast(offset)) + 3 + sign * jump,
-        }) catch return 0 ;
+        }) catch return 0;
         return offset + 3;
     }
 
@@ -312,10 +312,10 @@ pub const Instruction = struct {
                 return self.constInstruction(ins.toString(), offset);
             },
 
-            .Op_Array , .Op_Hmap => {
-                var con1 = self.code.items[offset + 1];
-                var con2 = self.code.items[offset + 2];
-                self.gc.pstdout.print("{s} {d}\n" , .{ins.toString() , utils.u8tou16(&[_]u8{con1 , con2})}) catch return 0;
+            .Op_Array, .Op_Hmap => {
+                const con1 = self.code.items[offset + 1];
+                const con2 = self.code.items[offset + 2];
+                self.gc.pstdout.print("{s} {d}\n", .{ ins.toString(), utils.u8tou16(&[_]u8{ con1, con2 }) }) catch return 0;
                 return offset + 3;
             },
 

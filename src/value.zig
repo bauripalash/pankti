@@ -46,27 +46,25 @@ pub const PValue = packed struct {
 
     const Self = @This();
 
-    pub fn getLen(self : Self) ?usize{
+    pub fn getLen(self: Self) ?usize {
         if (self.isObj()) return self.asObj().getLen();
         return null;
     }
-    pub fn hash(self : Self) u32 {
-       const data = self.data; 
-       var result : u32 = 0;
+    pub fn hash(self: Self) u32 {
+        const data = self.data;
+        var result: u32 = 0;
 
-       if (utils.IS_WASM) {
-           var hasher = std.hash.Fnv1a_32.init();
-           std.hash.autoHash(&hasher, data);
-           result = hasher.final();
+        if (utils.IS_WASM) {
+            var hasher = std.hash.Fnv1a_32.init();
+            std.hash.autoHash(&hasher, data);
+            result = hasher.final();
+        } else {
+            var hasher = std.hash.XxHash32.init(@intCast(std.time.timestamp()));
+            std.hash.autoHash(&hasher, data);
+            result = hasher.final();
+        }
 
-       }else {
-           var hasher = std.hash.XxHash32.init(@intCast(std.time.timestamp()));
-           std.hash.autoHash(&hasher, data);    
-           result = hasher.final();
-
-       }
-    
-       return result;
+        return result;
     }
     /// is value a bool
     pub fn isBool(self: Self) bool {
@@ -88,14 +86,13 @@ pub const PValue = packed struct {
         return (self.data & (QNAN | SIGN_BIT)) == (QNAN | SIGN_BIT);
     }
 
-    pub fn isMod(self : Self) bool {
+    pub fn isMod(self: Self) bool {
         if (!self.isObj()) return false;
         if (!self.asObj().isMod()) return false;
         return true;
     }
 
-
-    pub fn isError(self : Self) bool {
+    pub fn isError(self: Self) bool {
         return self.isObj() and self.asObj().isOError();
     }
 
@@ -107,14 +104,13 @@ pub const PValue = packed struct {
         return false;
     }
 
-    pub fn makeError(gc : *Gc , msg : []const u8) ?PValue {
+    pub fn makeError(gc: *Gc, msg: []const u8) ?PValue {
         const rawO = gc.newObj(.Ot_Error, PObj.OError) catch return null;
         rawO.parent().isMarked = true;
         if (!rawO.initU8(gc, msg)) return null;
         const val = PValue.makeObj(rawO.parent());
         rawO.parent().isMarked = false;
         return val;
-    
     }
 
     /// get a number value as `f64`
@@ -233,23 +229,23 @@ pub const PValue = packed struct {
     }
 
     /// Print value of PValue to console
-    pub fn printVal(self: Self , gc : *Gc) bool {
+    pub fn printVal(self: Self, gc: *Gc) bool {
         if (self.isNil()) {
-            gc.pstdout.print("nil" , .{}) catch return false;
+            gc.pstdout.print("nil", .{}) catch return false;
         } else if (self.isBool()) {
             const b: bool = self.asBool();
             if (b) {
-                gc.pstdout.print("true" , .{}) catch return false;
+                gc.pstdout.print("true", .{}) catch return false;
             } else {
-                gc.pstdout.print("false" , .{}) catch return false;
+                gc.pstdout.print("false", .{}) catch return false;
             }
         } else if (self.isNumber()) {
             const n: f64 = self.asNumber();
-            gc.pstdout.print("{d}" , .{n}) catch return false;
+            gc.pstdout.print("{d}", .{n}) catch return false;
         } else if (self.isObj()) {
             return self.asObj().printObj(gc);
         } else {
-            gc.pstdout.print("UNKNOWN VALUE" , .{}) catch return false;
+            gc.pstdout.print("UNKNOWN VALUE", .{}) catch return false;
         }
 
         return true;
@@ -259,14 +255,14 @@ pub const PValue = packed struct {
     /// you must free the result
     pub fn toString(self: Self, al: std.mem.Allocator) ![]u8 {
         if (self.isNil()) {
-            var r = try std.fmt.allocPrint(al, "nil", .{});
+            const r = try std.fmt.allocPrint(al, "nil", .{});
             return r;
         } else if (self.isBool()) {
             if (self.asBool()) {
-                var r = try std.fmt.allocPrint(al, "true", .{});
+                const r = try std.fmt.allocPrint(al, "true", .{});
                 return r;
             } else {
-                var r = try std.fmt.allocPrint(al, "false", .{});
+                const r = try std.fmt.allocPrint(al, "false", .{});
                 return r;
             }
         } else if (self.isNumber()) {

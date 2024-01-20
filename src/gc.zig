@@ -93,7 +93,7 @@ pub const Module = struct {
     }
 
     pub fn new(gc: *Gc) ?*Module {
-        var mod = gc.hal().create(Module) catch return null;
+        const mod = gc.hal().create(Module) catch return null;
 
         mod.* = .{
             .origin = null,

@@ -977,7 +977,7 @@ pub const Vm = struct {
                 .Op_SubAssign => {
                     var rawObj = self.peek(2);
                     var rawIndex = self.peek(1);
-                    var newObj = self.peek(0); // New object;
+                    const newObj = self.peek(0); // New object;
 
                     if (!rawIndex.isNumber()) {
                         self.throwRuntimeError(
