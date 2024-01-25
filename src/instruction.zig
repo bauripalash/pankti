@@ -12,6 +12,7 @@ const PValue = @import("value.zig").PValue;
 const Gc = @import("gc.zig").Gc;
 const utils = @import("utils.zig");
 const PObj = @import("object.zig").PObj;
+const Allocator = std.mem.Allocator;
 
 pub const OpCode = enum(u8) {
     Op_Return,
@@ -161,17 +162,28 @@ pub const Instruction = struct {
         self.cons.deinit(self.gc.hal());
     }
 
-    pub fn write_raw(self: *Instruction, bt: u8, pos: InstPos) !void {
+    pub fn write_raw(
+        self: *Instruction,
+        bt: u8,
+        pos: InstPos,
+    ) Allocator.Error!void {
         try self.code.append(self.gc.hal(), bt);
         try self.pos.append(self.gc.hal(), pos);
     }
 
-    pub fn write(self: *Instruction, bt: OpCode, pos: InstPos) !void {
+    pub fn write(
+        self: *Instruction,
+        bt: OpCode,
+        pos: InstPos,
+    ) Allocator.Error!void {
         try self.code.append(self.gc.hal(), @intFromEnum(bt));
         try self.pos.append(self.gc.hal(), pos);
     }
 
-    pub fn addConst(self: *Instruction, value: PValue) !u8 {
+    pub fn addConst(
+        self: *Instruction,
+        value: PValue,
+    ) Allocator.Error!u8 {
         try self.cons.append(self.gc.hal(), value);
         return @intCast(self.cons.items.len - 1);
         // catch return false;
@@ -189,7 +201,10 @@ pub const Instruction = struct {
     }
 
     pub fn disasm(self: *Instruction, name: []const u8) void {
-        self.gc.pstdout.print("== {s} | [{any}] ==", .{ name, self.code.items.len }) catch return;
+        self.gc.pstdout.print("== {s} | [{any}] ==", .{
+            name,
+            self.code.items.len,
+        }) catch return;
         self.gc.pstdout.print("\n", .{}) catch return;
 
         var i: usize = 0;
@@ -215,7 +230,10 @@ pub const Instruction = struct {
         offset: usize,
     ) usize {
         const constIndex = self.getRawOpCode(offset + 1);
-        self.gc.pstdout.print("{s} {d} '", .{ name, constIndex }) catch return 0;
+        self.gc.pstdout.print("{s} {d} '", .{
+            name,
+            constIndex,
+        }) catch return 0;
         _ = self.cons.items[constIndex].printVal(self.gc);
         self.gc.pstdout.print("'\n", .{}) catch return 0;
 

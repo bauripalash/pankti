@@ -97,7 +97,7 @@ pub fn bnos_Homedir(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (utils.IS_WASM) {
         return vm.gc.makeString("wasm");
     }
-    var hdir: ?[]const u8 = if (utils.IS_WIN)
+    const hdir: ?[]const u8 = if (utils.IS_WIN)
         std.os.getenv("USERPROFILE")
     else if (utils.IS_MAC or utils.IS_LINUX)
         std.os.getenv("HOME")
@@ -120,7 +120,7 @@ pub fn bnos_Curdir(vm: *Vm, argc: u8, values: []PValue) PValue {
         return vm.gc.makeString("wasm");
     }
 
-    var tempPath = vm.gc.hal().alloc(u8, 1024) catch {
+    const tempPath = vm.gc.hal().alloc(u8, 1024) catch {
         return vm.gc.makeString("অজানা");
     };
 

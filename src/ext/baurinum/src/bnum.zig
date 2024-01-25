@@ -93,7 +93,7 @@ pub const Bnum = struct {
             totallen += 1;
         }
 
-        var str = al.alloc(u8, totallen) catch return null;
+        const str = al.alloc(u8, totallen) catch return null;
         var ptr = str.ptr;
 
         if (showsign) {
@@ -150,7 +150,9 @@ pub const Bnum = struct {
         } else {
             self.sign = .Pos;
         }
-        return self.setu64(al, std.math.absCast(value));
+
+        // @abs was std.math.absCast
+        return self.setu64(al, @intCast(@abs(value)));
     }
 
     pub fn reverseItems(self: *Self) void {
@@ -158,8 +160,8 @@ pub const Bnum = struct {
         var end = self.len - 1;
 
         while (start < end) {
-            var e = self.digits.items[end];
-            var s = self.digits.items[start];
+            const e = self.digits.items[end];
+            const s = self.digits.items[start];
             self.digits.items[start] = e;
             self.digits.items[end] = s;
             start += 1;
@@ -288,7 +290,7 @@ pub const Bnum = struct {
         while (i < minlen) : (i += 1) {
             var x: u64 = self.digits.items[i];
             x -= c;
-            var y: u64 = other.digits.items[i];
+            const y: u64 = other.digits.items[i];
 
             if (x < y) {
                 x += 10;

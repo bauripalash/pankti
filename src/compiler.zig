@@ -16,6 +16,7 @@ const PObj = @import("object.zig").PObj;
 const Vm = @import("vm.zig").Vm;
 const Gc = @import("gc.zig").Gc;
 const flags = @import("flags.zig");
+const Allocator = std.mem.Allocator;
 
 const DEBUG = true;
 
@@ -308,36 +309,36 @@ pub const Compiler = struct {
         }
     }
 
-    fn emitBtRaw(self: *Self, bt: u8) !void {
+    fn emitBtRaw(self: *Self, bt: u8) Allocator.Error!void {
         try self.curIns().write_raw(
             bt,
             ins.InstPos.line(self.parser.previous.line),
         );
     }
 
-    fn emitBt(self: *Self, bt: ins.OpCode) !void {
+    fn emitBt(self: *Self, bt: ins.OpCode) Allocator.Error!void {
         try self.curIns().write(
             bt,
             ins.InstPos.line(self.parser.previous.line),
         );
     }
 
-    fn emitTwo(self: *Self, bt: ins.OpCode, bt2: ins.OpCode) !void {
+    fn emitTwo(self: *Self, bt: ins.OpCode, bt2: ins.OpCode) Allocator.Error!void {
         try self.emitBt(bt);
         try self.emitBt(bt2);
     }
 
-    fn emitTwoRaw(self: *Self, bt: u8, bt2: u8) !void {
+    fn emitTwoRaw(self: *Self, bt: u8, bt2: u8) Allocator.Error!void {
         try self.emitBtRaw(bt);
         try self.emitBtRaw(bt2);
     }
 
-    fn emitConst(self: *Self, val: PValue) !void {
+    fn emitConst(self: *Self, val: PValue) Allocator.Error!void {
         try self.emitBt(.Op_Const);
         try self.emitBtRaw(try self.makeConst(val));
     }
 
-    fn emitReturn(self: *Self) !void {
+    fn emitReturn(self: *Self) Allocator.Error!void {
         try self.emitTwo(.Op_Nil, .Op_Return);
     }
 
@@ -345,7 +346,7 @@ pub const Compiler = struct {
         return rules.get(t);
     }
 
-    fn makeConst(self: *Self, val: PValue) !u8 {
+    fn makeConst(self: *Self, val: PValue) Allocator.Error!u8 {
         const con: u8 = try self.curIns().addConst(val);
         return con;
     }
@@ -478,7 +479,7 @@ pub const Compiler = struct {
         self.eat(.Rparen, "Expected ')' after arguments");
         return argc;
     }
-    fn rDot(self: *Self, canAssign: bool) !void {
+    fn rDot(self: *Self, canAssign: bool) Allocator.Error!void {
         _ = canAssign;
         self.eat(.Identifer, "Expected a mod name");
         const name = self.rIdentConst(&self.parser.previous);
@@ -678,7 +679,7 @@ pub const Compiler = struct {
         self.eat(.Rparen, "Expected ')' after group expression");
     }
 
-    fn rString(self: *Self, _: bool) !void {
+    fn rString(self: *Self, _: bool) Allocator.Error!void {
         const prevLen = self.parser.previous.lexeme.len;
         const s: *PObj.OString = try self.gc.copyString(
             self.parser.previous.lexeme[1 .. prevLen - 1],
@@ -733,7 +734,7 @@ pub const Compiler = struct {
         return;
     }
 
-    fn rLiteral(self: *Self, _: bool) !void {
+    fn rLiteral(self: *Self, _: bool) Allocator.Error!void {
         switch (self.parser.previous.toktype) {
             .False => {
                 try self.emitBt(.Op_False);
@@ -779,7 +780,7 @@ pub const Compiler = struct {
         }
     }
 
-    fn rDeclaration(self: *Self) !void {
+    fn rDeclaration(self: *Self) anyerror!void {
         if (self.match(.Let)) {
             try self.rLetDeclaration();
         } else if (self.match(.Func)) {
@@ -836,7 +837,7 @@ pub const Compiler = struct {
         try self.emitBtRaw(glob);
     }
 
-    fn rExprStatement(self: *Self) !void {
+    fn rExprStatement(self: *Self) Allocator.Error!void {
         self.parseExpression() catch {
             self.parser.err("failed to parse expression");
             return;
@@ -847,7 +848,7 @@ pub const Compiler = struct {
         try self.emitBt(.Op_Pop);
     }
 
-    fn rPrintStatement(self: *Self) !void {
+    fn rPrintStatement(self: *Self) Allocator.Error!void {
         self.parseExpression() catch {
             self.parser.errCur("failed to parse expression");
             return;
@@ -875,7 +876,7 @@ pub const Compiler = struct {
         try self.defineVar(global);
     }
 
-    fn defineVar(self: *Self, global: u8) !void {
+    fn defineVar(self: *Self, global: u8) Allocator.Error!void {
         if (self.scopeDepth > 0) {
             self.markInit();
             return;
@@ -1009,7 +1010,7 @@ pub const Compiler = struct {
         try self.emitBt(.Op_Pop);
     }
 
-    fn emitLoop(self: *Self, loopStart: usize) !void {
+    fn emitLoop(self: *Self, loopStart: usize) Allocator.Error!void {
         try self.emitBt(.Op_Loop);
         const offset = self.curIns().code.items.len - loopStart + 2;
         if (offset > std.math.maxInt(u16)) {
@@ -1020,7 +1021,7 @@ pub const Compiler = struct {
         try self.emitTwoRaw(offu8[0], offu8[1]);
     }
 
-    fn emitJump(self: *Self, instruction: ins.OpCode) !u32 {
+    fn emitJump(self: *Self, instruction: ins.OpCode) Allocator.Error!u32 {
         try self.emitBt(instruction);
         try self.emitBtRaw(0xff);
         try self.emitBtRaw(0xff);
@@ -1109,7 +1110,7 @@ pub const Compiler = struct {
         return &self.function.ins;
     }
 
-    fn endCompiler(self: *Self) !*PObj.OFunction {
+    fn endCompiler(self: *Self) Allocator.Error!*PObj.OFunction {
         try self.emitBt(.Op_Nil);
         try self.emitBt(.Op_Return);
         const f = self.function;
@@ -1185,7 +1186,7 @@ pub const Parser = struct {
 
     const Self = @This();
 
-    pub fn new(source: []u32, gc: *Gc) !*Parser {
+    pub fn new(source: []u32, gc: *Gc) Allocator.Error!*Parser {
         const p = try gc.getAlc().create(Parser);
         p.* = .{
             .current = lexer.Token.dummy(),

@@ -57,7 +57,10 @@ pub fn u8tou32(input: []const u8, alc: std.mem.Allocator) ![]u32 {
 
 /// Convert UTF-32 encoded string to UTF-8 encoded string
 /// You must free the result
-pub fn u32tou8(input: []const u32, al: std.mem.Allocator) ![]u8 {
+pub fn u32tou8(
+    input: []const u32,
+    al: std.mem.Allocator,
+) std.mem.Allocator.Error![]u8 {
     const len32 = input.len;
     var u8str = try al.alloc(u8, len32 * 4);
 

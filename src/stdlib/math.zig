@@ -329,7 +329,7 @@ pub fn math_Abs(vm: *Vm, argc: u8, values: []PValue) PValue {
         ).?;
     }
 
-    return PValue.makeNumber(std.math.fabs(values[0].asNumber()));
+    return PValue.makeNumber(@abs(values[0].asNumber()));
 }
 
 pub const NameFuncRound = &[_]u32{ 'r', 'o', 'u', 'n', 'd' };
