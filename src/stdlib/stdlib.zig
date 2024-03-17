@@ -25,6 +25,7 @@ const mapMod = @import("map.zig");
 const bnMapMod = @import("bn/bnmap.zig");
 const bigMod = @import("big.zig");
 const bnBigMod = @import("bn/bnbig.zig");
+const fileMod = @import("file.zig");
 
 pub const msl = struct {
     key: []const u32,
@@ -94,6 +95,7 @@ pub const MapName = mapMod.Name;
 pub const BnMapName = bnMapMod.Name;
 pub const BigName = bigMod.Name;
 pub const BnBigName = bnBigMod.Name;
+pub const FileName = fileMod.Name;
 
 pub fn IsStdlib(name: []const u32) bool {
     if (utils.matchU32(name, OsName) or
@@ -105,7 +107,8 @@ pub fn IsStdlib(name: []const u32) bool {
         utils.matchU32(name, MapName) or
         utils.matchU32(name, BnMapName) or
         utils.matchU32(name, BigName) or
-        utils.matchU32(name, BnBigName))
+        utils.matchU32(name, BnBigName) or
+        utils.matchU32(name, FileName))
     {
         return true;
     }
@@ -143,6 +146,9 @@ pub fn PushStdlib(v: *vm.Vm, name: []const u32) bool {
         return true;
     } else if (utils.matchU32(name, BnBigName)) {
         pushStdlibBnBig(v);
+        return true;
+    } else if (utils.matchU32(name, FileName)) {
+        pushStdlibFile(v);
         return true;
     }
 
@@ -219,6 +225,12 @@ pub fn pushStdlibString(v: *vm.Vm) void {
     _pushStdlib(v, stringMod.Name, &[_]msl{
         msl.m(stringMod.NameFuncSplit, stringMod.str_Split),
         msl.m(stringMod.NameFuncString, stringMod.str_String),
+    });
+}
+
+pub fn pushStdlibFile(v: *vm.Vm) void {
+    _pushStdlib(v, fileMod.Name, &[_]msl{
+        msl.m(fileMod.NameFuncRead, fileMod.file_Read),
     });
 }
 

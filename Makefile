@@ -1,7 +1,7 @@
 ZIG:=zig
 BUILD_DIR:=zig-out
 TARGET:=$(BUILD_DIR)/bin/pankti
-SAMPLE:=sample/stdmap.bn.pank
+SAMPLE:=sample/file.pank
 DEBUGGER:=gdb
 WASMBIN:=zig-out/wasm/napi.wasm
 
