@@ -17,7 +17,7 @@ build:
 
 wasm:
 	mkdir -p zig-out/wasm/
-	$(ZIG) build-lib src/api.zig -target wasm32-freestanding -O ReleaseSafe -dynamic -rdynamic -freference-trace -femit-bin=$(WASMBIN)
+	$(ZIG) build-lib src/api.zig -target wasm32-freestanding -O ReleaseSafe -freference-trace -femit-bin=$(WASMBIN)
 	cp $(WASMBIN) ./web/
 
 release:

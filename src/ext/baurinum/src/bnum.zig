@@ -36,7 +36,7 @@ pub const Bnum = struct {
     }
 
     fn trim(self: *Self) void {
-        while (self.len > 0 and self.digits.items[self.len - 1] == 0) {
+        while (self.len > 0 and self.digits.items[@intCast(self.len - 1)] == 0) {
             self.len -= 1;
             _ = self.digits.pop();
         }
@@ -88,7 +88,7 @@ pub const Bnum = struct {
     }
 
     pub fn toString(self: *Self, al: Allocator, showsign: bool) ?[]u8 {
-        var totallen: usize = self.len;
+        var totallen: usize = @intCast(self.len);
         if (showsign) {
             totallen += 1;
         }
@@ -157,7 +157,7 @@ pub const Bnum = struct {
 
     pub fn reverseItems(self: *Self) void {
         var start: usize = 0;
-        var end = self.len - 1;
+        var end: usize = @intCast(self.len - 1);
 
         while (start < end) {
             const e = self.digits.items[end];
@@ -319,12 +319,12 @@ pub const Bnum = struct {
         var bgx: *Bnum = undefined;
 
         if (self.len > other.len) {
-            min = other.len;
-            max = self.len;
+            min = @intCast(other.len);
+            max = @intCast(self.len);
             bgx = self;
         } else {
-            min = self.len;
-            max = other.len;
+            min = @intCast(self.len);
+            max = @intCast(other.len);
             bgx = other;
         }
 

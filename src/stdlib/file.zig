@@ -17,6 +17,9 @@ pub const Name = &[_]u32{ 'f', 'i', 'l', 'e' };
 pub const NameFuncRead = &[_]u32{ 'r', 'e', 'a', 'd' };
 
 pub fn file_Read(vm: *Vm, argc: u8, values: []PValue) PValue {
+    if (utils.IS_WASM) {
+        return PValue.makeError(vm.gc, "file(path) is not supported on web editor").?;
+    }
     if (argc != 1) {
         return PValue.makeError(vm.gc, "read(path) requires a single function").?;
     }

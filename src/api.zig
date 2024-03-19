@@ -15,25 +15,25 @@ const Vm = _vm.Vm;
 const flags = @import("flags.zig");
 const writer = @import("writer.zig");
 
-extern fn writeStdout(ptr : usize , len : usize) void;
-extern fn writeStderr(ptr : usize , len : usize) void;
+extern fn writeStdout(ptr: usize, len: usize) void;
+extern fn writeStderr(ptr: usize, len: usize) void;
 
-fn writeOutString(bts : []const u8) void {
+fn writeOutString(bts: []const u8) void {
     writeStdout(@intFromPtr(bts.ptr), bts.len);
 }
 
-fn writeErrString(bts : []const u8) void {
+fn writeErrString(bts: []const u8) void {
     writeStderr(@intFromPtr(bts.ptr), bts.len);
 }
 const handyAl = std.heap.wasm_allocator;
 const gcAl = std.heap.wasm_allocator;
 
-export fn memAlloc(len : usize) usize {
-    var result = handyAl.alloc(u8, len) catch return 0;
+export fn memAlloc(len: usize) usize {
+    const result = handyAl.alloc(u8, len) catch return 0;
     return @intFromPtr(result.ptr);
 }
 
-export fn memFree(ptr : [*]const u8 , len : usize) void {
+export fn memFree(ptr: [*]const u8, len: usize) void {
     handyAl.free(ptr[0..len]);
 }
 
@@ -46,7 +46,6 @@ export fn runCodeApi(rawrawSource: [*]const u8, len: u32) bool {
 
     const StdoutWriter = writer.OutWriter.new(writeOutString);
     const StderrWriter = writer.OutWriter.new(writeErrString);
-    
 
     gc.boot(StdoutWriter.writer(), StderrWriter.writer());
     const source = utils.u8tou32(rawSource, gc.hal()) catch {
@@ -69,5 +68,3 @@ export fn runCodeApi(rawrawSource: [*]const u8, len: u32) bool {
         .CompileError => return false,
     }
 }
-
-
