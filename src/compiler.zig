@@ -681,10 +681,12 @@ pub const Compiler = struct {
 
     fn rString(self: *Self, _: bool) Allocator.Error!void {
         const prevLen = self.parser.previous.lexeme.len;
-        const s: *PObj.OString = try self.gc.copyString(
+        const s: *PObj.OString = self.gc.copyString(
             self.parser.previous.lexeme[1 .. prevLen - 1],
             self.parser.previous.length - 2,
-        );
+        ) catch {
+            return;
+        };
 
         try self.emitConst(s.obj.asValue());
     }

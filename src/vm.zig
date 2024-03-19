@@ -561,6 +561,7 @@ pub const Vm = struct {
     }
 
     fn importStdlib(self: *Self, customName: []const u32, importName: []const u32) bool {
+        //std.debug.print("IMPORTING STDLIB -> {any}\n\n", .{importName});
         const strname = self.gc.copyString(customName, @intCast(customName.len)) catch {
             self.throwRuntimeError("failed to convert import name to string", .{});
             return false;
@@ -614,6 +615,28 @@ pub const Vm = struct {
 
             //std.debug.print("\n\nProxy -> {any}{d}\n\n" , .{self.gc.stdlibs[0].owners , self.cmod.hash});
 
+        } else {
+            //std.debug.print("THIS IS ->{any}\n\n", .{customName});
+
+            const scount = self.gc.stdlibCount;
+
+            if (!self.pushStdlib(importName)) {
+                self.throwRuntimeError("No such stdlib module found", .{});
+                return false;
+            }
+            self.gc.stdlibs[scount].owners.append(self.gc.hal(), self.cmod.hash) catch {
+                self.throwRuntimeError("failed to push owners", .{});
+                return false;
+            };
+            self.gc.stdlibs[scount].ownerCount += 1;
+            //newProxy.proxyName =
+            newProxy.originName = self.gc.stdlibs[scount].name;
+            newProxy.stdmod = &self.gc.stdlibs[scount];
+            self.cmod.stdProxies.append(self.gc.hal(), newProxy) catch {
+                self.throwRuntimeError("failed to add stdlib proxy to current module", .{});
+                return false;
+            };
+            self.cmod.stdlibCount += 1;
         }
 
         _ = self.stack.pop() catch return false;
@@ -776,6 +799,8 @@ pub const Vm = struct {
         _ = self;
         var i: usize = 0;
 
+        //std.debug.print("->{}<-", .{mod.stdlibCount});
+
         while (i < mod.stdlibCount) : (i += 1) {
             const proxy = mod.stdProxies.items[i];
 
@@ -903,6 +928,7 @@ pub const Vm = struct {
                 },
                 .Op_Import => {
                     const rawCustomName = frame.readConst();
+                    //std.debug.print("{any}->", .{rawCustomName});
                     if (!rawCustomName.isString()) {
                         self.throwRuntimeError(
                             "Import name must be a identifier",

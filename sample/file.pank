@@ -1,3 +1,10 @@
+import os "os"
 import file "file"
+import math "math"
 
-file.read("a.txt")
+
+let f = file.read( os.curdir() + "/a.txt")
+show(f)
+show(len(f))
+
+show(math.pi())

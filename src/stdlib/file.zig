@@ -11,6 +11,7 @@ const std = @import("std");
 const value = @import("../value.zig");
 const Vm = @import("../vm.zig").Vm;
 const PValue = value.PValue;
+const utils = @import("../utils.zig");
 
 pub const Name = &[_]u32{ 'f', 'i', 'l', 'e' };
 pub const NameFuncRead = &[_]u32{ 'r', 'e', 'a', 'd' };
@@ -30,13 +31,43 @@ pub fn file_Read(vm: *Vm, argc: u8, values: []PValue) PValue {
 
     const rawFilePath = values[0].toString(vm.gc.hal()) catch return vm.gc.makeString("");
 
+    const path = std.fs.cwd().openFile(rawFilePath, .{}) catch {
+        vm.gc.hal().free(rawFilePath);
+        return PValue.makeError(vm.gc, "read(...) failed to read the file specified").?;
+    };
+    defer path.close();
+
+    const fileContent = path.readToEndAlloc(vm.gc.hal(), std.math.maxInt(usize)) catch {
+        vm.gc.hal().free(rawFilePath);
+        return PValue.makeError(vm.gc, "read(...) failed to read the file specified").?;
+    };
+
+    const f = utils.u8tou32(fileContent, vm.gc.hal()) catch {
+        vm.gc.hal().free(rawFilePath);
+        vm.gc.hal().free(fileContent);
+
+        return PValue.makeError(vm.gc, "read(...) failed to convert file content to object").?;
+    };
+
+    const strObj = vm.gc.copyString(f, @intCast(f.len)) catch {
+        vm.gc.hal().free(rawFilePath);
+        vm.gc.hal().free(fileContent);
+        vm.gc.hal().free(f);
+        return PValue.makeError(vm.gc, "read(...) failed to convert file content to string object").?;
+    };
+
+    vm.stack.push(PValue.makeObj(strObj.parent())) catch {
+        vm.gc.hal().free(rawFilePath);
+        vm.gc.hal().free(fileContent);
+        vm.gc.hal().free(f);
+        return PValue.makeError(vm.gc, "read(...) failed to save file content to memory").?;
+    };
+
     vm.gc.hal().free(rawFilePath);
-    std.debug.print("-> {s}\n", .{rawFilePath});
+    vm.gc.hal().free(fileContent);
+    vm.gc.hal().free(f);
 
-    //    const f = std.fs.cwd().readFileAlloc(vm.gc.hal(), rawFilePath, 10240);
-    //  _ = f;
-
-    std.debug.print("{any}", .{values[0].asObj().asString().chars});
-
-    return PValue.makeNil();
+    return vm.stack.pop() catch return {
+        return PValue.makeError(vm.gc, "read(...) failed to fetch file content to memory").?;
+    };
 }
