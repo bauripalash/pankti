@@ -13,6 +13,12 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    const webTarget = b.resolveTargetQuery(.{
+        .cpu_arch = .wasm32,
+        .os_tag = .freestanding,
+    });
+
+    //Standard Executable
     const exe = b.addExecutable(.{
         .name = "pankti",
         .root_source_file = .{ .path = "src/main.zig" },
@@ -20,11 +26,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    if (target.result.os.tag == .windows) {
-        exe.linkLibC();
-        //exe.addObjectFile("winres/pankti.res.obj");
-        exe.addObjectFile(std.Build.LazyPath.relative("winres/pankti.res.obj"));
-    }
+    //Standard Static Library for Pankti
     const apilib = b.addStaticLibrary(.{
         .name = "neopankapi",
         .root_source_file = .{ .path = "src/api.zig" },
@@ -32,10 +34,27 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    b.installArtifact(exe);
+    const webExe = b.addExecutable(.{
+        .name = "pankti",
+        .root_source_file = .{ .path = "src/api.zig" },
+        .target = webTarget,
+        .optimize = .ReleaseSmall,
+    });
+
+    webExe.entry = .disabled;
+    webExe.rdynamic = true;
+    //webExe.import_memory = true;
+    webExe.stack_size = std.wasm.page_size;
 
     const buildApi = b.addInstallArtifact(apilib, .{});
     buildApi.step.dependOn(b.getInstallStep());
+
+    if (target.result.os.tag == .windows) {
+        exe.linkLibC();
+        exe.addObjectFile(std.Build.LazyPath.relative("winres/pankti.res.obj"));
+    }
+
+    b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);
 
@@ -54,16 +73,6 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    const output_exe = "zig-out/bin/pankti";
-    const source_to_run = "sample/c.txt";
-    const run_interp_step = b.addSystemCommand(&[_][]const u8{
-        output_exe,
-        source_to_run,
-    });
-
-    const run_interp = b.step("code", "Run source code sample");
-    run_interp.dependOn(&run_interp_step.step);
-
     const run_unit_tests = b.addRunArtifact(unit_tests);
 
     const test_step = b.step("test", "Run unit tests");
@@ -71,4 +80,9 @@ pub fn build(b: *std.Build) void {
 
     const make_api_lib = b.step("api", "Build api library");
     make_api_lib.dependOn(&buildApi.step);
+
+    const wasmBuildStep = b.step("wasm", "Build Wasm");
+    //wasmBuildStep.dependOn(&webExe.step);
+    const webExeInstall = b.addInstallArtifact(webExe, .{});
+    wasmBuildStep.dependOn(&webExeInstall.step);
 }

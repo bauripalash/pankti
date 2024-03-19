@@ -8,13 +8,24 @@
 	</head>
 	<body>
      <nav>
-		<img class="logo" src="buno.svg"/>
-        <p href="/">Pankti Web Playground</p>
+
     </nav>
 		<div class="main">
-			<textarea id="codeinput"></textarea><br>
-			<button id="runbtn">Run</button><br>
-			<textarea id="output">Ouput</textarea>
+
+			<div id="container" class="container">
+				<div id="line-numbers" class="container_lines"></div>
+ 				<textarea class="container_textarea" id="codeinput"></textarea>
+			</div>
+
+			<div id="button_container" class="button_container">
+				<button id="runbtn" class="run_button">Run</button>
+				<button id="clearbtn" class="clear_button">Clear</button>
+			</div>
+
+			<div id="output_container" class="output_container">
+				<textarea id="output" class="outputbox">Ouput</textarea>
+			</div>
+
 		</div>
 	</body>
 

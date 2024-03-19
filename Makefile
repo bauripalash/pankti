@@ -3,7 +3,7 @@ BUILD_DIR:=zig-out
 TARGET:=$(BUILD_DIR)/bin/pankti
 SAMPLE:=sample/file.pank
 DEBUGGER:=gdb
-WASMBIN:=zig-out/wasm/napi.wasm
+WASMBIN:=zig-out/bin/pankti.wasm
 
 run: $(TARGET)
 	@./$(TARGET) $(SAMPLE)
@@ -16,8 +16,7 @@ build:
 
 
 wasm:
-	mkdir -p zig-out/wasm/
-	$(ZIG) build-lib src/api.zig -target wasm32-freestanding -O ReleaseSafe -freference-trace -femit-bin=$(WASMBIN)
+	@$(ZIG) build wasm
 	cp $(WASMBIN) ./web/
 
 release:
