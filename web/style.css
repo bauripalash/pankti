@@ -30,6 +30,7 @@ html {
   outline: none;
   padding: 0.5rem;
   width: 100%;
+  font-size: 15px;
 }
 
 .container_lines{
@@ -52,21 +53,49 @@ html {
   outline: none;
   padding: 0.5rem;
   width: 100%;
-  min-height: 10rem;
+  min-height: 8rem;
+
+  font-size: 15px;
 }
 
 .button_container{
+  display: flex;
   margin: 10px;
-}
+  flex-direction: row;
+  justify-content: center;
+  }
 
 .run_button{
-  padding: 10px;
+  margin: 5px 10px;
+  padding: 15px 40px;
   background: #ffe488;
   border: 2px solid black;
   border-radius: 10px;
+
+  font-size: 15px;
+  font-family: monospace;
+  font-weight: bold;
+
 }
 
 .run_button:hover{
   background: white;
 }
 
+.clear_button{
+
+  margin: 5px 10px;
+  padding: 15px 40px;
+  background: whitesmoke;
+  border: 2px solid black;
+  border-radius: 10px;
+
+  font-size: 15px;
+  font-family: monospace;
+  font-weight: bold;
+
+}
+
+.clear_button:hover{
+  background: cyan;
+}
