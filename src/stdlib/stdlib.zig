@@ -231,6 +231,7 @@ pub fn pushStdlibString(v: *vm.Vm) void {
 pub fn pushStdlibFile(v: *vm.Vm) void {
     _pushStdlib(v, fileMod.Name, &[_]msl{
         msl.m(fileMod.NameFuncRead, fileMod.file_Read),
+        msl.m(fileMod.NameFuncWrite, fileMod.file_Write),
     });
 }
 

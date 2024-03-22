@@ -4,6 +4,9 @@
 		<title>Pankti Web Play</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<!--<link rel="stylesheet" href="lib/prism.css">-->
+
+    	<link rel="stylesheet" href="https://unpkg.com/prismjs@1.29.0/themes/prism.min.css">
 		<link rel="stylesheet" href="style.css">
 	</head>
 	<body>
@@ -14,7 +17,14 @@
 
 			<div id="container" class="container">
 				<div id="line-numbers" class="container_lines"></div>
- 				<textarea class="container_textarea" id="codeinput"></textarea>
+ 				<textarea 
+					class="container_textarea"
+					id="codeinput"
+					autocapitalize="off"
+					autocomplete="off"
+					autocorrect="off"
+					spellcheck="false"
+				></textarea>
 			</div>
 
 			<div id="button_container" class="button_container">
@@ -23,11 +33,22 @@
 			</div>
 
 			<div id="output_container" class="output_container">
-				<textarea id="output" class="outputbox">Ouput</textarea>
+				<textarea 
+					id="output" 
+					class="outputbox" 
+					placeholder="Output"
+					autocapitalize="off"
+					autocomplete="off"
+					autocorrect="off"
+					spellcheck="false"
+				></textarea>
 			</div>
 
 		</div>
 	</body>
 
+    <script src="https://unpkg.com/prismjs@1.29.0/prism.js"></script>
+    
+	<script src="https://unpkg.com/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
 	<script src="script.js"></script>
 </html>

@@ -6,9 +6,12 @@ const utils = @import("../utils.zig");
 const stdlib = @import("stdlib.zig");
 const PObj = @import("../object.zig").PObj;
 
+/// Module Name
 pub const Name = &[_]u32{ 'b', 'i', 'g' };
 
 pub const NamefuncSub = &[_]u32{ 's', 'u', 'b' };
+
+/// Substraction of Two Big Numbers
 pub fn big_Sub(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 2) {
         return PValue.makeError(

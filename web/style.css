@@ -59,3 +59,14 @@ html {
   margin: 10px;
 }
 
+.run_button{
+  padding: 10px;
+  background: #ffe488;
+  border: 2px solid black;
+  border-radius: 10px;
+}
+
+.run_button:hover{
+  background: white;
+}
+

@@ -14,14 +14,28 @@ const PValue = value.PValue;
 const utils = @import("../utils.zig");
 
 pub const Name = &[_]u32{ 'f', 'i', 'l', 'e' };
-pub const NameFuncRead = &[_]u32{ 'r', 'e', 'a', 'd' };
 
+pub const NameFuncWrite = &[_]u32{ 'w', 'r', 'i', 't', 'e' };
+pub fn file_Write(vm: *Vm, argc: u8, values: []PValue) PValue {
+    _ = values;
+    if (utils.IS_WASM) {
+        return PValue.makeError(vm.gc, "write(...) is not supported on web editor").?;
+    }
+
+    if (argc != 3) {
+        return PValue.makeError(vm.gc, "write(path, content , mode) requires a 3 arguments").?;
+    }
+
+    return PValue.makeNil();
+}
+
+pub const NameFuncRead = &[_]u32{ 'r', 'e', 'a', 'd' };
 pub fn file_Read(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (utils.IS_WASM) {
         return PValue.makeError(vm.gc, "file(path) is not supported on web editor").?;
     }
     if (argc != 1) {
-        return PValue.makeError(vm.gc, "read(path) requires a single function").?;
+        return PValue.makeError(vm.gc, "read(path) requires a single argument").?;
     }
 
     if (!values[0].isObj()) {

@@ -3,8 +3,11 @@ import file "file"
 import math "math"
 
 
-let f = file.read( os.curdir() + "/a.txt")
-show(f)
-show(len(f))
+#let f = file.read( os.curdir() + "/a.txt")
+#show(f)
+#show(len(f))
 
-show(math.pi())
+#show(math.pi())
+
+show(file.write)
+show(file.write("path.txt" , "hello world" , "w"))

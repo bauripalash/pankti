@@ -38,7 +38,41 @@ const inputBoxStyles = window.getComputedStyle(inputBox);
 	lineNumberElem.style[prop] = inputBoxStyles[prop];
 });
 
-const calcNumLines = (str) => {};
+
+const parseValue = (val) => val.endsWith('px') ? parseInt(val.slice(0,-2) , 10) : 0;
+const font = `${inputBoxStyles.fontSize} ${inputBoxStyles.fontFamily}`;
+const paddingLeft = parseValue(inputBoxStyles.paddingLeft);
+const paddingRight = parseValue(inputBoxStyles.paddingRight);
+
+const canvas = document.createElement('canvas');
+const context = canvas.getContext('2d');
+context.font = font;
+
+const calcNumLines = (str) => {
+	const textareaWidth = inputBox.getBoundingClientRect().width - paddingLeft - paddingRight;
+	const words = str.split(' ');
+	let lineCount = 0;
+	let curLine = '';
+	for (let i = 0; i < words.length; i++){
+		const wordWidth = context.measureText(words[i] + ' ').width;
+		const lineWidth = context.measureText(curLine).width;
+
+		if (lineWidth + wordWidth > textareaWidth){
+			lineCount++;
+			curLine = words[i] + ' ';
+		} else {
+			curLine += words[i] + ' ';
+		}
+
+
+	}
+
+	if (curLine.trim() !== ''){
+		lineCount++;
+	}
+
+	return lineCount;
+};
 
 const calcLineNumbers = () =>{
 	const lines = inputBox.value.split('\n');
