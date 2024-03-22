@@ -3,7 +3,7 @@
 
 
 ## Introduction
-Pankti is an dynamically typed programming language for programming in Bengali,
+Pankti is a dynamically typed programming language for programming in Bengali,
 English, Bengali phonetic as well as Combination of both. Pankti is an easy to 
 learn programming language but it was also powerful language to create useful 
 and fast programs.
