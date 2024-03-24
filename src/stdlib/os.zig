@@ -68,14 +68,12 @@ pub fn os_Username(vm: *Vm, argc: u8, values: []PValue) PValue {
     var unm: ?[]const u8 = null;
 
     if (utils.IS_WIN) {
-        unm = std.os.getenv("USERNAME");
+        unm = std.process.getEnvVarOwned(vm.gc.hal(), "USERNAME") catch null;
     } else if (utils.IS_MAC or utils.IS_LINUX) {
-        unm = std.os.getenv("USER");
-    } else {
-        unm = "unknown";
+        unm = std.process.getEnvVarOwned(vm.gc.hal(), "USER") catch null;
     }
-
     if (unm) |n| {
+        defer vm.gc.hal().free(n);
         return vm.gc.makeString(n);
     } else {
         return vm.gc.makeString("unknown");
@@ -93,13 +91,14 @@ pub fn os_Homerdir(vm: *Vm, argc: u8, values: []PValue) PValue {
         return vm.gc.makeString("wasm");
     }
     const hdir: ?[]const u8 = if (utils.IS_WIN)
-        std.os.getenv("USERPROFILE")
+        std.process.getEnvVarOwned(vm.gc.hal(), "USERPROFILE") catch null
     else if (utils.IS_MAC or utils.IS_LINUX)
-        std.os.getenv("HOME")
+        std.process.getEnvVarOwned(vm.gc.hal(), "HOME") catch null
     else
-        "unknown";
+        null;
 
     if (hdir) |h| {
+        defer vm.gc.hal().free(h);
         return vm.gc.makeString(h);
     } else {
         return vm.gc.makeString("unknown");
@@ -121,7 +120,7 @@ pub fn os_Curdir(vm: *Vm, argc: u8, values: []PValue) PValue {
         return vm.gc.makeString("unknown");
     };
 
-    const dir = std.os.getcwd(tempPath) catch return {
+    const dir = std.process.getCwd(tempPath) catch return {
         vm.gc.hal().free(tempPath);
         return vm.gc.makeString("unknown");
     };
