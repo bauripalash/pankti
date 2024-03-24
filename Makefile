@@ -32,7 +32,7 @@ debug: $(TARGET)
 	$(DEBUGGER) --args $(TARGET) $(SAMPLE)
 
 test:
-	@$(ZIG) test src/main.zig
+	@$(ZIG) build test
 
 resobj:
 	llvm-rc winres/pankti.rc /FO winres/pankti.res.obj
