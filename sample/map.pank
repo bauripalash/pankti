@@ -1,9 +1,2 @@
-let a = {1 : "a"}
-
-show(a[1])
-show(len("palash"));
-
-kaj getId() 
-	pi = 100
-	return {"name" : "Palash"}
-end
+ধরি তথ্য = {"নাম": "পলাশ"}
+দেখাও(তথ্য["নাম"])

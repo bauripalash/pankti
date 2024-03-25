@@ -1,11 +1,11 @@
-import big "big"
+আনয়ন ব "বড়"
 
-let a = big.new(1)
-let b = big.new(2)
-let c = big.add(a , b)
-let d = big.sub(c , a);
+ধরি ক = ব.নতুন("1")
+ধরি খ = ব.নতুন("2")
+ধরি গ = ব.যোগ(ক , খ)
+ধরি ঘ = ব.বিয়োগ(গ, ক)
 
-show(a)
-show(b)
-show(c)
-show(d)
+দেখাও(ক)
+দেখাও(খ)
+দেখাও(গ)
+দেখাও(ঘ)
