@@ -9,5 +9,5 @@ import math "math"
 
 #show(math.pi())
 
-show(file.write)
-show(file.write("path.txt" , "hello world" , "w"))
+#show(file.write("path2.txt" , "hello world" , "w"))
+#show(file.write("path2.txt" , " my name is palash" , "a"))

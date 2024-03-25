@@ -1,5 +1,6 @@
 ZIG:=zig
 BUILD_DIR:=zig-out
+CACHE_DIR:=zig-cache
 TARGET:=$(BUILD_DIR)/bin/pankti
 SAMPLE:=sample/file.pank
 DEBUGGER:=gdb
@@ -12,7 +13,7 @@ $(TARGET): build
 
 
 build:
-	@$(ZIG) build -freference-trace
+	@$(ZIG) build
 
 
 wasm:
@@ -46,7 +47,5 @@ perf:
 	@echo "[+] Finished Running Perf"
 
 clean:
+	rm -rf $(CACHE_DIR)
 	rm -rf $(BUILD_DIR)
-
-cleanall: clean
-	rm -rf ./zig-cache/

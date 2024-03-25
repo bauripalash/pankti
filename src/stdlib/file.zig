@@ -15,9 +15,16 @@ const utils = @import("../utils.zig");
 
 pub const Name = &[_]u32{ 'f', 'i', 'l', 'e' };
 
+fn fileExists(path: []const u8) ?std.fs.File.Stat {
+    const stat = std.fs.cwd().statFile(path) catch {
+        return null;
+    };
+
+    return stat;
+}
+
 pub const NameFuncWrite = &[_]u32{ 'w', 'r', 'i', 't', 'e' };
 pub fn file_Write(vm: *Vm, argc: u8, values: []PValue) PValue {
-    _ = values;
     if (utils.IS_WASM) {
         return PValue.makeError(vm.gc, "write(...) is not supported on web editor").?;
     }
@@ -26,7 +33,113 @@ pub fn file_Write(vm: *Vm, argc: u8, values: []PValue) PValue {
         return PValue.makeError(vm.gc, "write(path, content , mode) requires a 3 arguments").?;
     }
 
-    return PValue.makeNil();
+    if (!values[0].isObj()) {
+        return PValue.makeError(vm.gc, "write(path, ... , ...) first argument \"path\" must be a string").?;
+    }
+
+    if (!values[0].asObj().isString()) {
+        return PValue.makeError(vm.gc, "write(path, ... , ...) first argument \"path\" must be a string").?;
+    }
+
+    if (!values[1].asObj().isString()) {
+        return PValue.makeError(vm.gc, "write(..., content , ...) second argument \"content\" must be a string").?;
+    }
+
+    if (!values[1].isObj()) {
+        return PValue.makeError(vm.gc, "write(..., content , ...) second argument \"content\" must be a string").?;
+    }
+
+    if (!values[2].isObj()) {
+        return PValue.makeError(vm.gc, "write(..., ... , mode) third argument \"mode\" must be a string").?;
+    }
+
+    if (!values[2].asObj().isString()) {
+        return PValue.makeError(vm.gc, "write(..., ... , mode) third argument \"mode\" must be a string").?;
+    }
+
+    const rawFileMode = values[2].toString(vm.gc.hal()) catch {
+        return PValue.makeError(vm.gc, "Failed to read `mode`").?;
+    };
+
+    if (rawFileMode.len != 1) {
+        return PValue.makeError(vm.gc, "Invalid file mode in write(...) function; must be either 'w' or 'a'").?;
+    }
+
+    var fileMode: u8 = 'w';
+
+    if (rawFileMode[0] != 'w' and rawFileMode[0] != 'a') {
+        vm.gc.hal().free(rawFileMode);
+        return PValue.makeError(vm.gc, "Invalid file mode in write(...) function; must be either 'w' or 'a'").?;
+    }
+
+    if (rawFileMode[0] == 'a') {
+        fileMode = 'a';
+    }
+
+    vm.gc.hal().free(rawFileMode);
+
+    const rawFilePath = values[0].toString(vm.gc.hal()) catch {
+        return PValue.makeError(vm.gc, "Failed to read file name in write(...)").?;
+    };
+
+    var file: std.fs.File = undefined;
+
+    if (fileMode == 'w') {
+        file = std.fs.cwd().createFile(rawFilePath, .{}) catch {
+            vm.gc.hal().free(rawFilePath);
+            return PValue.makeError(vm.gc, "failed to create a new file specified in write(...)").?;
+        };
+    } else {
+        file = std.fs.cwd().openFile(rawFilePath, .{ .mode = .read_write }) catch {
+            vm.gc.hal().free(rawFilePath);
+            return PValue.makeError(vm.gc, "failed to open file specified in write(...)").?;
+        };
+    }
+
+    const content = values[1].asObj().toString(vm.gc.hal()) catch {
+        vm.gc.hal().free(rawFilePath);
+        return PValue.makeError(vm.gc, "Failed to read content to write in write(...)").?;
+    };
+
+    var written: usize = 0;
+
+    if (fileMode == 'w') {
+        written = file.write(content) catch {
+            vm.gc.hal().free(rawFilePath);
+            vm.gc.hal().free(content);
+            return PValue.makeError(vm.gc, "Failed to write to file specified in write(...)").?;
+        };
+    } else {
+        const stat = file.stat() catch {
+            vm.gc.hal().free(rawFilePath);
+            vm.gc.hal().free(content);
+            return PValue.makeError(vm.gc, "Failed to get file information for appending for write(...)").?;
+        };
+
+        file.seekTo(stat.size) catch {
+            vm.gc.hal().free(rawFilePath);
+            vm.gc.hal().free(content);
+            return PValue.makeError(vm.gc, "Failed to write to file specified in write(...)").?;
+        };
+
+        written = file.write(content) catch {
+            vm.gc.hal().free(rawFilePath);
+            vm.gc.hal().free(content);
+            return PValue.makeError(vm.gc, "Failed to write to file specified in write(...)").?;
+        };
+    }
+
+    file.sync() catch return {
+        vm.gc.hal().free(rawFilePath);
+        vm.gc.hal().free(content);
+        return PValue.makeError(vm.gc, "Failed to sync file data after writing for write(...)").?;
+    };
+
+    const bw = @as(f64, @floatFromInt(written));
+    vm.gc.hal().free(rawFilePath);
+    vm.gc.hal().free(content);
+
+    return PValue.makeNumber(bw);
 }
 
 pub const NameFuncRead = &[_]u32{ 'r', 'e', 'a', 'd' };
