@@ -15,12 +15,13 @@ const utils = @import("../utils.zig");
 const stdlib = @import("stdlib.zig");
 const PObj = @import("../object.zig").PObj;
 
-pub const Name = &[_]u32{ 's', 't', 'r', 'i', 'n', 'g' };
+//স্ট্রিং
+pub const Name = &[_]u32{ 0x09b8, 0x09cd, 0x099f, 0x09cd, 0x09b0, 0x09bf, 0x0982 };
 
-pub const NameFuncString = &[_]u32{ 's', 't', 'r' };
+pub const NameFuncString = &[_]u32{ 0x09b8, 0x09cd, 0x099f, 0x09cd, 0x09b0, 0x09bf, 0x0982 };
 pub fn str_String(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
-        return PValue.makeError(vm.gc, "str(value) function only takes single argument").?;
+        return PValue.makeError(vm.gc, "স্ট্রিং(ক) মাত্র একটি চলরাশি নেয়।").?;
     }
 
     const rawString = values[0].toString(vm.gc.hal()) catch return vm.gc.makeString("");
@@ -43,14 +44,14 @@ pub fn str_String(vm: *Vm, argc: u8, values: []PValue) PValue {
 
     return vm.stack.pop() catch return vm.gc.makeString("");
 }
-pub const NameFuncSplit = &[_]u32{ 's', 'p', 'l', 'i', 't' };
+pub const NameFuncSplit = &[_]u32{ 0x09ad, 0x09be, 0x0997 };
 pub fn str_Split(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 2) {
-        return PValue.makeError(vm.gc, "split(a, b) function only takes 2 arguments").?;
+        return PValue.makeError(vm.gc, "ভাগ(ক, খ) কাজটি মাত্র দুটি চলরাশি নেয়।").?;
     }
 
     if (!values[0].isString() or !values[0].isString()) {
-        return PValue.makeError(vm.gc, "for split(a ,b) both arguments must be string").?;
+        return PValue.makeError(vm.gc, "ভাগ(ক , খ) এর জন্য প্রদত্ত রাশিগুলি স্ট্রিং/নাম হতে হবে। ").?;
     }
 
     const rawString = values[0].asObj().asString();

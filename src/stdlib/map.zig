@@ -15,20 +15,21 @@ const utils = @import("../utils.zig");
 const stdlib = @import("stdlib.zig");
 const PObj = @import("../object.zig").PObj;
 
-pub const Name = &[_]u32{ 'm', 'a', 'p' };
+//ম্যাপ
+pub const Name = &[_]u32{ 0x09ae, 0x09cd, 0x09af, 0x09be, 0x09aa };
 
-pub const NameFuncExists = &[_]u32{ 'e', 'x', 'i', 's', 't', 's' };
+pub const NameFuncExists = &[_]u32{ 0x09ac, 0x09b0, 0x09cd, 0x09a4, 0x09ae, 0x09be, 0x09a8 };
 pub fn map_Exists(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 2) {
-        return PValue.makeError(vm.gc, "exists(map , key) function only takes 2 arguments").?;
+        return PValue.makeError(vm.gc, "বর্তমান(ম্যাপ, সূচক) কাজটি মাত্র দুটি চলরাশি গ্রহণ করে").?;
     }
 
     if (!values[0].isObj()) {
-        return PValue.makeError(vm.gc, "exists(map , key) first argument must be a map").?;
+        return PValue.makeError(vm.gc, "বর্তমান(ম্যাপ, সূচক) কাজটির প্রথম চলরাশিটি একটি ম্যাপ হতে হবে").?;
     }
 
     if (!values[0].asObj().isHmap()) {
-        return PValue.makeError(vm.gc, "exists(map , key) first argument must be a map").?;
+        return PValue.makeError(vm.gc, "বর্তমান(ম্যাপ, সূচক) কাজটির প্রথম চলরাশিটি একটি ম্যাপ হতে হবে").?;
     }
 
     const rawMap = values[0].asObj().asHmap();
@@ -39,20 +40,18 @@ pub fn map_Exists(vm: *Vm, argc: u8, values: []PValue) PValue {
         return PValue.makeBool(false);
     }
 }
-
-pub const NameFuncKeys = &[_]u32{ 'k', 'e', 'y', 's' };
-
+pub const NameFuncKeys = &[_]u32{ 0x09b8, 0x09c2, 0x099a, 0x0995 };
 pub fn map_Keys(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
-        return PValue.makeError(vm.gc, "keys(m) function only takes a single argument").?;
+        return PValue.makeError(vm.gc, "সূচক(ম্যাপ) কাজটি মাত্র একটি চলরাশি গ্রহণ করে।").?;
     }
 
     if (!values[0].isObj()) {
-        return PValue.makeError(vm.gc, "keys(m) argument must be a map").?;
+        return PValue.makeError(vm.gc, "সূচক(ম্যাপ) কাজটিতে প্রদত্ত চলরাশি ম্যাপ হতে হবে").?;
     }
 
     if (!values[0].asObj().isHmap()) {
-        return PValue.makeError(vm.gc, "keys(m) argument must be a map").?;
+        return PValue.makeError(vm.gc, "সূচক(ম্যাপ) কাজটিতে প্রদত্ত চলরাশি ম্যাপ হতে হবে").?;
     }
 
     const rawMap = values[0].asObj().asHmap();
@@ -76,21 +75,19 @@ pub fn map_Keys(vm: *Vm, argc: u8, values: []PValue) PValue {
     return vm.stack.pop() catch return PValue.makeNil();
 }
 
-pub const NameFuncValues = &[_]u32{ 'v', 'a', 'l', 'u', 'e', 's' };
-
+pub const NameFuncValues = &[_]u32{ 0x09ae, 0x09be, 0x09a8 };
 pub fn map_Values(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
-        return PValue.makeError(vm.gc, "values(m) function only takes a single argument").?;
+        return PValue.makeError(vm.gc, "মান(ম্যাপ) কাজটি মাত্র একটি চলরাশি গ্রহণ করে।").?;
     }
 
     if (!values[0].isObj()) {
-        return PValue.makeError(vm.gc, "values(m) argument must be a map").?;
+        return PValue.makeError(vm.gc, "মান(ম্যাপ) কাজটিতে প্রদত্ত চলরাশি ম্যাপ হতে হবে").?;
     }
 
     if (!values[0].asObj().isHmap()) {
-        return PValue.makeError(vm.gc, "values(m) argument must be a map").?;
+        return PValue.makeError(vm.gc, "মান(ম্যাপ) কাজটিতে প্রদত্ত চলরাশি ম্যাপ হতে হবে").?;
     }
-
     const rawMap = values[0].asObj().asHmap();
 
     var objArr = vm.gc.newObj(PObj.OType.Ot_Array, PObj.OArray) catch {

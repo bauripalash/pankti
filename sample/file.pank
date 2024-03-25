@@ -1,13 +1,4 @@
-import os "os"
 import file "file"
-import math "math"
-
-
-#let f = file.read( os.curdir() + "/a.txt")
-#show(f)
-#show(len(f))
-
-#show(math.pi())
 
 #show(file.write("path2.txt" , "hello world" , "w"))
 #show(file.write("path2.txt" , " my name is palash" , "a"))
