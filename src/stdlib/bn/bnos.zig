@@ -31,7 +31,8 @@ pub fn bnos_Name(vm: *Vm, argc: u8, values: []PValue) PValue {
     const nm = switch (builtin.target.os.tag) {
         .windows => "উইন্ডোজ",
         .linux => "লিনাক্স", //should be unix detection instead of linux
-        .ios, .macos, .watchos, .tvos => "ডারউইন",
+        .ios => "আইওএস",
+        .macos => "ম্যাকওএস",
         .kfreebsd, .freebsd, .openbsd, .netbsd, .dragonfly => "বিএসডি",
         .plan9 => "প্ল্যান9",
         else => if (builtin.target.abi == .android)
@@ -53,10 +54,10 @@ pub fn bnos_Arch(vm: *Vm, argc: u8, values: []PValue) PValue {
     }
 
     const anm = switch (builtin.target.cpu.arch) {
-        .arm, .armeb, .aarch64, .aarch64_be, .aarch64_32 => "arm",
-        .x86 => "32",
-        .x86_64 => "64",
-        .wasm32, .wasm64 => "wasm",
+        .arm, .armeb, .aarch64, .aarch64_be, .aarch64_32 => "আর্ম",
+        .x86 => "এক্স86",
+        .x86_64 => "এক্স86_64",
+        .wasm32, .wasm64 => "ওয়েব",
         else => "অজানা",
     };
 
@@ -69,7 +70,7 @@ pub fn bnos_Username(vm: *Vm, argc: u8, values: []PValue) PValue {
         return PValue.makeError(vm.gc, "ওএস -এর ব্যবহারকারী() কাজটি কোনো চলরাশি গ্রহণ করে না").?;
     }
     if (utils.IS_WASM) {
-        return vm.gc.makeString("wasm");
+        return vm.gc.makeString("ওয়েব");
     }
 
     var unm: ?[]const u8 = null;
@@ -94,7 +95,7 @@ pub fn bnos_Homedir(vm: *Vm, argc: u8, values: []PValue) PValue {
         return PValue.makeError(vm.gc, "ওএস -এর ঘর() কাজটি কোনো চলরাশি গ্রহণ করে না").?;
     }
     if (utils.IS_WASM) {
-        return vm.gc.makeString("wasm");
+        return vm.gc.makeString("ওয়েব");
     }
     const hdir: ?[]const u8 = if (utils.IS_WIN)
         std.process.getEnvVarOwned(vm.gc.hal(), "USERPROFILE") catch null
@@ -117,7 +118,7 @@ pub fn bnos_Curdir(vm: *Vm, argc: u8, values: []PValue) PValue {
         return PValue.makeError(vm.gc, "ওএস -এর বর্তমান() কাজটি কোনো চলরাশি গ্রহণ করে না").?;
     }
     if (utils.IS_WASM) {
-        return vm.gc.makeString("wasm");
+        return vm.gc.makeString("ওয়েব");
     }
 
     const tempPath = vm.gc.hal().alloc(u8, 1024) catch {

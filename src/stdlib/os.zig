@@ -28,7 +28,8 @@ pub fn os_Name(vm: *Vm, argc: u8, values: []PValue) PValue {
     const nm = switch (builtin.target.os.tag) {
         .windows => "windows",
         .linux => "linux", //should be unix detection instead of linux
-        .ios, .macos, .watchos, .tvos => "darwin",
+        .ios => "ios",
+        .macos => "macos",
         .kfreebsd, .freebsd, .openbsd, .netbsd, .dragonfly => "bsd",
         .plan9 => "plan9",
         else => if (builtin.target.abi == .android) "android" else if (utils.IS_WASM) "wasm" else "unknown",
@@ -45,9 +46,9 @@ pub fn os_Arch(vm: *Vm, argc: u8, values: []PValue) PValue {
     }
     const anm = switch (builtin.target.cpu.arch) {
         .arm, .armeb, .aarch64, .aarch64_be, .aarch64_32 => "arm",
-        .x86 => "32",
-        .x86_64 => "64",
-        .wasm32, .wasm64 => "wasm",
+        .x86 => "x86",
+        .x86_64 => "x86_64",
+        .wasm32, .wasm64 => "web",
         else => "unknown",
     };
 
@@ -62,7 +63,7 @@ pub fn os_Username(vm: *Vm, argc: u8, values: []PValue) PValue {
     }
 
     if (utils.IS_WASM) {
-        return vm.gc.makeString("wasm");
+        return vm.gc.makeString("web");
     }
 
     var unm: ?[]const u8 = null;
@@ -88,7 +89,7 @@ pub fn os_Homerdir(vm: *Vm, argc: u8, values: []PValue) PValue {
     }
 
     if (utils.IS_WASM) {
-        return vm.gc.makeString("wasm");
+        return vm.gc.makeString("web");
     }
     const hdir: ?[]const u8 = if (utils.IS_WIN)
         std.process.getEnvVarOwned(vm.gc.hal(), "USERPROFILE") catch null
@@ -113,7 +114,7 @@ pub fn os_Curdir(vm: *Vm, argc: u8, values: []PValue) PValue {
     }
 
     if (utils.IS_WASM) {
-        return vm.gc.makeString("wasm");
+        return vm.gc.makeString("web");
     }
 
     const tempPath = vm.gc.hal().alloc(u8, 1024) catch {
