@@ -15,15 +15,10 @@ const gc = @import("../gc.zig");
 const table = @import("../table.zig");
 const PObj = @import("../object.zig").PObj;
 
-const osMod = @import("os.zig");
 const bnOsMod = @import("bn/bnos.zig");
-const mathMod = @import("math.zig");
 const bnMathMod = @import("bn/bnmath.zig");
-const stringMod = @import("string.zig");
 const bnStringMod = @import("bn/bnstring.zig");
-const mapMod = @import("map.zig");
 const bnMapMod = @import("bn/bnmap.zig");
-const bigMod = @import("big.zig");
 const bnBigMod = @import("bn/bnbig.zig");
 const fileMod = @import("file.zig");
 
@@ -85,28 +80,18 @@ fn _pushStdlib(v: *vm.Vm, modname: []const u32, items: []const msl) void {
     }
 }
 
-pub const OsName = osMod.Name;
 pub const BnOsName = bnOsMod.Name;
-pub const MathName = mathMod.Name;
 pub const BnMathName = bnMathMod.Name;
-pub const StringName = stringMod.Name;
 pub const BnStringName = bnStringMod.Name;
-pub const MapName = mapMod.Name;
 pub const BnMapName = bnMapMod.Name;
-pub const BigName = bigMod.Name;
 pub const BnBigName = bnBigMod.Name;
 pub const FileName = fileMod.Name;
 
 pub fn IsStdlib(name: []const u32) bool {
-    if (utils.matchU32(name, OsName) or
-        utils.matchU32(name, BnOsName) or
-        utils.matchU32(name, MathName) or
+    if (utils.matchU32(name, BnOsName) or
         utils.matchU32(name, BnMathName) or
-        utils.matchU32(name, StringName) or
         utils.matchU32(name, BnStringName) or
-        utils.matchU32(name, MapName) or
         utils.matchU32(name, BnMapName) or
-        utils.matchU32(name, BigName) or
         utils.matchU32(name, BnBigName) or
         utils.matchU32(name, FileName))
     {
@@ -117,32 +102,17 @@ pub fn IsStdlib(name: []const u32) bool {
 }
 
 pub fn PushStdlib(v: *vm.Vm, name: []const u32) bool {
-    if (utils.matchU32(name, OsName)) {
-        pushStdlibOs(v);
-        return true;
-    } else if (utils.matchU32(name, BnOsName)) {
+    if (utils.matchU32(name, BnOsName)) {
         pushStdlibBnOs(v);
-        return true;
-    } else if (utils.matchU32(name, MathName)) {
-        pushStdlibMath(v);
         return true;
     } else if (utils.matchU32(name, BnMathName)) {
         pushStdlibBnMath(v);
         return true;
-    } else if (utils.matchU32(name, StringName)) {
-        pushStdlibString(v);
-        return true;
     } else if (utils.matchU32(name, BnStringName)) {
         pushStdlibBnString(v);
         return true;
-    } else if (utils.matchU32(name, MapName)) {
-        pushStdlibMap(v);
-        return true;
     } else if (utils.matchU32(name, BnMapName)) {
         pushStdlibBnMap(v);
-        return true;
-    } else if (utils.matchU32(name, BigName)) {
-        pushStdlibBig(v);
         return true;
     } else if (utils.matchU32(name, BnBigName)) {
         pushStdlibBnBig(v);
@@ -155,16 +125,6 @@ pub fn PushStdlib(v: *vm.Vm, name: []const u32) bool {
     return false;
 }
 
-pub fn pushStdlibOs(v: *vm.Vm) void {
-    _pushStdlib(v, osMod.Name, &[_]msl{
-        msl.m(osMod.NameFuncName, osMod.os_Name),
-        msl.m(osMod.ArchFuncName, osMod.os_Arch),
-        msl.m(osMod.UsernameFuncName, osMod.os_Username),
-        msl.m(osMod.HomedirFuncName, osMod.os_Homerdir),
-        msl.m(osMod.CurdirFuncName, osMod.os_Curdir),
-    });
-}
-
 pub fn pushStdlibBnOs(v: *vm.Vm) void {
     _pushStdlib(v, bnOsMod.Name, &[_]msl{
         msl.m(bnOsMod.BnNameFuncName, bnOsMod.bnos_Name),
@@ -172,29 +132,6 @@ pub fn pushStdlibBnOs(v: *vm.Vm) void {
         msl.m(bnOsMod.BnNameFuncUsername, bnOsMod.bnos_Username),
         msl.m(bnOsMod.BnNameFuncHomdir, bnOsMod.bnos_Homedir),
         msl.m(bnOsMod.BnNameFuncCurdir, bnOsMod.bnos_Curdir),
-    });
-}
-
-pub fn pushStdlibMath(v: *vm.Vm) void {
-    _pushStdlib(v, mathMod.Name, &[_]msl{
-        msl.m(mathMod.NameFuncPi, mathMod.math_Pi),
-        msl.m(mathMod.NameFuncE, mathMod.math_E),
-        msl.m(mathMod.NameFuncSqrt, mathMod.math_Sqrt),
-        msl.m(mathMod.NameFuncLog10, mathMod.math_Log10),
-        msl.m(mathMod.NameFuncLog, mathMod.math_Log),
-        msl.m(mathMod.NameFuncLogX, mathMod.math_LogX),
-        msl.m(mathMod.NameFuncGcd, mathMod.math_Gcd),
-        msl.m(mathMod.NameFuncLcm, mathMod.math_Lcm),
-        msl.m(mathMod.NameFuncSine, mathMod.math_Sine),
-        msl.m(mathMod.NameFuncCosine, mathMod.math_Cosine),
-        msl.m(mathMod.NameFuncTangent, mathMod.math_Tangent),
-        msl.m(mathMod.NameFuncDegree, mathMod.math_Degree),
-        msl.m(mathMod.NameFuncRadians, mathMod.math_Radians),
-        msl.m(mathMod.NameFuncNumber, mathMod.math_Number),
-        msl.m(mathMod.NameFuncAbs, mathMod.math_Abs),
-        msl.m(mathMod.NameFuncRound, mathMod.math_Round),
-        msl.m(mathMod.NameFuncFloor, mathMod.math_Floor),
-        msl.m(mathMod.NameFuncCeil, mathMod.math_Ceil),
     });
 }
 
@@ -221,13 +158,6 @@ pub fn pushStdlibBnMath(v: *vm.Vm) void {
     });
 }
 
-pub fn pushStdlibString(v: *vm.Vm) void {
-    _pushStdlib(v, stringMod.Name, &[_]msl{
-        msl.m(stringMod.NameFuncSplit, stringMod.str_Split),
-        msl.m(stringMod.NameFuncString, stringMod.str_String),
-    });
-}
-
 pub fn pushStdlibFile(v: *vm.Vm) void {
     _pushStdlib(v, fileMod.Name, &[_]msl{
         msl.m(fileMod.NameFuncRead, fileMod.file_Read),
@@ -242,27 +172,11 @@ pub fn pushStdlibBnString(v: *vm.Vm) void {
     });
 }
 
-pub fn pushStdlibMap(v: *vm.Vm) void {
-    _pushStdlib(v, mapMod.Name, &[_]msl{
-        msl.m(mapMod.NameFuncExists, mapMod.map_Exists),
-        msl.m(mapMod.NameFuncKeys, mapMod.map_Keys),
-        msl.m(mapMod.NameFuncValues, mapMod.map_Values),
-    });
-}
-
 pub fn pushStdlibBnMap(v: *vm.Vm) void {
     _pushStdlib(v, bnMapMod.Name, &[_]msl{
         msl.m(bnMapMod.BnNameFuncExists, bnMapMod.bnmap_Exists),
         msl.m(bnMapMod.BnNameFuncKeys, bnMapMod.bnmap_Keys),
         msl.m(bnMapMod.BnNameFuncValues, bnMapMod.bnmap_Values),
-    });
-}
-
-pub fn pushStdlibBig(v: *vm.Vm) void {
-    _pushStdlib(v, bigMod.Name, &[_]msl{
-        msl.m(bigMod.NameFuncNew, bigMod.big_New),
-        msl.m(bigMod.NamefuncAdd, bigMod.big_Add),
-        msl.m(bigMod.NamefuncSub, bigMod.big_Sub),
     });
 }
 
