@@ -1,9 +1,13 @@
 import os
+import sys
 import subprocess
 path = os.path
 
 
 PANKTI_EXE = path.join(os.curdir , "zig-out/bin/pankti")
+
+if sys.platform == "win32":
+    PANKTI_EXE += ".exe"
 
 def get_file_path(name : str) -> str:
     return path.join(os.curdir , "tests" , "samples" , name) + ".pank"
