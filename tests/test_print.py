@@ -3,9 +3,9 @@ import unittest
 from .main import run_pankti as rp
 
 cases = [
-    ["print_1" , "1\n"],
-    ["print_99" , "99\n"],
-    ["print_hello_world" , "hello world\n"],
+    ["print_1" , "1"],
+    ["print_99" , "99"],
+    ["print_hello_world" , "hello world"],
 ]
 
 class TestPrint(unittest.TestCase):

@@ -23,4 +23,4 @@ def run_pankti(src : str) -> str:
         raise FileNotFoundError
 
     res = subprocess.run([PANKTI_EXE , p] , stdout=subprocess.PIPE)
-    return res.stdout.decode()
+    return res.stdout.decode().rstrip('\n')
