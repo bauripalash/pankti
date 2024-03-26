@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "tests"
+version = "0.1.0"
+description = "Test Runner for Pankti Programming Language"
+authors = ["Palash Bauri <palashbauri1@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

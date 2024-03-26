@@ -5,6 +5,7 @@ TARGET:=$(BUILD_DIR)/bin/pankti
 SAMPLE:=sample/file.pank
 DEBUGGER:=gdb
 WASMBIN:=zig-out/bin/pankti.wasm
+PYTHON:=python
 
 run: $(TARGET)
 	@./$(TARGET) $(SAMPLE)
@@ -32,8 +33,9 @@ fast:
 debug: $(TARGET)
 	$(DEBUGGER) --args $(TARGET) $(SAMPLE)
 
-test:
+test: $(TARGET)
 	@$(ZIG) build test
+	@$(PYTHON) -m unittest -v
 
 resobj:
 	llvm-rc winres/pankti.rc /FO winres/pankti.res.obj
