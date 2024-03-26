@@ -9,6 +9,8 @@ math_pi = "stdlib_math_pi"
 math_e = "stdlib_math_e"
 math_ceil = "stdlib_math_ceil"
 math_cos = "stdlib_math_cos"
+math_sin = "stdlib_math_sin"
+math_tan = "stdlib_math_tan"
 
 class TestStdlibMath(unittest.TestCase):
     def test_abs(self):
@@ -34,11 +36,24 @@ class TestStdlibMath(unittest.TestCase):
 
     def test_cos(self):
         r = rp(math_cos).splitlines()
-        # 90 rad
         self.assertAlmostEqual(float(r[0]) , math.cos(90))
         self.assertAlmostEqual(float(r[1]) , math.cos(1.5708))
         self.assertAlmostEqual(float(r[2]) , math.cos(1.0472))
         self.assertAlmostEqual(float(r[3]) , math.cos(0.575959))
+
+    def test_sin(self):
+        r = rp(math_sin).splitlines()
+        self.assertAlmostEqual(float(r[0]) , math.sin(90))
+        self.assertAlmostEqual(float(r[1]) , math.sin(1.5708))
+        self.assertAlmostEqual(float(r[2]) , math.sin(1.0472))
+        self.assertAlmostEqual(float(r[3]) , math.sin(0.575959))
+
+    def test_tan(self):
+        r = rp(math_tan).splitlines()
+        self.assertAlmostEqual(float(r[0]) , math.tan(90))
+        self.assertAlmostEqual(float(r[1]) , math.tan(1.5708))
+        self.assertAlmostEqual(float(r[2]) , math.tan(1.0472))
+        self.assertAlmostEqual(float(r[3]) , math.tan(0.575959))
 
 
         
