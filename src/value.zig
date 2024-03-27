@@ -7,11 +7,19 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
+const BN_INFINITY = "অসীম";
+const BN_NAN = "অসংজ্ঞাত";
+const BN_TRUE = "সত্যি";
+const BN_FALSE = "মিথ্যা";
+const BN_NIL = "নিল";
+const BN_UNKNOWN = "অজানা মান";
+
 const std = @import("std");
 const PObj = @import("object.zig").PObj;
 const Gc = @import("gc.zig").Gc;
 const writer = @import("writer.zig");
 const utils = @import("utils.zig");
+const math = std.math;
 
 pub const PValueType = enum(u8) {
     Pt_Num,
@@ -231,21 +239,27 @@ pub const PValue = packed struct {
     /// Print value of PValue to console
     pub fn printVal(self: Self, gc: *Gc) bool {
         if (self.isNil()) {
-            gc.pstdout.print("nil", .{}) catch return false;
+            gc.pstdout.print(BN_NIL, .{}) catch return false;
         } else if (self.isBool()) {
             const b: bool = self.asBool();
             if (b) {
-                gc.pstdout.print("true", .{}) catch return false;
+                gc.pstdout.print(BN_TRUE, .{}) catch return false;
             } else {
-                gc.pstdout.print("false", .{}) catch return false;
+                gc.pstdout.print(BN_FALSE, .{}) catch return false;
             }
         } else if (self.isNumber()) {
             const n: f64 = self.asNumber();
-            gc.pstdout.print("{d}", .{n}) catch return false;
+            if (math.isInf(n)) {
+                gc.pstdout.print(BN_INFINITY, .{}) catch return false;
+            } else if (math.isNan(n)) {
+                gc.pstdout.print(BN_NAN, .{}) catch return false;
+            } else {
+                gc.pstdout.print("{d}", .{n}) catch return false;
+            }
         } else if (self.isObj()) {
             return self.asObj().printObj(gc);
         } else {
-            gc.pstdout.print("UNKNOWN VALUE", .{}) catch return false;
+            gc.pstdout.print(BN_UNKNOWN, .{}) catch return false;
         }
 
         return true;
@@ -255,21 +269,28 @@ pub const PValue = packed struct {
     /// you must free the result
     pub fn toString(self: Self, al: std.mem.Allocator) ![]u8 {
         if (self.isNil()) {
-            const r = try std.fmt.allocPrint(al, "nil", .{});
+            const r = try std.fmt.allocPrint(al, BN_NIL, .{});
             return r;
         } else if (self.isBool()) {
             if (self.asBool()) {
-                const r = try std.fmt.allocPrint(al, "true", .{});
+                const r = try std.fmt.allocPrint(al, BN_TRUE, .{});
                 return r;
             } else {
-                const r = try std.fmt.allocPrint(al, "false", .{});
+                const r = try std.fmt.allocPrint(al, BN_FALSE, .{});
                 return r;
             }
         } else if (self.isNumber()) {
-            //const size = @intCast( usize , std.fmt.count("{d}", .{self.asNumber()}),);
-            //const mstr = try al.alloc(u8 , size);
-            //_ = try std.fmt.bufPrint(mstr, "{d}", .{self.asNumber()});
-            const mstr = try std.fmt.allocPrint(al, "{d}", .{self.asNumber()});
+            var mstr: []u8 = undefined;
+
+            const num = self.asNumber();
+
+            if (math.isInf(num)) {
+                mstr = try std.fmt.allocPrint(al, BN_INFINITY, .{});
+            } else if (math.isNan(num)) {
+                mstr = try std.fmt.allocPrint(al, BN_NAN, .{});
+            } else {
+                mstr = try std.fmt.allocPrint(al, "{d}", .{self.asNumber()});
+            }
             return mstr;
         } else if (self.isObj()) {
             return try self.asObj().toString(al);
