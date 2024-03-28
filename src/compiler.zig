@@ -17,6 +17,7 @@ const Vm = @import("vm.zig").Vm;
 const Gc = @import("gc.zig").Gc;
 const flags = @import("flags.zig");
 const Allocator = std.mem.Allocator;
+const compErrors = @import("compiler_errors.zig");
 
 const DEBUG = true;
 
@@ -465,7 +466,7 @@ pub const Compiler = struct {
                 try self.parseExpression();
 
                 if (argc == std.math.maxInt(u8)) {
-                    self.parser.err("Can't have more than 255 arguments");
+                    self.parser.err(compErrors.MORE_THAN_255_ARGS);
                 }
 
                 argc += 1;
@@ -476,12 +477,12 @@ pub const Compiler = struct {
             }
         }
 
-        self.eat(.Rparen, "Expected ')' after arguments");
+        self.eat(.Rparen, compErrors.EXPECT_RPAREN_AFTER_LIST);
         return argc;
     }
     fn rDot(self: *Self, canAssign: bool) Allocator.Error!void {
         _ = canAssign;
-        self.eat(.Identifer, "Expected a mod name");
+        self.eat(.Identifer, compErrors.EXPECTED_MOD_NAME);
         const name = self.rIdentConst(&self.parser.previous);
         //self.parseVariable("expected id i guess?");
         try self.emitBt(.Op_GetModProp);
@@ -496,7 +497,7 @@ pub const Compiler = struct {
     }
 
     fn rFuncDeclaration(self: *Self) !void {
-        const global = self.parseVariable("Expected function name");
+        const global = self.parseVariable(compErrors.EXPECTED_FUNC_NAME);
         self.markInit();
         try self.rFunc(.Ft_FUNC);
         try self.defineVar(global);
@@ -510,7 +511,7 @@ pub const Compiler = struct {
 
         fcomp.beginScope();
 
-        fcomp.eat(.Lparen, "Expected (");
+        fcomp.eat(.Lparen, compErrors.EXPECTED_LPAREN_AFTER_FUNCTION_NAME);
         if (!fcomp.check(.Rparen)) {
             while (true) {
                 if (fcomp.function.arity == std.math.maxInt(u8)) {
