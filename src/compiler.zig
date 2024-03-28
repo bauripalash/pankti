@@ -412,7 +412,7 @@ pub const Compiler = struct {
         }
 
         if (upc == std.math.maxInt(u8)) {
-            self.parser.err("too many closure variables");
+            self.parser.err(compErrors.TOO_MANY_CLOSURE_VARS);
             return 0;
         }
 
@@ -424,7 +424,7 @@ pub const Compiler = struct {
 
     fn addLocal(self: *Self, name: lexer.Token) void {
         if (self.localCount == std.math.maxInt(u8)) {
-            self.parser.err("Too many local variables");
+            self.parser.err(compErrors.TOO_MANY_LOCAL_VARS);
             return;
         }
 
@@ -448,7 +448,7 @@ pub const Compiler = struct {
             const local: Local = locals[@intCast(i)];
             if (idEqual(name, &local.name)) {
                 if (local.depth == -1) {
-                    self.parser.err("Can't read local variable in its own init");
+                    self.parser.err(compErrors.LOCAL_VAR_OWN_INIT);
                 }
 
                 return @intCast(i);
@@ -515,13 +515,13 @@ pub const Compiler = struct {
         if (!fcomp.check(.Rparen)) {
             while (true) {
                 if (fcomp.function.arity == std.math.maxInt(u8)) {
-                    fcomp.parser.errCur("cant have more than 255 arguments");
+                    fcomp.parser.errCur(compErrors.MORE_THAN_255_ARGS);
                     break;
                 }
 
                 fcomp.function.arity += 1;
 
-                const con = fcomp.parseVariable("Expected param name");
+                const con = fcomp.parseVariable(compErrors.EXPECTED_PARAM_NAME);
                 try fcomp.defineVar(con);
 
                 if (!fcomp.match(.Comma)) {
@@ -529,7 +529,7 @@ pub const Compiler = struct {
                 }
             }
         }
-        fcomp.eat(.Rparen, "Expected )");
+        fcomp.eat(.Rparen, compErrors.EXPECT_RPAREN_AFTER_PARAM_LIST);
         try fcomp.readToEnd();
 
         const f = try fcomp.endCompiler();
@@ -562,12 +562,12 @@ pub const Compiler = struct {
         if (!self.check(.Rbrace)) {
             while (true) {
                 if (count == std.math.maxInt(u16)) {
-                    self.parser.err("Can't have too many map items");
+                    self.parser.err(compErrors.TOO_MANY_MAP_ITEMS);
                     return;
                 }
 
                 try self.parseExpression();
-                self.eat(.Colon, "Expected ':' after the key");
+                self.eat(.Colon, compErrors.EXPECTED_COLON_AFTER_MAP_KEY);
                 try self.parseExpression();
 
                 count += 1;
@@ -578,7 +578,7 @@ pub const Compiler = struct {
             }
         }
 
-        self.eat(.Rbrace, "Expected '}' after map");
+        self.eat(.Rbrace, compErrors.EXPECTED_CURLY_R_BRACKET_AFTER_MAP);
         try self.emitBt(.Op_Hmap);
         const countU8 = utils.u16tou8(count);
         try self.emitTwoRaw(countU8[0], countU8[1]);
@@ -592,7 +592,7 @@ pub const Compiler = struct {
             try self.rDeclaration();
         }
 
-        self.eat(.Rbrace, "Expected '}' after block statement");
+        self.eat(.Rbrace, compErrors.EXPECTED_CURLY_R_BRACKET_AFTER_BLOCKS);
     }
 
     fn namedVariable(self: *Self, name: lexer.Token, canAssign: bool) !void {
@@ -645,7 +645,7 @@ pub const Compiler = struct {
                 try self.parseExpression();
 
                 if (count == std.math.maxInt(u16)) {
-                    self.parser.err("Can't have too many items");
+                    self.parser.err(compErrors.TOO_MANY_ITEMS_IN_ARRAY);
                 }
 
                 count += 1;
@@ -656,7 +656,7 @@ pub const Compiler = struct {
             }
         }
 
-        self.eat(.RsBracket, "Expected ']' after array expression");
+        self.eat(.RsBracket, compErrors.EXPECTED_S_BRACKET_R_AFTER_ARRAY);
         const countU8 = utils.u16tou8(count);
 
         try self.emitBt(.Op_Array);
@@ -666,7 +666,7 @@ pub const Compiler = struct {
 
     fn rIndexExpr(self: *Self, canAssign: bool) !void {
         try self.parseExpression();
-        self.eat(.RsBracket, "Expected ']' after index expression");
+        self.eat(.RsBracket, compErrors.EXPECTED_S_BRAC_R_AFTER_ARR_INDEX);
         if (canAssign and self.match(.Eq)) {
             try self.parseExpression();
             try self.emitBt(.Op_SubAssign);
@@ -677,7 +677,7 @@ pub const Compiler = struct {
 
     fn rGroup(self: *Self, _: bool) !void {
         try self.parseExpression();
-        self.eat(.Rparen, "Expected ')' after group expression");
+        self.eat(.Rparen, compErrors.EXPECTED_RPAREN_AFTER_GROUP);
     }
 
     fn rString(self: *Self, _: bool) !void {
@@ -777,7 +777,7 @@ pub const Compiler = struct {
 
     fn skipSemicolon(self: *Self) void {
         if (self.check(.Semicolon)) {
-            self.eat(.Semicolon, "Ate Semicolon");
+            self.eat(.Semicolon, compErrors.ATE_SEMICOLON);
         }
     }
 
@@ -815,7 +815,7 @@ pub const Compiler = struct {
 
     fn rReturnStatement(self: *Self) !void {
         if (self.ftype == .Ft_SCRIPT) {
-            self.parser.err("Can't return from top-level code");
+            self.parser.err(compErrors.RETURN_FROM_SCRIPT);
         }
 
         if (self.match(.Semicolon)) {
@@ -828,7 +828,7 @@ pub const Compiler = struct {
     }
 
     fn rImportStatement(self: *Self) !void {
-        const glob = self.parseVariable("Expected Import name");
+        const glob = self.parseVariable(compErrors.EXPECTED_IMPORT_NAME);
 
         try self.parseExpression();
 
@@ -840,7 +840,7 @@ pub const Compiler = struct {
 
     fn rExprStatement(self: *Self) Allocator.Error!void {
         self.parseExpression() catch {
-            self.parser.err("failed to parse expression");
+            self.parser.err(compErrors.FAILED_PARSE_EXPRESSION);
             return;
         };
 
@@ -851,7 +851,7 @@ pub const Compiler = struct {
 
     fn rPrintStatement(self: *Self) Allocator.Error!void {
         self.parseExpression() catch {
-            self.parser.errCur("failed to parse expression");
+            self.parser.errCur(compErrors.FAILED_PARSE_EXPRESSION);
             return;
         };
 
@@ -865,7 +865,7 @@ pub const Compiler = struct {
     }
 
     fn rLetDeclaration(self: *Self) !void {
-        const global: u8 = self.parseVariable("Expected variable name");
+        const global: u8 = self.parseVariable(compErrors.EXPECTED_VAR_NAME);
         if (self.match(.Eq)) {
             try self.parseExpression();
         } else {
@@ -923,7 +923,7 @@ pub const Compiler = struct {
 
             if (idEqual(&name, &local.name)) {
                 self.parser.err(
-                    "Already a variable with this name in this scope",
+                    compErrors.VAR_ALREADY_EXISTS,
                 );
             }
         }
@@ -968,12 +968,12 @@ pub const Compiler = struct {
             try self.rDeclaration();
         }
 
-        self.eat(.End, "Expected `end`");
+        self.eat(.End, compErrors.EXPECTED_END);
     }
 
     fn rIfStatement(self: *Self) anyerror!void {
         try self.parseExpression();
-        self.eat(.Then, "Expected then after if expression");
+        self.eat(.Then, compErrors.EXPECTED_THEN);
 
         const thenJump = try self.emitJump(.Op_JumpIfFalse);
         try self.emitBt(.Op_Pop);
@@ -990,7 +990,7 @@ pub const Compiler = struct {
             try self.readToEnd();
             self.endScope();
         } else {
-            self.eat(.End, "Expected `end` after if block without else");
+            self.eat(.End, compErrors.EXPECTED_END_AFTER_IF_WITH_NO_ELSE);
         }
 
         self.patchJump(@intCast(elseJump));
@@ -1000,7 +1000,7 @@ pub const Compiler = struct {
         const loopStart = self.curIns().code.items.len;
 
         try self.parseExpression();
-        self.eat(.Do, "Expected do after while expression");
+        self.eat(.Do, compErrors.EXPECTED_DO_AFTER_WHILE);
         const exitJump = try self.emitJump(.Op_JumpIfFalse);
         try self.emitBt(.Op_Pop);
         self.beginScope();
@@ -1015,7 +1015,7 @@ pub const Compiler = struct {
         try self.emitBt(.Op_Loop);
         const offset = self.curIns().code.items.len - loopStart + 2;
         if (offset > std.math.maxInt(u16)) {
-            self.parser.err("loop body too large");
+            self.parser.err(compErrors.LOOP_TOO_BIG);
         }
 
         const offu8 = utils.u16tou8(@intCast(offset));
@@ -1033,7 +1033,7 @@ pub const Compiler = struct {
         const jump = self.curIns().code.items.len - offset - 2;
 
         if (jump > std.math.maxInt(u16)) {
-            self.parser.err("Too much code to jump over");
+            self.parser.err(compErrors.LOOP_JUMP_TOO_BIG);
         }
 
         const jmp: u16 = @intCast(jump);
@@ -1051,7 +1051,7 @@ pub const Compiler = struct {
         const prefRule = Self.rules.get(
             self.parser.previous.toktype,
         ).prefix orelse {
-            self.parser.err("Expected to get expression");
+            self.parser.err(compErrors.EXPECTED_EXPR);
             return;
         };
 
@@ -1069,7 +1069,7 @@ pub const Compiler = struct {
             const infixRule = Self.getRule(
                 self.parser.previous.toktype,
             ).infix orelse {
-                self.parser.err("no infix rule found");
+                self.parser.err(compErrors.NO_INFIX_RULE);
                 return;
             };
 
@@ -1077,7 +1077,7 @@ pub const Compiler = struct {
         }
 
         if (canAssign and self.match(.Eq)) {
-            self.parser.err("Invalid assignment target");
+            self.parser.err(compErrors.INVALID_ASSIGN);
         }
     }
 
@@ -1229,11 +1229,11 @@ pub const Parser = struct {
         if (self.panicMode) {
             return;
         }
-        self.gc.pstdout.print("[L {d}] Error", .{token.line}) catch return;
+        self.gc.pstdout.print("[{d}{s}] {s}", .{ token.line, compErrors.NONG_LINE, compErrors.ERR }) catch return;
         if (token.toktype == .Eof) {
-            self.gc.pstdout.print(" at end", .{}) catch return;
+            self.gc.pstdout.print(" {s}", .{compErrors.ERR_AT_END}) catch return;
         } else if (token.toktype == .Err) {} else {
-            self.gc.pstdout.print(" at ''", .{}) catch return;
+            self.gc.pstdout.print(" {s} ''", .{compErrors.ERR_AT}) catch return;
             utils.printu32(token.lexeme, self.gc.pstdout);
             self.gc.pstdout.print("' ", .{}) catch return;
         }
