@@ -29,7 +29,7 @@ pub fn build(b: *std.Build) void {
     //Standard Static Library for Pankti
     const apilib = b.addStaticLibrary(.{
         .name = "neopankapi",
-        .root_source_file = .{ .path = "src/api.zig" },
+        .root_source_file = .{ .path = "src/lekhokapi.zig" },
         .target = target,
         .optimize = optimize,
     });

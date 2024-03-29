@@ -7,8 +7,6 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
-
-
 const std = @import("std");
 const Gc = @import("gc.zig").Gc;
 const utils = @import("utils.zig");
@@ -20,38 +18,34 @@ const writer = @import("writer.zig");
 
 const openfile = @import("openfile.zig").openfile;
 
-
-fn _run(rawSource : []const u8 , gc : *Gc) bool {
-
+fn _run(rawSource: []const u8, gc: *Gc) bool {
     const source = utils.u8tou32(rawSource, gc.hal()) catch {
-        std.debug.print("Failed to convert UTF-8 encoded source to UTF-32 encoded text\n" , .{});
+        std.debug.print("Failed to convert UTF-8 encoded source to UTF-32 encoded text\n", .{});
         return false;
     };
 
     var myVm = Vm.newVm(gc.hal()) catch {
-        std.debug.print("Failed to create a Vm\n" , .{});
+        std.debug.print("Failed to create a Vm\n", .{});
         return false;
     };
 
     myVm.bootVm(gc);
 
     const result = myVm.interpret(source);
-    
+
     myVm.freeVm(gc.hal());
     gc.hal().free(source);
     if (flags.DEBUG_FINAL) {
-        std.debug.print("VM RESULT -> {s}\n" , .{result.toString()});
+        std.debug.print("VM RESULT -> {s}\n", .{result.toString()});
     }
     switch (result) {
         .Ok => return true,
         .RuntimeError => return false,
         .CompileError => return false,
     }
-    
-    
 }
 
-pub fn runCode16(rawSource : []const u16) bool {
+pub fn runCode16(rawSource: []const u16) bool {
     var handyGpa = std.heap.GeneralPurposeAllocator(.{}){};
     var gcGpa = std.heap.GeneralPurposeAllocator(.{}){};
 
@@ -59,18 +53,17 @@ pub fn runCode16(rawSource : []const u16) bool {
     const gcAl = gcGpa.allocator();
 
     var gc = Gc.new(gcAl, handyAl) catch {
-        std.debug.print("Failed to create a Garbage Collector\n" , .{});
+        std.debug.print("Failed to create a Garbage Collector\n", .{});
         return false;
     };
 
-    gc.boot(std.io.getStdOut().writer() , std.io.getStdErr().writer());
+    gc.boot(std.io.getStdOut().writer(), std.io.getStdErr().writer());
 
-    const source : []u8 = std.unicode.utf16leToUtf8Alloc(
-            gc.hal(), 
-            rawSource,
-
-        ) catch {
-        std.debug.print("Failed encode source code as UTF-16" , .{});
+    const source: []u8 = std.unicode.utf16leToUtf8Alloc(
+        gc.hal(),
+        rawSource,
+    ) catch {
+        std.debug.print("Failed encode source code as UTF-16", .{});
         return false;
     };
 
@@ -79,13 +72,12 @@ pub fn runCode16(rawSource : []const u16) bool {
         gc.freeGc(gcAl);
         _ = handyGpa.deinit();
         _ = gcGpa.deinit();
-        
     }
 
-    return _run(source , gc);
+    return _run(source, gc);
 }
 
-pub fn runCode(source : []const u8) bool {
+pub fn runCode(source: []const u8) bool {
     var handyGpa = std.heap.GeneralPurposeAllocator(.{}){};
     var gcGpa = std.heap.GeneralPurposeAllocator(.{}){};
 
@@ -93,27 +85,22 @@ pub fn runCode(source : []const u8) bool {
     const gcAl = gcGpa.allocator();
 
     var gc = Gc.new(gcAl, handyAl) catch {
-        std.debug.print("Failed to create a Garbage Collector\n" , .{});
+        std.debug.print("Failed to create a Garbage Collector\n", .{});
         return false;
     };
 
-
-    gc.boot(std.io.getStdOut().writer() , std.io.getStdErr().writer());
+    gc.boot(std.io.getStdOut().writer(), std.io.getStdErr().writer());
 
     defer {
         gc.freeGc(gcAl);
         _ = handyGpa.deinit();
         _ = gcGpa.deinit();
-        
     }
 
-    return _run(source , gc);
+    return _run(source, gc);
 }
 
-
-pub fn runFile(filepath : []const u8) bool {
-
-
+pub fn runFile(filepath: []const u8) bool {
     var handyGpa = std.heap.GeneralPurposeAllocator(.{}){};
     var gcGpa = std.heap.GeneralPurposeAllocator(.{}){};
 
@@ -121,29 +108,23 @@ pub fn runFile(filepath : []const u8) bool {
     const gcAl = gcGpa.allocator();
 
     var gc = Gc.new(gcAl, handyAl) catch {
-        std.debug.print("Failed to create a Garbage Collector\n" , .{});
+        std.debug.print("Failed to create a Garbage Collector\n", .{});
         return false;
     };
 
+    gc.boot(std.io.getStdOut().writer(), std.io.getStdErr().writer());
 
-    gc.boot(std.io.getStdOut().writer() , std.io.getStdErr().writer());
-
-    
-    const rawSource : []u8 = openfile(filepath , gc.hal()) catch {
-        std.debug.print("Failed to open file '{s}'" , .{filepath});
+    const rawSource: []u8 = openfile(filepath, gc.hal()) catch {
+        std.debug.print("Failed to open file '{s}'", .{filepath});
         return false;
     };
 
     defer {
         gc.hal().free(rawSource);
         gc.freeGc(gcAl);
-        
+
         _ = handyGpa.deinit();
         _ = gcGpa.deinit();
-        
     }
     return _run(rawSource, gc);
-
-
-    
 }

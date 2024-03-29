@@ -25,6 +25,7 @@ fn writeOutString(bts: []const u8) void {
 fn writeErrString(bts: []const u8) void {
     writeStderr(@intFromPtr(bts.ptr), bts.len);
 }
+
 const handyAl = std.heap.wasm_allocator;
 const gcAl = std.heap.wasm_allocator;
 
