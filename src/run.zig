@@ -112,7 +112,10 @@ pub fn runFile(filepath: []const u8) bool {
         return false;
     };
 
-    gc.boot(std.io.getStdOut().writer(), std.io.getStdErr().writer());
+    //var a = std.ArrayList(u8).init(gc.hal());
+
+    gc.boot(std.io.getStdOut().writer().any(), std.io.getStdErr().writer().any());
+    //gc.boot(a.writer().any(), a.writer().any());
 
     const rawSource: []u8 = openfile(filepath, gc.hal()) catch {
         std.debug.print("Failed to open file '{s}'", .{filepath});
@@ -121,10 +124,15 @@ pub fn runFile(filepath: []const u8) bool {
 
     defer {
         gc.hal().free(rawSource);
+        //a.deinit();
         gc.freeGc(gcAl);
 
         _ = handyGpa.deinit();
         _ = gcGpa.deinit();
     }
-    return _run(rawSource, gc);
+    const result = _run(rawSource, gc);
+
+    //std.debug.print("{any}", .{a.items});
+
+    return result;
 }

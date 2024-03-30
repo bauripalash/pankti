@@ -24,7 +24,7 @@ const stck = @import("stack.zig");
 
 const slog: bool = flags.DEBUG and flags.DEBUG_GC;
 
-fn dprint(color: u8, w: writer.PanWriter, comptime fmt: []const u8, args: anytype) void {
+fn dprint(color: u8, w: std.io.AnyWriter, comptime fmt: []const u8, args: anytype) void {
     if (slog) {
         ansicolors.TermColor(color, w);
         w.print(fmt, args) catch return;
@@ -163,8 +163,8 @@ pub const Gc = struct {
     stack: ?*stck.VStack,
     compiler: ?*compiler.Compiler,
     grayStack: std.ArrayListUnmanaged(*PObj),
-    pstdout: writer.PanWriter,
-    pstderr: writer.PanWriter,
+    pstdout: std.io.AnyWriter,
+    pstderr: std.io.AnyWriter,
     modules: std.ArrayListUnmanaged(*Module),
     modCount: usize,
     stdlibs: [STDMAX]StdLibMod,
@@ -201,8 +201,8 @@ pub const Gc = struct {
 
     pub fn boot(
         self: *Self,
-        stdout: writer.PanWriter,
-        stderr: writer.PanWriter,
+        stdout: anytype,
+        stderr: anytype,
     ) void {
         self.al = self.allocator();
         self.pstdout = stdout;

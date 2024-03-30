@@ -113,7 +113,7 @@ pub fn hashU32(input: []const u32, gc: *Gc) !u32 {
 }
 
 /// Print a UTF-32 encoded string to stdout
-pub fn printu32(input: []const u32, w: writer.PanWriter) void {
+pub fn printu32(input: []const u32, w: std.io.AnyWriter) void {
     for (input) |value| {
         w.print("{u}", .{@as(u21, @truncate(value))}) catch return;
     }

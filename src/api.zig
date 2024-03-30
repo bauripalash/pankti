@@ -25,7 +25,6 @@ fn writeOutString(bts: []const u8) void {
 fn writeErrString(bts: []const u8) void {
     writeStderr(@intFromPtr(bts.ptr), bts.len);
 }
-
 const handyAl = std.heap.wasm_allocator;
 const gcAl = std.heap.wasm_allocator;
 
@@ -48,7 +47,7 @@ export fn runCodeApi(rawrawSource: [*]const u8, len: u32) bool {
     const StdoutWriter = writer.OutWriter.new(writeOutString);
     const StderrWriter = writer.OutWriter.new(writeErrString);
 
-    gc.boot(StdoutWriter.writer(), StderrWriter.writer());
+    gc.boot(StdoutWriter.writer().any(), StderrWriter.writer().any());
     const source = utils.u8tou32(rawSource, gc.hal()) catch {
         return false;
     };
