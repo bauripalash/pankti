@@ -1,39 +1,29 @@
 const std = @import("std");
 const Gc = @import("gc.zig").Gc;
-const _vm = @import("vm.zig");
-const Vm = _vm.Vm;
-const writer = @import("writer.zig");
 const utils = @import("utils.zig");
+const Vm = @import("vm.zig").Vm;
 
-extern fn writeStdout(ptr: usize, len: usize) void;
-
-fn writeOutString(bts: []const u8) void {
-    writeStdout(@intFromPtr(bts.ptr), bts.len);
-}
-
-export fn runCodeLekhok(rawSource: [*]const u8, len: u32) bool {
-    const utf8Source = rawSource[0..len];
-
+export fn runCodeApi(rawrawSource: [*]const u8, len: u32) [*c]u8 {
     var handyGpa = std.heap.GeneralPurposeAllocator(.{}){};
     var gcGpa = std.heap.GeneralPurposeAllocator(.{}){};
 
     const handyAl = handyGpa.allocator();
     const gcAl = gcGpa.allocator();
+    const rawSource = rawrawSource[0..len];
 
     var gc = Gc.new(gcAl, handyAl) catch {
-        std.debug.print("Failed to create a Garbage Collector\n", .{});
-        return false;
+        return null;
     };
 
-    const outWriter = std.io.getStdOut();
+    var w = std.ArrayList(u8).init(gc.hal());
 
-    gc.boot(outWriter.writer(), outWriter.writer());
-    const source = utils.u8tou32(utf8Source, gc.hal()) catch {
-        return false;
+    gc.boot(w.writer().any(), w.writer().any());
+    const source = utils.u8tou32(rawSource, gc.hal()) catch {
+        return null;
     };
 
     var myVm = Vm.newVm(gc.hal()) catch {
-        return false;
+        return null;
     };
 
     myVm.bootVm(gc);
@@ -44,8 +34,8 @@ export fn runCodeLekhok(rawSource: [*]const u8, len: u32) bool {
     gc.hal().free(source);
 
     switch (result) {
-        .Ok => return true,
-        .RuntimeError => return false,
-        .CompileError => return false,
+        .Ok => return w.items.ptr,
+        .RuntimeError => return null,
+        .CompileError => return null,
     }
 }
