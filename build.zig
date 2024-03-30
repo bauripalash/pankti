@@ -8,8 +8,11 @@
 // SPDX-License-Identifier: MPL-2.0
 
 const std = @import("std");
+const builtin = @import("builtin");
 
-pub fn build(b: *std.Build) void {
+const min_zig_version = "0.12.0-dev.3496+a2df84d0f";
+
+pub fn build(b: *Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
@@ -90,3 +93,22 @@ pub fn build(b: *std.Build) void {
     const webExeInstall = b.addInstallArtifact(webExe, .{});
     wasmBuildStep.dependOn(&webExeInstall.step);
 }
+
+const Build = blk: {
+    const min_zig = std.SemanticVersion.parse(min_zig_version) catch unreachable;
+
+    if (builtin.zig_version.order(min_zig) == .lt) {
+        const msg = std.fmt.comptimePrint(
+            \\Pankti Programming Language interpreter (codename: neopank)
+            \\
+            \\[BUILD FAILED]
+            \\
+            \\Required Zig version is greater than the present zig version;
+            \\Minimum Required Zig Version : {s}
+            \\         Current Zig Version : {any}
+        , .{ .min_req = min_zig_version, .got = builtin.zig_version });
+
+        @compileError(msg);
+    }
+    break :blk std.Build;
+};
