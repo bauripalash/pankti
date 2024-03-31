@@ -34,8 +34,10 @@ pub fn build(b: *Build) void {
         .name = "neopankapi",
         .root_source_file = .{ .path = "src/lekhokapi.zig" },
         .target = target,
-        .optimize = optimize,
+        .optimize = .ReleaseFast,
     });
+
+    apilib.linkLibC();
 
     const webExe = b.addExecutable(.{
         .name = "pankti",
@@ -50,6 +52,7 @@ pub fn build(b: *Build) void {
     webExe.stack_size = std.wasm.page_size;
 
     const buildApi = b.addInstallArtifact(apilib, .{});
+    _ = apilib.getEmittedH();
     buildApi.step.dependOn(b.getInstallStep());
 
     if (target.result.os.tag == .windows) {

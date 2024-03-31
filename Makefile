@@ -12,6 +12,11 @@ run: $(TARGET)
 
 $(TARGET): build 
 
+capi:
+	@$(ZIG) build api
+	@cc -c apiexample.c
+	@cc -o apiexample apiexample.o $(BUILD_DIR)/lib/libneopankapi.a -lm
+	@./apiexample
 
 build:
 	@$(ZIG) build
