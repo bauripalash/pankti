@@ -50,8 +50,8 @@ Output: পলাশ এখন ঘুমোচ্ছে
 ## LICENSE
 > MPL v2
 
->Note: Buno the Hedgehog, and all artworks are copyrighted to Me, Palash Bauri, all
-rights are reserved for the Buno the Hedgehog images.
+>Note: Buno the Heron, the mascot is created by Me, Palash Bauri and are
+licensed under [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International](https://creativecommons.org/licenses/by-nc-nd/4.0/?ref=chooser-v1)
 
 ## Special Thanks:
 Thorsten Ball for writing these amazing book "Writing An Interpreter In Go" and "Writing A Compiler In Go" and Robert Nystrom for writing his awesome book "Crafting Interpreters"
