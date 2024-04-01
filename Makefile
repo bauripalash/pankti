@@ -32,7 +32,7 @@ release:
 buildwin:
 	$(ZIG) build -Dtarget=x86_64-windows -Doptimize=ReleaseSafe
 
-fast:
+release_fast:
 	$(ZIG) build -Doptimize=ReleaseFast
 
 debug: $(TARGET)

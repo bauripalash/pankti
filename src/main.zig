@@ -12,6 +12,7 @@ const flags = @import("flags.zig");
 const run = @import("run.zig");
 const builtin = @import("builtin");
 const utils = @import("utils.zig");
+const abouttxt = @embedFile("emfiles/about.txt");
 
 pub fn windowsOsSetup() void {
     if (builtin.target.os.tag == .windows) {
@@ -49,8 +50,9 @@ pub fn main() !void {
         fileToRun = try ga.alloc(u8, args[1].len);
         @memcpy(fileToRun.?, args[1]);
     } else if (args.len == 1) {
-        std.debug.print("neopank 0.4.0\n", .{});
-        std.debug.print("Usage: neopank [FILE]\n", .{});
+        std.debug.print("{s}\n", .{abouttxt});
+        //std.debug.print("neopank 0.4.0\n", .{});
+        //std.debug.print("Usage: neopank [FILE]\n", .{});
         std.process.exit(0);
     }
     std.process.argsFree(ga, args);
