@@ -12,6 +12,10 @@ run: $(TARGET)
 
 $(TARGET): build 
 
+ide:
+	@$(ZIG) build ide
+	@./$(BUILD_DIR)/bin/panktilekhok
+
 capi:
 	@$(ZIG) build api
 	@cc -c apiexample.c

@@ -10,7 +10,7 @@
 const std = @import("std");
 const builtin = @import("builtin");
 
-const min_zig_version = "0.12.0-dev.3496+a2df84d0f";
+const min_zig_version = "0.12.0-dev.3522+b88ae8dbd";
 
 pub fn build(b: *Build) void {
     const target = b.standardTargetOptions(.{});
@@ -55,10 +55,28 @@ pub fn build(b: *Build) void {
     _ = apilib.getEmittedH();
     buildApi.step.dependOn(b.getInstallStep());
 
-    if (target.result.os.tag == .windows) {
-        exe.linkLibC();
-        exe.addObjectFile(std.Build.LazyPath.relative("winres/pankti.res.obj"));
-    }
+    if (target.result.os.tag == .windows) {}
+
+    const zig_libui_ng = b.dependency("zig_libui_ng", .{
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const ideexe = b.addExecutable(.{
+        .name = "panktilekhok",
+        .root_source_file = .{ .path = "src/ide.zig" },
+        .target = target,
+        .optimize = optimize,
+    });
+
+    ideexe.root_module.addImport("ui", zig_libui_ng.module("ui"));
+    //exe.linkLibrary(zig_libui_ng.artifact("ui"));
+
+    //b.installArtifact(exe);
+
+    const ide_step = b.step("ide", "Run the app");
+    const ideExeInstall = b.addInstallArtifact(ideexe, .{});
+    ide_step.dependOn(&ideExeInstall.step);
 
     b.installArtifact(exe);
 
@@ -80,7 +98,17 @@ pub fn build(b: *Build) void {
     });
 
     if (target.result.os.tag == .windows) {
+        exe.linkLibC();
+        //exe.addObjectFile(std.Build.LazyPath.relative("winres/pankti.res.obj"));
+        exe.addWin32ResourceFile(.{
+            .file = .{ .path = "winres/pankti.rc" },
+        });
         unit_tests.linkLibC();
+        ideexe.subsystem = .Windows;
+        ideexe.addWin32ResourceFile(.{
+            .file = .{ .path = "winres/pankti_gui.rc" },
+            .flags = &.{ "/d", "_UI_STATIC" },
+        });
     }
 
     const run_unit_tests = b.addRunArtifact(unit_tests);
