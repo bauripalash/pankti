@@ -14,6 +14,12 @@ var inputBox: *ui.MultilineEntry = undefined;
 var outputBox: *ui.MultilineEntry = undefined;
 var runButton: *ui.Button = undefined;
 
+var handyGpa = std.heap.GeneralPurposeAllocator(.{}){};
+var gcGpa = std.heap.GeneralPurposeAllocator(.{}){};
+
+const handyAl = handyGpa.allocator();
+const gcAl = gcGpa.allocator();
+
 pub fn main() !void {
     var init_data = ui.InitData{
         .options = .{ .Size = 0 },
@@ -27,15 +33,24 @@ pub fn main() !void {
 
     defer ui.Uninit();
 
-    const mainWin = try ui.Window.New("Hello World", 320, 240, .hide_menubar);
-    mainWin.as_control().Show();
+    const menu = try ui.Menu.New("File");
+    const menuItemOpen = try menu.AppendItem("Open");
+    const menuItemSave = try menu.AppendItem("Save");
+    //const menuItemQuit = try menu.AppendQuitItem();
 
+    menuItemOpen.OnClicked(on_OpenMenu, inputBox);
+    menuItemSave.OnClicked(on_SaveMenu, inputBox);
+
+    const mainWin = try ui.Window.New("Hello World", 320, 240, .hide_menubar);
     const hbox = try ui.Box.New(.Vertical);
+    const buttonPanel = try ui.Box.New(.Horizontal);
 
     inputBox = try ui.MultilineEntry.New(.NonWrapping);
     outputBox = try ui.MultilineEntry.New(.NonWrapping);
 
     runButton = try ui.Button.New("Run");
+
+    buttonPanel.Append(runButton.as_control(), .dont_stretch);
 
     mainWin.SetResizeable(true);
 
@@ -44,9 +59,8 @@ pub fn main() !void {
 
     mainWin.SetChild(hbox.as_control());
 
+    hbox.Append(buttonPanel.as_control(), .dont_stretch);
     hbox.Append(inputBox.as_control(), .stretch);
-
-    hbox.Append(runButton.as_control(), .dont_stretch);
 
     hbox.Append(outputBox.as_control(), .stretch);
 
@@ -54,17 +68,75 @@ pub fn main() !void {
 
     mainWin.OnClosing(void, on_closing, null);
 
+    mainWin.as_control().Show();
     ui.Main();
+}
+
+pub fn on_OpenMenu(_: ?*ui.MenuItem, win: ?*ui.Window, data: ?*anyopaque) callconv(.C) void {
+    _ = data;
+
+    const f = std.mem.span(win.?.OpenFile());
+
+    if (f) |fname| {
+        const file = std.fs.cwd().openFile(fname, .{}) catch {
+            win.?.MsgBoxError("File Open Error", "Failed to open file");
+            return;
+        };
+
+        const fcontent = file.readToEndAlloc(handyAl, std.math.maxInt(usize)) catch {
+            win.?.MsgBoxError("File Open Error", "Failed to open file");
+            return;
+        };
+
+        const buffer = handyAl.alloc(u8, fcontent.len + 1) catch {
+            win.?.MsgBoxError("File Open Error", "Failed to open file");
+            return;
+        };
+        const string = std.fmt.bufPrintZ(buffer, "{s}", .{fcontent}) catch {
+            win.?.MsgBoxError("File Open Error", "Failed to open file");
+            return;
+        };
+
+        inputBox.SetText(string.ptr);
+
+        defer {
+            file.close();
+            handyAl.free(fcontent);
+        }
+    } else {
+        win.?.MsgBoxError("File Open Error", "Failed to open file");
+        return;
+    }
+
+    return;
+}
+
+pub fn on_SaveMenu(_: ?*ui.MenuItem, win: ?*ui.Window, data: ?*anyopaque) callconv(.C) void {
+    _ = data;
+    const f = std.mem.span(win.?.SaveFile());
+    if (f) |fname| {
+        const file = std.fs.cwd().createFile(fname, .{}) catch {
+            win.?.MsgBoxError("File Save Error", "Failed to save file");
+            return;
+        };
+
+        const content = std.mem.span(inputBox.Text());
+
+        defer file.close();
+        _ = file.write(content) catch {
+            win.?.MsgBoxError("File Save Error", "Failed to save file");
+            return;
+        };
+    } else {
+        win.?.MsgBoxError("File Save Error", "Failed to save file");
+        return;
+    }
+
+    return;
 }
 
 pub fn on_runBtn(_: *ui.Button, input: ?*ui.MultilineEntry) void {
     //std.debug.print("\n-->{s}<--\n", .{input.?.Text()});
-
-    var handyGpa = std.heap.GeneralPurposeAllocator(.{}){};
-    var gcGpa = std.heap.GeneralPurposeAllocator(.{}){};
-
-    const handyAl = handyGpa.allocator();
-    const gcAl = gcGpa.allocator();
 
     var gc = Gc.new(gcAl, handyAl) catch {
         std.debug.print("Failed to create Garbage Collector\n", .{});
