@@ -82,7 +82,7 @@ pub const PObj = struct {
     }
 
     pub fn child(self: *PObj, comptime ChildType: type) *ChildType {
-        return @fieldParentPtr(ChildType, "obj", self);
+        return @fieldParentPtr("obj", self);
     }
 
     pub fn getType(self: *PObj) OType {
@@ -118,7 +118,7 @@ pub const PObj = struct {
     }
 
     pub fn asString(self: *PObj) *OString {
-        return @fieldParentPtr(OString, "obj", self);
+        return @fieldParentPtr("obj", self);
     }
 
     pub fn asFunc(self: *PObj) *OFunction {

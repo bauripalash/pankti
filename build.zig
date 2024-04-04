@@ -10,7 +10,7 @@
 const std = @import("std");
 const builtin = @import("builtin");
 
-const min_zig_version = "0.12.0-dev.3496+a2df84d0f";
+const min_zig_version = "0.12.0-dev.3522+b88ae8dbd";
 
 pub fn build(b: *Build) void {
     const target = b.standardTargetOptions(.{});
@@ -55,10 +55,7 @@ pub fn build(b: *Build) void {
     _ = apilib.getEmittedH();
     buildApi.step.dependOn(b.getInstallStep());
 
-    if (target.result.os.tag == .windows) {
-        exe.linkLibC();
-        exe.addObjectFile(std.Build.LazyPath.relative("winres/pankti.res.obj"));
-    }
+    if (target.result.os.tag == .windows) {}
 
     const zig_libui_ng = b.dependency("zig_libui_ng", .{
         .target = target,
@@ -101,8 +98,17 @@ pub fn build(b: *Build) void {
     });
 
     if (target.result.os.tag == .windows) {
+        exe.linkLibC();
+        //exe.addObjectFile(std.Build.LazyPath.relative("winres/pankti.res.obj"));
+        exe.addWin32ResourceFile(.{
+            .file = .{ .path = "winres/pankti.rc" },
+        });
         unit_tests.linkLibC();
         ideexe.subsystem = .Windows;
+        ideexe.addWin32ResourceFile(.{
+            .file = .{ .path = "winres/pankti_gui.rc" },
+            .flags = &.{ "/d", "_UI_STATIC" },
+        });
     }
 
     const run_unit_tests = b.addRunArtifact(unit_tests);
