@@ -60,6 +60,27 @@ pub fn build(b: *Build) void {
         exe.addObjectFile(std.Build.LazyPath.relative("winres/pankti.res.obj"));
     }
 
+    const zig_libui_ng = b.dependency("zig_libui_ng", .{
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const ideexe = b.addExecutable(.{
+        .name = "panktilekhok",
+        .root_source_file = .{ .path = "src/ide.zig" },
+        .target = target,
+        .optimize = optimize,
+    });
+
+    ideexe.root_module.addImport("ui", zig_libui_ng.module("ui"));
+    //exe.linkLibrary(zig_libui_ng.artifact("ui"));
+
+    //b.installArtifact(exe);
+
+    const ide_step = b.step("ide", "Run the app");
+    const ideExeInstall = b.addInstallArtifact(ideexe, .{});
+    ide_step.dependOn(&ideExeInstall.step);
+
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);
@@ -81,6 +102,7 @@ pub fn build(b: *Build) void {
 
     if (target.result.os.tag == .windows) {
         unit_tests.linkLibC();
+        ideexe.subsystem = .Windows;
     }
 
     const run_unit_tests = b.addRunArtifact(unit_tests);
