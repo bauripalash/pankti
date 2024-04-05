@@ -101,14 +101,15 @@ pub fn build(b: *Build) void {
         exe.linkLibC();
         //exe.addObjectFile(std.Build.LazyPath.relative("winres/pankti.res.obj"));
         exe.addWin32ResourceFile(.{
-            .file = .{ .path = "winres/pankti.rc" },
+            .file = .{ .path = "windows/windows.rc" },
         });
         unit_tests.linkLibC();
         ideexe.subsystem = .Windows;
         ideexe.addWin32ResourceFile(.{
-            .file = .{ .path = "winres/pankti_gui.rc" },
-            .flags = &.{ "/d", "_UI_STATIC" },
+            .file = .{ .path = "windows/panktikhata/panktikhata.rc" },
+            //.flags = &.{ "/d", "_UI_STATIC" },
         });
+        ideexe.linkLibC();
     }
 
     const run_unit_tests = b.addRunArtifact(unit_tests);
