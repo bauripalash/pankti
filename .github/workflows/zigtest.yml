@@ -15,5 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: goto-bus-stop/setup-zig@v2
-      - run: make test
+      - run: |
+          zig build --fetch
+          make test
 
