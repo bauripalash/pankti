@@ -16,8 +16,8 @@
     // internet connectivity.
     .dependencies = .{
         .zig_libui_ng = .{
-            .url = "https://github.com/desttinghim/zig-libui-ng/archive/975241aeec9cca10b809134b70b407f42aab2268.tar.gz",
-            .hash = "1220c7cea9db04fbc59c5e864edb34226d9fb0d8d807e9f7e8e5475229841dc931c3",
+            .url = "https://github.com/bauripalash/zig-libui-ng/archive/refs/heads/libui-ng-bauripalash.tar.gz",
+            .hash = "1220f87a76c8f5251da8932b1fc70a694a82acf529d8ba456dd976a4660c9dadd4ef",
         },
     },
 
