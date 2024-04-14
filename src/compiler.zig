@@ -61,6 +61,8 @@ pub const Compiler = struct {
     ftype: FnType,
     enclosing: ?*Compiler,
     upvalues: [std.math.maxInt(u8)]UpValue,
+    loops: std.ArrayListUnmanaged(std.ArrayListUnmanaged(usize)),
+    insideLoop: bool,
 
     const Self = @This();
 
@@ -164,6 +166,7 @@ pub const Compiler = struct {
             .prec = .P_Or,
         },
         .Do = ParseRule{},
+        .Break = ParseRule{},
         .If = ParseRule{},
         .Else = ParseRule{},
         .True = ParseRule{ .prefix = Self.rLiteral },
@@ -207,6 +210,8 @@ pub const Compiler = struct {
                 .depth = 0,
                 .isCaptured = false,
             }} ** std.math.maxInt(u8),
+            .loops = undefined,
+            .insideLoop = false,
         };
 
         //gc.compiler = c;
@@ -259,6 +264,8 @@ pub const Compiler = struct {
                 .depth = 0,
                 .isCaptured = false,
             }} ** std.math.maxInt(u8),
+            .insideLoop = false,
+            .loops = undefined,
         };
         c.*.function = try gc.newObj(.Ot_Function, PObj.OFunction);
 
@@ -802,6 +809,8 @@ pub const Compiler = struct {
             try self.rIfStatement();
         } else if (self.match(.PWhile)) {
             try self.rWhileStatement();
+        } else if (self.match(.Break)) {
+            try self.rBreakStatement();
         } else if (self.match(.Import)) {
             try self.rImportStatement();
         } else if (self.match(.Lbrace)) {
@@ -810,6 +819,13 @@ pub const Compiler = struct {
             self.endScope();
         } else {
             try self.rExprStatement();
+        }
+    }
+
+    fn rBreakStatement(self: *Self) !void {
+        if (self.insideLoop) {} else {
+            self.parser.err("break can be only inside while loops");
+            return;
         }
     }
 

@@ -1,2 +1,6 @@
-show((1/0))
-ধরি
+let a = 0
+while a < 10 do
+	show(a)
+	a = a + 1
+	break
+end

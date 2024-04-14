@@ -24,6 +24,7 @@ pub const K_EN_FUNC = [_]u32{ 'f', 'u', 'n', 'c' };
 pub const K_EN_IMPORT = [_]u32{ 'i', 'm', 'p', 'o', 'r', 't' };
 pub const K_EN_PANIC = [_]u32{ 'p', 'a', 'n', 'i', 'c' };
 pub const K_EN_DO = [_]u32{ 'd', 'o' };
+pub const K_EN_BREAK = [_]u32{ 'b', 'r', 'e', 'a', 'k' };
 
 pub const K_BN_LET = [_]u32{ 0x09a7, 0x09b0, 0x09bf };
 pub const K_BN_SHOW = [_]u32{ 0x09a6, 0x09c7, 0x0996, 0x09be, 0x0993 };
@@ -63,6 +64,7 @@ pub const K_BN_PANIC = [_]u32{
     0x09b2,
 };
 pub const K_BN_DO = [_]u32{ 0x0995, 0x09b0, 0x09cb };
+pub const K_BN_BREAK = [_]u32{ 0x09ad, 0x09be, 0x0999, 0x09cb };
 
 pub const K_PN_LET = [_]u32{ 'd', 'h', 'o', 'r', 'i' };
 pub const K_PN_SHOW = [_]u32{ 'd', 'e', 'k', 'h', 'a', 'u' };
@@ -81,3 +83,4 @@ pub const K_PN_FUNC = [_]u32{ 'k', 'a', 'j' };
 pub const K_PN_IMPORT = [_]u32{ 'a', 'n', 'o', 'y', 'o', 'n' };
 pub const K_PN_PANIC = [_]u32{ 'p', 'a', 'n', 'i', 'c' };
 pub const K_PN_DO = [_]u32{ 'k', 'o', 'r', 'o' };
+pub const K_PN_BREAK = [_]u32{ 'b', 'h', 'a', 'n', 'g', 'o' };

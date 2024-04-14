@@ -60,6 +60,7 @@ pub const TokenType = enum(u8) {
     Import,
     Panic,
     Do,
+    Break,
 
     Unknown,
     Err,
@@ -111,6 +112,7 @@ pub fn toktypeToString(t: TokenType) []const u8 {
         .Func => "Func",
         .Import => "Import",
         .Panic => "Panic",
+        .Break => "Break",
         .Unknown => "Unknown",
         .Err => "Error",
         //else => "INVALID"
@@ -451,6 +453,8 @@ pub const Lexer = struct {
             return .Panic;
         } else if (utils.matchU32(lx, &kw.K_EN_DO) or utils.matchU32(lx, &kw.K_BN_DO) or utils.matchU32(lx, &kw.K_PN_DO)) {
             return .Do;
+        } else if (utils.matchU32(lx, &kw.K_EN_BREAK) or utils.matchU32(lx, &kw.K_BN_BREAK) or utils.matchU32(lx, &kw.K_PN_BREAK)) {
+            return .Break;
         }
         return .Identifer;
     }
