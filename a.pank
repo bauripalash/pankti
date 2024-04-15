@@ -1,6 +1,13 @@
+let x = [100 , 200]
 let a = 0
 while a < 10 do
 	show(a)
 	a = a + 1
-	break
+	let b = a
+	while b > 0 do
+		show(x[a - 1] + a)
+		if a > 2 tahole
+			break
+		end
+	end
 end

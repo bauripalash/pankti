@@ -267,6 +267,9 @@ pub const Compiler = struct {
             .insideLoop = false,
             .loops = undefined,
         };
+
+        c.*.loops = try std.ArrayListUnmanaged(std.ArrayListUnmanaged(usize)).initCapacity(gc.hal(), 2);
+
         c.*.function = try gc.newObj(.Ot_Function, PObj.OFunction);
 
         //var function: *PObj.OFunction = try gc.newObj(
@@ -823,7 +826,11 @@ pub const Compiler = struct {
     }
 
     fn rBreakStatement(self: *Self) !void {
-        if (self.insideLoop) {} else {
+        const totalLoops = self.loops.items.len;
+        if (totalLoops > 0) {
+            const val = try self.emitJump(.Op_Jump);
+            try self.loops.items[totalLoops - 1].append(self.gc.hal(), val);
+        } else {
             self.parser.err("break can be only inside while loops");
             return;
         }
@@ -1014,6 +1021,9 @@ pub const Compiler = struct {
 
     fn rWhileStatement(self: *Self) !void {
         const loopStart = self.curIns().code.items.len;
+        const breakStmts = try std.ArrayListUnmanaged(usize).initCapacity(self.gc.hal(), 2);
+        try self.loops.append(self.gc.hal(), breakStmts);
+        //std.debug.print("LOOP -> {d}\n", .{loopStart});
 
         try self.parseExpression();
         self.eat(.Do, compErrors.EXPECTED_DO_AFTER_WHILE);
@@ -1024,7 +1034,17 @@ pub const Compiler = struct {
         self.endScope();
         try self.emitLoop(loopStart);
         self.patchJump(@intCast(exitJump));
+        //std.debug.print("x{any}x\n\n", .{self.loops.getLast().items});
+
+        for (self.loops.getLast().items) |value| {
+            self.patchJump(@intCast(value));
+        }
+
         try self.emitBt(.Op_Pop);
+        var s: std.ArrayListUnmanaged(usize) = self.loops.pop();
+        s.deinit(self.gc.hal());
+        //_ = self.loops.pop();
+        //std.debug.print("ITEM -> {d}\n", .{self.curIns().code.items.len});
     }
 
     fn emitLoop(self: *Self, loopStart: usize) Allocator.Error!void {
@@ -1189,6 +1209,7 @@ pub const Compiler = struct {
 
     pub fn free(self: *Self, al: std.mem.Allocator) void {
         self.parser.free(self.gc.getAlc());
+        self.loops.deinit(self.gc.hal());
         al.destroy(self);
     }
 };
