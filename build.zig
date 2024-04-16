@@ -64,6 +64,7 @@ pub fn build(b: *Build) !void {
         .os_tag = .freestanding,
     });
 
+    // Version Info
     const version_result = getVersion(b);
     const build_options = b.addOptions();
     const build_options_module = build_options.createModule();
