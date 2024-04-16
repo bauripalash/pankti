@@ -10,9 +10,52 @@
 const std = @import("std");
 const builtin = @import("builtin");
 
+const pankti_version = std.SemanticVersion{
+    .major = 0,
+    .minor = 4,
+    .patch = 0,
+};
+
 const min_zig_version = "0.12.0-dev.3659+1e5075f81";
 
-pub fn build(b: *Build) void {
+fn getVersion(b: *Build) []const u8 {
+    const version_string = b.fmt("{d}.{d}.{d}", .{
+        pankti_version.major,
+        pankti_version.minor,
+        pankti_version.patch,
+    });
+    const build_root_path = b.build_root.path orelse ".";
+    var code: u8 = undefined;
+    const git_info = b.runAllowFail(&[_][]const u8{
+        "git", "-C", build_root_path, "describe", "--match", "*.*.*", "--tags",
+    }, &code, .Ignore) catch {
+        return version_string;
+    };
+
+    const git_desc = std.mem.trim(u8, git_info, " \n\r");
+
+    switch (std.mem.count(u8, git_desc, "-")) {
+        2 => {
+            var it = std.mem.splitScalar(u8, git_desc, '-');
+            _ = it.first();
+            const commit_height = it.next().?;
+            const commit_id = it.next().?;
+
+            const new_version_string = b.fmt("{s}-dev.{s}+{s}", .{
+                version_string,
+                commit_height,
+                commit_id[1..],
+            });
+            return new_version_string;
+        },
+
+        else => {
+            return version_string;
+        },
+    }
+}
+
+pub fn build(b: *Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
@@ -20,6 +63,12 @@ pub fn build(b: *Build) void {
         .cpu_arch = .wasm32,
         .os_tag = .freestanding,
     });
+
+    const version_result = getVersion(b);
+    const build_options = b.addOptions();
+    const build_options_module = build_options.createModule();
+    build_options.addOption([]const u8, "version_string", version_result);
+    build_options.addOption(std.SemanticVersion, "version", try std.SemanticVersion.parse(version_result));
 
     //Standard Executable
     const exe = b.addExecutable(.{
@@ -69,7 +118,10 @@ pub fn build(b: *Build) void {
         .optimize = optimize,
     });
 
+    exe.root_module.addImport("build_options", build_options_module);
+
     ideexe.root_module.addImport("ui", zig_libui_ng.module("ui"));
+    ideexe.root_module.addImport("build_options", build_options_module);
     //exe.linkLibrary(zig_libui_ng.artifact("ui"));
 
     //b.installArtifact(exe);
