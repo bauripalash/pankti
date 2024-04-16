@@ -10,7 +10,7 @@
 const std = @import("std");
 const builtin = @import("builtin");
 
-const min_zig_version = "0.12.0-dev.3522+b88ae8dbd";
+const min_zig_version = "0.12.0-dev.3659+1e5075f81";
 
 pub fn build(b: *Build) void {
     const target = b.standardTargetOptions(.{});
