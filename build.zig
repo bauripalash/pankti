@@ -150,6 +150,8 @@ pub fn build(b: *Build) !void {
         .optimize = optimize,
     });
 
+    unit_tests.root_module.addImport("build_options", build_options_module);
+
     if (target.result.os.tag == .windows) {
         exe.linkLibC();
         //exe.addObjectFile(std.Build.LazyPath.relative("winres/pankti.res.obj"));
