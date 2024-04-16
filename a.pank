@@ -1,13 +1,24 @@
-let x = [100 , 200]
 let a = 0
-while a < 10 do
+while a < 5 do
 	show(a)
-	a = a + 1
+	show("~~")
+
+	if a == 3 then
+		break
+	end 
+
 	let b = a
-	while b > 0 do
-		show(x[a - 1] + a)
-		if a > 2 tahole
+	while true do
+		show(b)
+
+		if b == -10 then
 			break
 		end
+
+
+		b = b - 1
 	end
+
+	a = a + 1
+	
 end

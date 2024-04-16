@@ -51,6 +51,21 @@ pub const FnType = enum(u8) {
     Ft_SCRIPT,
 };
 
+pub const LoopFlow = struct {
+    breaks: std.ArrayListUnmanaged(u32),
+
+    const Self = @This();
+
+    pub fn init(self: *Self, al: std.mem.Allocator) !void {
+        self.breaks = try std.ArrayListUnmanaged(u32).initCapacity(al, 1);
+    }
+
+    pub fn free(self: *Self, al: std.mem.Allocator) !void {
+        self.breaks.deinit(al);
+        al.destroy(self);
+    }
+};
+
 pub const Compiler = struct {
     parser: *Parser,
     gc: *Gc,
@@ -61,8 +76,7 @@ pub const Compiler = struct {
     ftype: FnType,
     enclosing: ?*Compiler,
     upvalues: [std.math.maxInt(u8)]UpValue,
-    loops: std.ArrayListUnmanaged(std.ArrayListUnmanaged(usize)),
-    insideLoop: bool,
+    loop: ?*LoopFlow,
 
     const Self = @This();
 
@@ -210,8 +224,7 @@ pub const Compiler = struct {
                 .depth = 0,
                 .isCaptured = false,
             }} ** std.math.maxInt(u8),
-            .loops = undefined,
-            .insideLoop = false,
+            .loop = null,
         };
 
         //gc.compiler = c;
@@ -264,11 +277,8 @@ pub const Compiler = struct {
                 .depth = 0,
                 .isCaptured = false,
             }} ** std.math.maxInt(u8),
-            .insideLoop = false,
-            .loops = undefined,
+            .loop = null,
         };
-
-        c.*.loops = try std.ArrayListUnmanaged(std.ArrayListUnmanaged(usize)).initCapacity(gc.hal(), 2);
 
         c.*.function = try gc.newObj(.Ot_Function, PObj.OFunction);
 
@@ -805,13 +815,25 @@ pub const Compiler = struct {
         }
     }
 
+    fn patchBreaks(self: *Self) !void {
+        for (self.loop.?.breaks.items) |br| {
+            self.patchJump(br);
+        }
+    }
+
     fn rStatement(self: *Self) !void {
         if (self.match(.Return)) {
             try self.rReturnStatement();
         } else if (self.match(.If)) {
             try self.rIfStatement();
         } else if (self.match(.PWhile)) {
+            const loop = self.loop;
+            self.loop = try self.gc.hal().create(LoopFlow);
+            try self.loop.?.init(self.gc.hal());
             try self.rWhileStatement();
+            try self.patchBreaks();
+            try self.loop.?.free(self.gc.hal());
+            self.loop = loop;
         } else if (self.match(.Break)) {
             try self.rBreakStatement();
         } else if (self.match(.Import)) {
@@ -826,13 +848,11 @@ pub const Compiler = struct {
     }
 
     fn rBreakStatement(self: *Self) !void {
-        const totalLoops = self.loops.items.len;
-        if (totalLoops > 0) {
-            const val = try self.emitJump(.Op_Jump);
-            try self.loops.items[totalLoops - 1].append(self.gc.hal(), val);
+        if (self.loop) |loop| {
+            const b = try self.emitJump(.Op_Jump);
+            try loop.breaks.append(self.gc.hal(), b);
         } else {
-            self.parser.err("break can be only inside while loops");
-            return;
+            self.parser.err("Break can be only inside loops");
         }
     }
 
@@ -1021,10 +1041,6 @@ pub const Compiler = struct {
 
     fn rWhileStatement(self: *Self) !void {
         const loopStart = self.curIns().code.items.len;
-        const breakStmts = try std.ArrayListUnmanaged(usize).initCapacity(self.gc.hal(), 2);
-        try self.loops.append(self.gc.hal(), breakStmts);
-        //std.debug.print("LOOP -> {d}\n", .{loopStart});
-
         try self.parseExpression();
         self.eat(.Do, compErrors.EXPECTED_DO_AFTER_WHILE);
         const exitJump = try self.emitJump(.Op_JumpIfFalse);
@@ -1034,17 +1050,8 @@ pub const Compiler = struct {
         self.endScope();
         try self.emitLoop(loopStart);
         self.patchJump(@intCast(exitJump));
-        //std.debug.print("x{any}x\n\n", .{self.loops.getLast().items});
-
-        for (self.loops.getLast().items) |value| {
-            self.patchJump(@intCast(value));
-        }
 
         try self.emitBt(.Op_Pop);
-        var s: std.ArrayListUnmanaged(usize) = self.loops.pop();
-        s.deinit(self.gc.hal());
-        //_ = self.loops.pop();
-        //std.debug.print("ITEM -> {d}\n", .{self.curIns().code.items.len});
     }
 
     fn emitLoop(self: *Self, loopStart: usize) Allocator.Error!void {
@@ -1209,7 +1216,11 @@ pub const Compiler = struct {
 
     pub fn free(self: *Self, al: std.mem.Allocator) void {
         self.parser.free(self.gc.getAlc());
-        self.loops.deinit(self.gc.hal());
+
+        if (self.loop) |loop| {
+            loop.free(self.gc.hal()) catch return;
+        }
+        //self.gc.hal().destroy(self.loop);
         al.destroy(self);
     }
 };
