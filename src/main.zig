@@ -51,9 +51,7 @@ pub fn main() !void {
         fileToRun = try ga.alloc(u8, args[1].len);
         @memcpy(fileToRun.?, args[1]);
     } else if (args.len == 1) {
-        const help_info = "Pankti Programming Language\nA Bengali Programming Language\n";
-
-        std.debug.print("{s}\nVersion : {s}\n{s}\n", .{ help_info, pankti.build_options.version_string, abouttxt });
+        std.debug.print(abouttxt, .{pankti.build_options.version_string});
         //std.debug.print("neopank 0.4.0\n", .{});
         //std.debug.print("Usage: neopank [FILE]\n", .{});
         std.process.exit(0);

@@ -1,3 +1,7 @@
+Pankti Programming Language
+A Bengali Programming Language.
+
+Version: {s}
 
 Usage:
 pankti [FILENAME]
