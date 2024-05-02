@@ -5,7 +5,7 @@ const Gc = @import("gc.zig").Gc;
 const utils = @import("utils.zig");
 const Vm = @import("vm.zig").Vm;
 
-pub fn on_closing(_: *ui.Window, _: ?*void) ui.Window.ClosingAction {
+pub fn on_closing(_: *ui.Window, _: ?*void) !ui.Window.ClosingAction {
     ui.Quit();
     return .should_close;
 }
@@ -38,8 +38,8 @@ pub fn main() !void {
     const menuItemSave = try menu.AppendItem("Save");
     //const menuItemQuit = try menu.AppendQuitItem();
 
-    menuItemOpen.OnClicked(on_OpenMenu, inputBox);
-    menuItemSave.OnClicked(on_SaveMenu, inputBox);
+    menuItemOpen.OnClicked(void, ui.Error, on_OpenMenu, null);
+    menuItemSave.OnClicked(void, ui.Error, on_SaveMenu, null);
 
     const mainWin = try ui.Window.New("Hello World", 320, 240, .hide_menubar);
     const hbox = try ui.Box.New(.Vertical);
@@ -64,15 +64,15 @@ pub fn main() !void {
 
     hbox.Append(outputBox.as_control(), .stretch);
 
-    runButton.OnClicked(ui.MultilineEntry, on_runBtn, inputBox);
+    runButton.OnClicked(void, ui.Error, on_runBtn, null);
 
-    mainWin.OnClosing(void, on_closing, null);
+    mainWin.OnClosing(void, ui.Error, on_closing, null);
 
     mainWin.as_control().Show();
     ui.Main();
 }
 
-pub fn on_OpenMenu(_: ?*ui.MenuItem, win: ?*ui.Window, data: ?*anyopaque) callconv(.C) void {
+pub fn on_OpenMenu(_: ?*ui.MenuItem, win: ?*ui.Window, data: ?*void) !void {
     _ = data;
 
     const f = std.mem.span(win.?.OpenFile());
@@ -111,7 +111,7 @@ pub fn on_OpenMenu(_: ?*ui.MenuItem, win: ?*ui.Window, data: ?*anyopaque) callco
     return;
 }
 
-pub fn on_SaveMenu(_: ?*ui.MenuItem, win: ?*ui.Window, data: ?*anyopaque) callconv(.C) void {
+pub fn on_SaveMenu(_: ?*ui.MenuItem, win: ?*ui.Window, data: ?*void) !void {
     _ = data;
     const f = std.mem.span(win.?.SaveFile());
     if (f) |fname| {
@@ -135,9 +135,10 @@ pub fn on_SaveMenu(_: ?*ui.MenuItem, win: ?*ui.Window, data: ?*anyopaque) callco
     return;
 }
 
-pub fn on_runBtn(_: *ui.Button, input: ?*ui.MultilineEntry) void {
+pub fn on_runBtn(_: *ui.Button, _: ?*void) !void {
     //std.debug.print("\n-->{s}<--\n", .{input.?.Text()});
 
+    const input = inputBox;
     var gc = Gc.new(gcAl, handyAl) catch {
         std.debug.print("Failed to create Garbage Collector\n", .{});
         return;
@@ -147,7 +148,7 @@ pub fn on_runBtn(_: *ui.Button, input: ?*ui.MultilineEntry) void {
 
     gc.boot(w.writer().any(), w.writer().any());
 
-    const rawSrc = std.mem.span(input.?.Text());
+    const rawSrc = std.mem.span(input.Text());
 
     const src = utils.u8tou32(rawSrc, gc.hal()) catch {
         return;
