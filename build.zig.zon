@@ -17,7 +17,7 @@
     .dependencies = .{
         .zig_libui_ng = .{
             .url = "https://github.com/bauripalash/zig-libui-ng/archive/refs/heads/libui-ng-bauripalash.tar.gz",
-            .hash = "1220f87a76c8f5251da8932b1fc70a694a82acf529d8ba456dd976a4660c9dadd4ef",
+            .hash = "122004e4159e7974e2f3984e2199ea104004415ab8c3924037d39ec8406080e68e03",
         },
     },
 
