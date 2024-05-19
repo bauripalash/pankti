@@ -74,7 +74,7 @@ pub fn build(b: *Build) !void {
     //Standard Executable
     const exe = b.addExecutable(.{
         .name = "pankti",
-        .root_source_file = .{ .path = "src/main.zig" },
+        .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
     });
@@ -82,7 +82,7 @@ pub fn build(b: *Build) !void {
     //Standard Static Library for Pankti
     const apilib = b.addStaticLibrary(.{
         .name = "neopankapi",
-        .root_source_file = .{ .path = "src/lekhokapi.zig" },
+        .root_source_file = b.path("src/lekhokapi.zig"),
         .target = target,
         .optimize = .ReleaseFast,
     });
@@ -91,7 +91,7 @@ pub fn build(b: *Build) !void {
 
     const webExe = b.addExecutable(.{
         .name = "pankti",
-        .root_source_file = .{ .path = "src/api.zig" },
+        .root_source_file = b.path("src/api.zig"),
         .target = webTarget,
         .optimize = .ReleaseSmall,
     });
@@ -114,7 +114,7 @@ pub fn build(b: *Build) !void {
 
     const ideexe = b.addExecutable(.{
         .name = "panktilekhok",
-        .root_source_file = .{ .path = "src/ide.zig" },
+        .root_source_file = b.path("src/ide.zig"),
         .target = target,
         .optimize = optimize,
     });
@@ -145,7 +145,7 @@ pub fn build(b: *Build) !void {
     run_step.dependOn(&run_cmd.step);
 
     const unit_tests = b.addTest(.{
-        .root_source_file = .{ .path = "src/main.zig" },
+        .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
     });
@@ -156,13 +156,12 @@ pub fn build(b: *Build) !void {
         exe.linkLibC();
         //exe.addObjectFile(std.Build.LazyPath.relative("winres/pankti.res.obj"));
         exe.addWin32ResourceFile(.{
-            .file = .{ .path = "windows/windows.rc" },
+            .file = b.path("windows/windows.rc"),
         });
         unit_tests.linkLibC();
         ideexe.subsystem = .Windows;
         ideexe.addWin32ResourceFile(.{
-            .file = .{ .path = "windows/panktikhata/panktikhata.rc" },
-            //.flags = &.{ "/d", "_UI_STATIC" },
+            .file = b.path("windows/panktikhata/panktikhata.rc"), //.flags = &.{ "/d", "_UI_STATIC" },
         });
         ideexe.linkLibC();
     }
