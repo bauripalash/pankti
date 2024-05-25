@@ -133,6 +133,11 @@ pub const Compiler = struct {
             .prec = .P_Fact,
         },
 
+        .Mod = ParseRule{
+            .infix = Self.rBinary,
+            .prec = .P_Fact,
+        },
+
         .Astr = ParseRule{ .infix = Self.rBinary, .prec = .P_Fact },
         .PowAstr = ParseRule{ .infix = Self.rBinary, .prec = .P_Fact },
         .Bang = ParseRule{
@@ -741,6 +746,7 @@ pub const Compiler = struct {
             .Astr => try self.emitBt(.Op_Mul),
             .PowAstr => try self.emitBt(.Op_Pow),
             .Slash => try self.emitBt(.Op_Div),
+            .Mod => try self.emitBt(.Op_Mod),
             .NotEqual => try self.emitBt(.Op_Neq),
             .EqEq => try self.emitBt(.Op_Eq),
             .Gt => try self.emitBt(.Op_Gt),

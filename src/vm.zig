@@ -373,6 +373,21 @@ pub const Vm = struct {
         }
     }
 
+    fn doBinaryOpMod(self: *Self) bool {
+        const b = self.stack.pop() catch return false;
+        const a = self.stack.pop() catch return false;
+
+        if (a.isNumber() and b.isNumber()) {
+            const result = @mod(a.asNumber(), b.asNumber());
+
+            self.stack.push(PValue.makeNumber(result)) catch return false;
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     const BinaryComp = enum(u8) {
         C_Gt,
         C_Lt,
@@ -1531,6 +1546,13 @@ pub const Vm = struct {
                 .Op_Div => {
                     if (!self.doBinaryOpDiv()) {
                         self.throwRuntimeError("Failed to do binary div", .{});
+                        return .RuntimeError;
+                    }
+                },
+
+                .Op_Mod => {
+                    if (!self.doBinaryOpMod()) {
+                        self.throwRuntimeError("Failed to binary mod", .{});
                         return .RuntimeError;
                     }
                 },

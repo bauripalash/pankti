@@ -18,6 +18,7 @@ pub const TokenType = enum(u8) {
     Astr,
     PowAstr,
     Slash,
+    Mod,
     Eof,
     Lparen,
     Rparen,
@@ -73,6 +74,7 @@ pub fn toktypeToString(t: TokenType) []const u8 {
         .Astr => "Astr",
         .PowAstr => "PowAstr",
         .Slash => "Slash",
+        .Mod => "Mod",
         .Eof => "Eof",
         .Lparen => "Lparen",
         .Rparen => "Rparen",
@@ -283,6 +285,7 @@ pub const Lexer = struct {
             '-' => return self.makeToken(.Minus),
             '+' => return self.makeToken(.Plus),
             '/' => return self.makeToken(.Slash),
+            '%' => return self.makeToken(.Mod),
             '*' => {
                 if (self.matchChar('*')) {
                     return self.makeToken(.PowAstr);
