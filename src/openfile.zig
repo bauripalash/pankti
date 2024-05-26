@@ -12,7 +12,6 @@ pub fn openfile(path: []const u8, aloc: std.mem.Allocator) ![]u8 {
     var f = try std.fs.cwd().openFile(path, .{});
     defer f.close();
 
-    const read_buf = try f.readToEndAlloc(aloc, 1024);
+    const read_buf = try f.readToEndAlloc(aloc, 2048);
     return read_buf;
 }
-

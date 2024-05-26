@@ -118,7 +118,7 @@ pub fn runFile(filepath: []const u8) bool {
     //gc.boot(a.writer().any(), a.writer().any());
 
     const rawSource: []u8 = openfile(filepath, gc.hal()) catch {
-        std.debug.print("Failed to open file '{s}'", .{filepath});
+        std.debug.print("[X] Failed to open file '{s}'", .{filepath});
         return false;
     };
 
