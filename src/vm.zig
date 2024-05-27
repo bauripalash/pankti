@@ -30,6 +30,13 @@ const CallFrame = _stack.CallFrame;
 const openfile = @import("openfile.zig");
 const stdlib = @import("stdlib/stdlib.zig");
 
+const vmErrors = @import("vm_errors.zig");
+
+pub const BinaryError = struct {
+    result: bool,
+    msg: [:0]u8,
+};
+
 pub const IntrpResult = enum(u8) {
     Ok,
     CompileError,
@@ -80,35 +87,18 @@ pub const Vm = struct {
         self.*.stack.head = self.stack.stack[0..];
 
         self.gc.stack = &self.stack;
-        self.defineNative(
-            &[_]u32{ 'c', 'l', 'o', 'c', 'k' },
-            builtins.nClock,
-        ) catch return;
 
-        self.defineNative(&[_]u32{ 'l', 'e', 'n' }, builtins.nLen) catch return;
+        self.defineNative(&kws.K_EN_CLOCK, builtins.nClock) catch return;
+        self.defineNative(&kws.K_BN_CLOCK, builtins.nClock) catch return;
+        self.defineNative(&kws.K_PN_CLOCK, builtins.nClock) catch return;
+
+        self.defineNative(&kws.K_EN_LEN, builtins.nLen) catch return;
+        self.defineNative(&kws.K_BN_LEN, builtins.nLen) catch return;
+        self.defineNative(&kws.K_PN_LEN, builtins.nLen) catch return;
+
         self.defineNative(&kws.K_EN_SHOW, builtins.nShow) catch return;
         self.defineNative(&kws.K_BN_SHOW, builtins.nBnShow) catch return;
-
-        //self.defineNative(
-        //    &kws.K_PN_SHOW,
-        //    builtins.nShow,
-        //) catch return;
-
-        //self.gc.callstack = &self.callframes;
-
-        //self.*.ip = self.*.ins.code.items.ptr;
-
-        //self.strings = table.StringTable(){};
-
-    }
-
-    pub fn interpretRaw(self: *Self, inst: *ins.Instruction) IntrpResult {
-        _ = inst;
-        _ = self;
-        //@memcpy(self.ins.*, inst.);
-        //self.ip = inst.code.items.ptr;
-        //self.ins = inst.*;
-        //return self.run();
+        self.defineNative(&kws.K_PN_SHOW, builtins.nShow) catch return;
     }
 
     pub fn interpret(self: *Self, source: []u32) IntrpResult {
@@ -190,8 +180,10 @@ pub const Vm = struct {
         const i = @intFromPtr(frame.ip) - @intFromPtr(
             frame.closure.function.ins.code.items.ptr,
         ) - 1;
-        self.gc.pstdout.print("\nRuntime Error Occured in line {}\n", .{
+        self.gc.pstdout.print("{d} {s} {s} : \n", .{
             frame.closure.function.ins.pos.items[i].line,
+            vmErrors.NONG_LINE,
+            vmErrors.RUNTIME_ERROR,
         }) catch return;
         self.gc.pstdout.print(msg, args) catch return;
         self.gc.pstdout.print("\n", .{}) catch return;
@@ -203,8 +195,9 @@ pub const Vm = struct {
             const instr = @intFromPtr(f.ip) - @intFromPtr(
                 fun.ins.code.items.ptr,
             ) - 1;
-            self.gc.pstdout.print("[line {d}] in ", .{
+            self.gc.pstdout.print("[{}{s}] ", .{
                 fun.ins.pos.items[instr].line,
+                vmErrors.NONG_LINE,
             }) catch return;
             if (fun.name) |n| {
                 utils.printu32(n.chars, self.gc.pstdout);
@@ -322,6 +315,16 @@ pub const Vm = struct {
             ) catch return false;
             return true;
         } else {
+            const aS = a.toString(self.gc.hal()) catch return false;
+            const bS = b.toString(self.gc.hal()) catch return false;
+            self.throwRuntimeError(vmErrors.SUB_TYPE_MISMATCH, .{
+                aS,
+                a.getTypeAsSimpleStr(),
+                bS,
+                b.getTypeAsSimpleStr(),
+            });
+            self.gc.hal().free(aS);
+            self.gc.hal().free(bS);
             return false;
         }
     }
@@ -379,7 +382,6 @@ pub const Vm = struct {
 
         if (a.isNumber() and b.isNumber()) {
             const result = @mod(a.asNumber(), b.asNumber());
-
             self.stack.push(PValue.makeNumber(result)) catch return false;
 
             return true;
@@ -1518,10 +1520,6 @@ pub const Vm = struct {
 
                 .Op_Sub => {
                     if (!self.doBinaryOpSub()) {
-                        self.throwRuntimeError(
-                            "Failed to do binary sub",
-                            .{},
-                        );
                         return .RuntimeError;
                     }
                 },

@@ -19,6 +19,7 @@ const PObj = @import("object.zig").PObj;
 const Gc = @import("gc.zig").Gc;
 const writer = @import("writer.zig");
 const utils = @import("utils.zig");
+const BnName = @import("bengali/names.zig");
 const math = std.math;
 
 pub const PValueType = enum(u8) {
@@ -27,6 +28,16 @@ pub const PValueType = enum(u8) {
     Pt_Nil,
     Pt_Obj,
     Pt_Unknown,
+
+    pub fn toSimpleString(self: PValueType) []const u8 {
+        switch (self) {
+            .Pt_Num => return BnName.simpleNameNumber,
+            .Pt_Bool => return BnName.simpleNameBool,
+            .Pt_Nil => return BnName.simpleNameNil,
+            .Pt_Obj => return BnName.simpleNameObject,
+            .Pt_Unknown => return BnName.simpleNameUnknown,
+        }
+    }
 
     pub fn toString(self: PValueType) []const u8 {
         switch (self) {
@@ -203,6 +214,19 @@ pub const PValue = packed struct {
             => return self.getType().toString(),
             .Pt_Obj => {
                 return self.asObj().getType().toString();
+            },
+        }
+    }
+
+    pub fn getTypeAsSimpleStr(self: Self) []const u8 {
+        switch (self.getType()) {
+            .Pt_Num,
+            .Pt_Bool,
+            .Pt_Nil,
+            .Pt_Unknown,
+            => return self.getType().toSimpleString(),
+            .Pt_Obj => {
+                return self.asObj().getType().toSimpleString();
             },
         }
     }

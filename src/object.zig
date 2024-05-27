@@ -18,6 +18,7 @@ const Instruction = instruction.Instruction;
 const writer = @import("writer.zig");
 const table = @import("table.zig");
 const Bnum = @import("ext/baurinum/src/bnum.zig").Bnum;
+const BnName = @import("bengali/names.zig");
 
 pub const PObj = struct {
     objtype: OType,
@@ -35,6 +36,25 @@ pub const PObj = struct {
         Ot_Error,
         Ot_BigInt,
         Ot_Module,
+
+        pub fn toSimpleString(self: OType) []const u8 {
+            switch (self) {
+                .Ot_String => {
+                    return BnName.simpleNameObjString;
+                },
+                .Ot_Function => {
+                    return BnName.simpleNameObjFunction;
+                },
+                .Ot_NativeFunc => return BnName.simpleNameObjNativeFunc,
+                .Ot_Closure => return BnName.simpleNameObjClosure,
+                .Ot_UpValue => return BnName.simpleNameObjUpvalue,
+                .Ot_Array => return BnName.simpleNameObjArray,
+                .Ot_Hmap => return BnName.simpleNameObjHmap,
+                .Ot_Error => return BnName.simpleNameObjError,
+                .Ot_Module => return BnName.simpleNameObjModule,
+                .Ot_BigInt => return BnName.simpleNameObjBigint,
+            }
+        }
 
         pub fn toString(self: OType) []const u8 {
             switch (self) {
