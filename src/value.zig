@@ -123,6 +123,20 @@ pub const PValue = packed struct {
         return false;
     }
 
+    pub fn makeComptimeError(
+        gc: *Gc,
+        comptime msg: []const u8,
+        args: anytype,
+    ) ?PValue {
+        const rawO = gc.newObj(.Ot_Error, PObj.OError) catch return null;
+        rawO.parent().isMarked = true;
+        if (!rawO.initU8Args(gc, msg, args)) return null;
+
+        const val = PValue.makeObj(rawO.parent());
+        rawO.parent().isMarked = false;
+        return val;
+    }
+
     pub fn makeError(gc: *Gc, msg: []const u8) ?PValue {
         const rawO = gc.newObj(.Ot_Error, PObj.OError) catch return null;
         rawO.parent().isMarked = true;

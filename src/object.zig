@@ -315,6 +315,16 @@ pub const PObj = struct {
         obj: PObj,
         msg: []u8,
 
+        pub fn initU8Args(
+            self: *OError,
+            gc: *Gc,
+            comptime msg: []const u8,
+            args: anytype,
+        ) bool {
+            self.msg = std.fmt.allocPrint(gc.hal(), msg, args) catch return false;
+            return true;
+        }
+
         pub fn initU8(self: *OError, gc: *Gc, msg: []const u8) bool {
             self.msg = gc.hal().alloc(u8, msg.len) catch return false;
             @memcpy(self.msg, msg);
