@@ -59,7 +59,7 @@ pub fn addPanktiKhataApi(
     b: *std.Build,
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.Mode,
-) *std.Build.Step.Compile {
+) !*std.Build.Step.Compile {
     const versionResult = getVersion(b);
     const buildOptions = b.addOptions();
     const buildOpsModule = buildOptions.createModule();
