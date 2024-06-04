@@ -18,7 +18,7 @@ const pankti_version = std.SemanticVersion{
 
 const min_zig_version = "0.12.0-dev.3659+1e5075f81";
 
-fn getVersion(b: *Build) []const u8 {
+pub fn getVersion(b: *Build) []const u8 {
     const version_string = b.fmt("{d}.{d}.{d}", .{
         pankti_version.major,
         pankti_version.minor,
@@ -111,6 +111,8 @@ pub fn build(b: *Build) !void {
         .optimize = .ReleaseFast,
     });
 
+    const khataapi = b.addModule("khataapi", .{ .root_source_file = b.path("src/khataapi.zig") });
+
     apilib.linkLibC();
 
     const webExe = b.addExecutable(.{
@@ -175,6 +177,8 @@ pub fn build(b: *Build) !void {
     });
 
     unit_tests.root_module.addImport("build_options", build_options_module);
+
+    khataapi.addImport("build_options", build_options_module);
 
     if (target.result.os.tag == .windows) {
         exe.linkLibC();
