@@ -3,8 +3,9 @@ const Gc = @import("gc.zig").Gc;
 const utils = @import("utils.zig");
 const Vm = @import("vm.zig").Vm;
 
-pub export fn freeCode(src: [*]u8) void {
-    std.heap.c_allocator.free(src);
+pub export fn freeCode(src: [*c]u8, len: u32) void {
+    // Does this even work ?
+    std.heap.c_allocator.free(src[0..len]);
 }
 
 pub export fn runCode(src: [*]const u8, len: u32) callconv(.C) ?[*]u8 {
@@ -39,8 +40,7 @@ pub export fn runCode(src: [*]const u8, len: u32) callconv(.C) ?[*]u8 {
 
     switch (vmResult) {
         .Ok => {
-            const result = std.fmt.allocPrint(handyAl, "{s}", warr.items.ptr) catch return null;
-
+            const result = std.fmt.allocPrint(handyAl, "{s}", .{warr.items}) catch return null;
             return result.ptr;
         },
         .RuntimeError => return null,
