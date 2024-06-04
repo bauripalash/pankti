@@ -3,11 +3,11 @@ const Gc = @import("gc.zig").Gc;
 const utils = @import("utils.zig");
 const Vm = @import("vm.zig").Vm;
 
-export fn freeCode(src: [*]u8) void {
+pub export fn freeCode(src: [*]u8) void {
     std.heap.c_allocator.free(src);
 }
 
-export fn runCode(src: [*]const u8, len: u32) callconv(.C) [*]u8 {
+pub export fn runCode(src: [*]const u8, len: u32) callconv(.C) [*]u8 {
     const handyAl = std.heap.c_allocator;
     const gcAl = std.heap.c_allocator;
 
