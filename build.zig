@@ -55,6 +55,30 @@ fn getVersion(b: *Build) []const u8 {
     }
 }
 
+pub fn addPanktiKhataApi(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.Mode,
+) *std.Build.Step.Compile {
+    const versionResult = getVersion(b);
+    const buildOptions = b.addOptions();
+    const buildOpsModule = buildOptions.createModule();
+
+    buildOptions.addOption([]const u8, "version_string", versionResult);
+    buildOptions.addOption(std.SemanticVersion, "version", try std.SemanticVersion.parse(versionResult));
+
+    const lib = b.addSharedLibrary(.{
+        .name = "panktikhataapi",
+        .root_source_file = b.path("src/khataapi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    lib.root_module.addImport("build_options", buildOpsModule);
+    lib.linkLibC();
+    return lib;
+}
+
 pub fn build(b: *Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
