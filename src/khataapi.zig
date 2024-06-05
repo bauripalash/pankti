@@ -11,11 +11,12 @@ pub export fn freeCode(src: [*c]u8, len: u32) void {
 pub export fn runCode(src: [*]const u8, len: u32) callconv(.C) ?[*]u8 {
     const handyAl = std.heap.c_allocator;
     const gcAl = std.heap.c_allocator;
+    var result = std.fmt.allocPrint(handyAl, "error", .{}) catch return null;
 
     const rawSrc = src[0..len];
 
     var gc = Gc.new(gcAl, handyAl) catch {
-        return null;
+        return result.ptr;
     };
 
     var warr = std.ArrayList(u8).init(gc.hal());
@@ -23,11 +24,11 @@ pub export fn runCode(src: [*]const u8, len: u32) callconv(.C) ?[*]u8 {
     gc.boot(warr.writer().any(), warr.writer().any());
 
     const source = utils.u8tou32(rawSrc, gc.hal()) catch {
-        return null;
+        return result.ptr;
     };
 
     var myVm = Vm.newVm(gc.hal()) catch {
-        return null;
+        return result.ptr;
     };
 
     myVm.bootVm(gc);
@@ -40,10 +41,11 @@ pub export fn runCode(src: [*]const u8, len: u32) callconv(.C) ?[*]u8 {
 
     switch (vmResult) {
         .Ok => {
-            const result = std.fmt.allocPrint(handyAl, "{s}", .{warr.items}) catch return null;
+            handyAl.free(result);
+            result = std.fmt.allocPrint(handyAl, "{s}", .{warr.items}) catch return null;
             return result.ptr;
         },
-        .RuntimeError => return null,
-        .CompileError => return null,
+        .RuntimeError => return result.ptr,
+        .CompileError => return result.ptr,
     }
 }
