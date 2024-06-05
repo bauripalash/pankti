@@ -8,7 +8,7 @@ pub export fn freeCode(src: [*c]u8, len: u32) void {
     std.heap.c_allocator.free(src[0..len]);
 }
 
-pub export fn runCode(src: [*]const u8, len: u32) callconv(.C) ?[*]u8 {
+pub export fn runCode(src: [*]const u8, len: u32) callconv(.C) [*c]u8 {
     const handyAl = std.heap.c_allocator;
     const gcAl = std.heap.c_allocator;
     var result = std.fmt.allocPrint(handyAl, "error", .{}) catch return null;
@@ -42,8 +42,7 @@ pub export fn runCode(src: [*]const u8, len: u32) callconv(.C) ?[*]u8 {
     switch (vmResult) {
         .Ok => {
             handyAl.free(result);
-            result = std.fmt.allocPrint(handyAl, "{s}", .{warr.items}) catch return null;
-            std.debug.print("->{s}<-\n", result);
+            result = std.fmt.allocPrintZ(handyAl, "{s}", .{warr.items}) catch return null;
             return result.ptr;
         },
         .RuntimeError => return result.ptr,
