@@ -43,6 +43,7 @@ pub export fn runCode(src: [*]const u8, len: u32) callconv(.C) ?[*]u8 {
         .Ok => {
             handyAl.free(result);
             result = std.fmt.allocPrint(handyAl, "{s}", .{warr.items}) catch return null;
+            std.debug.print("->{s}<-\n", result);
             return result.ptr;
         },
         .RuntimeError => return result.ptr,
