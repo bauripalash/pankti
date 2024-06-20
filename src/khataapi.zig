@@ -27,6 +27,8 @@ pub export fn runCode(src: [*]const u8, len: u32) callconv(.C) [*c]u8 {
         return result.ptr;
     };
 
+    utils.printu32(source, std.io.getStdErr().writer().any());
+
     var myVm = Vm.newVm(gc.hal()) catch {
         return result.ptr;
     };

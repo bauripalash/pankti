@@ -14,12 +14,7 @@
     // `zig build --fetch` can be used to fetch all dependencies of a package, recursively.
     // Once all dependencies are fetched, `zig build` no longer requires
     // internet connectivity.
-    .dependencies = .{
-        .zig_libui_ng = .{
-            .url = "https://github.com/bauripalash/zig-libui-ng/archive/refs/heads/libui-ng-bauripalash.tar.gz",
-            .hash = "122033bb4ceef0ddab4b79b39bdac0256438b9de1b4aaa9377bb1cd829f8adcf316b",
-        },
-    },
+    .dependencies = .{},
 
     // Specifies the set of files and directories that are included in this package.
     // Only files and directories listed here are included in the `hash` that

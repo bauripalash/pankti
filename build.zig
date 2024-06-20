@@ -103,17 +103,18 @@ pub fn build(b: *Build) !void {
         .optimize = optimize,
     });
 
-    //Standard Static Library for Pankti
-    const apilib = b.addStaticLibrary(.{
-        .name = "neopankapi",
-        .root_source_file = b.path("src/lekhokapi.zig"),
-        .target = target,
-        .optimize = .ReleaseFast,
-    });
-
     const khataapi = b.addModule("khataapi", .{ .root_source_file = b.path("src/khataapi.zig") });
 
-    apilib.linkLibC();
+    const lib = b.addStaticLibrary(.{
+        .name = "pankti",
+        .root_source_file = b.path("src/khataapi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    lib.root_module.addImport("build_options", build_options_module);
+    b.installArtifact(lib);
+    lib.linkLibC();
 
     const webExe = b.addExecutable(.{
         .name = "pankti",
@@ -124,38 +125,11 @@ pub fn build(b: *Build) !void {
 
     webExe.entry = .disabled;
     webExe.rdynamic = true;
-    //webExe.import_memory = true;
     webExe.stack_size = std.wasm.page_size;
-
-    const buildApi = b.addInstallArtifact(apilib, .{});
-    _ = apilib.getEmittedH();
-    buildApi.step.dependOn(b.getInstallStep());
 
     if (target.result.os.tag == .windows) {}
 
-    const zig_libui_ng = b.dependency("zig_libui_ng", .{
-        .target = target,
-        .optimize = optimize,
-    });
-
-    const ideexe = b.addExecutable(.{
-        .name = "panktilekhok",
-        .root_source_file = b.path("src/ide.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-
     exe.root_module.addImport("build_options", build_options_module);
-
-    ideexe.root_module.addImport("ui", zig_libui_ng.module("ui"));
-    ideexe.root_module.addImport("build_options", build_options_module);
-    //exe.linkLibrary(zig_libui_ng.artifact("ui"));
-
-    //b.installArtifact(exe);
-
-    const ide_step = b.step("ide", "Run the app");
-    const ideExeInstall = b.addInstallArtifact(ideexe, .{});
-    ide_step.dependOn(&ideExeInstall.step);
 
     b.installArtifact(exe);
 
@@ -182,16 +156,11 @@ pub fn build(b: *Build) !void {
 
     if (target.result.os.tag == .windows) {
         exe.linkLibC();
-        //exe.addObjectFile(std.Build.LazyPath.relative("winres/pankti.res.obj"));
         exe.addWin32ResourceFile(.{
             .file = b.path("windows/windows.rc"),
         });
+        lib.linkLibC();
         unit_tests.linkLibC();
-        ideexe.subsystem = .Windows;
-        ideexe.addWin32ResourceFile(.{
-            .file = b.path("windows/panktikhata/panktikhata.rc"), //.flags = &.{ "/d", "_UI_STATIC" },
-        });
-        ideexe.linkLibC();
     }
 
     const run_unit_tests = b.addRunArtifact(unit_tests);
@@ -199,13 +168,13 @@ pub fn build(b: *Build) !void {
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_unit_tests.step);
 
-    const make_api_lib = b.step("api", "Build api library");
-    make_api_lib.dependOn(&buildApi.step);
-
     const wasmBuildStep = b.step("wasm", "Build Wasm");
-    //wasmBuildStep.dependOn(&webExe.step);
     const webExeInstall = b.addInstallArtifact(webExe, .{});
     wasmBuildStep.dependOn(&webExeInstall.step);
+
+    const libBuildStep = b.step("lib", "Build Static Library");
+    const libInstall = b.addInstallArtifact(lib, .{});
+    libBuildStep.dependOn(&libInstall.step);
 }
 
 const Build = blk: {
