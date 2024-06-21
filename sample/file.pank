@@ -1,4 +1,0 @@
-import file "file"
-
-#show(file.write("path2.txt" , "hello world" , "w"))
-#show(file.write("path2.txt" , " my name is palash" , "a"))

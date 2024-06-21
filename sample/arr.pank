@@ -1,4 +1,0 @@
-let a = ["1","2","hello world"]
-a[0] = 4
-show(a)
-show(a[2][a[0]])

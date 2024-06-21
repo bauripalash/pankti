@@ -12,15 +12,7 @@ run: $(TARGET)
 
 $(TARGET): build 
 
-ide:
-	@$(ZIG) build ide
-	@./$(BUILD_DIR)/bin/panktilekhok
-
-capi:
-	@$(ZIG) build api
-	@cc -c apiexample.c
-	@cc -o apiexample apiexample.o $(BUILD_DIR)/lib/libneopankapi.a -lm
-	@./apiexample
+release: rls_setup rls_win32 rls_win64 rls_linux32 rls_linux64
 
 build:
 	@$(ZIG) build
@@ -30,14 +22,6 @@ wasm:
 	@$(ZIG) build wasm
 	cp $(WASMBIN) ./web/
 
-release:
-	$(ZIG) build -Doptimize=ReleaseSafe
-
-buildwin:
-	$(ZIG) build -Dtarget=x86_64-windows -Doptimize=ReleaseSafe
-
-release_fast:
-	$(ZIG) build -Doptimize=ReleaseFast
 
 debug: $(TARGET)
 	$(DEBUGGER) --args $(TARGET) $(SAMPLE)
@@ -46,8 +30,28 @@ test: $(TARGET)
 	@$(ZIG) build test
 	@$(PYTHON) -m unittest -v
 
+
+rls_setup:
+	mkdir -p dist/
+
+rls_win32:
+	$(ZIG) build -Dtarget=x86-windows-gnu --release=safe
+	mv zig-out/bin/pankti.exe dist/pankti-win32.exe
+
+rls_win64:
+	$(ZIG) build -Dtarget=x86_64-windows-gnu --release=safe
+	mv zig-out/bin/pankti.exe dist/pankti-win64.exe
+
+rls_linux32:
+	$(ZIG) build -Dtarget=x86-linux-gnu --release=safe
+	mv zig-out/bin/pankti dist/pankti-linux32
+
+rls_linux64:
+	$(ZIG) build -Dtarget=x86_64-linux-gnu --release=safe
+	mv zig-out/bin/pankti dist/pankti-linux64
+
 resobj:
-	llvm-rc winres/pankti.rc /FO winres/pankti.res.obj
+	$(ZIG) rc winres/pankti.rc /FO winres/pankti.res.obj
 
 perf:
 	@echo "Building Release"

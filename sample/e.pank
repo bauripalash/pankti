@@ -1,5 +1,0 @@
-kaj x(a)
-	show(a)
-sesh
-
-x("hello")

@@ -1,6 +1,0 @@
-let a = "hello" + "world"
-
-a = "world" + "hello"
-
-show(a)
-
