@@ -1,0 +1,28 @@
+name: Build Release
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{matrix.os}}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: goto-bus-stop/setup-zig@v2
+      - name: Build Release
+        run: |
+          make release
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pankti-linux-win-32_64
+          path: |
+            dist/pankti-linux64
+            dist/pankti-linux32
+            dist/pankti-win64.exe
+            dist/pankti-win32.exe
+
