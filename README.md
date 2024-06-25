@@ -47,6 +47,10 @@ Output: পলাশ এখন ঘুমোচ্ছে
 ## Project Status
 > Pre-alpha. Under heavy development
 
+## Related Projects
+[![](https://github-readme-stats.vercel.app/api/pin/?username=bauripalash&repo=panktikhata)](https://github.com/bauripalash/panktikhata)
+[![](https://github-readme-stats.vercel.app/api/pin/?username=bauripalash&repo=pankti-web)](https://github.com/bauripalash/pankti-web)
+
 ## LICENSE
 > MPL v2
 
