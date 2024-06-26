@@ -103,7 +103,7 @@ pub fn hashU32(input: []const u32, gc: *Gc) !u32 {
         gc.hal().free(u);
         result = hasher.final();
     } else {
-        var hasher = std.hash.XxHash32.init(@intCast(std.time.timestamp()));
+        var hasher = std.hash.XxHash32.init(gc.timestamp);
         const u = try u32tou8(input, gc.hal());
         hasher.update(u);
         gc.hal().free(u);

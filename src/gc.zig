@@ -166,10 +166,16 @@ pub const Gc = struct {
     modCount: usize,
     stdlibs: [STDMAX]StdLibMod,
     stdlibCount: u32,
+    stress: bool,
+    timestamp: u32,
 
     const Self = @This();
 
     pub fn new(al: Allocator, handlyal: Allocator) !*Gc {
+        var shouldStress = false;
+        if (std.process.hasEnvVarConstant("PANKTI_STRESS")) {
+            shouldStress = true;
+        }
         const newgc = try al.create(Self);
         newgc.* = .{
             .internal_al = al,
@@ -191,6 +197,8 @@ pub const Gc = struct {
             .modCount = 0,
             .stdlibs = undefined,
             .stdlibCount = 0,
+            .stress = shouldStress,
+            .timestamp = @intCast(std.time.timestamp()),
         };
 
         return newgc;
@@ -493,8 +501,9 @@ pub const Gc = struct {
     }
 
     pub fn tryCollect(self: *Self) void {
+        //std.debug.print("STRESS->{any}\n", .{self.stress});
         if (!flags.DISABLE_GC) {
-            if ((self.alocAmount > self.nextGc) or flags.STRESS_GC) {
+            if ((self.alocAmount > self.nextGc) or self.stress) {
                 self.collect();
             }
         }

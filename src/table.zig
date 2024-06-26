@@ -39,6 +39,10 @@ const PankTableContext = struct {
         b: *Pobj.OString,
     ) bool {
         _ = self;
+        //utils.printu32(a.chars, std.io.getStdOut().writer().any());
+        //std.debug.print("==", .{});
+        //utils.printu32(b.chars, std.io.getStdOut().writer().any());
+        //std.debug.print("\n{d}=={d}\n", .{ a.hash, b.hash });
         return a.hash == b.hash;
     }
     pub fn hash(self: @This(), key: *Pobj.OString) u64 {

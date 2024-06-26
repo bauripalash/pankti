@@ -803,8 +803,8 @@ pub const Vm = struct {
 
         while (true) {
             if (flags.DEBUG and flags.DEBUG_GLOBS) {
-                self.gc.printTable(&self.gc.globals, "GLOBS");
-                self.gc.printTable(&self.gc.strings, "STRINGS");
+                self.gc.printTable(frame.globals, "GLOBS");
+                //self.gc.printTable(&self.gc.strings, "STRINGS");
             }
 
             if (flags.DEBUG and flags.STRESS_GC) {
@@ -875,6 +875,8 @@ pub const Vm = struct {
                                     return .RuntimeError;
                                 };
                             } else {
+                                //self.debugStack();
+                                //self.gc.printTable(frame.globals, "GLOBS");
                                 self.throwRuntimeError(
                                     "undefined stdlib mod variable",
                                     .{},
@@ -883,6 +885,8 @@ pub const Vm = struct {
                                 return .RuntimeError;
                             }
                         } else {
+                            //self.debugStack();
+                            //self.gc.printTable(frame.globals, "GLOBS");
                             self.throwRuntimeError(
                                 "module not found",
                                 .{},
@@ -1589,7 +1593,17 @@ pub const Vm = struct {
                             return .RuntimeError;
                         };
                     } else {
-                        self.throwRuntimeError("Undefined variable -> ", .{});
+                        //std.debug.print("h>{d}<", .{name.hash});
+                        //self.debugStack();
+                        //self.gc.printTable(frame.globals, "GLOBS");
+                        const s = name.parent().toString(self.gc.hal()) catch {
+                            self.throwRuntimeError("Undefined Variable", .{});
+                            return .RuntimeError;
+                        };
+                        self.throwRuntimeError("Undefined variable -> {s}", .{s});
+
+                        self.gc.hal().free(s);
+
                         //_ = name.print(self.gc); //TO_DO
 
                         return .RuntimeError;
@@ -1613,10 +1627,18 @@ pub const Vm = struct {
                             return .RuntimeError;
                         };
                     } else {
+                        //self.debugStack();
+                        //self.gc.printTable(frame.globals, "GLOBS");
+                        const s = name.parent().toString(self.gc.hal()) catch {
+                            self.throwRuntimeError("Undefined Variable", .{});
+                            return .RuntimeError;
+                        };
+
                         self.throwRuntimeError(
-                            "Undefined variable",
-                            .{},
+                            "Undefined variable {s}",
+                            .{s},
                         );
+                        self.gc.hal().free(s);
                         return .RuntimeError;
                     }
                 },
