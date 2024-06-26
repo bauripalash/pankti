@@ -13,7 +13,6 @@ const PObj = @import("object.zig").PObj;
 const ins = @import("instruction.zig");
 const table = @import("table.zig");
 
-
 const FRAME_MAX = 64;
 const STACK_MAX = FRAME_MAX * std.math.maxInt(u8);
 
@@ -70,8 +69,8 @@ pub const CallFrame = struct {
     closure: *PObj.OClosure,
     ip: [*]u8,
     slots: [*]PValue,
-    globals : *table.PankTable(),
-    globOwner : u32,
+    globals: *table.PankTable(),
+    globOwner: u32,
 
     const Self = @This();
 

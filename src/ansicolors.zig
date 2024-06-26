@@ -18,7 +18,7 @@ pub const ANSI_COLOR_CYAN = "\x1b[36m";
 pub const ANSI_COLOR_WHITE = "\x1b[37m";
 pub const ANSI_COLOR_RESET = "\x1b[0m";
 
-pub fn TermColor(color: u8 , w : writer.PanWriter) void {
+pub fn TermColor(color: u8, w: writer.PanWriter) void {
     switch (color) {
         'B' => {
             w.print("{s}", .{ANSI_COLOR_BLACK}) catch return;
@@ -50,6 +50,6 @@ pub fn TermColor(color: u8 , w : writer.PanWriter) void {
     }
 }
 
-pub fn ResetColor(w : writer.PanWriter) void {
+pub fn ResetColor(w: writer.PanWriter) void {
     w.print("{s}", .{ANSI_COLOR_RESET}) catch return;
 }
