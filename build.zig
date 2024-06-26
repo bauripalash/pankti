@@ -103,6 +103,8 @@ pub fn build(b: *Build) !void {
         .optimize = optimize,
     });
 
+    exe.linkLibC();
+
     const khataapi = b.addModule("khataapi", .{ .root_source_file = b.path("src/khataapi.zig") });
 
     const lib = b.addStaticLibrary(.{

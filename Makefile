@@ -64,3 +64,4 @@ perf:
 clean:
 	rm -rf $(CACHE_DIR)
 	rm -rf $(BUILD_DIR)
+	rm -rf dist/
