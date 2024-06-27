@@ -170,6 +170,10 @@ pub const PValue = packed struct {
         return @ptrFromInt(v);
     }
 
+    pub fn asDataObj(self: Self) usize {
+        return @as(usize, @intCast(self.data & ~(SIGN_BIT | QNAN)));
+    }
+
     /// Create a new number value
     pub fn makeNumber(n: f64) PValue {
         return PValue{ .data = @bitCast(n) };

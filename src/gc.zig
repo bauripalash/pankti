@@ -15,21 +15,22 @@ const PValue = value_zig.PValue;
 const PValueType = value_zig.PValueType;
 const table = @import("table.zig");
 const utils = @import("utils.zig");
-const flags = @import("flags.zig");
+//const flags = @import("flags.zig");
 const ansicolors = @import("ansicolors.zig");
 const vm = @import("vm.zig");
 const compiler = @import("compiler.zig");
 const writer = @import("writer.zig");
 const stck = @import("stack.zig");
 
-const slog: bool = flags.DEBUG and flags.DEBUG_GC;
+var DEBUG_GC: bool = false;
+var DEBUG: bool = false;
+var STRESS_GC: bool = false;
+var NO_GC: bool = false;
 
 fn dprint(color: u8, w: std.io.AnyWriter, comptime fmt: []const u8, args: anytype) void {
-    if (slog) {
-        ansicolors.TermColor(color, w);
-        w.print(fmt, args) catch return;
-        ansicolors.ResetColor(w);
-    }
+    ansicolors.TermColor(color, w);
+    w.print(fmt, args) catch return;
+    ansicolors.ResetColor(w);
 }
 
 pub const StdLibMod = struct {
@@ -167,15 +168,30 @@ pub const Gc = struct {
     stdlibs: [STDMAX]StdLibMod,
     stdlibCount: u32,
     stress: bool,
+    debugGc: bool,
+    debug: bool,
+    noGc: bool,
     timestamp: u32,
 
     const Self = @This();
 
     pub fn new(al: Allocator, handlyal: Allocator) !*Gc {
-        var shouldStress = false;
         if (std.process.hasEnvVarConstant("PANKTI_STRESS")) {
-            shouldStress = true;
+            STRESS_GC = true;
         }
+
+        if (std.process.hasEnvVarConstant("PANKTI_DEBUG_GC")) {
+            DEBUG_GC = true;
+        }
+
+        if (std.process.hasEnvVarConstant("PANKTI_DEBUG")) {
+            DEBUG = true;
+        }
+
+        if (std.process.hasEnvVarConstant("PANKTI_NO_GC")) {
+            NO_GC = true;
+        }
+
         const newgc = try al.create(Self);
         newgc.* = .{
             .internal_al = al,
@@ -197,7 +213,10 @@ pub const Gc = struct {
             .modCount = 0,
             .stdlibs = undefined,
             .stdlibCount = 0,
-            .stress = shouldStress,
+            .stress = STRESS_GC,
+            .debugGc = DEBUG_GC,
+            .debug = DEBUG,
+            .noGc = NO_GC,
             .timestamp = @intCast(std.time.timestamp()),
         };
 
@@ -293,7 +312,7 @@ pub const Gc = struct {
     ) !*ParentType {
         const ptr = try self.al.create(ParentType);
         ptr.parent().objtype = otype;
-        if (flags.DEBUG_GC) {
+        if (DEBUG_GC) {
             ansicolors.TermColor('b', self.pstdout);
 
             try self.pstdout.print("[GC] (0x{x}) New Object: {s}", .{
@@ -338,11 +357,12 @@ pub const Gc = struct {
             try utils.hashU32(chars, self),
             len,
         )) |interned| {
-            dprint('b', self.pstdout, "[GC] Returning interned string : ", .{});
-            if (slog) {
+            if (DEBUG_GC) {
+                dprint('b', self.pstdout, "[GC] Returning interned string : ", .{});
                 _ = interned.print(self);
+
+                dprint('n', self.pstdout, "\n", .{});
             }
-            dprint('n', self.pstdout, "\n", .{});
             return interned;
         }
 
@@ -398,16 +418,16 @@ pub const Gc = struct {
     }
 
     pub fn freeSingleObject(self: *Self, obj: *PObj) void {
-        if (flags.DEBUG and (flags.DEBUG_GC or flags.DEBUG_FREE_OBJECTS)) {
-            ansicolors.TermColor('p', self.pstdout);
-            self.pstdout.print("[GC] (0x{x}) Free Object: {s} : [ ", .{
-                @intFromPtr(obj),
-                obj.objtype.toString(),
-            }) catch return;
-            _ = obj.printObj(self);
-            self.pstdout.print(" ]\n", .{}) catch return;
-            ansicolors.ResetColor(self.pstdout);
-        }
+        //if (false) {
+        //    ansicolors.TermColor('p', self.pstdout);
+        //    self.pstdout.print("[GC] (0x{x}) Free Object: {s} : [ ", .{
+        //        @intFromPtr(obj),
+        //        obj.objtype.toString(),
+        //    }) catch return;
+        //    _ = obj.printObj(self);
+        //    self.pstdout.print(" ]\n", .{}) catch return;
+        //    ansicolors.ResetColor(self.pstdout);
+        //}
         switch (obj.objtype) {
             .Ot_Function => {
                 const fnObj = obj.child(PObj.OFunction);
@@ -460,6 +480,21 @@ pub const Gc = struct {
 
     pub fn freeObjects(self: *Self) void {
         var object: ?*PObj = self.objects;
+        if (DEBUG_GC) {
+            var tempObj = self.objects;
+
+            while (tempObj) |obj| {
+                ansicolors.TermColor('p', self.pstdout);
+                self.pstdout.print("[GC] (0x{x}) Free Object: {s} : [ ", .{
+                    @intFromPtr(obj),
+                    obj.objtype.toString(),
+                }) catch return;
+                _ = obj.printObj(self);
+                self.pstdout.print(" ]\n", .{}) catch return;
+                ansicolors.ResetColor(self.pstdout);
+                tempObj = obj.next;
+            }
+        }
 
         while (object) |obj| {
             const next = obj.next;
@@ -472,7 +507,7 @@ pub const Gc = struct {
         al.destroy(self);
     }
     pub fn free(self: *Self) void {
-        if (flags.DEBUG and flags.DEBUG_GC) {
+        if (DEBUG_GC) {
             dprint('r', self.pstdout, "-> FINISHING GC <-\n", .{});
             //self.pstdout.print("TOTAL BYTES ALLOCATED-> {d}bytes\n" , .{self.alocAmount});
         }
@@ -494,7 +529,7 @@ pub const Gc = struct {
 
         self.modules.deinit(self.hal());
 
-        if (flags.DEBUG and flags.DEBUG_GC) {
+        if (DEBUG_GC) {
             dprint('r', self.pstdout, "<- TERMINATE GC ->\n", .{});
             //self.pstdout.print("TOTAL BYTES ALLOCATED-> {d}bytes\n" , .{self.alocAmount});
         }
@@ -502,7 +537,7 @@ pub const Gc = struct {
 
     pub fn tryCollect(self: *Self) void {
         //std.debug.print("STRESS->{any}\n", .{self.stress});
-        if (!flags.DISABLE_GC) {
+        if (!NO_GC) {
             if ((self.alocAmount > self.nextGc) or self.stress) {
                 self.collect();
             }
@@ -510,21 +545,32 @@ pub const Gc = struct {
     }
 
     pub fn collect(self: *Self) void {
-        dprint('r', self.pstdout, "[GC] Marking Roots\n", .{});
+        if (DEBUG_GC) {
+            dprint('r', self.pstdout, "[GC] Marking Roots\n", .{});
+        }
         self.markRoots();
 
-        dprint('r', self.pstdout, "[GC] Finished Marking Roots\n", .{});
-        dprint('r', self.pstdout, "[GC] Tracing Refs\n", .{});
+        if (DEBUG_GC) {
+            dprint('r', self.pstdout, "[GC] Finished Marking Roots\n", .{});
+            dprint('r', self.pstdout, "[GC] Tracing Refs\n", .{});
+        }
         self.traceRefs();
-        dprint('r', self.pstdout, "[GC] Finished Tracing Refs\n", .{});
 
-        dprint('r', self.pstdout, "[GC] Cleaning Strings\n", .{});
+        if (DEBUG_GC) {
+            dprint('r', self.pstdout, "[GC] Finished Tracing Refs\n", .{});
+
+            dprint('r', self.pstdout, "[GC] Cleaning Strings\n", .{});
+        }
         self.removeTableUnpainted(&self.strings);
-        dprint('r', self.pstdout, "[GC] Finished Cleaning Strings\n", .{});
+        if (DEBUG_GC) {
+            dprint('r', self.pstdout, "[GC] Finished Cleaning Strings\n", .{});
 
-        dprint('r', self.pstdout, "[GC] Sweeping\n", .{});
+            dprint('r', self.pstdout, "[GC] Sweeping\n", .{});
+        }
         self.sweep();
-        dprint('r', self.pstdout, "[GC] Finished Sweeping\n", .{});
+        if (DEBUG_GC) {
+            dprint('r', self.pstdout, "[GC] Finished Sweeping\n", .{});
+        }
     }
 
     fn removeTableUnpainted(self: *Self, tab: *table.PankTable()) void {
@@ -532,28 +578,14 @@ pub const Gc = struct {
 
         while (ite.next()) |key| {
             if (!key.*.parent().isMarked) {
-                dprint('p', self.pstdout, "[GC] Removing String ", .{});
-                if (slog) {
+                if (DEBUG_GC) {
+                    dprint('p', self.pstdout, "[GC] Removing String ", .{});
                     _ = key.*.print(self);
+                    dprint('p', self.pstdout, "\n", .{});
                 }
-                dprint('p', self.pstdout, "\n", .{});
                 _ = tab.removeByPtr(key);
             }
         }
-        //var i: usize = 0;
-        //while (i < tab.count()) : (i += 1) {
-        //    const key = tab.getKeyPtr(tab.keys()[i]);
-        //    if (key) |k| {
-        //        if (!k.*.parent().isMarked) {
-        //            dprint('p', self.pstdout, "[GC] Removing String ", .{});
-        //            if (slog) {
-        //                _ = k.*.print(self);
-        //            }
-        //            dprint('p', self.pstdout, "\n", .{});
-        //            _ = tab.orderedRemove(k.*);
-        //        }
-        //    }
-        //}
     }
 
     fn markModules(self: *Self) void {
@@ -564,25 +596,37 @@ pub const Gc = struct {
     }
     fn markRoots(self: *Self) void {
         if (self.stack) |stack| {
-            dprint('r', self.pstdout, "[GC] Marking Stack \n", .{});
+            if (DEBUG_GC) {
+                dprint('r', self.pstdout, "[GC] Marking Stack \n", .{});
+            }
             for (0..@intCast(stack.presentcount())) |i| {
                 self.markValue(stack.stack[i]);
             }
-            dprint('r', self.pstdout, "[GC] Finished Marking Stack \n", .{});
+            if (DEBUG_GC) {
+                dprint('r', self.pstdout, "[GC] Finished Marking Stack \n", .{});
+            }
         }
 
-        dprint('r', self.pstdout, "[GC] Marking Builtins \n", .{});
+        if (DEBUG_GC) {
+            dprint('r', self.pstdout, "[GC] Marking Builtins \n", .{});
 
-        dprint('r', self.pstdout, "[GC] Finished Marking Builtins \n", .{});
+            dprint('r', self.pstdout, "[GC] Finished Marking Builtins \n", .{});
+        }
 
         self.markTable(self.builtins);
-        dprint('r', self.pstdout, "[GC] Marking Modules \n", .{});
+        if (DEBUG_GC) {
+            dprint('r', self.pstdout, "[GC] Marking Modules \n", .{});
+        }
         self.markModules();
-        dprint('r', self.pstdout, "[GC] Finished Marking Modules \n", .{});
+        if (DEBUG_GC) {
+            dprint('r', self.pstdout, "[GC] Finished Marking Modules \n", .{});
 
-        dprint('r', self.pstdout, "[GC] Marking Compiler Roots \n", .{});
+            dprint('r', self.pstdout, "[GC] Marking Compiler Roots \n", .{});
+        }
         self.markCompilerRoots();
-        dprint('r', self.pstdout, "[GC] Finished Marking Compiler Roots \n", .{});
+        if (DEBUG_GC) {
+            dprint('r', self.pstdout, "[GC] Finished Marking Compiler Roots \n", .{});
+        }
 
         var i: usize = 0;
 
@@ -612,7 +656,7 @@ pub const Gc = struct {
                 return;
             }
 
-            if (slog) {
+            if (DEBUG_GC) {
                 dprint('g', self.pstdout, "[GC] Marking Object : {s} : [ ", .{
                     o.getType().toString(),
                 });
@@ -694,6 +738,26 @@ pub const Gc = struct {
     fn sweep(self: *Self) void {
         var previous: ?*PObj = null;
         var object = self.objects;
+
+        if (DEBUG_GC) {
+            var tempObj = self.objects;
+
+            while (tempObj) |obj| {
+                if (obj.isMarked) {
+                    tempObj = obj.next;
+                } else {
+                    ansicolors.TermColor('p', self.pstdout);
+                    self.pstdout.print("[GC] (0x{x}) Free Object: {s} : [ ", .{
+                        @intFromPtr(obj),
+                        obj.objtype.toString(),
+                    }) catch return;
+                    _ = obj.printObj(self);
+                    self.pstdout.print(" ]\n", .{}) catch return;
+                    ansicolors.ResetColor(self.pstdout);
+                    tempObj = obj.next;
+                }
+            }
+        }
 
         while (object) |obj| {
             if (obj.isMarked) {
