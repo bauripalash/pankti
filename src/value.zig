@@ -85,6 +85,19 @@ pub const PValue = packed struct {
 
         return result;
     }
+
+    pub fn createCopy(self: Self, gc: *Gc) PValue {
+        if (self.isObj()) {
+            if (self.asObj().createCopy(gc)) |obj| {
+                return PValue.makeObj(obj);
+            } else {
+                return PValue.makeNil();
+            }
+        } else {
+            return self;
+        }
+    }
+
     /// is value a bool
     pub fn isBool(self: Self) bool {
         return (self.data | 1) == TRUE_VAL.data;

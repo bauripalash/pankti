@@ -89,6 +89,16 @@ pub const PObj = struct {
         return &ptr.obj;
     }
 
+    pub fn createCopy(self: *PObj, gc: *Gc) ?*PObj {
+        switch (self.getType()) {
+            .Ot_String => return self.asString().createCopy(gc),
+            .Ot_Array => return self.asArray().createCopy(gc),
+            .Ot_Hmap => return self.asHmap().createCopy(gc),
+            .Ot_BigInt => return self.asBigInt().createCopy(gc),
+            else => return self,
+        }
+    }
+
     pub fn isEqual(self: *PObj, other: *PObj) bool {
         if (self.getType() != other.getType()) {
             return false;
@@ -258,6 +268,19 @@ pub const PObj = struct {
             return true;
         }
 
+        pub fn createCopy(self: *OBigInt, gc: *Gc) ?*PObj {
+            const cop = gc.newObj(.Ot_BigInt, PObj.OBigInt) catch return null;
+            cop.parent().isMarked = true;
+            if (!cop.initInt(gc)) return null;
+
+            for (self.ival.digits.items) |digit| {
+                if (!cop.ival.addDig(gc.hal(), @intCast(digit))) return null;
+            }
+
+            cop.parent().isMarked = false;
+            return cop.parent();
+        }
+
         pub fn print(self: *OBigInt, gc: *Gc) bool {
             const x = self.ival.toString(gc.hal(), true) orelse {
                 return false;
@@ -364,6 +387,25 @@ pub const PObj = struct {
             self.values = table.MapTable(){};
         }
 
+        pub fn createCopy(self: *OHmap, gc: *Gc) ?*PObj {
+            const cop = gc.newObj(.Ot_Hmap, PObj.OHmap) catch return null;
+            cop.parent().isMarked = true;
+
+            cop.init(gc);
+
+            var iter = self.values.iterator();
+
+            while (iter.next()) |item| {
+                const k = item.key_ptr.*;
+                const v = item.value_ptr.*;
+
+                if (!cop.addPair(gc, k, v)) return null;
+            }
+
+            cop.parent().isMarked = false;
+            return cop.parent();
+        }
+
         pub fn addPair(self: *OHmap, gc: *Gc, k: PValue, v: PValue) bool {
             //std.debug.print("-->{any}{any}\n" , .{k , v});
             self.values.put(gc.hal(), k, v) catch return false;
@@ -454,6 +496,17 @@ pub const PObj = struct {
         pub fn init(self: *OArray) void {
             self.count = 0;
             self.values = std.ArrayListUnmanaged(PValue){};
+        }
+
+        pub fn createCopy(self: *OArray, gc: *Gc) ?*PObj {
+            const cop = gc.newObj(OType.Ot_Array, PObj.OArray) catch return null;
+            cop.parent().isMarked = true;
+            cop.init();
+            for (self.values.items) |item| {
+                if (!cop.addItem(gc, item)) return null; // TODO: Copy Items
+            }
+            cop.parent().isMarked = false;
+            return cop.parent();
         }
 
         pub fn print(self: *OArray, gc: *Gc) bool {
@@ -714,6 +767,14 @@ pub const PObj = struct {
             str.chars = temp_chars;
 
             return str;
+        }
+
+        pub fn createCopy(self: *OString, gc: *Gc) ?*PObj {
+            if (gc.newString(self.chars, @intCast(self.len))) |o| {
+                return o.parent();
+            } else |_| {
+                return null;
+            }
         }
 
         pub fn free(self: *OString, gc: *Gc) void {

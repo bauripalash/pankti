@@ -15,6 +15,39 @@ const utils = @import("utils.zig");
 
 extern fn getTimestamp() usize;
 
+pub fn nCopy(vm: *Vm, argc: u8, values: []PValue) PValue {
+    if (argc != 1) {
+        return PValue.makeError(vm.gc, "copy(...) takes a single argument").?;
+    }
+
+    const a = values[0];
+    if (a.isObj()) {
+        const obj = a.asObj();
+        switch (obj.getType()) {
+            .Ot_BigInt, .Ot_Hmap, .Ot_Array, .Ot_String => {
+                if (obj.createCopy(vm.gc)) |o| {
+                    return PValue.makeObj(o);
+                } else {
+                    return PValue.makeError(
+                        vm.gc,
+                        "failed to copy value due to internal error",
+                    ).?;
+                }
+            },
+            else => {
+                return PValue.makeError(
+                    vm.gc,
+                    "copy(...) only works on strings, hashmaps and arrays",
+                ).?;
+            },
+        }
+    } else {
+        return PValue.makeError(
+            vm.gc,
+            "copy(...) only works on strings, hashmaps and arrays",
+        ).?;
+    }
+}
 pub fn nClock(vm: *Vm, argc: u8, values: []PValue) PValue {
     _ = vm;
     _ = values;

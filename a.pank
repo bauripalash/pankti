@@ -1,9 +1,23 @@
-আনয়ন স্ট্রিং "স্ট্রিং"
-দেখাও(স্ট্রিং)
-দেখাও(স্ট্রিং.ভাগ("পলাশ।বাউরি" , "।"))
+dhori a = [1,2]
+dhori b = copy(a)
+show(a)
+show(b)
+a[0] = 3
+show(a)
+show(b)
 
-আনয়ন বড় "বড়"
-দেখাও(বড়.নতুন(১০০))
+dhori c = 1
+dhori d = c
+show(c)
+show(d)
+c = 2
+show(c)
+show(d)
 
-আনয়ন স্ট্রিং "স্ট্রিং"
-দেখাও(স্ট্রিং.স্ট্রিং(নিল))
+dhori e = {"name" : "palash"}
+dhori f = copy(e)
+show(e)
+show(f)
+e["name"] = "Palash Bauri"
+show(e)
+show(f)
