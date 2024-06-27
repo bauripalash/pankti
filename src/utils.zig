@@ -96,19 +96,22 @@ pub fn u32tou8(
 pub fn hashU32(input: []const u32, gc: *Gc) !u32 {
     var result: u32 = 0;
 
-    if (IS_WASM) {
-        var hasher = std.hash.Fnv1a_32.init();
-        const u = try u32tou8(input, gc.hal());
-        hasher.update(u);
-        gc.hal().free(u);
-        result = hasher.final();
-    } else {
-        var hasher = std.hash.XxHash32.init(gc.timestamp);
-        const u = try u32tou8(input, gc.hal());
-        hasher.update(u);
-        gc.hal().free(u);
-        result = hasher.final();
-    }
+    //if (IS_WASM) {
+    var hasher = std.hash.Fnv1a_32.init();
+    const u = try u32tou8(input, gc.hal());
+    hasher.update(u);
+    gc.hal().free(u);
+    result = hasher.final();
+
+    // Do we really need XxHash?
+
+    //} else {
+    //     var hasher = std.hash.XxHash32.init(gc.timestamp);
+    //    const u = try u32tou8(input, gc.hal());
+    //   hasher.update(u);
+    //  gc.hal().free(u);
+    // result = hasher.final();
+    //}
     return result;
 }
 
