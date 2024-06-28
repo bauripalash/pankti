@@ -6,6 +6,11 @@ SAMPLE:=a.pank
 DEBUGGER:=gdb
 WASMBIN:=zig-out/bin/pankti.wasm
 PYTHON:=python
+ICON_ICO:=images/icon.ico
+
+ifeq ($(PREFIX),)
+	PREFIX:=/usr/local
+endif
 
 run: $(TARGET)
 	@./$(TARGET) $(SAMPLE)
@@ -60,6 +65,20 @@ perf:
 	perf record -g -F 999 ./$(TARGET) ./sample/fib35.pank
 	perf script -F +pid > neopank.perf
 	@echo "[+] Finished Running Perf"
+
+
+install: $(TARGET)
+	install -d $(DESTDIR)$(PREFIX)/bin
+	install -d $(DESTDIR)$(PREFIX)/share/
+	install -d $(DESTDIR)$(PREFIX)/share/pankti/
+	install -d $(DESTDIR)$(PREFIX)/share/pankti/icons/
+	install -m 755 $(TARGET) $(DESTDIR)$(PREFIX)/bin
+	install -m 644 $(ICON_ICO) $(DESTDIR)$(PREFIX)/share/pankti/icons/
+
+uninstall:
+	rm $(DESTDIR)$(PREFIX)/bin/pankti
+	rm -rf $(DESTDIR)$(PREFIX)/share/pankti
+
 
 clean:
 	rm -rf $(CACHE_DIR)

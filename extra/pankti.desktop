@@ -1,7 +1,7 @@
 #!/usr/bin/env xdg-open
 [Desktop Entry]
 Name=Pankti
-Exec=/home/palash/d/cpank/zig-out/bin/pankti
-Icon=/home/palash/d/cpank/cpankproj/icon.ico
+Exec=/usr/local/bin/pankti
+Icon=/usr/local/share/pankti/icons/icon.ico
 Terminal=true
 Type=Application
