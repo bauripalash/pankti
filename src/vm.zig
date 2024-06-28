@@ -973,87 +973,118 @@ pub const Vm = struct {
                     };
                 },
                 .Op_SubAssign => {
-                    //TODO: HashMap
                     var rawObj = self.peek(2);
                     var rawIndex = self.peek(1);
                     const newObj = self.peek(0); // New object;
 
-                    if (!rawIndex.isNumber()) {
-                        self.throwRuntimeError(
-                            "Index must be a number",
-                            .{},
-                        );
-                        return .RuntimeError;
-                    }
+                    if (rawObj.isObj() and rawObj.asObj().isHmap()) {
+                        const hmap = rawObj.asObj().asHmap();
+                        hmap.values.put(self.gc.hal(), rawIndex, newObj) catch {
+                            self.throwRuntimeError("Failed to set hmap values", .{});
+                            return .RuntimeError;
+                        };
 
-                    const rawIndexNum = rawIndex.asNumber();
+                        _ = self.stack.pop() catch {
+                            self.throwRuntimeError(
+                                "failed to pop",
+                                .{},
+                            );
+                            return .RuntimeError;
+                        };
 
-                    if (rawIndexNum < 0 or @ceil(rawIndexNum) != rawIndexNum) {
-                        self.throwRuntimeError(
-                            "index must be non negetive integer",
-                            .{},
-                        );
-                        return .RuntimeError;
-                    }
+                        _ = self.stack.pop() catch {
+                            self.throwRuntimeError(
+                                "failed to pop",
+                                .{},
+                            );
+                            return .RuntimeError;
+                        };
 
-                    const index: usize = @intFromFloat(rawIndexNum);
+                        _ = self.stack.pop() catch {
+                            self.throwRuntimeError("failed to pop", .{});
+                            return .RuntimeError;
+                        };
 
-                    if (rawObj.isObj() and rawObj.asObj().isArray()) {
-                        if (rawObj.asObj().isArray()) {
-                            const arr = rawObj.asObj().asArray();
-
-                            if (index >= arr.count) {
-                                self.throwRuntimeError(
-                                    "Index out of range",
-                                    .{},
-                                );
-                                return .RuntimeError;
-                            }
-                            arr.values.replaceRange(
-                                self.gc.hal(),
-                                index,
-                                1,
-                                &[1]PValue{newObj},
-                            ) catch {
-                                self.throwRuntimeError(
-                                    "failed to replace value",
-                                    .{},
-                                );
-                                return .RuntimeError;
-                            };
-
-                            _ = self.stack.pop() catch {
-                                self.throwRuntimeError(
-                                    "failed to pop",
-                                    .{},
-                                );
-                                return .RuntimeError;
-                            };
-
-                            _ = self.stack.pop() catch {
-                                self.throwRuntimeError(
-                                    "failed to pop",
-                                    .{},
-                                );
-                                return .RuntimeError;
-                            };
-
-                            _ = self.stack.pop() catch {
-                                self.throwRuntimeError("failed to pop", .{});
-                                return .RuntimeError;
-                            };
-
-                            self.stack.push(PValue.makeNil()) catch {
-                                self.throwRuntimeError(
-                                    "failed to push",
-                                    .{},
-                                );
-                                return .RuntimeError;
-                            };
+                        self.stack.push(PValue.makeNil()) catch {
+                            self.throwRuntimeError(
+                                "failed to push",
+                                .{},
+                            );
+                            return .RuntimeError;
+                        };
+                    } else if (rawObj.isObj() and rawObj.asObj().isArray()) {
+                        if (!rawIndex.isNumber()) {
+                            self.throwRuntimeError(
+                                "Index must be a number",
+                                .{},
+                            );
+                            return .RuntimeError;
                         }
+
+                        const rawIndexNum = rawIndex.asNumber();
+
+                        if (rawIndexNum < 0 or @ceil(rawIndexNum) != rawIndexNum) {
+                            self.throwRuntimeError(
+                                "index must be non negetive integer",
+                                .{},
+                            );
+                            return .RuntimeError;
+                        }
+
+                        const index: usize = @intFromFloat(rawIndexNum);
+                        const arr = rawObj.asObj().asArray();
+
+                        if (index >= arr.count) {
+                            self.throwRuntimeError(
+                                "Index out of range",
+                                .{},
+                            );
+                            return .RuntimeError;
+                        }
+                        arr.values.replaceRange(
+                            self.gc.hal(),
+                            index,
+                            1,
+                            &[1]PValue{newObj},
+                        ) catch {
+                            self.throwRuntimeError(
+                                "failed to replace value",
+                                .{},
+                            );
+                            return .RuntimeError;
+                        };
+
+                        _ = self.stack.pop() catch {
+                            self.throwRuntimeError(
+                                "failed to pop",
+                                .{},
+                            );
+                            return .RuntimeError;
+                        };
+
+                        _ = self.stack.pop() catch {
+                            self.throwRuntimeError(
+                                "failed to pop",
+                                .{},
+                            );
+                            return .RuntimeError;
+                        };
+
+                        _ = self.stack.pop() catch {
+                            self.throwRuntimeError("failed to pop", .{});
+                            return .RuntimeError;
+                        };
+
+                        self.stack.push(PValue.makeNil()) catch {
+                            self.throwRuntimeError(
+                                "failed to push",
+                                .{},
+                            );
+                            return .RuntimeError;
+                        };
                     } else {
                         self.throwRuntimeError(
-                            "Subscript assignment only works on arrays",
+                            "Subscript only works on arrays and hashmaps",
                             .{},
                         );
                         return .RuntimeError;

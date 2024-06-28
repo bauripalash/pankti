@@ -19,5 +19,6 @@ dhori f = copy(e)
 show(e)
 show(f)
 e["name"] = "Palash Bauri"
+e["time"] = 7.23
 show(e)
 show(f)
