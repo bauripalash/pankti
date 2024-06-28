@@ -17,7 +17,6 @@ const pankti = @import("pankti.zig");
 
 pub fn windowsOsSetup() void {
     if (builtin.target.os.tag == .windows) {
-        //std.debug.print("isWindows\n", .{});
         const win = @cImport({
             @cInclude("windows.h");
         });
@@ -33,7 +32,6 @@ pub fn windowsOsSetup() void {
         _ = locale.setlocale(@as(c_int, 2), "bn_IN.utf8");
         _ = win.SetConsoleOutputCP(@as(c_uint, @bitCast(@as(c_int, 65001))));
         _ = ioh._setmode(@as(c_int, 1), @as(c_int, 131072));
-        //std.debug.print("{any}\n", .{x});
     }
 }
 
@@ -48,12 +46,30 @@ pub fn main() !void {
     const args = try std.process.argsAlloc(ga);
 
     if (args.len == 2) {
-        fileToRun = try ga.alloc(u8, args[1].len);
-        @memcpy(fileToRun.?, args[1]);
+        const flag = args[1];
+
+        if (std.mem.eql(
+            u8,
+            flag,
+            "-v",
+        ) or std.mem.eql(
+            u8,
+            flag,
+            "--version",
+        )) {
+            std.debug.print("{s}\n", .{pankti.build_options.version_string});
+        } else if (std.mem.eql(u8, flag, "-h") or std.mem.eql(
+            u8,
+            flag,
+            "--help",
+        )) {
+            std.debug.print(abouttxt, .{pankti.build_options.version_string});
+        } else {
+            fileToRun = try ga.alloc(u8, args[1].len);
+            @memcpy(fileToRun.?, args[1]);
+        }
     } else if (args.len == 1) {
         std.debug.print(abouttxt, .{pankti.build_options.version_string});
-        //std.debug.print("neopank 0.4.0\n", .{});
-        //std.debug.print("Usage: neopank [FILE]\n", .{});
         std.process.exit(0);
     }
     std.process.argsFree(ga, args);
