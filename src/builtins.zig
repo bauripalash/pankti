@@ -12,6 +12,8 @@ const value = @import("value.zig");
 const Vm = @import("vm.zig").Vm;
 const PValue = value.PValue;
 const utils = @import("utils.zig");
+const valueerrors = @import("value_errors.zig");
+const CopyError = valueerrors.CopyError;
 
 extern fn getTimestamp() usize;
 
@@ -21,32 +23,25 @@ pub fn nCopy(vm: *Vm, argc: u8, values: []PValue) PValue {
     }
 
     const a = values[0];
-    if (a.isObj()) {
-        const obj = a.asObj();
-        switch (obj.getType()) {
-            .Ot_BigInt, .Ot_Hmap, .Ot_Array, .Ot_String => {
-                if (obj.createCopy(vm.gc)) |o| {
-                    return PValue.makeObj(o);
-                } else {
-                    return PValue.makeError(
-                        vm.gc,
-                        "failed to copy value due to internal error",
-                    ).?;
-                }
+    const result = a.createCopy(vm.gc) catch |err| {
+        switch (err) {
+            CopyError.NonSupportedObjects => {
+                return PValue.makeError(
+                    vm.gc,
+                    "copy(...) only works with array, hashmap and strings.",
+                ).?;
             },
+
             else => {
                 return PValue.makeError(
                     vm.gc,
-                    "copy(...) only works on strings, hashmaps and arrays",
+                    "Internal Error Occured while copying value",
                 ).?;
             },
         }
-    } else {
-        return PValue.makeError(
-            vm.gc,
-            "copy(...) only works on strings, hashmaps and arrays",
-        ).?;
-    }
+    };
+
+    return result;
 }
 pub fn nClock(vm: *Vm, argc: u8, values: []PValue) PValue {
     _ = vm;

@@ -21,6 +21,8 @@ const writer = @import("writer.zig");
 const utils = @import("utils.zig");
 const BnName = @import("bengali/names.zig");
 const math = std.math;
+const valueerrors = @import("value_errors.zig");
+const CopyError = valueerrors.CopyError;
 
 pub const PValueType = enum(u8) {
     Pt_Num,
@@ -86,15 +88,15 @@ pub const PValue = packed struct {
         return result;
     }
 
-    pub fn createCopy(self: Self, gc: *Gc) PValue {
+    pub fn createCopy(self: Self, gc: *Gc) CopyError!PValue {
         if (self.isObj()) {
-            if (self.asObj().createCopy(gc)) |obj| {
-                return PValue.makeObj(obj);
-            } else {
-                return PValue.makeNil();
-            }
+            const obj = self.asObj().createCopy(gc) catch |e| {
+                return e;
+            };
+
+            return PValue.makeObj(obj);
         } else {
-            return self;
+            return CopyError.NonSupportedObjects;
         }
     }
 

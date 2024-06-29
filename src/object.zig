@@ -19,6 +19,8 @@ const writer = @import("writer.zig");
 const table = @import("table.zig");
 const Bnum = @import("ext/baurinum/src/bnum.zig").Bnum;
 const BnName = @import("bengali/names.zig");
+const valueerrors = @import("value_errors.zig");
+const CopyError = valueerrors.CopyError;
 
 pub const PObj = struct {
     objtype: OType,
@@ -89,13 +91,13 @@ pub const PObj = struct {
         return &ptr.obj;
     }
 
-    pub fn createCopy(self: *PObj, gc: *Gc) ?*PObj {
+    pub fn createCopy(self: *PObj, gc: *Gc) CopyError!*PObj {
         switch (self.getType()) {
             .Ot_String => return self.asString().createCopy(gc),
             .Ot_Array => return self.asArray().createCopy(gc),
             .Ot_Hmap => return self.asHmap().createCopy(gc),
             .Ot_BigInt => return self.asBigInt().createCopy(gc),
-            else => return self,
+            else => return CopyError.NonSupportedObjects,
         }
     }
 
@@ -268,13 +270,20 @@ pub const PObj = struct {
             return true;
         }
 
-        pub fn createCopy(self: *OBigInt, gc: *Gc) ?*PObj {
-            const cop = gc.newObj(.Ot_BigInt, PObj.OBigInt) catch return null;
+        pub fn createCopy(
+            self: *OBigInt,
+            gc: *Gc,
+        ) CopyError!*PObj {
+            const cop = gc.newObj(.Ot_BigInt, PObj.OBigInt) catch {
+                return CopyError.BigInt_NewBigInt;
+            };
             cop.parent().isMarked = true;
-            if (!cop.initInt(gc)) return null;
+            if (!cop.initInt(gc)) return CopyError.BigInt_InitInt;
 
             for (self.ival.digits.items) |digit| {
-                if (!cop.ival.addDig(gc.hal(), @intCast(digit))) return null;
+                if (!cop.ival.addDig(gc.hal(), @intCast(digit))) {
+                    return CopyError.BigInt_AddDigit;
+                }
             }
 
             cop.parent().isMarked = false;
@@ -387,8 +396,13 @@ pub const PObj = struct {
             self.values = table.MapTable(){};
         }
 
-        pub fn createCopy(self: *OHmap, gc: *Gc) ?*PObj {
-            const cop = gc.newObj(.Ot_Hmap, PObj.OHmap) catch return null;
+        pub fn createCopy(
+            self: *OHmap,
+            gc: *Gc,
+        ) CopyError!*PObj {
+            const cop = gc.newObj(.Ot_Hmap, PObj.OHmap) catch {
+                return CopyError.Hmap_NewHmap;
+            };
             cop.parent().isMarked = true;
 
             cop.init(gc);
@@ -399,7 +413,9 @@ pub const PObj = struct {
                 const k = item.key_ptr.*;
                 const v = item.value_ptr.*;
 
-                if (!cop.addPair(gc, k, v)) return null;
+                if (!cop.addPair(gc, k, v)) {
+                    return CopyError.Hmap_AddPair;
+                }
             }
 
             cop.parent().isMarked = false;
@@ -498,12 +514,19 @@ pub const PObj = struct {
             self.values = std.ArrayListUnmanaged(PValue){};
         }
 
-        pub fn createCopy(self: *OArray, gc: *Gc) ?*PObj {
-            const cop = gc.newObj(OType.Ot_Array, PObj.OArray) catch return null;
+        pub fn createCopy(
+            self: *OArray,
+            gc: *Gc,
+        ) CopyError!*PObj {
+            const cop = gc.newObj(OType.Ot_Array, PObj.OArray) catch {
+                return CopyError.Arr_FailedToCreateNewArray;
+            };
             cop.parent().isMarked = true;
             cop.init();
             for (self.values.items) |item| {
-                if (!cop.addItem(gc, item)) return null; // TODO: Copy Items
+                if (!cop.addItem(gc, item)) {
+                    return CopyError.Arr_InsertItems; // TODO: Copy Items
+                }
             }
             cop.parent().isMarked = false;
             return cop.parent();
@@ -769,11 +792,14 @@ pub const PObj = struct {
             return str;
         }
 
-        pub fn createCopy(self: *OString, gc: *Gc) ?*PObj {
+        pub fn createCopy(
+            self: *OString,
+            gc: *Gc,
+        ) CopyError!*PObj {
             if (gc.newString(self.chars, @intCast(self.len))) |o| {
                 return o.parent();
             } else |_| {
-                return null;
+                return CopyError.String_NewString;
             }
         }
 
