@@ -18,39 +18,17 @@ const CopyError = valueerrors.CopyError;
 extern fn getTimestamp() usize;
 
 pub fn nCopy(vm: *Vm, argc: u8, values: []PValue) PValue {
-    if (argc != 1 and argc != 2) {
-        return PValue.makeError(vm.gc, "copy(...) takes a 1 or 2 argument").?;
-    }
-    var ignoreErrors = false;
-    if (argc == 2) {
-        const ie = values[1];
-        if (ie.isBool()) {
-            ignoreErrors = ie.asBool();
-        } else {
-            return PValue.makeError(
-                vm.gc,
-                "copy(a,..) second argument must be a bool",
-            ).?;
-        }
+    if (argc != 1) {
+        return PValue.makeError(vm.gc, "copy(...) takes a single argument").?;
     }
 
     const a = values[0];
-    const result = a.createCopy(vm.gc, ignoreErrors) catch |err| {
-        switch (err) {
-            CopyError.NonSupportedObjects => {
-                return PValue.makeError(
-                    vm.gc,
-                    "copy(...) only works with array, hashmap and strings.",
-                ).?;
-            },
-
-            else => {
-                return PValue.makeError(
-                    vm.gc,
-                    "Failed to copy value.",
-                ).?;
-            },
-        }
+    const result = a.createCopy(vm.gc) catch |e| {
+        return PValue.makeComptimeError(
+            vm.gc,
+            "copy(...) failed due to internal error : {s}",
+            .{valueerrors.copyErrorToString(e)},
+        ).?;
     };
 
     return result;

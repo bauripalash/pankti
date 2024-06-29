@@ -91,20 +91,22 @@ pub const PObj = struct {
         return &ptr.obj;
     }
 
-    pub fn createCopy(self: *PObj, gc: *Gc, ignoreErrors: bool) CopyError!*PObj {
-        switch (self.getType()) {
-            .Ot_String => return self.asString().createCopy(gc, ignoreErrors),
-            .Ot_Array => return self.asArray().createCopy(gc, ignoreErrors),
-            .Ot_Hmap => return self.asHmap().createCopy(gc, ignoreErrors),
-            .Ot_BigInt => return self.asBigInt().createCopy(gc, ignoreErrors),
-            else => {
-                if (ignoreErrors) {
-                    return self;
-                } else {
-                    return CopyError.NonSupportedObjects;
-                }
-            },
-        }
+    pub fn createCopy(
+        self: *PObj,
+        gc: *Gc,
+    ) CopyError!*PObj {
+        return switch (self.getType()) {
+            .Ot_String => self.asString().createCopy(gc),
+            .Ot_Function => self,
+            .Ot_NativeFunc => self,
+            .Ot_Closure => self,
+            .Ot_UpValue => self,
+            .Ot_Array => self.asArray().createCopy(gc),
+            .Ot_Hmap => self.asHmap().createCopy(gc),
+            .Ot_Error => self.asOErr().createCopy(gc),
+            .Ot_BigInt => self.asBigInt().createCopy(gc),
+            .Ot_Module => self,
+        };
     }
 
     pub fn isEqual(self: *PObj, other: *PObj) bool {
@@ -234,7 +236,9 @@ pub const PObj = struct {
     pub fn toString(self: *PObj, al: std.mem.Allocator) ![]u8 {
         switch (self.getType()) {
             .Ot_Array => {
-                return self.asArray().toString(al) orelse return std.mem.Allocator.Error.OutOfMemory;
+                return self.asArray().toString(
+                    al,
+                ) orelse return std.mem.Allocator.Error.OutOfMemory;
             },
             .Ot_String => {
                 return try utils.u32tou8(self.asString().chars, al);
@@ -256,11 +260,17 @@ pub const PObj = struct {
             },
 
             .Ot_Hmap => {
-                return self.asHmap().toString(al) orelse return std.mem.Allocator.Error.OutOfMemory;
+                return self.asHmap().toString(
+                    al,
+                ) orelse return std.mem.Allocator.Error.OutOfMemory;
             },
 
             else => {
-                return try std.fmt.allocPrint(al, "<object : {s}>", .{self.objtype.toString()});
+                return try std.fmt.allocPrint(
+                    al,
+                    "<object : {s}>",
+                    .{self.objtype.toString()},
+                );
             },
         }
 
@@ -279,9 +289,7 @@ pub const PObj = struct {
         pub fn createCopy(
             self: *OBigInt,
             gc: *Gc,
-            ignoreErrors: bool,
         ) CopyError!*PObj {
-            _ = ignoreErrors;
             const cop = gc.newObj(.Ot_BigInt, PObj.OBigInt) catch {
                 return CopyError.BigInt_NewBigInt;
             };
@@ -338,6 +346,14 @@ pub const PObj = struct {
             return om;
         }
 
+        pub fn createCopy(
+            self: *OModule,
+            gc: *Gc,
+        ) CopyError!*PObj {
+            _ = gc;
+            return self.parent();
+        }
+
         pub fn free(self: *OModule, gc: *Gc) void {
             gc.getAlc().destroy(self);
         }
@@ -380,6 +396,24 @@ pub const PObj = struct {
             return true;
         }
 
+        pub fn createCopy(
+            self: *OError,
+            gc: *Gc,
+        ) CopyError!*PObj {
+            const cop = gc.newObj(.Ot_Error, PObj.OError) catch {
+                return CopyError.ErrObj_NewErrObj;
+            };
+
+            cop.parent().isMarked = true;
+
+            if (!cop.initU8(gc, self.msg)) {
+                return CopyError.ErrObj_CopyError;
+            }
+
+            cop.parent().isMarked = false;
+            return cop.parent();
+        }
+
         pub fn print(self: *OError, gc: *Gc) bool {
             gc.pstdout.print("{s}", .{self.msg}) catch return false;
             return true;
@@ -409,7 +443,6 @@ pub const PObj = struct {
         pub fn createCopy(
             self: *OHmap,
             gc: *Gc,
-            ignoreErrors: bool,
         ) CopyError!*PObj {
             const cop = gc.newObj(.Ot_Hmap, PObj.OHmap) catch {
                 return CopyError.Hmap_NewHmap;
@@ -421,11 +454,15 @@ pub const PObj = struct {
             var iter = self.values.iterator();
 
             while (iter.next()) |item| {
-                const ck = item.key_ptr.*.createCopy(gc, ignoreErrors) catch {
+                const ck = item.key_ptr.*.createCopy(
+                    gc,
+                ) catch {
                     return CopyError.Hmap_ItemCopyError;
                 };
 
-                const vk = item.value_ptr.*.createCopy(gc, ignoreErrors) catch {
+                const vk = item.value_ptr.*.createCopy(
+                    gc,
+                ) catch {
                     return CopyError.Hmap_ItemCopyError;
                 };
 
@@ -533,7 +570,6 @@ pub const PObj = struct {
         pub fn createCopy(
             self: *OArray,
             gc: *Gc,
-            ignoreErrors: bool,
         ) CopyError!*PObj {
             const cop = gc.newObj(OType.Ot_Array, PObj.OArray) catch {
                 return CopyError.Arr_FailedToCreateNewArray;
@@ -541,12 +577,10 @@ pub const PObj = struct {
             cop.parent().isMarked = true;
             cop.init();
             for (self.values.items) |item| {
-                const copiedItem = item.createCopy(gc, ignoreErrors) catch blk: {
-                    if (ignoreErrors) {
-                        break :blk item;
-                    } else {
-                        return CopyError.Arr_ItemCopyError;
-                    }
+                const copiedItem = item.createCopy(
+                    gc,
+                ) catch {
+                    return CopyError.Arr_ItemCopyError;
                 };
 
                 if (!cop.addItem(gc, copiedItem)) {
@@ -649,6 +683,14 @@ pub const PObj = struct {
             self.closed = PValue.makeNil();
         }
 
+        pub fn createCopy(
+            self: *OUpValue,
+            gc: *Gc,
+        ) CopyError!*PObj {
+            _ = gc;
+            return self.parent();
+        }
+
         pub fn print(self: *OUpValue, gc: *Gc) bool {
             _ = self;
             gc.pstdout.print("upvalue", .{}) catch return false;
@@ -703,6 +745,14 @@ pub const PObj = struct {
             return cl;
         }
 
+        pub fn createCopy(
+            self: *OClosure,
+            gc: *Gc,
+        ) CopyError!*PObj {
+            _ = gc;
+            return self.parent();
+        }
+
         pub fn print(self: *OClosure, gc: *Gc) bool {
             gc.pstdout.print("<cls ", .{}) catch return false;
             if (!self.function.print(gc)) return false;
@@ -729,6 +779,14 @@ pub const PObj = struct {
 
         pub fn init(self: *ONativeFunction, func: NativeFn) void {
             self.func = func;
+        }
+
+        pub fn createCopy(
+            self: *ONativeFunction,
+            gc: *Gc,
+        ) CopyError!*PObj {
+            _ = gc;
+            return self.parent();
         }
 
         pub fn print(self: *ONativeFunction, gc: *Gc) bool {
@@ -761,6 +819,14 @@ pub const PObj = struct {
             self.upvCount = 0;
             self.ins = Instruction.init(gc);
             self.fromMod = false;
+        }
+
+        pub fn createCopy(
+            self: *OFunction,
+            gc: *Gc,
+        ) CopyError!*PObj {
+            _ = gc;
+            return self.parent();
         }
 
         pub inline fn parent(self: *OFunction) *PObj {
@@ -820,9 +886,7 @@ pub const PObj = struct {
         pub fn createCopy(
             self: *OString,
             gc: *Gc,
-            ignoreErrors: bool,
         ) CopyError!*PObj {
-            _ = ignoreErrors;
             const str = gc.copyString(self.chars, @intCast(self.len)) catch {
                 return CopyError.String_NewString;
             };
