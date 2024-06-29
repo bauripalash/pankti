@@ -91,13 +91,19 @@ pub const PObj = struct {
         return &ptr.obj;
     }
 
-    pub fn createCopy(self: *PObj, gc: *Gc) CopyError!*PObj {
+    pub fn createCopy(self: *PObj, gc: *Gc, ignoreErrors: bool) CopyError!*PObj {
         switch (self.getType()) {
-            .Ot_String => return self.asString().createCopy(gc),
-            .Ot_Array => return self.asArray().createCopy(gc),
-            .Ot_Hmap => return self.asHmap().createCopy(gc),
-            .Ot_BigInt => return self.asBigInt().createCopy(gc),
-            else => return CopyError.NonSupportedObjects,
+            .Ot_String => return self.asString().createCopy(gc, ignoreErrors),
+            .Ot_Array => return self.asArray().createCopy(gc, ignoreErrors),
+            .Ot_Hmap => return self.asHmap().createCopy(gc, ignoreErrors),
+            .Ot_BigInt => return self.asBigInt().createCopy(gc, ignoreErrors),
+            else => {
+                if (ignoreErrors) {
+                    return self;
+                } else {
+                    return CopyError.NonSupportedObjects;
+                }
+            },
         }
     }
 
@@ -273,12 +279,16 @@ pub const PObj = struct {
         pub fn createCopy(
             self: *OBigInt,
             gc: *Gc,
+            ignoreErrors: bool,
         ) CopyError!*PObj {
+            _ = ignoreErrors;
             const cop = gc.newObj(.Ot_BigInt, PObj.OBigInt) catch {
                 return CopyError.BigInt_NewBigInt;
             };
             cop.parent().isMarked = true;
-            if (!cop.initInt(gc)) return CopyError.BigInt_InitInt;
+            if (!cop.initInt(gc)) {
+                return CopyError.BigInt_InitInt;
+            }
 
             for (self.ival.digits.items) |digit| {
                 if (!cop.ival.addDig(gc.hal(), @intCast(digit))) {
@@ -399,6 +409,7 @@ pub const PObj = struct {
         pub fn createCopy(
             self: *OHmap,
             gc: *Gc,
+            ignoreErrors: bool,
         ) CopyError!*PObj {
             const cop = gc.newObj(.Ot_Hmap, PObj.OHmap) catch {
                 return CopyError.Hmap_NewHmap;
@@ -410,10 +421,15 @@ pub const PObj = struct {
             var iter = self.values.iterator();
 
             while (iter.next()) |item| {
-                const k = item.key_ptr.*;
-                const v = item.value_ptr.*;
+                const ck = item.key_ptr.*.createCopy(gc, ignoreErrors) catch {
+                    return CopyError.Hmap_ItemCopyError;
+                };
 
-                if (!cop.addPair(gc, k, v)) {
+                const vk = item.value_ptr.*.createCopy(gc, ignoreErrors) catch {
+                    return CopyError.Hmap_ItemCopyError;
+                };
+
+                if (!cop.addPair(gc, ck, vk)) {
                     return CopyError.Hmap_AddPair;
                 }
             }
@@ -517,6 +533,7 @@ pub const PObj = struct {
         pub fn createCopy(
             self: *OArray,
             gc: *Gc,
+            ignoreErrors: bool,
         ) CopyError!*PObj {
             const cop = gc.newObj(OType.Ot_Array, PObj.OArray) catch {
                 return CopyError.Arr_FailedToCreateNewArray;
@@ -524,8 +541,16 @@ pub const PObj = struct {
             cop.parent().isMarked = true;
             cop.init();
             for (self.values.items) |item| {
-                if (!cop.addItem(gc, item)) {
-                    return CopyError.Arr_InsertItems; // TODO: Copy Items
+                const copiedItem = item.createCopy(gc, ignoreErrors) catch blk: {
+                    if (ignoreErrors) {
+                        break :blk item;
+                    } else {
+                        return CopyError.Arr_ItemCopyError;
+                    }
+                };
+
+                if (!cop.addItem(gc, copiedItem)) {
+                    return CopyError.Arr_InsertItems;
                 }
             }
             cop.parent().isMarked = false;
@@ -795,12 +820,13 @@ pub const PObj = struct {
         pub fn createCopy(
             self: *OString,
             gc: *Gc,
+            ignoreErrors: bool,
         ) CopyError!*PObj {
-            if (gc.newString(self.chars, @intCast(self.len))) |o| {
-                return o.parent();
-            } else |_| {
+            _ = ignoreErrors;
+            const str = gc.copyString(self.chars, @intCast(self.len)) catch {
                 return CopyError.String_NewString;
-            }
+            };
+            return str.parent();
         }
 
         pub fn free(self: *OString, gc: *Gc) void {

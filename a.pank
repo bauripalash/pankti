@@ -1,5 +1,5 @@
 dhori a = [1,2]
-dhori b = copy(a)
+dhori b = copy(a,true)
 show(a)
 show(b)
 a[0] = 3
@@ -15,10 +15,13 @@ show(c)
 show(d)
 
 dhori e = {"name" : "palash"}
-dhori f = copy(e)
+dhori f = copy(e,true)
 show(e)
 show(f)
 e["name"] = "Palash Bauri"
-e["time"] = 7.23
+e["time"] = 1
+dhori k = copy(e, true)
+e["time"] = 100
+show(k)
 show(e)
 show(f)

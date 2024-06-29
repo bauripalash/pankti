@@ -88,15 +88,22 @@ pub const PValue = packed struct {
         return result;
     }
 
-    pub fn createCopy(self: Self, gc: *Gc) CopyError!PValue {
+    pub fn createCopy(
+        self: Self,
+        gc: *Gc,
+        ignoreErrors: bool,
+    ) CopyError!PValue {
         if (self.isObj()) {
-            const obj = self.asObj().createCopy(gc) catch |e| {
+            const obj = self.asObj().createCopy(gc, ignoreErrors) catch |e| {
                 return e;
             };
 
             return PValue.makeObj(obj);
         } else {
-            return CopyError.NonSupportedObjects;
+            return if (ignoreErrors)
+                self
+            else
+                CopyError.NonSupportedObjects;
         }
     }
 
