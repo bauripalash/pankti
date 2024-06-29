@@ -6,6 +6,7 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
 // SPDX-License-Identifier: MPL-2.0
+
 const std = @import("std");
 const writer = @import("writer.zig");
 pub const ANSI_COLOR_BLACK = "\x1b[30m";

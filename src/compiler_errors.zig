@@ -1,3 +1,12 @@
+//
+// Copyright (C) Palash Bauri
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+//
+// SPDX-License-Identifier: MPL-2.0
+
 pub const MORE_THAN_255_ARGS = "২৫৫টির বেশি আর্গুমেন্ট দেওয়া হয়েছে। ";
 pub const EXPECT_RPAREN_AFTER_LIST = "আর্গুমেন্ট তালিকার পর একটি ')' পাওয়া উচিত ছিল। ";
 pub const EXPECTED_MOD_NAME = "এখানে মডিউলটির নাম পাওয়া উচিত ছিল।";

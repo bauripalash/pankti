@@ -29,7 +29,12 @@ const MapTableContext = struct {
 };
 
 pub fn MapTable() type {
-    return std.HashMapUnmanaged(PValue, PValue, MapTableContext, std.hash_map.default_max_load_percentage);
+    return std.HashMapUnmanaged(
+        PValue,
+        PValue,
+        MapTableContext,
+        std.hash_map.default_max_load_percentage,
+    );
 }
 
 const PankTableContext = struct {
@@ -52,7 +57,12 @@ const PankTableContext = struct {
 };
 
 pub fn PankTable() type {
-    return std.HashMapUnmanaged(*Pobj.OString, PValue, PankTableContext, std.hash_map.default_max_load_percentage);
+    return std.HashMapUnmanaged(
+        *Pobj.OString,
+        PValue,
+        PankTableContext,
+        std.hash_map.default_max_load_percentage,
+    );
 }
 
 pub fn freeGlobalsTable(vm: *Vm, table: PankTable()) bool {

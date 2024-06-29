@@ -1,3 +1,12 @@
+//
+// Copyright (C) Palash Bauri
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+//
+// SPDX-License-Identifier: MPL-2.0
+
 pub const STR_STRING_ACCEPTS_SINGLE_ARG = "স্ট্রিং(...) কাজটি মাত্র একটি চলরাশি গ্রহণ করে কিন্তু {d}টি দেওয়া হয়েছে";
 pub const STR_SPLIT_ACCEPTS_TWO_ARGS = "ভাগ(...) কাজটি মাত্র দুটি চলরাশি গ্রহণ করে কিন্তু {d}টি দেওয়া হয়েছে";
 pub const STR_SPLIT_NOT_STRING_ARGS = "ভাগ(...) কাজটিতে দেওয়া দুটি চলরাশিকেই স্ট্রিং হতে হবে কিন্তু পাওয়া গেল - {s}({s}) এবং {s}({s})";

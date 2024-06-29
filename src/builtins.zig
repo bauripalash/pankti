@@ -64,7 +64,10 @@ pub fn nShow(vm: *Vm, argc: u8, values: []PValue) PValue {
     var i: usize = 0;
     while (i < argc) : (i += 1) {
         _ = values[i].printVal(vm.gc);
-        vm.gc.pstdout.print("\n", .{}) catch return PValue.makeNil(); //Until complete
+        vm.gc.pstdout.print(
+            "\n",
+            .{},
+        ) catch return PValue.makeNil(); //Until complete
     }
     return PValue.makeNil();
 }
@@ -73,14 +76,20 @@ pub fn nBnShow(vm: *Vm, argc: u8, values: []PValue) PValue { //WILL BE CHANGED?
     var i: usize = 0;
     while (i < argc) : (i += 1) {
         _ = values[i].printVal(vm.gc);
-        vm.gc.pstdout.print("\n", .{}) catch return PValue.makeNil(); //Until complete
+        vm.gc.pstdout.print(
+            "\n",
+            .{},
+        ) catch return PValue.makeNil(); //Until complete
     }
     return PValue.makeNil();
 }
 
 pub fn nLen(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
-        return PValue.makeError(vm.gc, "len(..) function only takes single argument").?;
+        return PValue.makeError(
+            vm.gc,
+            "len(..) function only takes single argument",
+        ).?;
     }
 
     if (values[0].getLen()) |len| {
