@@ -12,6 +12,8 @@ const builtin = @import("builtin");
 const writer = @import("writer.zig");
 const Gc = @import("gc.zig").Gc;
 
+pub extern fn getTimestamp() usize;
+
 pub fn isInt(v: f64) bool {
     return @ceil(v) == v;
 }

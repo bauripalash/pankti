@@ -24,7 +24,7 @@ build:
 
 
 wasm:
-	@$(ZIG) build wasm
+	@$(ZIG) build wasm -Dtarget=wasm32-freestanding-musl --release=fast
 	cp $(WASMBIN) ./web/
 
 

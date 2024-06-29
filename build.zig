@@ -83,11 +83,6 @@ pub fn build(b: *Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const webTarget = b.resolveTargetQuery(.{
-        .cpu_arch = .wasm32,
-        .os_tag = .freestanding,
-    });
-
     // Version Info
     const version_result = getVersion(b);
     const build_options = b.addOptions();
@@ -118,10 +113,12 @@ pub fn build(b: *Build) !void {
 
     const webExe = b.addExecutable(.{
         .name = "pankti",
-        .root_source_file = b.path("src/api.zig"),
-        .target = webTarget,
-        .optimize = .ReleaseSmall,
+        .root_source_file = b.path("src/wasm.zig"),
+        .target = target,
+        .optimize = optimize,
     });
+
+    webExe.root_module.addImport("build_options", build_options_module);
 
     webExe.entry = .disabled;
     webExe.rdynamic = true;

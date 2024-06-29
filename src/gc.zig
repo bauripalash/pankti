@@ -192,6 +192,14 @@ pub const Gc = struct {
             NO_GC = true;
         }
 
+        var timestamp: u32 = 0;
+
+        if (utils.IS_WASM) {
+            timestamp = @intCast(utils.getTimestamp());
+        } else {
+            timestamp = @intCast(std.time.timestamp());
+        }
+
         const newgc = try al.create(Self);
         newgc.* = .{
             .internal_al = al,
@@ -217,7 +225,7 @@ pub const Gc = struct {
             .debugGc = DEBUG_GC,
             .debug = DEBUG,
             .noGc = NO_GC,
-            .timestamp = @intCast(std.time.timestamp()),
+            .timestamp = @intCast(timestamp),
         };
 
         return newgc;

@@ -15,8 +15,6 @@ const utils = @import("utils.zig");
 const valueerrors = @import("value_errors.zig");
 const CopyError = valueerrors.CopyError;
 
-extern fn getTimestamp() usize;
-
 pub fn nCopy(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
         return PValue.makeError(vm.gc, "copy(...) takes a single argument").?;
@@ -37,11 +35,11 @@ pub fn nClock(vm: *Vm, argc: u8, values: []PValue) PValue {
     _ = vm;
     _ = values;
     _ = argc;
-    if (!utils.IS_WASM) {
+    if (utils.IS_WASM) {
+        return PValue.makeNumber(@floatFromInt(utils.getTimestamp()));
+    } else {
         const s = std.time.timestamp();
         return PValue.makeNumber(@floatFromInt(s));
-    } else {
-        return PValue.makeNumber(@floatFromInt(getTimestamp()));
     }
 }
 

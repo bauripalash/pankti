@@ -122,7 +122,11 @@ pub const PObj = struct {
     }
 
     pub fn child(self: *PObj, comptime ChildType: type) *ChildType {
-        return @fieldParentPtr("obj", self);
+        if (utils.IS_WASM) {
+            return @alignCast(@fieldParentPtr("obj", self));
+        } else {
+            return @fieldParentPtr("obj", self);
+        }
     }
 
     pub fn getType(self: *PObj) OType {
@@ -158,7 +162,7 @@ pub const PObj = struct {
     }
 
     pub fn asString(self: *PObj) *OString {
-        return @fieldParentPtr("obj", self);
+        return self.child(PObj.OString);
     }
 
     pub fn asFunc(self: *PObj) *OFunction {
