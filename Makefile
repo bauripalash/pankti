@@ -17,6 +17,9 @@ run: $(TARGET)
 
 $(TARGET): build 
 
+r: $(TARGET)
+	@./$(TARGET) $(ARGS)
+
 release: rls_setup rls_win32 rls_win64 rls_linux32 rls_linux64
 
 build:
