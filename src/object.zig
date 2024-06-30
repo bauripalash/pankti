@@ -537,14 +537,47 @@ pub const PObj = struct {
         }
 
         pub fn print(self: *OHmap, gc: *Gc) bool {
-            gc.pstdout.print("{{ ", .{}) catch return false;
+            gc.pstdout.print("{{", .{}) catch return false;
+            const lastIndex = self.values.count();
+            const selfPtr = @intFromPtr(self.parent());
+            var i: isize = 1;
             var ite = self.values.iterator();
             while (ite.next()) |item| {
-                if (!item.key_ptr.*.printVal(gc)) return false;
-                gc.pstdout.print(": ", .{}) catch return false;
-                if (!item.value_ptr.*.printVal(gc)) return false;
+                const key = item.key_ptr.*;
+                const val = item.value_ptr.*;
+                if (key.isObj() and key.asObj().isHmap()) {
+                    const keyPtr = @intFromPtr(key.asObj());
 
-                gc.pstdout.print(", ", .{}) catch return false;
+                    if (keyPtr == selfPtr) {
+                        gc.pstdout.print("{{...}}", .{}) catch return false;
+                    } else {
+                        if (!key.printVal(gc)) return false;
+                    }
+
+                    gc.pstdout.print(": ", .{}) catch return false;
+                } else {
+                    if (!key.printVal(gc)) return false;
+                }
+
+                gc.pstdout.print(": ", .{}) catch return false;
+
+                if (val.isObj() and val.asObj().isHmap()) {
+                    const valPtr = @intFromPtr(val.asObj());
+
+                    if (valPtr == selfPtr) {
+                        gc.pstdout.print("{{...}}", .{}) catch return false;
+                    } else {
+                        if (!val.printVal(gc)) return false;
+                    }
+                } else {
+                    if (!val.printVal(gc)) return false;
+                }
+
+                if (i < lastIndex) {
+                    gc.pstdout.print(", ", .{}) catch return false;
+                }
+
+                i += 1;
             }
             gc.pstdout.print("}}", .{}) catch return false;
 
@@ -598,11 +631,12 @@ pub const PObj = struct {
         pub fn print(self: *OArray, gc: *Gc) bool {
             gc.pstdout.print("[", .{}) catch return false;
             const lastIndex = self.values.items.len;
+
+            const b = @intFromPtr(self.parent());
             var i: isize = 1;
             for (self.values.items) |val| {
                 if (val.isObj() and val.asObj().isArray()) {
                     const a = @intFromPtr(val.asObj());
-                    const b = @intFromPtr(self.parent());
                     if (a == b) {
                         gc.pstdout.print("[...]", .{}) catch return false;
                     } else {
@@ -920,16 +954,20 @@ pub const PObj = struct {
             gc.getAlc().destroy(self);
         }
 
-        pub fn print(self: *OString, gc: *Gc) bool {
+        pub fn printWithoutQuotes(self: *OString, gc: *Gc) bool {
             if (self.len < 0) {
                 gc.pstdout.print("0x{x}", .{@intFromPtr(self)}) catch return false;
                 return true;
             }
-
-            //gc.pstdout.print("\"" , .{}) catch return false;
             utils.printu32(self.chars, gc.pstdout);
+            return true;
+        }
 
-            //gc.pstdout.print("\"" , .{}) catch return false;
+        pub fn print(self: *OString, gc: *Gc) bool {
+            gc.pstdout.print("\"", .{}) catch return false;
+            if (!self.printWithoutQuotes(gc)) return false;
+            gc.pstdout.print("\"", .{}) catch return false;
+
             return true;
         }
 

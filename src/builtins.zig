@@ -44,6 +44,20 @@ pub fn nClock(vm: *Vm, argc: u8, values: []PValue) PValue {
 }
 
 pub fn nShow(vm: *Vm, argc: u8, values: []PValue) PValue {
+    if (argc == 1) {
+        const first = values[0];
+        if (first.isObj() and first.asObj().isString()) {
+            if (!first.asObj().asString().printWithoutQuotes(vm.gc)) {
+                return PValue.makeNil();
+            }
+            vm.gc.pstdout.print(
+                "\n",
+                .{},
+            ) catch return PValue.makeNil(); //Until complete
+
+            return PValue.makeNil();
+        }
+    }
     var i: usize = 0;
     while (i < argc) : (i += 1) {
         _ = values[i].printVal(vm.gc);
