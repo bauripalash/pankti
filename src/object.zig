@@ -596,10 +596,28 @@ pub const PObj = struct {
         }
 
         pub fn print(self: *OArray, gc: *Gc) bool {
-            gc.pstdout.print("[ ", .{}) catch return false;
+            gc.pstdout.print("[", .{}) catch return false;
+            const lastIndex = self.values.items.len;
+            var i: isize = 1;
             for (self.values.items) |val| {
-                if (!val.printVal(gc)) return false;
-                gc.pstdout.print(", ", .{}) catch return false;
+                if (val.isObj() and val.asObj().isArray()) {
+                    const a = @intFromPtr(val.asObj());
+                    const b = @intFromPtr(self.parent());
+                    if (a == b) {
+                        gc.pstdout.print("[...]", .{}) catch return false;
+                    } else {
+                        if (!val.printVal(gc)) return false;
+                    }
+                } else {
+                    if (!val.printVal(gc)) return false;
+                    //std.debug.print("{d}->{d}", .{ i, lastIndex });
+                }
+
+                if (i < lastIndex) {
+                    gc.pstdout.print(", ", .{}) catch return false;
+                }
+
+                i += 1;
             }
             gc.pstdout.print("]", .{}) catch return false;
 

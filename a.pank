@@ -25,3 +25,9 @@ e["time"] = 100
 show(k)
 show(e)
 show(f)
+
+dhori l = ["1" , "2"]
+dhori x = ["3" , l]
+show(x)
+l[1] = l
+show(x)
