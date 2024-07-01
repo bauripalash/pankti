@@ -561,41 +561,44 @@ pub const PObj = struct {
             return sarr;
         }
 
-        pub fn print(self: *OHmap, gc: *Gc, pl: ?*ParentLink) bool {
+        pub fn print(self: *OHmap, gc: *Gc, links: ?*ParentLink) bool {
             gc.pstdout.print("{{", .{}) catch return false;
             const lastIndex = self.values.count();
-            const selfPtr = @intFromPtr(self.parent());
             var i: isize = 1;
             var ite = self.values.iterator();
+
+            var linked = false;
+
+            if (links) |lnk| {
+                linked = true;
+                lnk.prev.append(
+                    gc.hal(),
+                    PValue.makeObj(self.parent()),
+                ) catch return false;
+            }
             while (ite.next()) |item| {
                 const key = item.key_ptr.*;
                 const val = item.value_ptr.*;
-                if (key.isObj() and key.asObj().isHmap()) {
-                    const keyPtr = @intFromPtr(key.asObj());
-
-                    if (keyPtr == selfPtr) {
-                        gc.pstdout.print("{{...}}", .{}) catch return false;
+                if (key.isObj()) {
+                    if (linked and links.?.exists(key.asObj())) {
+                        gc.pstdout.print("K{{...}}", .{}) catch return false;
                     } else {
-                        if (!key.printVal(gc, pl)) return false;
+                        if (!key.printVal(gc, links)) return false;
                     }
-
-                    gc.pstdout.print(": ", .{}) catch return false;
                 } else {
-                    if (!key.printVal(gc, pl)) return false;
+                    if (!key.printVal(gc, links)) return false;
                 }
 
                 gc.pstdout.print(": ", .{}) catch return false;
 
-                if (val.isObj() and val.asObj().isHmap()) {
-                    const valPtr = @intFromPtr(val.asObj());
-
-                    if (valPtr == selfPtr) {
+                if (val.isObj()) {
+                    if (linked and links.?.exists(val.asObj())) {
                         gc.pstdout.print("{{...}}", .{}) catch return false;
                     } else {
-                        if (!val.printVal(gc, pl)) return false;
+                        if (!val.printVal(gc, links)) return false;
                     }
                 } else {
-                    if (!val.printVal(gc, pl)) return false;
+                    if (!val.printVal(gc, links)) return false;
                 }
 
                 if (i < lastIndex) {
@@ -605,6 +608,10 @@ pub const PObj = struct {
                 i += 1;
             }
             gc.pstdout.print("}}", .{}) catch return false;
+
+            if (linked) {
+                _ = links.?.prev.pop();
+            }
 
             return true;
         }
@@ -673,25 +680,26 @@ pub const PObj = struct {
         pub fn print(self: *OArray, gc: *Gc, links: ?*ParentLink) bool {
             gc.pstdout.print("[", .{}) catch return false;
             const lastIndex = self.values.items.len;
-            var link = false;
+            var linked = false;
 
-            if (links) |_| {
-                link = true;
+            if (links) |lnk| {
+                linked = true;
+                lnk.prev.append(
+                    gc.hal(),
+                    PValue.makeObj(self.parent()),
+                ) catch return false;
             }
 
-            const b = @intFromPtr(self.parent());
             var i: isize = 1;
             for (self.values.items) |val| {
-                if (val.isObj() and val.asObj().isArray()) {
-                    const a = @intFromPtr(val.asObj());
-                    if (a == b or (link and links.?.exists(self.parent()))) {
+                if (val.isObj()) {
+                    if (linked and links.?.exists(val.asObj())) {
                         gc.pstdout.print("[...]", .{}) catch return false;
                     } else {
                         if (!val.printVal(gc, links)) return false;
                     }
                 } else {
                     if (!val.printVal(gc, links)) return false;
-                    //std.debug.print("{d}->{d}", .{ i, lastIndex });
                 }
 
                 if (i < lastIndex) {
@@ -701,6 +709,10 @@ pub const PObj = struct {
                 i += 1;
             }
             gc.pstdout.print("]", .{}) catch return false;
+
+            if (linked) {
+                _ = links.?.prev.pop();
+            }
 
             return true;
         }

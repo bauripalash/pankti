@@ -30,7 +30,7 @@ pub const ParentLink = struct {
     pub fn exists(self: *ParentLink, v: *PObj) bool {
         for (self.prev.items) |item| {
             if (item.isObj()) {
-                if (@intFromPtr(v) == @intFromPtr(item.asObj())) {
+                if (@intFromPtr(v) == @intFromPtr(item.asObj()) and item.asObj().getType() == v.getType()) {
                     return true;
                 }
             }
@@ -333,10 +333,6 @@ pub const PValue = packed struct {
                 gc.pstdout.print("{d}", .{n}) catch return false;
             }
         } else if (self.isObj()) {
-            if (link) |lnk| {
-                lnk.prev.append(gc.hal(), self) catch return false;
-            }
-
             return self.asObj().printObj(gc, link);
         } else {
             gc.pstdout.print(BN_UNKNOWN, .{}) catch return false;

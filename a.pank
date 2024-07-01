@@ -1,6 +1,16 @@
 dhori a = [1, 2 , 3]
 dhori b = [4, 5]
+b[0] = a
+a[0] = b
 b[1] = a
-show(b)
-a[2] = b
 show(a)
+show(b)
+
+dhori m = {"1" : 1 , "2" : 2 , "3" : 3}
+dhori n = {"4" : 4 , "5" : 5}
+n["1"] = m
+m["4"] = n
+n["5"] = m
+#show(m)
+#show(n)
+
