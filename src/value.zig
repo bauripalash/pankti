@@ -24,6 +24,22 @@ const math = std.math;
 const valueerrors = @import("value_errors.zig");
 const CopyError = valueerrors.CopyError;
 
+pub const ParentLink = struct {
+    prev: std.ArrayListUnmanaged(PValue),
+
+    pub fn exists(self: *ParentLink, v: *PObj) bool {
+        for (self.prev.items) |item| {
+            if (item.isObj()) {
+                if (@intFromPtr(v) == @intFromPtr(item.asObj())) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+};
+
 pub const PValueType = enum(u8) {
     Pt_Num,
     Pt_Bool,
@@ -297,7 +313,7 @@ pub const PValue = packed struct {
     }
 
     /// Print value of PValue to console
-    pub fn printVal(self: Self, gc: *Gc) bool {
+    pub fn printVal(self: Self, gc: *Gc, link: ?*ParentLink) bool {
         if (self.isNil()) {
             gc.pstdout.print(BN_NIL, .{}) catch return false;
         } else if (self.isBool()) {
@@ -317,7 +333,11 @@ pub const PValue = packed struct {
                 gc.pstdout.print("{d}", .{n}) catch return false;
             }
         } else if (self.isObj()) {
-            return self.asObj().printObj(gc);
+            if (link) |lnk| {
+                lnk.prev.append(gc.hal(), self) catch return false;
+            }
+
+            return self.asObj().printObj(gc, link);
         } else {
             gc.pstdout.print(BN_UNKNOWN, .{}) catch return false;
         }

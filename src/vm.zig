@@ -485,7 +485,7 @@ pub const Vm = struct {
 
                     if (result.isError()) {
                         const eo: *PObj.OError = result.asObj().asOErr();
-                        _ = eo.print(self.gc);
+                        _ = eo.print(self.gc, null);
                         return false;
                     }
 
@@ -496,7 +496,7 @@ pub const Vm = struct {
             }
         }
 
-        _ = calle.printVal(self.gc);
+        _ = calle.printVal(self.gc, null);
         self.throwRuntimeError("Can only call functions", .{});
         return false;
     }
@@ -1223,7 +1223,7 @@ pub const Vm = struct {
                                 "Value couldn't be found for key : ",
                                 .{},
                             );
-                            _ = rawIndex.printVal(self.gc);
+                            _ = rawIndex.printVal(self.gc, null);
                             self.gc.pstdout.print(
                                 "\n",
                                 .{},
@@ -1446,7 +1446,7 @@ pub const Vm = struct {
                         );
                         return .RuntimeError;
                     };
-                    _ = popVal.printVal(self.gc);
+                    _ = popVal.printVal(self.gc, null);
                 },
 
                 .Op_Const => {

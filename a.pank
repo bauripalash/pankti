@@ -1,6 +1,6 @@
-dhori a = {"1" : "a" , "2" : "b" , "3" : "c"}
-show(a)
-a["3"] = a
-dhori b = copy(a)
+dhori a = [1, 2 , 3]
+dhori b = [4, 5]
+b[1] = a
 show(b)
-show(b["3"])
+a[2] = b
+show(a)

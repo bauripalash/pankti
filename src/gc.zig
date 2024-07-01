@@ -367,7 +367,7 @@ pub const Gc = struct {
         )) |interned| {
             if (DEBUG_GC) {
                 dprint('b', self.pstdout, "[GC] Returning interned string : ", .{});
-                _ = interned.print(self);
+                _ = interned.print(self, null);
 
                 dprint('n', self.pstdout, "\n", .{});
             }
@@ -497,7 +497,7 @@ pub const Gc = struct {
                     @intFromPtr(obj),
                     obj.objtype.toString(),
                 }) catch return;
-                _ = obj.printObj(self);
+                _ = obj.printObj(self, null);
                 self.pstdout.print(" ]\n", .{}) catch return;
                 ansicolors.ResetColor(self.pstdout);
                 tempObj = obj.next;
@@ -588,7 +588,7 @@ pub const Gc = struct {
             if (!key.*.parent().isMarked) {
                 if (DEBUG_GC) {
                     dprint('p', self.pstdout, "[GC] Removing String ", .{});
-                    _ = key.*.print(self);
+                    _ = key.*.print(self, null);
                     dprint('p', self.pstdout, "\n", .{});
                 }
                 _ = tab.removeByPtr(key);
@@ -668,7 +668,7 @@ pub const Gc = struct {
                 dprint('g', self.pstdout, "[GC] Marking Object : {s} : [ ", .{
                     o.getType().toString(),
                 });
-                _ = o.printObj(self);
+                _ = o.printObj(self, null);
 
                 dprint('g', self.pstdout, " ] \n", .{});
             }
@@ -759,7 +759,7 @@ pub const Gc = struct {
                         @intFromPtr(obj),
                         obj.objtype.toString(),
                     }) catch return;
-                    _ = obj.printObj(self);
+                    _ = obj.printObj(self, null);
                     self.pstdout.print(" ]\n", .{}) catch return;
                     ansicolors.ResetColor(self.pstdout);
                     tempObj = obj.next;

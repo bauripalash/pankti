@@ -10,6 +10,7 @@
 const std = @import("std");
 const Vm = @import("vm.zig").Vm;
 const value = @import("value.zig");
+const ParentLink = value.ParentLink;
 const PValue = value.PValue;
 const utils = @import("utils.zig");
 const Gc = @import("gc.zig").Gc;
@@ -205,18 +206,18 @@ pub const PObj = struct {
         return PValue.makeObj(self);
     }
 
-    pub fn printObj(self: *PObj, gc: *Gc) bool {
+    pub fn printObj(self: *PObj, gc: *Gc, link: ?*ParentLink) bool {
         return switch (self.getType()) {
-            .Ot_String => self.asString().print(gc),
-            .Ot_Function => self.asFunc().print(gc),
-            .Ot_NativeFunc => self.asNativeFun().print(gc),
-            .Ot_Closure => self.asClosure().print(gc),
-            .Ot_UpValue => self.asUpvalue().print(gc),
-            .Ot_Array => self.asArray().print(gc),
-            .Ot_Hmap => self.asHmap().print(gc),
-            .Ot_Error => self.asOErr().print(gc),
-            .Ot_Module => self.asMod().print(gc),
-            .Ot_BigInt => self.child(PObj.OBigInt).print(gc),
+            .Ot_String => self.asString().print(gc, link),
+            .Ot_Function => self.asFunc().print(gc, link),
+            .Ot_NativeFunc => self.asNativeFun().print(gc, link),
+            .Ot_Closure => self.asClosure().print(gc, link),
+            .Ot_UpValue => self.asUpvalue().print(gc, link),
+            .Ot_Array => self.asArray().print(gc, link),
+            .Ot_Hmap => self.asHmap().print(gc, link),
+            .Ot_Error => self.asOErr().print(gc, link),
+            .Ot_Module => self.asMod().print(gc, link),
+            .Ot_BigInt => self.asBigInt().print(gc, link),
         };
     }
 
@@ -312,7 +313,7 @@ pub const PObj = struct {
             return cop.parent();
         }
 
-        pub fn print(self: *OBigInt, gc: *Gc) bool {
+        pub fn print(self: *OBigInt, gc: *Gc, _: ?*ParentLink) bool {
             const x = self.ival.toString(gc.hal(), true) orelse {
                 return false;
             };
@@ -362,9 +363,9 @@ pub const PObj = struct {
             gc.getAlc().destroy(self);
         }
 
-        pub fn print(self: *OModule, gc: *Gc) bool {
+        pub fn print(self: *OModule, gc: *Gc, pl: ?*ParentLink) bool {
             gc.pstdout.print("<oMod ", .{}) catch return false;
-            _ = self.name.print(gc);
+            _ = self.name.print(gc, pl);
             gc.pstdout.print(" >", .{}) catch return false;
             return true;
         }
@@ -418,7 +419,7 @@ pub const PObj = struct {
             return cop.parent();
         }
 
-        pub fn print(self: *OError, gc: *Gc) bool {
+        pub fn print(self: *OError, gc: *Gc, _: ?*ParentLink) bool {
             gc.pstdout.print("{s}", .{self.msg}) catch return false;
             return true;
         }
@@ -560,7 +561,7 @@ pub const PObj = struct {
             return sarr;
         }
 
-        pub fn print(self: *OHmap, gc: *Gc) bool {
+        pub fn print(self: *OHmap, gc: *Gc, pl: ?*ParentLink) bool {
             gc.pstdout.print("{{", .{}) catch return false;
             const lastIndex = self.values.count();
             const selfPtr = @intFromPtr(self.parent());
@@ -575,12 +576,12 @@ pub const PObj = struct {
                     if (keyPtr == selfPtr) {
                         gc.pstdout.print("{{...}}", .{}) catch return false;
                     } else {
-                        if (!key.printVal(gc)) return false;
+                        if (!key.printVal(gc, pl)) return false;
                     }
 
                     gc.pstdout.print(": ", .{}) catch return false;
                 } else {
-                    if (!key.printVal(gc)) return false;
+                    if (!key.printVal(gc, pl)) return false;
                 }
 
                 gc.pstdout.print(": ", .{}) catch return false;
@@ -591,10 +592,10 @@ pub const PObj = struct {
                     if (valPtr == selfPtr) {
                         gc.pstdout.print("{{...}}", .{}) catch return false;
                     } else {
-                        if (!val.printVal(gc)) return false;
+                        if (!val.printVal(gc, pl)) return false;
                     }
                 } else {
-                    if (!val.printVal(gc)) return false;
+                    if (!val.printVal(gc, pl)) return false;
                 }
 
                 if (i < lastIndex) {
@@ -669,22 +670,27 @@ pub const PObj = struct {
             return cop.parent();
         }
 
-        pub fn print(self: *OArray, gc: *Gc) bool {
+        pub fn print(self: *OArray, gc: *Gc, links: ?*ParentLink) bool {
             gc.pstdout.print("[", .{}) catch return false;
             const lastIndex = self.values.items.len;
+            var link = false;
+
+            if (links) |_| {
+                link = true;
+            }
 
             const b = @intFromPtr(self.parent());
             var i: isize = 1;
             for (self.values.items) |val| {
                 if (val.isObj() and val.asObj().isArray()) {
                     const a = @intFromPtr(val.asObj());
-                    if (a == b) {
+                    if (a == b or (link and links.?.exists(self.parent()))) {
                         gc.pstdout.print("[...]", .{}) catch return false;
                     } else {
-                        if (!val.printVal(gc)) return false;
+                        if (!val.printVal(gc, links)) return false;
                     }
                 } else {
-                    if (!val.printVal(gc)) return false;
+                    if (!val.printVal(gc, links)) return false;
                     //std.debug.print("{d}->{d}", .{ i, lastIndex });
                 }
 
@@ -788,7 +794,7 @@ pub const PObj = struct {
             return self.parent();
         }
 
-        pub fn print(self: *OUpValue, gc: *Gc) bool {
+        pub fn print(self: *OUpValue, gc: *Gc, _: ?*ParentLink) bool {
             _ = self;
             gc.pstdout.print("upvalue", .{}) catch return false;
 
@@ -850,9 +856,9 @@ pub const PObj = struct {
             return self.parent();
         }
 
-        pub fn print(self: *OClosure, gc: *Gc) bool {
+        pub fn print(self: *OClosure, gc: *Gc, pl: ?*ParentLink) bool {
             gc.pstdout.print("<cls ", .{}) catch return false;
-            if (!self.function.print(gc)) return false;
+            if (!self.function.print(gc, pl)) return false;
             gc.pstdout.print(" >", .{}) catch return false;
 
             return true;
@@ -886,7 +892,7 @@ pub const PObj = struct {
             return self.parent();
         }
 
-        pub fn print(self: *ONativeFunction, gc: *Gc) bool {
+        pub fn print(self: *ONativeFunction, gc: *Gc, _: ?*ParentLink) bool {
             _ = self;
             gc.pstdout.print("<Native Fn>", .{}) catch return false;
 
@@ -944,7 +950,7 @@ pub const PObj = struct {
             }
         }
 
-        pub fn print(self: *OFunction, gc: *Gc) bool {
+        pub fn print(self: *OFunction, gc: *Gc, _: ?*ParentLink) bool {
             gc.pstdout.print("<Fun ", .{}) catch return false;
             if (self.getName()) |n| {
                 utils.printu32(n, gc.pstdout);
@@ -1004,7 +1010,7 @@ pub const PObj = struct {
             return true;
         }
 
-        pub fn print(self: *OString, gc: *Gc) bool {
+        pub fn print(self: *OString, gc: *Gc, _: ?*ParentLink) bool {
             gc.pstdout.print("\"", .{}) catch return false;
             if (!self.printWithoutQuotes(gc)) return false;
             gc.pstdout.print("\"", .{}) catch return false;

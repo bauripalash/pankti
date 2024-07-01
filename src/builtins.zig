@@ -44,6 +44,11 @@ pub fn nClock(vm: *Vm, argc: u8, values: []PValue) PValue {
 }
 
 pub fn nShow(vm: *Vm, argc: u8, values: []PValue) PValue {
+    const l = vm.gc.hal().create(
+        value.ParentLink,
+    ) catch return PValue.makeNil();
+    l.prev = std.ArrayListUnmanaged(PValue){};
+
     if (argc == 1) {
         const first = values[0];
         if (first.isObj() and first.asObj().isString()) {
@@ -60,19 +65,23 @@ pub fn nShow(vm: *Vm, argc: u8, values: []PValue) PValue {
     }
     var i: usize = 0;
     while (i < argc) : (i += 1) {
-        _ = values[i].printVal(vm.gc);
+        _ = values[i].printVal(vm.gc, l);
         vm.gc.pstdout.print(
             "\n",
             .{},
         ) catch return PValue.makeNil(); //Until complete
     }
+    l.prev.clearAndFree(vm.gc.hal());
+    l.prev.deinit(vm.gc.hal());
+    vm.gc.hal().destroy(l);
+
     return PValue.makeNil();
 }
 
 pub fn nBnShow(vm: *Vm, argc: u8, values: []PValue) PValue { //WILL BE CHANGED?
     var i: usize = 0;
     while (i < argc) : (i += 1) {
-        _ = values[i].printVal(vm.gc);
+        _ = values[i].printVal(vm.gc, null);
         vm.gc.pstdout.print(
             "\n",
             .{},
