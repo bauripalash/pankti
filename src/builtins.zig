@@ -20,11 +20,12 @@ pub fn nCopy(vm: *Vm, argc: u8, values: []PValue) PValue {
         return PValue.makeError(vm.gc, "copy(...) takes a single argument").?;
     }
 
-    const l = vm.gc.hal().create(value.ParentLink) catch return PValue.makeNil();
-    l.prev = std.ArrayListUnmanaged(PValue){};
+    const links = vm.gc.hal().create(value.ParentLink) catch return PValue.makeNil();
+    links.prev = std.ArrayListUnmanaged(PValue){};
 
     const a = values[0];
-    const result = a.createCopy(vm.gc, l) catch |e| {
+    const result = a.createCopy(vm.gc, links) catch |e| {
+        _ = links.free(vm.gc);
         return PValue.makeComptimeError(
             vm.gc,
             "copy(...) failed due to internal error : {s}",
@@ -32,12 +33,55 @@ pub fn nCopy(vm: *Vm, argc: u8, values: []PValue) PValue {
         ).?;
     };
 
-    l.prev.clearAndFree(vm.gc.hal());
-    l.prev.deinit(vm.gc.hal());
-    vm.gc.hal().destroy(l);
+    _ = links.free(vm.gc);
 
     return result;
 }
+
+pub fn nShow(vm: *Vm, argc: u8, values: []PValue) PValue {
+    const links = vm.gc.hal().create(
+        value.ParentLink,
+    ) catch return PValue.makeNil();
+
+    links.prev = std.ArrayListUnmanaged(PValue){};
+
+    if (argc == 1) {
+        const first = values[0];
+        if (first.isObj() and first.asObj().isString()) {
+            if (!first.asObj().asString().printWithoutQuotes(vm.gc)) {
+                _ = links.free(vm.gc);
+                return PValue.makeNil();
+            }
+            vm.gc.pstdout.print(
+                "\n",
+                .{},
+            ) catch {
+                _ = links.free(vm.gc);
+                return PValue.makeNil(); //Until complete
+            };
+
+            _ = links.free(vm.gc);
+
+            return PValue.makeNil();
+        }
+    }
+    var i: usize = 0;
+    while (i < argc) : (i += 1) {
+        _ = values[i].printVal(vm.gc, links);
+        vm.gc.pstdout.print(
+            "\n",
+            .{},
+        ) catch {
+            _ = links.free(vm.gc);
+            return PValue.makeNil(); //Until complete
+        };
+    }
+
+    _ = links.free(vm.gc);
+
+    return PValue.makeNil();
+}
+
 pub fn nClock(vm: *Vm, argc: u8, values: []PValue) PValue {
     _ = vm;
     _ = values;
@@ -48,53 +92,6 @@ pub fn nClock(vm: *Vm, argc: u8, values: []PValue) PValue {
         const s = std.time.timestamp();
         return PValue.makeNumber(@floatFromInt(s));
     }
-}
-
-pub fn nShow(vm: *Vm, argc: u8, values: []PValue) PValue {
-    const l = vm.gc.hal().create(
-        value.ParentLink,
-    ) catch return PValue.makeNil();
-    l.prev = std.ArrayListUnmanaged(PValue){};
-
-    if (argc == 1) {
-        const first = values[0];
-        if (first.isObj() and first.asObj().isString()) {
-            if (!first.asObj().asString().printWithoutQuotes(vm.gc)) {
-                return PValue.makeNil();
-            }
-            vm.gc.pstdout.print(
-                "\n",
-                .{},
-            ) catch return PValue.makeNil(); //Until complete
-
-            return PValue.makeNil();
-        }
-    }
-    var i: usize = 0;
-    while (i < argc) : (i += 1) {
-        _ = values[i].printVal(vm.gc, l);
-        vm.gc.pstdout.print(
-            "\n",
-            .{},
-        ) catch return PValue.makeNil(); //Until complete
-    }
-    l.prev.clearAndFree(vm.gc.hal());
-    l.prev.deinit(vm.gc.hal());
-    vm.gc.hal().destroy(l);
-
-    return PValue.makeNil();
-}
-
-pub fn nBnShow(vm: *Vm, argc: u8, values: []PValue) PValue { //WILL BE CHANGED?
-    var i: usize = 0;
-    while (i < argc) : (i += 1) {
-        _ = values[i].printVal(vm.gc, null);
-        vm.gc.pstdout.print(
-            "\n",
-            .{},
-        ) catch return PValue.makeNil(); //Until complete
-    }
-    return PValue.makeNil();
 }
 
 pub fn nLen(vm: *Vm, argc: u8, values: []PValue) PValue {

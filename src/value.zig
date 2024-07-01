@@ -38,6 +38,13 @@ pub const ParentLink = struct {
 
         return false;
     }
+
+    pub fn free(self: *ParentLink, gc: *Gc) bool {
+        self.prev.clearAndFree(gc.hal());
+        self.prev.deinit(gc.hal());
+        gc.hal().destroy(self);
+        return true;
+    }
 };
 
 pub const PValueType = enum(u8) {

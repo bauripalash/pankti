@@ -97,7 +97,7 @@ pub const Vm = struct {
         self.defineNative(&kws.K_PN_LEN, builtins.nLen) catch return;
 
         self.defineNative(&kws.K_EN_SHOW, builtins.nShow) catch return;
-        self.defineNative(&kws.K_BN_SHOW, builtins.nBnShow) catch return;
+        self.defineNative(&kws.K_BN_SHOW, builtins.nShow) catch return;
         self.defineNative(&kws.K_PN_SHOW, builtins.nShow) catch return;
 
         self.defineNative(
