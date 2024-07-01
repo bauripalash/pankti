@@ -82,8 +82,12 @@ uninstall:
 	rm $(DESTDIR)$(PREFIX)/bin/pankti
 	rm -rf $(DESTDIR)$(PREFIX)/share/pankti
 
+fmt:
+	@find . -path ./.zig-cache -prune -o -name "*.zig"\
+		-exec $(ZIG) fmt {} \;
 
 clean:
 	rm -rf $(CACHE_DIR)
 	rm -rf $(BUILD_DIR)
+	rm -rf ./src/ext/baurinum/.zig-cache
 	rm -rf dist/
