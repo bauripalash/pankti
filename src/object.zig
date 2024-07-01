@@ -95,17 +95,18 @@ pub const PObj = struct {
     pub fn createCopy(
         self: *PObj,
         gc: *Gc,
+        links: ?*ParentLink,
     ) CopyError!*PObj {
         return switch (self.getType()) {
-            .Ot_String => self.asString().createCopy(gc),
+            .Ot_String => self.asString().createCopy(gc, links),
             .Ot_Function => self,
             .Ot_NativeFunc => self,
             .Ot_Closure => self,
             .Ot_UpValue => self,
-            .Ot_Array => self.asArray().createCopy(gc),
-            .Ot_Hmap => self.asHmap().createCopy(gc),
-            .Ot_Error => self.asOErr().createCopy(gc),
-            .Ot_BigInt => self.asBigInt().createCopy(gc),
+            .Ot_Array => self.asArray().createCopy(gc, links),
+            .Ot_Hmap => self.asHmap().createCopy(gc, links),
+            .Ot_Error => self.asOErr().createCopy(gc, links),
+            .Ot_BigInt => self.asBigInt().createCopy(gc, links),
             .Ot_Module => self,
         };
     }
@@ -294,6 +295,7 @@ pub const PObj = struct {
         pub fn createCopy(
             self: *OBigInt,
             gc: *Gc,
+            _: ?*ParentLink,
         ) CopyError!*PObj {
             const cop = gc.newObj(.Ot_BigInt, PObj.OBigInt) catch {
                 return CopyError.BigInt_NewBigInt;
@@ -354,6 +356,7 @@ pub const PObj = struct {
         pub fn createCopy(
             self: *OModule,
             gc: *Gc,
+            _: ?*ParentLink,
         ) CopyError!*PObj {
             _ = gc;
             return self.parent();
@@ -404,6 +407,7 @@ pub const PObj = struct {
         pub fn createCopy(
             self: *OError,
             gc: *Gc,
+            _: ?*ParentLink,
         ) CopyError!*PObj {
             const cop = gc.newObj(.Ot_Error, PObj.OError) catch {
                 return CopyError.ErrObj_NewErrObj;
@@ -448,6 +452,7 @@ pub const PObj = struct {
         pub fn createCopy(
             self: *OHmap,
             gc: *Gc,
+            links: ?*ParentLink,
         ) CopyError!*PObj {
             const cop = gc.newObj(.Ot_Hmap, PObj.OHmap) catch {
                 return CopyError.Hmap_NewHmap;
@@ -456,7 +461,15 @@ pub const PObj = struct {
 
             cop.init(gc);
 
-            const selfPtr = @intFromPtr(self.parent());
+            var linked = false;
+
+            if (links) |lnk| {
+                linked = true;
+                lnk.prev.append(
+                    gc.hal(),
+                    PValue.makeObj(self.parent()),
+                ) catch return CopyError.Hmap_FailedToAppendParentLink;
+            }
 
             var iter = self.values.iterator();
 
@@ -467,29 +480,31 @@ pub const PObj = struct {
                 var copiedKey: ?PValue = null;
                 var copiedVal: ?PValue = null;
 
-                if (key.isObj() and key.asObj().isHmap()) {
-                    if (@intFromPtr(key.asObj()) == selfPtr) {
-                        copiedKey = PValue.makeObj(self.parent());
+                if (key.isObj()) {
+                    if (linked and links.?.exists(key.asObj())) {
+                        copiedKey = key;
                     }
                 }
 
                 if (copiedKey == null) {
                     copiedKey = key.createCopy(
                         gc,
+                        links,
                     ) catch {
                         return CopyError.Hmap_ItemCopyError;
                     };
                 }
 
-                if (val.isObj() and val.asObj().isHmap()) {
-                    if (@intFromPtr(val.asObj()) == selfPtr) {
-                        copiedVal = PValue.makeObj(self.parent());
+                if (val.isObj()) {
+                    if (linked and links.?.exists(val.asObj())) {
+                        copiedVal = val;
                     }
                 }
 
                 if (copiedVal == null) {
                     copiedVal = val.createCopy(
                         gc,
+                        links,
                     ) catch {
                         return CopyError.Hmap_ItemCopyError;
                     };
@@ -639,24 +654,32 @@ pub const PObj = struct {
         pub fn createCopy(
             self: *OArray,
             gc: *Gc,
+            links: ?*ParentLink,
         ) CopyError!*PObj {
             const cop = gc.newObj(OType.Ot_Array, PObj.OArray) catch {
                 return CopyError.Arr_FailedToCreateNewArray;
             };
             cop.parent().isMarked = true;
             cop.init();
-            const selfPtr = @intFromPtr(self.parent());
+            var linked = false;
+
+            if (links) |lnk| {
+                linked = true;
+                lnk.prev.append(
+                    gc.hal(),
+                    PValue.makeObj(self.parent()),
+                ) catch return CopyError.Arr_FailedToAppendParentLink;
+            }
 
             for (self.values.items) |item| {
                 var copiedItem: PValue = undefined;
-                if (item.isObj() and item.asObj().isArray()) {
-                    const itemPtr = @intFromPtr(item.asObj());
-
-                    if (itemPtr == selfPtr) {
-                        copiedItem = PValue.makeObj(self.parent());
+                if (item.isObj()) {
+                    if (linked and links.?.exists(item.asObj())) {
+                        copiedItem = item;
                     } else {
                         copiedItem = item.createCopy(
                             gc,
+                            links,
                         ) catch {
                             return CopyError.Arr_ItemCopyError;
                         };
@@ -664,6 +687,7 @@ pub const PObj = struct {
                 } else {
                     copiedItem = item.createCopy(
                         gc,
+                        links,
                     ) catch {
                         return CopyError.Arr_ItemCopyError;
                     };
@@ -672,6 +696,9 @@ pub const PObj = struct {
                 if (!cop.addItem(gc, copiedItem)) {
                     return CopyError.Arr_InsertItems;
                 }
+            }
+            if (linked) {
+                _ = links.?.prev.pop();
             }
             cop.parent().isMarked = false;
             return cop.parent();
@@ -801,6 +828,7 @@ pub const PObj = struct {
         pub fn createCopy(
             self: *OUpValue,
             gc: *Gc,
+            _: ?*ParentLink,
         ) CopyError!*PObj {
             _ = gc;
             return self.parent();
@@ -863,6 +891,7 @@ pub const PObj = struct {
         pub fn createCopy(
             self: *OClosure,
             gc: *Gc,
+            _: ?*ParentLink,
         ) CopyError!*PObj {
             _ = gc;
             return self.parent();
@@ -899,6 +928,7 @@ pub const PObj = struct {
         pub fn createCopy(
             self: *ONativeFunction,
             gc: *Gc,
+            _: ?*ParentLink,
         ) CopyError!*PObj {
             _ = gc;
             return self.parent();
@@ -939,6 +969,7 @@ pub const PObj = struct {
         pub fn createCopy(
             self: *OFunction,
             gc: *Gc,
+            _: ?*ParentLink,
         ) CopyError!*PObj {
             _ = gc;
             return self.parent();
@@ -1001,6 +1032,7 @@ pub const PObj = struct {
         pub fn createCopy(
             self: *OString,
             gc: *Gc,
+            _: ?*ParentLink,
         ) CopyError!*PObj {
             const str = gc.copyString(self.chars, @intCast(self.len)) catch {
                 return CopyError.String_NewString;

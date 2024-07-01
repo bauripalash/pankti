@@ -1,7 +1,9 @@
 pub const CopyError = error{
+    Arr_FailedToAppendParentLink,
     Arr_FailedToCreateNewArray,
     Arr_InsertItems,
     Arr_ItemCopyError,
+    Hmap_FailedToAppendParentLink,
     Hmap_NewHmap,
     Hmap_AddPair,
     Hmap_ItemCopyError,
@@ -15,6 +17,9 @@ pub const CopyError = error{
 
 pub fn copyErrorToString(e: CopyError) []const u8 {
     switch (e) {
+        CopyError.Arr_FailedToAppendParentLink => {
+            return "Failed to add the array object to parentlink";
+        },
         CopyError.Arr_FailedToCreateNewArray => {
             return "Failed to create new array while copying";
         },
@@ -23,6 +28,10 @@ pub fn copyErrorToString(e: CopyError) []const u8 {
         },
         CopyError.Arr_ItemCopyError => {
             return "Failed to copy array items";
+        },
+
+        CopyError.Hmap_FailedToAppendParentLink => {
+            return "Failed to add the hashmap object to parentlink";
         },
 
         CopyError.Hmap_NewHmap => {

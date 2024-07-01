@@ -20,14 +20,21 @@ pub fn nCopy(vm: *Vm, argc: u8, values: []PValue) PValue {
         return PValue.makeError(vm.gc, "copy(...) takes a single argument").?;
     }
 
+    const l = vm.gc.hal().create(value.ParentLink) catch return PValue.makeNil();
+    l.prev = std.ArrayListUnmanaged(PValue){};
+
     const a = values[0];
-    const result = a.createCopy(vm.gc) catch |e| {
+    const result = a.createCopy(vm.gc, l) catch |e| {
         return PValue.makeComptimeError(
             vm.gc,
             "copy(...) failed due to internal error : {s}",
             .{valueerrors.copyErrorToString(e)},
         ).?;
     };
+
+    l.prev.clearAndFree(vm.gc.hal());
+    l.prev.deinit(vm.gc.hal());
+    vm.gc.hal().destroy(l);
 
     return result;
 }

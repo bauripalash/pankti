@@ -3,14 +3,18 @@ dhori b = [4, 5]
 b[0] = a
 a[0] = b
 b[1] = a
-show(a)
-show(b)
+#show(a)
+#show(copy(a))
+#show(b)
+#show(copy(b))
 
 dhori m = {"1" : 1 , "2" : 2 , "3" : 3}
 dhori n = {"4" : 4 , "5" : 5}
 n["1"] = m
 m["4"] = n
 n["5"] = m
-#show(m)
-#show(n)
+show(m)
+show(copy(m))
+show(n)
+show(copy(n))
 

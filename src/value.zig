@@ -107,9 +107,10 @@ pub const PValue = packed struct {
     pub fn createCopy(
         self: Self,
         gc: *Gc,
+        links: ?*ParentLink,
     ) CopyError!PValue {
         if (self.isObj()) {
-            const obj = self.asObj().createCopy(gc) catch |e| {
+            const obj = self.asObj().createCopy(gc, links) catch |e| {
                 return e;
             };
 
