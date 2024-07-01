@@ -1,38 +1,6 @@
-dhori a = [1,2]
+dhori a = {"1" : "a" , "2" : "b" , "3" : "c"}
+show(a)
+a["3"] = a
 dhori b = copy(a)
-#show(a)
-#show(b)
-a[0] = 3
-#show(a)
-#show(b)
-
-dhori c = 1
-dhori d = c
-#show(c)
-#show(d)
-c = 2
-#show(c)
-#show(d)
-
-dhori e = {"name" : "palash"}
-dhori f = copy(e)
-#show(e)
-#show(f)
-e["name"] = "Palash Bauri"
-e["time"] = 1
-dhori k = copy(e)
-e["time"] = 100
-#show(k)
-#show(e)
-#show(f)
-
-dhori l = ["1" , "2"]
-dhori k = ["3", l]
-l[1] = l
-dhori x = {"3" : k}
-#show(k)
-x["x"] = x
-#show(x)
-dhori s = "pal"
-show(s)
-show(l)
+show(b)
+show(b["3"])

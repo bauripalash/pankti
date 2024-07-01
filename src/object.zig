@@ -455,22 +455,46 @@ pub const PObj = struct {
 
             cop.init(gc);
 
+            const selfPtr = @intFromPtr(self.parent());
+
             var iter = self.values.iterator();
 
             while (iter.next()) |item| {
-                const ck = item.key_ptr.*.createCopy(
-                    gc,
-                ) catch {
-                    return CopyError.Hmap_ItemCopyError;
-                };
+                const key = item.key_ptr.*;
+                const val = item.value_ptr.*;
 
-                const vk = item.value_ptr.*.createCopy(
-                    gc,
-                ) catch {
-                    return CopyError.Hmap_ItemCopyError;
-                };
+                var copiedKey: ?PValue = null;
+                var copiedVal: ?PValue = null;
 
-                if (!cop.addPair(gc, ck, vk)) {
+                if (key.isObj() and key.asObj().isHmap()) {
+                    if (@intFromPtr(key.asObj()) == selfPtr) {
+                        copiedKey = PValue.makeObj(self.parent());
+                    }
+                }
+
+                if (copiedKey == null) {
+                    copiedKey = key.createCopy(
+                        gc,
+                    ) catch {
+                        return CopyError.Hmap_ItemCopyError;
+                    };
+                }
+
+                if (val.isObj() and val.asObj().isHmap()) {
+                    if (@intFromPtr(val.asObj()) == selfPtr) {
+                        copiedVal = PValue.makeObj(self.parent());
+                    }
+                }
+
+                if (copiedVal == null) {
+                    copiedVal = val.createCopy(
+                        gc,
+                    ) catch {
+                        return CopyError.Hmap_ItemCopyError;
+                    };
+                }
+
+                if (!cop.addPair(gc, copiedKey.?, copiedVal.?)) {
                     return CopyError.Hmap_AddPair;
                 }
             }
@@ -613,12 +637,29 @@ pub const PObj = struct {
             };
             cop.parent().isMarked = true;
             cop.init();
+            const selfPtr = @intFromPtr(self.parent());
+
             for (self.values.items) |item| {
-                const copiedItem = item.createCopy(
-                    gc,
-                ) catch {
-                    return CopyError.Arr_ItemCopyError;
-                };
+                var copiedItem: PValue = undefined;
+                if (item.isObj() and item.asObj().isArray()) {
+                    const itemPtr = @intFromPtr(item.asObj());
+
+                    if (itemPtr == selfPtr) {
+                        copiedItem = PValue.makeObj(self.parent());
+                    } else {
+                        copiedItem = item.createCopy(
+                            gc,
+                        ) catch {
+                            return CopyError.Arr_ItemCopyError;
+                        };
+                    }
+                } else {
+                    copiedItem = item.createCopy(
+                        gc,
+                    ) catch {
+                        return CopyError.Arr_ItemCopyError;
+                    };
+                }
 
                 if (!cop.addItem(gc, copiedItem)) {
                     return CopyError.Arr_InsertItems;

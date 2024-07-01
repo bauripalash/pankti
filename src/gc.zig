@@ -15,7 +15,7 @@ const PValue = value_zig.PValue;
 const PValueType = value_zig.PValueType;
 const table = @import("table.zig");
 const utils = @import("utils.zig");
-//const flags = @import("flags.zig");
+const flags = @import("flags.zig");
 const ansicolors = @import("ansicolors.zig");
 const vm = @import("vm.zig");
 const compiler = @import("compiler.zig");
@@ -176,19 +176,19 @@ pub const Gc = struct {
     const Self = @This();
 
     pub fn new(al: Allocator, handlyal: Allocator) !*Gc {
-        if (std.process.hasEnvVarConstant("PANKTI_STRESS")) {
+        if (std.process.hasEnvVarConstant("PANKTI_STRESS") or flags.STRESS_GC) {
             STRESS_GC = true;
         }
 
-        if (std.process.hasEnvVarConstant("PANKTI_DEBUG_GC")) {
+        if (std.process.hasEnvVarConstant("PANKTI_DEBUG_GC") or flags.DEBUG_GC) {
             DEBUG_GC = true;
         }
 
-        if (std.process.hasEnvVarConstant("PANKTI_DEBUG")) {
+        if (std.process.hasEnvVarConstant("PANKTI_DEBUG") or flags.DEBUG) {
             DEBUG = true;
         }
 
-        if (std.process.hasEnvVarConstant("PANKTI_NO_GC")) {
+        if (std.process.hasEnvVarConstant("PANKTI_NO_GC") or flags.NO_GC) {
             NO_GC = true;
         }
 
