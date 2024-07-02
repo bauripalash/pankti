@@ -707,11 +707,65 @@ pub const Compiler = struct {
 
     fn rString(self: *Self, _: bool) !void {
         const prevLen = self.parser.previous.lexeme.len;
-        const s: *PObj.OString = try self.gc.copyString(
-            self.parser.previous.lexeme[1 .. prevLen - 1],
-            self.parser.previous.length - 2,
-        );
+        //std.debug.print("\n\n{any}\n\n", .{self.parser.previous.lexeme});
 
+        const lexeme = self.parser.previous.lexeme;
+        var newString: std.ArrayListUnmanaged(u32) = std.ArrayListUnmanaged(
+            u32,
+        ).initCapacity(
+            self.gc.hal(),
+            prevLen,
+        ) catch {
+            self.parser.err("Failed to create memory while compiling string");
+            return;
+        };
+
+        var i: usize = 0;
+        var index: usize = 0;
+
+        var c = lexeme[i];
+        const len = prevLen - 2;
+
+        while (index < len) {
+            if (i >= len) break;
+            i += 1;
+            c = lexeme[i];
+            var rch = c;
+
+            if (c == '\\') {
+                i += 1;
+                c = lexeme[i];
+                switch (c) {
+                    '"' => {
+                        rch = '"';
+                    },
+                    'n' => {
+                        rch = '\n';
+                    },
+                    else => {
+                        return self.parser.err("Unescaped Escape characters in string");
+                    },
+                }
+            } else {
+                rch = c;
+            }
+
+            newString.append(self.gc.hal(), rch) catch {
+                newString.clearAndFree(self.gc.hal());
+                newString.deinit(self.gc.hal());
+                self.parser.err("Failed to create memory while compiling string");
+                return;
+            };
+            index += 1;
+        }
+        const s: *PObj.OString = try self.gc.copyString(
+            newString.items,
+            @intCast(newString.items.len),
+            //self.parser.previous.lexeme[1 .. prevLen - 1],
+            //self.parser.previous.length - 2,
+        );
+        newString.clearAndFree(self.gc.hal());
+        newString.deinit(self.gc.hal());
         try self.emitConst(s.obj.asValue());
     }
 
