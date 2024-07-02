@@ -1,1 +1,1 @@
-show("hello world\n")
+show("hello\\\\world\n")

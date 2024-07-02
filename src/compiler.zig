@@ -736,6 +736,9 @@ pub const Compiler = struct {
                 i += 1;
                 c = lexeme[i];
                 switch (c) {
+                    '\\' => {
+                        rch = '\\';
+                    },
                     '"' => {
                         rch = '"';
                     },
@@ -743,7 +746,10 @@ pub const Compiler = struct {
                         rch = '\n';
                     },
                     else => {
-                        return self.parser.err("Unescaped Escape characters in string");
+                        self.parser.err("Unescaped Escape characters in string");
+                        newString.clearAndFree(self.gc.hal());
+                        newString.deinit(self.gc.hal());
+                        return;
                     },
                 }
             } else {
