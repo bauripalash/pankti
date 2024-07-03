@@ -320,8 +320,16 @@ pub const PValue = packed struct {
         }
     }
 
+    pub fn printValForShow(self: Self, gc: *Gc, links: ?*ParentLink) bool {
+        if (self.isObj() and self.asObj().isString()) {
+            return self.asObj().asString().printWithoutQuotes(gc);
+        }
+
+        return self.printVal(gc, links);
+    }
+
     /// Print value of PValue to console
-    pub fn printVal(self: Self, gc: *Gc, link: ?*ParentLink) bool {
+    pub fn printVal(self: Self, gc: *Gc, links: ?*ParentLink) bool {
         if (self.isNil()) {
             gc.pstdout.print(BN_NIL, .{}) catch return false;
         } else if (self.isBool()) {
@@ -341,7 +349,7 @@ pub const PValue = packed struct {
                 gc.pstdout.print("{d}", .{n}) catch return false;
             }
         } else if (self.isObj()) {
-            return self.asObj().printObj(gc, link);
+            return self.asObj().printObj(gc, links);
         } else {
             gc.pstdout.print(BN_UNKNOWN, .{}) catch return false;
         }

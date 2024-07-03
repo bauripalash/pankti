@@ -45,36 +45,9 @@ pub fn nShow(vm: *Vm, argc: u8, values: []PValue) PValue {
 
     links.prev = std.ArrayListUnmanaged(PValue){};
 
-    if (argc == 1) {
-        const first = values[0];
-        if (first.isObj() and first.asObj().isString()) {
-            if (!first.asObj().asString().printWithoutQuotes(vm.gc)) {
-                _ = links.free(vm.gc);
-                return PValue.makeNil();
-            }
-            vm.gc.pstdout.print(
-                "\n",
-                .{},
-            ) catch {
-                _ = links.free(vm.gc);
-                return PValue.makeNil(); //Until complete
-            };
-
-            _ = links.free(vm.gc);
-
-            return PValue.makeNil();
-        }
-    }
     var i: usize = 0;
     while (i < argc) : (i += 1) {
-        _ = values[i].printVal(vm.gc, links);
-        vm.gc.pstdout.print(
-            "\n",
-            .{},
-        ) catch {
-            _ = links.free(vm.gc);
-            return PValue.makeNil(); //Until complete
-        };
+        _ = values[i].printValForShow(vm.gc, links);
     }
 
     _ = links.free(vm.gc);

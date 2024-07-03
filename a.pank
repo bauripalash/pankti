@@ -1,1 +1,2 @@
 show("hello\\\\world\n")
+show(100, "\n")
