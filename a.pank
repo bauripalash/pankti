@@ -1,2 +1,4 @@
-show("hello\\\\world\n")
+show("hello\\nworld\n")
 show(100, "\n")
+show("hello\n")
+show("\U000009e6")

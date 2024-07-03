@@ -65,6 +65,10 @@ pub const LoopFlow = struct {
         al.destroy(self);
     }
 };
+fn _freeTempString(a: Allocator, arr: std.ArrayListUnmanaged(u32)) void {
+    arr.clearAndFree(a);
+    arr.deinit(a);
+}
 
 pub const Compiler = struct {
     parser: *Parser,
@@ -705,73 +709,137 @@ pub const Compiler = struct {
         self.eat(.Rparen, compErrors.EXPECTED_RPAREN_AFTER_GROUP);
     }
 
-    fn rString(self: *Self, _: bool) !void {
-        const prevLen = self.parser.previous.lexeme.len;
-        //std.debug.print("\n\n{any}\n\n", .{self.parser.previous.lexeme});
+    fn readHexDigit(self: *Self, char: u32) ?u8 {
+        _ = self;
+        var _c: [1]u8 = [1]u8{0};
+        _ = std.unicode.utf8Encode(@intCast(char), &_c) catch return null;
+        const c = std.ascii.toUpper(_c[0]);
 
-        const lexeme = self.parser.previous.lexeme;
-        var newString: std.ArrayListUnmanaged(u32) = std.ArrayListUnmanaged(
-            u32,
-        ).initCapacity(
+        if (c >= '0' and c <= '9') return @intCast(c - '0');
+        if (c >= 'A' and c <= 'F') return @intCast(c - 'A' + 10);
+
+        return null;
+    }
+    fn readUnicodeCodePoint(self: *Self, lexeme: []const u32) ?u32 {
+        var r: u32 = 0;
+        for (lexeme) |value| {
+            //std.debug.print("h->{u}", .{@as(u21, @intCast(value))});
+            const h = self.readHexDigit(value);
+            if (h) |val| {
+                r = (r * 16) | val;
+            } else {
+                return null;
+            }
+        }
+
+        return r;
+    }
+
+    fn escapeString(self: *Self, lexeme: []const u32) !std.ArrayListUnmanaged(u32) {
+        const len = lexeme.len;
+        const al = self.gc.hal();
+
+        var _string = std.ArrayListUnmanaged(u32).initCapacity(
             self.gc.hal(),
-            prevLen,
+            len,
         ) catch {
             self.parser.err("Failed to create memory while compiling string");
-            return;
+            return Allocator.Error.OutOfMemory;
         };
 
         var i: usize = 0;
-        var index: usize = 0;
-
         var c = lexeme[i];
-        const len = prevLen - 2;
 
-        while (index < len) {
-            if (i >= len) break;
-            i += 1;
+        while (i < len) {
             c = lexeme[i];
-            var rch = c;
+            var rawc = c;
 
             if (c == '\\') {
-                i += 1;
+                i = i + 1;
                 c = lexeme[i];
+
                 switch (c) {
-                    '\\' => {
-                        rch = '\\';
+                    'n' => rawc = '\n',
+                    '\\' => rawc = '\\',
+                    'u' => {
+                        if (i + 4 >= len) {
+                            _string.clearAndFree(al);
+                            _string.deinit(al);
+                            self.parser.err("Invalid Unicode codepoint string");
+                            return Allocator.Error.OutOfMemory;
+                        }
+                        const hexSeq = lexeme[i + 1 .. i + 5];
+                        if (self.readUnicodeCodePoint(hexSeq)) |uni| {
+                            rawc = uni;
+                            //std.debug.print("\nU->{any}|{u}<-U\n", .{ hexSeq, @as(u21, @intCast(uni)) });
+                        } else {
+                            _string.clearAndFree(al);
+                            _string.deinit(al);
+                            self.parser.err("Invalid Unicode codepoint string");
+                            return Allocator.Error.OutOfMemory;
+                        }
+
+                        i += 4;
                     },
-                    '"' => {
-                        rch = '"';
-                    },
-                    'n' => {
-                        rch = '\n';
+                    'U' => {
+                        if (i + 8 >= len) {
+                            _string.clearAndFree(al);
+                            _string.deinit(al);
+                            self.parser.err("Invalid Unicode codepoint string");
+                            return Allocator.Error.OutOfMemory;
+                        }
+                        const hexSeq = lexeme[i + 1 .. i + 9];
+                        if (self.readUnicodeCodePoint(hexSeq)) |uni| {
+                            rawc = uni;
+                            //std.debug.print("\nU->{any}|{u}<-U\n", .{ hexSeq, @as(u21, @intCast(uni)) });
+                        } else {
+                            _string.clearAndFree(al);
+                            _string.deinit(al);
+                            self.parser.err("Invalid Unicode codepoint string");
+                            return Allocator.Error.OutOfMemory;
+                        }
+                        i += 8;
                     },
                     else => {
-                        self.parser.err("Unescaped Escape characters in string");
-                        newString.clearAndFree(self.gc.hal());
-                        newString.deinit(self.gc.hal());
-                        return;
+                        _string.clearAndFree(al);
+                        _string.deinit(al);
+                        self.parser.err("Invalid Escape string");
+                        return Allocator.Error.OutOfMemory;
                     },
                 }
-            } else {
-                rch = c;
             }
 
-            newString.append(self.gc.hal(), rch) catch {
-                newString.clearAndFree(self.gc.hal());
-                newString.deinit(self.gc.hal());
-                self.parser.err("Failed to create memory while compiling string");
-                return;
+            _string.append(self.gc.hal(), rawc) catch {
+                _string.clearAndFree(al);
+                _string.deinit(al);
+                self.parser.err("Failed to compile error when reading characters");
+
+                return Allocator.Error.OutOfMemory;
             };
-            index += 1;
+            i += 1;
         }
+
+        return _string;
+    }
+
+    fn rString(self: *Self, _: bool) !void {
+        const prevLen = self.parser.previous.lexeme.len;
+        const lexeme = self.parser.previous.lexeme[1 .. prevLen - 1];
+        var string = self.escapeString(lexeme) catch {
+            self.parser.err("Failed to compile string");
+            return;
+        };
+
         const s: *PObj.OString = try self.gc.copyString(
-            newString.items,
-            @intCast(newString.items.len),
+            string.items,
+            @intCast(string.items.len),
             //self.parser.previous.lexeme[1 .. prevLen - 1],
             //self.parser.previous.length - 2,
         );
-        newString.clearAndFree(self.gc.hal());
-        newString.deinit(self.gc.hal());
+
+        string.clearAndFree(self.gc.hal());
+        string.deinit(self.gc.hal());
+
         try self.emitConst(s.obj.asValue());
     }
 
