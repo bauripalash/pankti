@@ -723,7 +723,6 @@ pub const Compiler = struct {
     fn readUnicodeCodePoint(self: *Self, lexeme: []const u32) ?u32 {
         var r: u32 = 0;
         for (lexeme) |value| {
-            //std.debug.print("h->{u}", .{@as(u21, @intCast(value))});
             const h = self.readHexDigit(value);
             if (h) |val| {
                 r = (r * 16) | val;
@@ -759,43 +758,48 @@ pub const Compiler = struct {
                 c = lexeme[i];
 
                 switch (c) {
-                    'n' => rawc = '\n',
                     '\\' => rawc = '\\',
-                    'u' => {
+                    'a' => rawc = '\x07', // Bell
+                    'b' => rawc = '\x08', // Backspace
+                    'e' => rawc = '\x1B', // Escape Character
+                    'f' => rawc = '\x0C', // Formfeed Page Break
+                    'n' => rawc = '\n', // Newline
+                    'r' => rawc = '\x0D', // Carriage Return
+                    't' => rawc = '\t', // Horizontal Tab
+                    'v' => rawc = '\x0B', // Vertical Tab
+                    'u' => { // \uXXXX -> Unicode Codepoint with 4 chars
                         if (i + 4 >= len) {
                             _string.clearAndFree(al);
                             _string.deinit(al);
-                            self.parser.err("Invalid Unicode codepoint string");
+                            self.parser.err(compErrors.STRING_U4_NOT_4);
                             return Allocator.Error.OutOfMemory;
                         }
                         const hexSeq = lexeme[i + 1 .. i + 5];
                         if (self.readUnicodeCodePoint(hexSeq)) |uni| {
                             rawc = uni;
-                            //std.debug.print("\nU->{any}|{u}<-U\n", .{ hexSeq, @as(u21, @intCast(uni)) });
                         } else {
                             _string.clearAndFree(al);
                             _string.deinit(al);
-                            self.parser.err("Invalid Unicode codepoint string");
+                            self.parser.err(compErrors.STRING_INVALID_CP);
                             return Allocator.Error.OutOfMemory;
                         }
 
                         i += 4;
                     },
-                    'U' => {
+                    'U' => { // \UXXXXXXXX -> Unicode Codepoint with 8 chars
                         if (i + 8 >= len) {
                             _string.clearAndFree(al);
                             _string.deinit(al);
-                            self.parser.err("Invalid Unicode codepoint string");
+                            self.parser.err(compErrors.STRING_U8_NOT_8);
                             return Allocator.Error.OutOfMemory;
                         }
                         const hexSeq = lexeme[i + 1 .. i + 9];
                         if (self.readUnicodeCodePoint(hexSeq)) |uni| {
                             rawc = uni;
-                            //std.debug.print("\nU->{any}|{u}<-U\n", .{ hexSeq, @as(u21, @intCast(uni)) });
                         } else {
                             _string.clearAndFree(al);
                             _string.deinit(al);
-                            self.parser.err("Invalid Unicode codepoint string");
+                            self.parser.err(compErrors.STRING_INVALID_CP);
                             return Allocator.Error.OutOfMemory;
                         }
                         i += 8;
@@ -803,7 +807,7 @@ pub const Compiler = struct {
                     else => {
                         _string.clearAndFree(al);
                         _string.deinit(al);
-                        self.parser.err("Invalid Escape string");
+                        self.parser.err(compErrors.STRING_INVALID_ESCAPE);
                         return Allocator.Error.OutOfMemory;
                     },
                 }
@@ -812,8 +816,7 @@ pub const Compiler = struct {
             _string.append(self.gc.hal(), rawc) catch {
                 _string.clearAndFree(al);
                 _string.deinit(al);
-                self.parser.err("Failed to compile error when reading characters");
-
+                self.parser.err(compErrors.STRING_TEMP_APPEND);
                 return Allocator.Error.OutOfMemory;
             };
             i += 1;
@@ -826,7 +829,7 @@ pub const Compiler = struct {
         const prevLen = self.parser.previous.lexeme.len;
         const lexeme = self.parser.previous.lexeme[1 .. prevLen - 1];
         var string = self.escapeString(lexeme) catch {
-            self.parser.err("Failed to compile string");
+            self.parser.err(compErrors.STRING_COMPILE_FAIL);
             return;
         };
 

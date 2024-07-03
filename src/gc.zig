@@ -309,7 +309,7 @@ pub const Gc = struct {
         return self.al;
     }
 
-    pub fn hal(self: *Self) Allocator {
+    pub inline fn hal(self: *Self) Allocator {
         return self.handyal;
     }
 
