@@ -734,7 +734,10 @@ pub const Compiler = struct {
         return r;
     }
 
-    fn escapeString(self: *Self, lexeme: []const u32) !std.ArrayListUnmanaged(u32) {
+    fn escapeString(
+        self: *Self,
+        lexeme: []const u32,
+    ) !std.ArrayListUnmanaged(u32) {
         const len = lexeme.len;
         const al = self.gc.hal();
 
@@ -756,7 +759,6 @@ pub const Compiler = struct {
             if (c == '\\') {
                 i = i + 1;
                 c = lexeme[i];
-
                 switch (c) {
                     '\\' => rawc = '\\',
                     'a' => rawc = '\x07', // Bell
@@ -1038,10 +1040,6 @@ pub const Compiler = struct {
         self.skipSemicolon();
 
         try self.emitBt(.Op_Show);
-
-        //self.inst.disasm("before print");
-        //std.debug.print("next token -> {}, {}" , .{self.parser.previous , self.parser.current});
-
     }
 
     fn rLetDeclaration(self: *Self) !void {
@@ -1069,7 +1067,6 @@ pub const Compiler = struct {
 
     fn parseVariable(self: *Self, msg: []const u8) u8 {
         self.eat(.Identifer, msg);
-        //       std.debug.print("==\n\nPREV->{any}  \nCUR->{} \n==\n" , .{self.parser.previous , self.parser.current});
 
         self.declareVariable();
         if (self.scopeDepth > 0) {
@@ -1414,11 +1411,19 @@ pub const Parser = struct {
         if (self.panicMode) {
             return;
         }
-        self.gc.pstdout.print("[{d}{s}] {s}", .{ token.line, compErrors.NONG_LINE, compErrors.ERR }) catch return;
+        self.gc.pstdout.print("[{d}{s}] {s}", .{
+            token.line,
+            compErrors.NONG_LINE,
+            compErrors.ERR,
+        }) catch return;
         if (token.toktype == .Eof) {
-            self.gc.pstdout.print(" {s}", .{compErrors.ERR_AT_END}) catch return;
+            self.gc.pstdout.print(" {s}", .{
+                compErrors.ERR_AT_END,
+            }) catch return;
         } else if (token.toktype == .Err) {} else {
-            self.gc.pstdout.print(" {s} ''", .{compErrors.ERR_AT}) catch return;
+            self.gc.pstdout.print(" {s} ''", .{
+                compErrors.ERR_AT,
+            }) catch return;
             utils.printu32(token.lexeme, self.gc.pstdout);
             self.gc.pstdout.print("' ", .{}) catch return;
         }

@@ -1,5 +1,2 @@
-show("hello\\nworld\n")
-show(100, "\n")
 show("hello\n")
-show("||0==\U000009e6||")
-show("\nDuck -> \U0001f98\n")
+show("Duck -> \U0001f986\n")
