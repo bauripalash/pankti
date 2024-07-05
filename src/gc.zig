@@ -75,6 +75,7 @@ pub const StdLibProxy = struct {
 pub const Module = struct {
     globals: table.PankTable(),
     stdlibCount: u32,
+    stdProxies: std.ArrayListUnmanaged(StdLibProxy),
     frames: stck.CallStack,
     frameCount: u32,
     name: []u32,
@@ -99,6 +100,7 @@ pub const Module = struct {
             .origin = null,
             .globals = table.PankTable(){},
             .stdlibCount = 0,
+            .stdProxies = undefined,
             .frameCount = 0,
             .name = undefined,
             .openValues = null,
@@ -109,12 +111,18 @@ pub const Module = struct {
         };
         mod.*.frames.stack[0] = undefined;
         mod.*.frames.count = 0;
+        mod.*.stdProxies = std.ArrayListUnmanaged(StdLibProxy).initCapacity(
+            gc.hal(),
+            2,
+        ) catch return null;
         return mod;
     }
 
     pub fn free(self: *Self, gc: *Gc) bool {
         gc.hal().free(self.name);
         self.globals.deinit(gc.hal());
+        self.stdProxies.clearAndFree(gc.hal());
+        self.stdProxies.deinit(gc.hal());
         gc.hal().destroy(self);
         return true;
     }

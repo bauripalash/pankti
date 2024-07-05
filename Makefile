@@ -27,7 +27,7 @@ build:
 
 
 wasm:
-	@$(ZIG) build wasm -Dtarget=wasm32-freestanding-musl --release=fast
+	@$(ZIG) build wasm -Dtarget=wasm32-freestanding-musl -Doptimize=ReleaseFast
 	cp $(WASMBIN) ./web/
 
 
@@ -43,19 +43,19 @@ rls_setup:
 	mkdir -p dist/
 
 rls_win32:
-	$(ZIG) build -Dtarget=x86-windows-gnu --release=safe
+	$(ZIG) build -Dtarget=x86-windows-gnu -Doptimize=ReleaseSafe
 	mv zig-out/bin/pankti.exe dist/pankti-win32.exe
 
 rls_win64:
-	$(ZIG) build -Dtarget=x86_64-windows-gnu --release=safe
+	$(ZIG) build -Dtarget=x86_64-windows-gnu -Doptimize=ReleaseSafe
 	mv zig-out/bin/pankti.exe dist/pankti-win64.exe
 
 rls_linux32:
-	$(ZIG) build -Dtarget=x86-linux-gnu --release=safe
+	$(ZIG) build -Dtarget=x86-linux-gnu -Doptimize=ReleaseSafe
 	mv zig-out/bin/pankti dist/pankti-linux32
 
 rls_linux64:
-	$(ZIG) build -Dtarget=x86_64-linux-gnu --release=safe
+	$(ZIG) build -Dtarget=x86_64-linux-gnu -Doptimize=ReleaseSafe
 	mv zig-out/bin/pankti dist/pankti-linux64
 
 resobj:

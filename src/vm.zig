@@ -612,18 +612,28 @@ pub const Vm = struct {
             return false;
         };
 
+        var proxy = gcz.StdLibProxy.new(objmod.name.hash, objmod.name.chars);
+
         const index = self.gc.stdlibCount;
 
         if (!self.pushStdlib(importName)) {
             self.throwRuntimeError("No such stdlib module found", .{});
             return false;
         }
-        self.gc.stdlibs[index].owners.append(self.gc.hal(), self.cmod.hash) catch {
-            self.throwRuntimeError("failed to push owners", .{});
+        //self.gc.stdlibs[index].owners.append(self.gc.hal(), self.cmod.hash) catch {
+        //    self.throwRuntimeError("failed to push owners", .{});
+        //    return false;
+        //};
+        //self.gc.stdlibs[index].ownerCount += 1;
+        self.cmod.stdlibCount += 1;
+
+        proxy.originName = self.gc.stdlibs[index].name;
+        proxy.stdmod = &self.gc.stdlibs[index];
+
+        self.cmod.stdProxies.append(self.gc.hal(), proxy) catch {
+            self.throwRuntimeError("Failed to import stdlib with custom name", .{});
             return false;
         };
-        self.gc.stdlibs[index].ownerCount += 1;
-        self.cmod.stdlibCount += 1;
 
         _ = self.stack.pop() catch return false;
         _ = self.stack.pop() catch return false;
@@ -780,20 +790,26 @@ pub const Vm = struct {
         return null;
     }
 
-    fn getStdlibByHash(self: *Self, hash: u32, mod: *gcz.Module) ?*gcz.StdLibMod {
-        const modHash = mod.hash;
+    fn getModuleProxy(self: *Self, hash: u32) ?u32 {
         var i: usize = 0;
+        const proxies = self.cmod.stdProxies.items;
+        while (i < proxies.len) : (i += 1) {
+            const proxy = proxies[i];
 
+            if (proxy.proxyHash == hash) {
+                return proxy.stdmod.hash;
+            }
+        }
+
+        return null;
+    }
+
+    fn getStdlibByHash(self: *Self, hash: u32) ?*gcz.StdLibMod {
+        var i: usize = 0;
         while (i < self.gc.stdlibCount) : (i += 1) {
             const m = &self.gc.stdlibs[i];
-
             if (m.hash == hash) {
-                var j: usize = 0;
-                while (j < m.ownerCount) : (j += 1) {
-                    if (m.owners.items[j] == modHash) {
-                        return m;
-                    }
-                }
+                return m;
             }
         }
 
@@ -857,43 +873,54 @@ pub const Vm = struct {
                             return .RuntimeError;
                         }
                     } else {
-                        const rmod = self.getStdlibByHash(
+                        //std.debug.print("=>{any}\n", .{modObj.name.chars});
+                        const proxyHash = self.getModuleProxy(
                             modObj.name.hash,
-                            self.cmod,
                         );
 
-                        if (rmod) |stdmod| {
-                            if (stdmod.items.get(prop)) |value| {
-                                _ = self.stack.pop() catch {
-                                    self.throwRuntimeError(
-                                        "Failed to pop something",
-                                        .{},
-                                    );
-                                    return .RuntimeError;
-                                };
+                        if (proxyHash) |phash| {
+                            const rmod = self.getStdlibByHash(
+                                phash,
+                            );
 
-                                self.stack.push(value) catch {
+                            if (rmod) |stdmod| {
+                                if (stdmod.items.get(prop)) |value| {
+                                    _ = self.stack.pop() catch {
+                                        self.throwRuntimeError(
+                                            "Failed to pop something",
+                                            .{},
+                                        );
+                                        return .RuntimeError;
+                                    };
+
+                                    self.stack.push(value) catch {
+                                        self.throwRuntimeError(
+                                            "Push value",
+                                            .{},
+                                        );
+                                        return .RuntimeError;
+                                    };
+                                } else {
+                                    //self.debugStack();
+                                    //self.gc.printTable(frame.globals, "GLOBS");
                                     self.throwRuntimeError(
-                                        "Push value",
+                                        "undefined stdlib mod variable",
                                         .{},
                                     );
+
                                     return .RuntimeError;
-                                };
+                                }
                             } else {
                                 //self.debugStack();
                                 //self.gc.printTable(frame.globals, "GLOBS");
                                 self.throwRuntimeError(
-                                    "undefined stdlib mod variable",
+                                    "module not found",
                                     .{},
                                 );
-
-                                return .RuntimeError;
                             }
                         } else {
-                            //self.debugStack();
-                            //self.gc.printTable(frame.globals, "GLOBS");
                             self.throwRuntimeError(
-                                "module not found",
+                                "module not found with such custom name",
                                 .{},
                             );
                         }
