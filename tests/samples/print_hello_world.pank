@@ -1,1 +1,1 @@
-show("hello" + " world")
+দেখাও("hello" + " world")

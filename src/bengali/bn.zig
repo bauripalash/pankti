@@ -22,12 +22,28 @@ pub const BN_RANGE_START = 0x0980;
 pub const BN_RANGE_END = 0x09FE;
 
 /// Cheks if `c`, a UTF-32 encoded `char` is a valid bengali number
-pub fn isBnNumber(c: u32) bool {
+pub inline fn isBnNumber(c: u32) bool {
     return c >= BN_NUM_0 and c <= BN_NUM_9;
 }
 
 /// Check if `c` is in bengali unicode range;
 /// Doesn't check for invalid or reserved chars
-pub fn isBnChar(c: u32) bool {
+pub inline fn isBnChar(c: u32) bool {
     return c >= BN_RANGE_START and c <= BN_RANGE_END;
+}
+
+pub inline fn bnToEnNum(c: u32) u32 {
+    return switch (c) {
+        BN_NUM_0 => '0',
+        BN_NUM_1 => '1',
+        BN_NUM_2 => '2',
+        BN_NUM_3 => '3',
+        BN_NUM_4 => '4',
+        BN_NUM_5 => '5',
+        BN_NUM_6 => '6',
+        BN_NUM_7 => '7',
+        BN_NUM_8 => '8',
+        BN_NUM_9 => '9',
+        else => c,
+    };
 }

@@ -388,14 +388,10 @@ pub const Gc = struct {
         return self.newString(mem_chars, len);
     }
 
-    pub fn copyStringU8(self: *Gc, chars: []const u8, len: u32) ?*PObj.OString {
-        _ = len;
+    pub fn copyStringU8(self: *Gc, chars: []const u8, len: u32) !*PObj.OString {
+        const msg32 = try utils.u8tou32(chars, self.hal());
 
-        const msg32 = utils.u8tou32(chars, self.hal()) catch {
-            return null;
-        };
-
-        const result = self.copyString(msg32, @intCast(msg32.len)) catch return null;
+        const result = try self.copyString(msg32, len);
 
         self.hal().free(msg32);
 
@@ -412,11 +408,13 @@ pub const Gc = struct {
     }
 
     pub fn makeString(self: *Gc, chars: []const u8) PValue {
-        if (self.copyStringU8(chars, 0)) |s| {
-            return PValue.makeObj(s.parent());
-        } else {
+        const s = self.copyStringU8(
+            chars,
+            @truncate(@as(u32, @intCast(chars.len))),
+        ) catch {
             return PValue.makeNil();
-        }
+        };
+        return PValue.makeObj(s.parent());
     }
 
     pub fn printTable(self: *Self, tab: *table.PankTable(), tabname: []const u8) void {

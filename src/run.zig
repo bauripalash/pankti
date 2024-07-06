@@ -19,8 +19,11 @@ const writer = @import("writer.zig");
 const openfile = @import("openfile.zig").openfile;
 
 fn _run(rawSource: []const u8, gc: *Gc) bool {
-    const source = utils.u8tou32(rawSource, gc.hal()) catch {
-        std.debug.print("Failed to convert UTF-8 encoded source to UTF-32 encoded text\n", .{});
+    const source = utils.u8tou32(rawSource, gc.hal()) catch |e| {
+        std.debug.print(
+            "Failed to convert UTF-8 encoded source to UTF-32 encoded text : {any}\n",
+            .{e},
+        );
         return false;
     };
 

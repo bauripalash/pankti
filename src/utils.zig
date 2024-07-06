@@ -11,6 +11,7 @@ const std = @import("std");
 const builtin = @import("builtin");
 const writer = @import("writer.zig");
 const Gc = @import("gc.zig").Gc;
+const bn = @import("bengali/bn.zig");
 
 pub extern fn getTimestamp() usize;
 
@@ -18,43 +19,119 @@ pub fn isInt(v: f64) bool {
     return @ceil(v) == v;
 }
 
+pub fn asInt(v: f64) i64 {
+    return @intFromFloat(@ceil(v));
+}
+
+pub fn asUint(v: f64) u64 {
+    return @abs(asInt(v));
+}
+
+pub fn strBnToEnNum(al: std.mem.Allocator, input: []const u32, len: usize) ![]u8 {
+    var i: usize = 0;
+    const result = try al.alloc(u32, len);
+    while (i < len) : (i += 1) {
+        result[i] = bn.bnToEnNum(input[i]);
+    }
+
+    return result;
+}
+
+pub const UTFError = error{
+    InvalidUTF8ByteLength,
+};
+
+pub fn getUtf32LenFor8(input: []const u8, len: usize) UTFError!usize {
+    var result: usize = 0;
+    var index: usize = 0;
+
+    while (index < len) {
+        const b = input[index];
+        const blen = std.unicode.utf8ByteSequenceLength(b) catch {
+            return UTFError.InvalidUTF8ByteLength;
+        };
+
+        index += blen;
+        result += 1;
+    }
+
+    return result;
+}
+
 /// Convert a UTF-8 encoded string to UTF-32 encoded string
 /// You must free the result
 pub fn u8tou32(input: []const u8, alc: std.mem.Allocator) ![]u32 {
     const inputLen = input.len;
-    var ustr = try alc.alloc(u32, inputLen);
+    const outLen = try getUtf32LenFor8(input, inputLen);
+    var ustr = try alc.alloc(u32, outLen);
     var outindex: usize = 0;
     var index: usize = 0;
-    while (index < inputLen) {
+
+    while (index < inputLen and outindex < outLen) {
         const bt = input[index];
-        var cp: u32 = 0;
-        if (bt <= 0x80) {
+        var cp: u21 = 0;
+        const byteLen = std.unicode.utf8ByteSequenceLength(bt) catch {
+            return UTFError.InvalidUTF8ByteLength;
+        };
+
+        if (byteLen == 1) {
             cp = @intCast(bt);
             index += 1;
-        } else if (bt > 0xE0) {
-            const x: u32 = @intCast(bt & 0x1F);
-            cp |= @intCast(x << 6);
-            cp |= @intCast(input[index + 1] & 0x3F);
+        } else if (byteLen == 2) {
+            cp = try std.unicode.utf8Decode2(&[2]u8{ bt, input[index + 1] });
             index += 2;
-        } else if (bt < 0xF0) {
-            const x: u32 = @intCast(bt & 0x0F);
-            cp |= @intCast(x << 12);
-            const y: u32 = @intCast(input[index + 1] & 0x3F);
-            cp |= @intCast(y << 6);
-            cp |= @intCast(input[index + 2] & 0x3F);
+        } else if (byteLen == 3) {
+            cp = try std.unicode.utf8Decode3(&[3]u8{
+                bt,
+                input[index + 1],
+                input[index + 2],
+            });
             index += 3;
         } else {
-            cp |= @as(u32, @intCast(bt & 0x07)) << 18;
-            cp |= @as(u32, @intCast(input[index + 1] & 0x3F)) << 12;
-            cp |= @as(u32, @intCast(input[index + 2] & 0x3F)) << 6;
-            cp |= @as(u32, @intCast(input[index + 3] & 0x3F));
-            index += 4;
+            cp = try std.unicode.utf8Decode4(&[4]u8{
+                bt,
+                input[index + 1],
+                input[index + 2],
+                input[index + 3],
+            });
         }
-        ustr[outindex] = cp;
+
+        ustr[outindex] = @intCast(cp);
         outindex += 1;
     }
-    ustr = alc.realloc(ustr, outindex) catch ustr;
+
+    //ustr = alc.realloc(ustr, outindex) catch ustr;
     return ustr;
+
+    //while (index < inputLen) {
+    //    const bt = input[index];
+    //    var cp: u32 = 0;
+    //    if (bt <= 0x80) {
+    //        cp = @intCast(bt);
+    //        index += 1;
+    //    } else if (bt > 0xE0) {
+    //        const x: u32 = @intCast(bt & 0x1F);
+    //        cp |= @intCast(x << 6);
+    //        cp |= @intCast(input[index + 1] & 0x3F);
+    //        index += 2;
+    //    } else if (bt < 0xF0) {
+    //        const x: u32 = @intCast(bt & 0x0F);
+    //        cp |= @intCast(x << 12);
+    //        const y: u32 = @intCast(input[index + 1] & 0x3F);
+    //        cp |= @intCast(y << 6);
+    //        cp |= @intCast(input[index + 2] & 0x3F);
+    //        index += 3;
+    //    } else {
+    //        cp |= @as(u32, @intCast(bt & 0x07)) << 18;
+    //        cp |= @as(u32, @intCast(input[index + 1] & 0x3F)) << 12;
+    //        cp |= @as(u32, @intCast(input[index + 2] & 0x3F)) << 6;
+    //        cp |= @as(u32, @intCast(input[index + 3] & 0x3F));
+    //        index += 4;
+    //    }
+    //    ustr[outindex] = cp;
+    //    outindex += 1;
+    //}
+
 }
 
 /// Convert UTF-32 encoded string to UTF-8 encoded string
@@ -238,230 +315,83 @@ test "test utils->u8tou32->english" {
 
 test "test utils->u8tou32->bengali" {
     const al = std.testing.allocator;
-    const text =
-        \\জীর্ণ পৃথিবীতে ব্যর্থ, মৃত আর ধ্বংসস্তূপ-পিঠে
-        \\ চলে যেতে হবে আমাদের।
-        \\ চলে যাব- তবু আজ যতক্ষণ দেহে আছে প্রাণ
-        \\ প্রাণপণে পৃথিবীর সরাব জঞ্জাল,
-        \\ এ বিশ্বকে এ শিশুর বাসযোগ্য ক’রে যাব আমি
-        \\নবজাতকের কাছে এ আমার দৃঢ় অঙ্গীকার।
-    ;
+    const text = "এ বিশ্বকে এ শিশুর বাসযোগ্য করে যাব আমি\nনবজাতকের কাছে এ আমার দৃঢ় অঙ্গীকার";
     const textU32 = try u8tou32(text, al);
 
     const textU32X = [_]u32{
-        2460,
-        2496,
-        2480,
-        2509,
-        2467,
-        32,
-        2474,
-        2499,
-        2469,
-        2495,
-        2476,
-        2496,
-        2468,
-        2503,
-        32,
-        2476,
-        2509,
-        2479,
-        2480,
-        2509,
-        2469,
-        44,
-        32,
-        2478,
-        2499,
-        2468,
-        32,
-        2438,
-        2480,
-        32,
-        2471,
-        2509,
-        2476,
-        2434,
-        2488,
-        2488,
-        2509,
-        2468,
-        2498,
-        2474,
-        45,
-        2474,
-        2495,
-        2464,
-        2503,
-        10,
-        32,
-        2458,
-        2482,
-        2503,
-        32,
-        2479,
-        2503,
-        2468,
-        2503,
-        32,
-        2489,
-        2476,
-        2503,
-        32,
-        2438,
-        2478,
-        2494,
-        2470,
-        2503,
-        2480,
-        2404,
-        10,
-        32,
-        2458,
-        2482,
-        2503,
-        32,
-        2479,
-        2494,
-        2476,
-        45,
-        32,
-        2468,
-        2476,
-        2497,
-        32,
-        2438,
-        2460,
-        32,
-        2479,
-        2468,
-        2453,
-        2509,
-        2487,
-        2467,
-        32,
-        2470,
-        2503,
-        2489,
-        2503,
-        32,
-        2438,
-        2459,
-        2503,
-        32,
-        2474,
-        2509,
-        2480,
-        2494,
-        2467,
-        10,
-        32,
-        2474,
-        2509,
-        2480,
-        2494,
-        2467,
-        2474,
-        2467,
-        2503,
-        32,
-        2474,
-        2499,
-        2469,
-        2495,
-        2476,
-        2496,
-        2480,
-        32,
-        2488,
-        2480,
-        2494,
-        2476,
-        32,
-        2460,
-        2462,
-        2509,
-        2460,
-        2494,
-        2482,
-        44,
-        10,
-        32,
-        2447,
-        32,
-        2476,
-        2495,
-        2486,
-        2509,
-        2476,
-        2453,
-        2503,
-        32,
-        2447,
-        32,
-        2486,
-        2495,
-        2486,
-        2497,
-        2480,
-        32,
-        2476,
-        2494,
-        2488,
-        2479,
-        2507,
-        2455,
-        2509,
-        2479,
-        32,
-        2453,
-        128,
-        38950,
-        2087,
-        30752,
-        27616,
-        28576,
-        27424,
-        2438,
-        2478,
-        2495,
-        10,
-        2472,
-        2476,
-        2460,
-        2494,
-        2468,
-        2453,
-        2503,
-        2480,
-        32,
-        2453,
-        2494,
-        2459,
-        2503,
-        32,
-        2447,
-        32,
-        2438,
-        2478,
-        2494,
-        2480,
-        32,
-        2470,
-        2499,
-        2466,
-        2492,
-        32,
-        2437,
-        2457,
-        2509,
-        2455,
-        2496,
-        2453,
-        2494,
-        2480,
-        2404,
+        0x098f,
+        0x0020,
+        0x09ac,
+        0x09bf,
+        0x09b6,
+        0x09cd,
+        0x09ac,
+        0x0995,
+        0x09c7,
+        0x0020,
+        0x098f,
+        0x0020,
+        0x09b6,
+        0x09bf,
+        0x09b6,
+        0x09c1,
+        0x09b0,
+        0x0020,
+        0x09ac,
+        0x09be,
+        0x09b8,
+        0x09af,
+        0x09cb,
+        0x0997,
+        0x09cd,
+        0x09af,
+        0x0020,
+        0x0995,
+        0x09b0,
+        0x09c7,
+        0x0020,
+        0x09af,
+        0x09be,
+        0x09ac,
+        0x0020,
+        0x0986,
+        0x09ae,
+        0x09bf,
+        0x000a,
+        0x09a8,
+        0x09ac,
+        0x099c,
+        0x09be,
+        0x09a4,
+        0x0995,
+        0x09c7,
+        0x09b0,
+        0x0020,
+        0x0995,
+        0x09be,
+        0x099b,
+        0x09c7,
+        0x0020,
+        0x098f,
+        0x0020,
+        0x0986,
+        0x09ae,
+        0x09be,
+        0x09b0,
+        0x0020,
+        0x09a6,
+        0x09c3,
+        0x09a2,
+        0x09bc,
+        0x0020,
+        0x0985,
+        0x0999,
+        0x09cd,
+        0x0997,
+        0x09c0,
+        0x0995,
+        0x09be,
+        0x09b0,
     };
 
     try std.testing.expectEqual(textU32X.len, textU32.len);

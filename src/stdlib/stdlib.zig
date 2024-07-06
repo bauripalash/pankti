@@ -162,6 +162,7 @@ pub fn pushStdlibString(v: *vm.Vm) void {
     _pushStdlib(v, stringMod.Name, &[_]msl{
         msl.m(stringMod.NameFuncSplit, stringMod.str_Split),
         msl.m(stringMod.NameFuncString, stringMod.str_String),
+        msl.m(stringMod.NameFuncUnicode, stringMod.str_Unicode),
     });
 }
 

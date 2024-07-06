@@ -27,6 +27,69 @@ pub const Name = &[_]u32{
     0x0982,
 };
 
+pub const NameFuncUnicode = &[_]u32{
+    0x0987,
+    0x0989,
+    0x09a8,
+    0x09bf,
+    0x0995,
+    0x09cb,
+    0x09a1,
+};
+
+pub fn str_Unicode(vm: *Vm, argc: u8, values: []PValue) PValue {
+    if (argc != 1) {
+        return PValue.makeComptimeError(
+            vm.gc,
+            "Unicode Function takes a single argument",
+            .{},
+        ).?;
+    }
+
+    const rawUc = values[0];
+
+    if (!rawUc.isNumber()) {
+        return PValue.makeComptimeError(
+            vm.gc,
+            "First argument must be number",
+            .{},
+        ).?;
+    }
+
+    const raw_num = rawUc.asNumber();
+
+    if (!utils.isInt(raw_num)) {
+        return PValue.makeComptimeError(
+            vm.gc,
+            "Unicode number must be a integer",
+            .{},
+        ).?;
+    }
+
+    const number = utils.asInt(raw_num);
+
+    if (number < 0 or number > 1114111) {
+        return PValue.makeComptimeError(
+            vm.gc,
+            "Invalid unicode codepoint",
+            .{},
+        ).?;
+    }
+
+    const r = vm.gc.copyString(
+        &[1]u32{@intCast(utils.asUint(raw_num))},
+        1,
+    ) catch {
+        return PValue.makeComptimeError(
+            vm.gc,
+            "Failed to create string from unicode codepoint",
+            .{},
+        ).?;
+    };
+
+    return PValue.makeObj(r.parent());
+}
+
 pub const NameFuncString = &[_]u32{
     0x09b8,
     0x09cd,
