@@ -389,9 +389,10 @@ pub const Gc = struct {
     }
 
     pub fn copyStringU8(self: *Gc, chars: []const u8, len: u32) !*PObj.OString {
+        _ = len;
         const msg32 = try utils.u8tou32(chars, self.hal());
 
-        const result = try self.copyString(msg32, len);
+        const result = try self.copyString(msg32, @truncate(msg32.len));
 
         self.hal().free(msg32);
 

@@ -45,7 +45,8 @@ pub fn os_Name(vm: *Vm, argc: u8, values: []PValue) PValue {
             "অজানা",
     };
 
-    return vm.gc.makeString(nm);
+    const obj = vm.gc.copyStringU8(nm, nm.len) catch return PValue.makeNil();
+    return PValue.makeObj(obj.parent());
 }
 
 pub const NameFuncArch = &[_]u32{ 0x0986, 0x09b0, 0x09cd, 0x099a };

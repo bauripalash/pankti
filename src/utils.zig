@@ -39,6 +39,7 @@ pub fn strBnToEnNum(al: std.mem.Allocator, input: []const u32, len: usize) ![]u8
 
 pub const UTFError = error{
     InvalidUTF8ByteLength,
+    InvalidUTF32Byte,
 };
 
 pub fn getUtf32LenFor8(input: []const u8, len: usize) UTFError!usize {
@@ -53,6 +54,19 @@ pub fn getUtf32LenFor8(input: []const u8, len: usize) UTFError!usize {
 
         index += blen;
         result += 1;
+    }
+
+    return result;
+}
+
+pub fn getUTF8LenFor32(input: []const u32) UTFError!usize {
+    var result: usize = 0;
+
+    for (input) |c32| {
+        const char: u21 = @truncate(c32);
+        result += std.unicode.utf8CodepointSequenceLength(char) catch {
+            return UTFError.InvalidUTF32Byte;
+        };
     }
 
     return result;
@@ -100,38 +114,7 @@ pub fn u8tou32(input: []const u8, alc: std.mem.Allocator) ![]u32 {
         outindex += 1;
     }
 
-    //ustr = alc.realloc(ustr, outindex) catch ustr;
     return ustr;
-
-    //while (index < inputLen) {
-    //    const bt = input[index];
-    //    var cp: u32 = 0;
-    //    if (bt <= 0x80) {
-    //        cp = @intCast(bt);
-    //        index += 1;
-    //    } else if (bt > 0xE0) {
-    //        const x: u32 = @intCast(bt & 0x1F);
-    //        cp |= @intCast(x << 6);
-    //        cp |= @intCast(input[index + 1] & 0x3F);
-    //        index += 2;
-    //    } else if (bt < 0xF0) {
-    //        const x: u32 = @intCast(bt & 0x0F);
-    //        cp |= @intCast(x << 12);
-    //        const y: u32 = @intCast(input[index + 1] & 0x3F);
-    //        cp |= @intCast(y << 6);
-    //        cp |= @intCast(input[index + 2] & 0x3F);
-    //        index += 3;
-    //    } else {
-    //        cp |= @as(u32, @intCast(bt & 0x07)) << 18;
-    //        cp |= @as(u32, @intCast(input[index + 1] & 0x3F)) << 12;
-    //        cp |= @as(u32, @intCast(input[index + 2] & 0x3F)) << 6;
-    //        cp |= @as(u32, @intCast(input[index + 3] & 0x3F));
-    //        index += 4;
-    //    }
-    //    ustr[outindex] = cp;
-    //    outindex += 1;
-    //}
-
 }
 
 /// Convert UTF-32 encoded string to UTF-8 encoded string
@@ -139,35 +122,47 @@ pub fn u8tou32(input: []const u8, alc: std.mem.Allocator) ![]u32 {
 pub fn u32tou8(
     input: []const u32,
     al: std.mem.Allocator,
-) std.mem.Allocator.Error![]u8 {
-    const len32 = input.len;
-    var u8str = try al.alloc(u8, len32 * 4);
+) anyerror![]u8 {
+    const u8Len = try getUTF8LenFor32(input);
+    var u8str = try al.alloc(u8, u8Len);
 
     var i: usize = 0;
-    for (input) |value| {
-        //std.debug.print("\n->{any}|{}\n", .{value , value});
-        if (value <= 0x7F) {
-            u8str[i] = @intCast(value); //1
-            i += 1;
-        } else if (value <= 0x7FF) {
-            u8str[i] = (0xC0 | @as(u8, @intCast((value >> 6) & 0x1F)));
-            u8str[i + 1] = (0x80 | @as(u8, @intCast(value & 0x3F)));
-            i += 2;
-        } else if (value <= 0xFFFF) {
-            u8str[i] = (0xE0 | @as(u8, @intCast((value >> 12) & 0x0F)));
-            u8str[i + 1] = (0x80 | @as(u8, @intCast((value >> 6) & 0x3F)));
-            u8str[i + 2] = (0x80 | @as(u8, @intCast(value & 0x3F)));
-            i += 3;
-        } else {
-            u8str[i] = (0xF0 | @as(u8, @intCast((value >> 18) & 0x07)));
-            u8str[i + 1] = (0x80 | @as(u8, @intCast((value >> 12) & 0x3F)));
-            u8str[i + 2] = (0x80 | @as(u8, @intCast((value >> 6) & 0x3F)));
-            u8str[i + 3] = (0x80 | @as(u8, @intCast(value & 0x3F)));
-            i += 4;
-        }
+
+    for (input) |c32| {
+        const char: u21 = @truncate(c32);
+
+        const l = try std.unicode.utf8CodepointSequenceLength(char);
+        //std.debug.print("\n{d}|L->{d}\n", .{ u8Len, l });
+        _ = try std.unicode.utf8Encode(char, u8str[i..]);
+        i += l;
     }
 
-    u8str = al.realloc(u8str, i) catch u8str;
+    //var i: usize = 0;
+    //for (input) |value| {
+    //    //std.debug.print("\n->{any}|{}\n", .{value , value});
+    //    if (value <= 0x7F) {
+    //        u8str[i] = @intCast(value); //1
+    //        i += 1;
+    //    } else if (value <= 0x7FF) {
+    //        u8str[i] = (0xC0 | @as(u8, @intCast((value >> 6) & 0x1F)));
+    //        u8str[i + 1] = (0x80 | @as(u8, @intCast(value & 0x3F)));
+    //        i += 2;
+    //    } else if (value <= 0xFFFF) {
+    //        u8str[i] = (0xE0 | @as(u8, @intCast((value >> 12) & 0x0F)));
+    //        u8str[i + 1] = (0x80 | @as(u8, @intCast((value >> 6) & 0x3F)));
+    //        u8str[i + 2] = (0x80 | @as(u8, @intCast(value & 0x3F)));
+    //        i += 3;
+    //    } else {
+    //        u8str[i] = (0xF0 | @as(u8, @intCast((value >> 18) & 0x07)));
+    //        u8str[i + 1] = (0x80 | @as(u8, @intCast((value >> 12) & 0x3F)));
+    //        u8str[i + 2] = (0x80 | @as(u8, @intCast((value >> 6) & 0x3F)));
+    //        u8str[i + 3] = (0x80 | @as(u8, @intCast(value & 0x3F)));
+    //        i += 4;
+    //    }
+    //}
+
+    //u8str = al.realloc(u8str, i) catch u8str;
+    //std.debug.print("-->string-->|<{d}> => <{d}>|{s}\n\n", .{ len32, i, u8str });
 
     return u8str;
 }
