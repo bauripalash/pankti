@@ -130,15 +130,15 @@ fn isValidIdentChar(c: u32) bool {
 }
 
 pub const Token = struct {
-    lexeme: []const u32,
+    lexeme: []const u8,
     toktype: TokenType,
-    length: u32,
-    colpos: u32,
-    line: u32,
+    length: usize,
+    colpos: usize,
+    line: usize,
 
     pub fn dummy() Token {
         return Token{
-            .lexeme = &[_]u32{'_'},
+            .lexeme = "_",
             .toktype = .Err,
             .length = 1,
             .colpos = 1,
@@ -159,17 +159,21 @@ pub const Token = struct {
 };
 
 pub const Lexer = struct {
-    src: []u32,
-    start: u32,
-    current: u32,
-    line: u32,
-    colpos: u32,
+    src: []const u8,
+    uview: std.unicode.Utf8View,
+    it: std.unicode.Utf8Iterator,
+    start: usize,
+    current: usize,
+    line: usize,
+    colpos: usize,
 
     const Self = @This();
 
     pub fn dummy() Lexer {
         return Lexer{
             .src = undefined,
+            .uview = undefined,
+            .it = undefined,
             .start = 0,
             .line = 1,
             .colpos = 1,
@@ -177,43 +181,68 @@ pub const Lexer = struct {
         };
     }
 
-    pub fn new(src: []u32) Lexer {
-        return Lexer{
+    pub fn new(src: []const u8) Lexer {
+        var lx = Lexer{
             .src = src,
+            .uview = undefined,
+            .it = undefined,
             .start = 0,
             .line = 1,
             .colpos = 1,
             .current = 0,
         };
+
+        lx.uview = std.unicode.Utf8View.initUnchecked(lx.src);
+        lx.it = lx.uview.iterator();
+
+        return lx;
     }
 
-    fn next(self: *Lexer) u32 {
-        self.colpos += 1;
-        self.current += 1;
-        return self.src[self.current - 1];
+    fn next(self: *Lexer) u21 {
+        const j = self.it.i;
+        if (self.it.nextCodepoint()) |cp| {
+            self.colpos += 1; //It's kinda wrong
+            self.current += (self.it.i - j);
+            return cp;
+        }
+        //self.colpos += 1;
+        //self.current += 1;
+        //return self.src[self.current - 1];
+
+        return 0;
     }
 
-    fn peek(self: *Lexer) u32 {
-        if (self.isEof()) return 0x04;
-        return self.src[self.current];
+    fn _peek(self: *Self, n: usize) u21 {
+        if (self.isEof()) return 0;
+        return std.unicode.utf8Decode(self.it.peek(n)) catch {
+            return 0;
+        };
+    }
+
+    fn peek(self: *Lexer) u21 {
+        //if (self.isEof()) return 0x04;
+        //return self.src[self.current];
+        return self._peek(1);
     }
 
     fn peekNext(self: *Lexer) u32 {
-        if (self.isEof()) {
-            return 0;
-        }
-        return self.src[self.current + 1];
+        //if (self.isEof()) {
+        //    return 0;
+        //}
+        //return self.src[self.current + 1];
+        return self._peek(2);
     }
 
     pub fn isEof(self: *Lexer) bool {
-        return self.current >= self.src.len;
+        //return self.current >= self.src.len;
+        return self.it.i >= self.src.len;
     }
 
-    fn makeToken(self: *Lexer, tt: TokenType) Token {
+    fn makeToken(self: *Lexer, tt: TokenType, single: bool) Token {
         return Token{
             .toktype = tt,
             .lexeme = self.src[self.start..self.current],
-            .length = self.current - self.start,
+            .length = if (single) 1 else (self.current - self.start),
             .colpos = self.colpos,
             .line = self.line,
         };
@@ -262,7 +291,7 @@ pub const Lexer = struct {
 
         self.start = self.current;
         if (self.isEof()) {
-            return self.makeToken(TokenType.Eof);
+            return self.makeToken(TokenType.Eof, true);
         }
 
         const c = self.next();
@@ -276,67 +305,67 @@ pub const Lexer = struct {
         }
 
         switch (c) {
-            '(' => return self.makeToken(.Lparen),
-            ')' => return self.makeToken(.Rparen),
-            '{' => return self.makeToken(.Lbrace),
-            '}' => return self.makeToken(.Rbrace),
-            '[' => return self.makeToken(.LsBracket),
-            ']' => return self.makeToken(.RsBracket),
-            '-' => return self.makeToken(.Minus),
-            '+' => return self.makeToken(.Plus),
-            '/' => return self.makeToken(.Slash),
-            '%' => return self.makeToken(.Mod),
+            '(' => return self.makeToken(.Lparen, true),
+            ')' => return self.makeToken(.Rparen, true),
+            '{' => return self.makeToken(.Lbrace, true),
+            '}' => return self.makeToken(.Rbrace, true),
+            '[' => return self.makeToken(.LsBracket, true),
+            ']' => return self.makeToken(.RsBracket, true),
+            '-' => return self.makeToken(.Minus, true),
+            '+' => return self.makeToken(.Plus, true),
+            '/' => return self.makeToken(.Slash, true),
+            '%' => return self.makeToken(.Mod, true),
             '*' => {
                 if (self.matchChar('*')) {
-                    return self.makeToken(.PowAstr);
+                    return self.makeToken(.PowAstr, false);
                 } else {
-                    return self.makeToken(.Astr);
+                    return self.makeToken(.Astr, false);
                 }
             },
-            '.' => return self.makeToken(.Dot),
-            ';' => return self.makeToken(.Semicolon),
-            ':' => return self.makeToken(.Colon),
-            ',' => return self.makeToken(.Comma),
+            '.' => return self.makeToken(.Dot, true),
+            ';' => return self.makeToken(.Semicolon, true),
+            ':' => return self.makeToken(.Colon, true),
+            ',' => return self.makeToken(.Comma, true),
             '"' => return self.readStringToken(),
 
             '!' => {
                 if (self.matchChar('=')) {
-                    return self.makeToken(.NotEqual);
+                    return self.makeToken(.NotEqual, false);
                 } else {
-                    return self.makeToken(.Bang);
+                    return self.makeToken(.Bang, true);
                 }
             },
 
             '=' => {
                 if (self.matchChar('=')) {
-                    return self.makeToken(.EqEq);
+                    return self.makeToken(.EqEq, false);
                 } else {
-                    return self.makeToken(.Eq);
+                    return self.makeToken(.Eq, true);
                 }
             },
 
             '>' => {
                 if (self.matchChar('=')) {
-                    return self.makeToken(.Gte);
+                    return self.makeToken(.Gte, false);
                 } else {
-                    return self.makeToken(.Gt);
+                    return self.makeToken(.Gt, true);
                 }
             },
 
             '<' => {
                 if (self.matchChar('=')) {
-                    return self.makeToken(.Lte);
+                    return self.makeToken(.Lte, false);
                 } else {
-                    return self.makeToken(.Lt);
+                    return self.makeToken(.Lt, true);
                 }
             },
 
             else => {
-                return self.makeToken(TokenType.Unknown);
+                return self.makeToken(TokenType.Unknown, true);
             },
         }
 
-        return self.makeToken(TokenType.Unknown);
+        return self.makeToken(TokenType.Unknown, true);
     }
 
     fn readStringToken(self: *Self) Token {
@@ -357,7 +386,7 @@ pub const Lexer = struct {
         return self.makeStringToken(colpos, line);
     }
 
-    fn makeStringToken(self: *Self, colpos: u32, line: u32) Token {
+    fn makeStringToken(self: *Self, colpos: usize, line: usize) Token {
         return Token{
             .lexeme = self.src[self.start..self.current],
             .toktype = .String,
@@ -382,13 +411,8 @@ pub const Lexer = struct {
 
         return self.makeNumberToken(colpos);
     }
-    fn makeNumberToken(self: *Lexer, colpos: u32) Token {
-        var lexeme = self.src[self.start..self.current];
-        var i: usize = 0;
-        while (i < lexeme.len) : (i += 1) {
-            lexeme[i] = bn.bnToEnNum(lexeme[i]);
-        }
-
+    fn makeNumberToken(self: *Lexer, colpos: usize) Token {
+        const lexeme = self.src[self.start..self.current];
         return Token{
             .toktype = .Number,
             .lexeme = lexeme,
@@ -616,10 +640,10 @@ pub const Lexer = struct {
         return .Identifer;
     }
 
-    fn makeIdentifierToken(self: *Self, colpos: u32) Token {
+    fn makeIdentifierToken(self: *Self, colpos: usize) Token {
         const lexeme = self.src[self.start..self.current];
         return Token{
-            .toktype = self.getIdentifierType(lexeme),
+            .toktype = .Identifer, //self.getIdentifierType(lexeme),
             .lexeme = lexeme,
             .line = self.line,
             .colpos = colpos,
@@ -642,7 +666,7 @@ pub const Lexer = struct {
 
 fn tx(t: TokenType) Token {
     return Token{
-        .lexeme = &[_]u32{'1'},
+        .lexeme = &[_]u8{'1'},
         .toktype = t,
         .length = 0,
         .colpos = 0,
@@ -652,9 +676,7 @@ fn tx(t: TokenType) Token {
 
 test "lexer TokenType testing" {
     const rawSource = "show(1+2);";
-    var a = std.testing.allocator;
-    const source: []u32 = try utils.u8tou32(rawSource, a);
-    var Lx = Lexer.new(source);
+    var Lx = Lexer.new(rawSource);
 
     const toks: []const Token = &[_]Token{
         tx(.Identifer),
@@ -670,6 +692,4 @@ test "lexer TokenType testing" {
         const tr = Lx.getToken();
         try std.testing.expectEqual(t.toktype, tr.toktype);
     }
-
-    a.free(source);
 }

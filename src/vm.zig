@@ -106,7 +106,7 @@ pub const Vm = struct {
         ) catch return;
     }
 
-    pub fn interpret(self: *Self, source: []u32) IntrpResult {
+    pub fn interpret(self: *Self, source: []const u8) IntrpResult {
         self.compiler = Compiler.new(
             source,
             self.gc,

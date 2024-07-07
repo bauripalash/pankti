@@ -19,13 +19,13 @@ const writer = @import("writer.zig");
 const openfile = @import("openfile.zig").openfile;
 
 fn _run(rawSource: []const u8, gc: *Gc) bool {
-    const source = utils.u8tou32(rawSource, gc.hal()) catch |e| {
-        std.debug.print(
-            "Failed to convert UTF-8 encoded source to UTF-32 encoded text : {any}\n",
-            .{e},
-        );
-        return false;
-    };
+    //const source = utils.u8tou32(rawSource, gc.hal()) catch |e| {
+    //    std.debug.print(
+    //        "Failed to convert UTF-8 encoded source to UTF-32 encoded text : {any}\n",
+    //        .{e},
+    //    );
+    //    return false;
+    //};
 
     var myVm = Vm.newVm(gc.hal()) catch {
         std.debug.print("Failed to create a Vm\n", .{});
@@ -34,10 +34,10 @@ fn _run(rawSource: []const u8, gc: *Gc) bool {
 
     myVm.bootVm(gc);
 
-    const result = myVm.interpret(source);
+    const result = myVm.interpret(rawSource);
 
     myVm.freeVm(gc.hal());
-    gc.hal().free(source);
+    //gc.hal().free(source);
     if (flags.DEBUG_FINAL) {
         std.debug.print("VM RESULT -> {s}\n", .{result.toString()});
     }

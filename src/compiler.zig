@@ -241,7 +241,7 @@ pub const Compiler = struct {
         var local = &c.locals[0];
         c.localCount = 1;
         local.depth = @intCast(enclosing.?.scopeDepth);
-        local.name.lexeme = &[_]u32{};
+        local.name.lexeme = &[_]u8{};
         local.name.length = 0;
         local.isCaptured = false;
 
@@ -269,7 +269,7 @@ pub const Compiler = struct {
         return c;
     }
 
-    pub fn new(source: []u32, gc: *Gc, ftype: FnType) !*Compiler {
+    pub fn new(source: []const u8, gc: *Gc, ftype: FnType) !*Compiler {
         const c = try gc.getAlc().create(Compiler);
 
         c.* = .{
@@ -300,7 +300,7 @@ pub const Compiler = struct {
         c.*.function.init(c.gc);
         //c.*.gc.compiler = c;
         c.*.locals[c.localCount].depth = 0;
-        c.*.locals[c.localCount].name.lexeme = &[_]u32{};
+        c.*.locals[c.localCount].name.lexeme = &[_]u8{};
         c.*.locals[c.localCount].name.length = 0;
 
         c.*.localCount += 1;
@@ -1309,7 +1309,7 @@ pub const Compiler = struct {
         return f;
     }
 
-    pub fn compile(self: *Self, source: []u32) !?*PObj.OFunction {
+    pub fn compile(self: *Self, source: []const u8) !?*PObj.OFunction {
         self.parser.init(source, self.gc);
         //self.inst = inst;
 
@@ -1369,7 +1369,7 @@ pub const Parser = struct {
 
     const Self = @This();
 
-    pub fn new(source: []u32, gc: *Gc) Allocator.Error!*Parser {
+    pub fn new(source: []const u8, gc: *Gc) Allocator.Error!*Parser {
         const p = try gc.getAlc().create(Parser);
         p.* = .{
             .current = lexer.Token.dummy(),
@@ -1383,7 +1383,7 @@ pub const Parser = struct {
         return p;
     }
 
-    pub fn init(self: *Self, source: []u32, gc: *Gc) void {
+    pub fn init(self: *Self, source: []const u8, gc: *Gc) void {
         if (flags.DEBUG and flags.DEBUG_LEXER) {
             var lx = lexer.Lexer.new(source);
             while (!lx.isEof()) {
