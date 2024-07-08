@@ -121,11 +121,11 @@ pub fn toktypeToString(t: TokenType) []const u8 {
     };
 }
 
-fn isValidNumber(c: u32) bool {
+fn isValidNumber(c: u21) bool {
     return utils.isEnNum(c) or bn.isBnNumber(c);
 }
 
-fn isValidIdentChar(c: u32) bool {
+fn isValidIdentChar(c: u21) bool {
     return utils.isValidEn(c) or bn.isBnChar(c);
 }
 
@@ -219,7 +219,7 @@ pub const Lexer = struct {
         return self._peek(1);
     }
 
-    fn peekNext(self: *Lexer) u32 {
+    fn peekNext(self: *Lexer) u21 {
         //if (self.isEof()) {
         //    return 0;
         //}
@@ -269,14 +269,15 @@ pub const Lexer = struct {
         }
     }
 
-    fn matchChar(self: *Self, c: u32) bool {
+    fn matchChar(self: *Self, c: u21) bool {
         if (self.isEof()) {
             return false;
         }
-        if (self.src[self.current] != c) {
+        if (self.peek() != c) {
             return false;
         }
-        self.current += 1;
+        //self.current += 1;
+        _ = self.next();
         return true;
     }
 
@@ -564,9 +565,8 @@ pub const Lexer = struct {
     pub fn debug(self: *Lexer) void {
         while (!self.isEof()) {
             const tok = self.getToken();
-            std.io.getStdout().print("T['", .{}) catch return;
-            utils.printu32(tok.lexeme, std.io.getStdout().writer);
-            std.io.getStdOut().print("'|{}|{s}]\n", .{
+            std.io.getStdOut().print("T['{s}'|{d}|{s}]\n", .{
+                tok.lexeme,
                 tok.length,
                 toktypeToString(tok.toktype),
             }) catch return;
@@ -607,5 +607,32 @@ test "lexer TokenType testing" {
     for (toks) |t| {
         const tr = Lx.getToken();
         try std.testing.expectEqual(t.toktype, tr.toktype);
+    }
+}
+
+test "lexer double char tokens" {
+    const src = "let a = 2 ** 4; let b = a != 0; ";
+    var lx = Lexer.new(src);
+
+    const toks: []const Token = &[_]Token{
+        tx(.Let),
+        tx(.Identifer),
+        tx(.Eq),
+        tx(.Number),
+        tx(.PowAstr),
+        tx(.Number),
+        tx(.Semicolon),
+        tx(.Let),
+        tx(.Identifer),
+        tx(.Eq),
+        tx(.Identifer),
+        tx(.NotEqual),
+        tx(.Number),
+        tx(.Semicolon),
+    };
+
+    for (toks) |t| {
+        const tk = lx.getToken();
+        try std.testing.expectEqual(t.toktype, tk.toktype);
     }
 }
