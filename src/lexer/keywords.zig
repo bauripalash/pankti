@@ -7,86 +7,65 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
-pub const K_EN_LET = [_]u32{ 'l', 'e', 't' };
-pub const K_EN_SHOW = [_]u32{ 's', 'h', 'o', 'w' };
-pub const K_EN_AND = [_]u32{ 'a', 'n', 'd' };
-pub const K_EN_OR = [_]u32{ 'o', 'r' };
-pub const K_EN_END = [_]u32{ 'e', 'n', 'd' };
-pub const K_EN_IF = [_]u32{ 'i', 'f' };
-pub const K_EN_THEN = [_]u32{ 't', 'h', 'e', 'n' };
-pub const K_EN_ELSE = [_]u32{ 'e', 'l', 's', 'e' };
-pub const K_EN_WHILE = [_]u32{ 'w', 'h', 'i', 'l', 'e' };
-pub const K_EN_NIL = [_]u32{ 'n', 'i', 'l' };
-pub const K_EN_TRUE = [_]u32{ 't', 'r', 'u', 'e' };
-pub const K_EN_FALSE = [_]u32{ 'f', 'a', 'l', 's', 'e' };
-pub const K_EN_RETURN = [_]u32{ 'r', 'e', 't', 'u', 'r', 'n' };
-pub const K_EN_FUNC = [_]u32{ 'f', 'u', 'n', 'c' };
-pub const K_EN_IMPORT = [_]u32{ 'i', 'm', 'p', 'o', 'r', 't' };
-pub const K_EN_PANIC = [_]u32{ 'p', 'a', 'n', 'i', 'c' };
-pub const K_EN_DO = [_]u32{ 'd', 'o' };
-pub const K_EN_BREAK = [_]u32{ 'b', 'r', 'e', 'a', 'k' };
-pub const K_EN_LEN = [_]u32{ 'l', 'e', 'n' };
-pub const K_EN_CLOCK = [_]u32{ 'c', 'l', 'o', 'c', 'k' };
+pub const K_EN_LET: []const u8 = "let";
+pub const K_EN_SHOW: []const u8 = "show";
+pub const K_EN_AND: []const u8 = "and";
+pub const K_EN_OR: []const u8 = "or";
+pub const K_EN_END: []const u8 = "end";
+pub const K_EN_IF: []const u8 = "if";
+pub const K_EN_THEN: []const u8 = "then";
+pub const K_EN_ELSE: []const u8 = "else";
+pub const K_EN_WHILE: []const u8 = "while";
+pub const K_EN_NIL: []const u8 = "nil";
+pub const K_EN_TRUE: []const u8 = "true";
+pub const K_EN_FALSE: []const u8 = "false";
+pub const K_EN_RETURN: []const u8 = "return";
+pub const K_EN_FUNC: []const u8 = "func";
+pub const K_EN_IMPORT: []const u8 = "import";
+pub const K_EN_PANIC: []const u8 = "panic";
+pub const K_EN_DO: []const u8 = "do";
+pub const K_EN_BREAK: []const u8 = "break";
+pub const K_EN_LEN: []const u8 = "len";
+pub const K_EN_CLOCK: []const u8 = "clock";
 
-pub const K_BN_LET = [_]u32{ 0x09a7, 0x09b0, 0x09bf };
-pub const K_BN_SHOW = [_]u32{ 0x09a6, 0x09c7, 0x0996, 0x09be, 0x0993 };
-pub const K_BN_AND = [_]u32{ 0x098f, 0x09ac, 0x0982 };
-pub const K_BN_OR = [_]u32{ 0x09ac, 0x09be };
-pub const K_BN_END = [_]u32{ 0x09b6, 0x09c7, 0x09b7 };
-pub const K_BN_IF = [_]u32{ 0x09af, 0x09a6, 0x09bf };
-pub const K_BN_THEN = [_]u32{ 0x09a4, 0x09be, 0x09b9, 0x09b2, 0x09c7 };
-pub const K_BN_ELSE = [_]u32{ 0x09a8, 0x09be, 0x09b9, 0x09b2, 0x09c7 };
-pub const K_BN_WHILE = [_]u32{
-    0x09af,
-    0x09a4,
-    0x0995,
-    0x09cd,
-    0x09b7,
-    0x09a3,
-};
-pub const K_BN_NIL = [_]u32{ 0x09a8, 0x09bf, 0x09b2 };
-pub const K_BN_TRUE = [_]u32{ 0x09b8, 0x09a4, 0x09cd, 0x09af, 0x09bf };
-pub const K_BN_FALSE = [_]u32{
-    0x09ae,
-    0x09bf,
-    0x09a5,
-    0x09cd,
-    0x09af,
-    0x09be,
-};
-pub const K_BN_RETURN = [_]u32{ 0x09ab, 0x09c7, 0x09b0, 0x09be, 0x0993 };
-pub const K_BN_FUNC = [_]u32{ 0x0995, 0x09be, 0x099c };
-pub const K_BN_IMPORT = [_]u32{ 0x0986, 0x09a8, 0x09df, 0x09a8 };
-pub const K_BN_PANIC = [_]u32{
-    0x0997,
-    0x09cb,
-    0x09b2,
-    0x09ae,
-    0x09be,
-    0x09b2,
-};
-pub const K_BN_DO = [_]u32{ 0x0995, 0x09b0, 0x09cb };
-pub const K_BN_BREAK = [_]u32{ 0x09ad, 0x09be, 0x0999, 0x09cb };
-pub const K_BN_LEN = [_]u32{ 0x0986, 0x09df, 0x09a4, 0x09a8 };
-pub const K_BN_CLOCK = [_]u32{ 0x09b8, 0x09ae, 0x09df };
+pub const K_BN_LET: []const u8 = "ধরি";
+pub const K_BN_SHOW: []const u8 = "দেখাও";
+pub const K_BN_AND: []const u8 = "এবং";
+pub const K_BN_OR: []const u8 = "বা";
+pub const K_BN_END: []const u8 = "শেষ";
+pub const K_BN_IF: []const u8 = "যদি";
+pub const K_BN_THEN: []const u8 = "তাহলে";
+pub const K_BN_ELSE: []const u8 = "নাহলে";
+pub const K_BN_WHILE: []const u8 = "যতক্ষণ";
+pub const K_BN_NIL: []const u8 = "নিল";
+pub const K_BN_TRUE: []const u8 = "সত্যি";
+pub const K_BN_FALSE: []const u8 = "মিথ্যা";
+pub const K_BN_RETURN: []const u8 = "ফেরাও";
+pub const K_BN_FUNC: []const u8 = "কাজ";
+pub const K_BN_IMPORT: []const u8 = "আনয়ন";
+pub const K_BN_PANIC: []const u8 = "প্যানিক";
+pub const K_BN_DO: []const u8 = "করো";
+pub const K_BN_BREAK: []const u8 = "ভাঙো";
+pub const K_BN_LEN: []const u8 = "আয়তন";
+pub const K_BN_CLOCK: []const u8 = "সময়";
 
-pub const K_PN_LET = [_]u32{ 'd', 'h', 'o', 'r', 'i' };
-pub const K_PN_SHOW = [_]u32{ 'd', 'e', 'k', 'h', 'a', 'u' };
-pub const K_PN_AND = [_]u32{ 'e', 'b', 'o', 'n', 'g' };
-pub const K_PN_OR = [_]u32{ 'b', 'a' };
-pub const K_PN_END = [_]u32{ 's', 'e', 's', 'h' };
-pub const K_PN_IF = [_]u32{ 'j', 'o', 'd', 'i' };
-pub const K_PN_THEN = [_]u32{ 't', 'a', 'h', 'o', 'l', 'e' };
-pub const K_PN_ELSE = [_]u32{ 'n', 'a', 'h', 'o', 'l', 'e' };
-pub const K_PN_WHILE = [_]u32{ 'j', 'o', 't', 'o', 'k', 'h', 'o', 'n' };
-pub const K_PN_NIL = [_]u32{ 'n', 'i', 'l' };
-pub const K_PN_TRUE = [_]u32{ 's', 'o', 't', 't', 'i' };
-pub const K_PN_FALSE = [_]u32{ 'm', 'i', 't', 't', 'h', 'a' };
-pub const K_PN_RETURN = [_]u32{ 'f', 'e', 'r', 'a', 'u' };
-pub const K_PN_FUNC = [_]u32{ 'k', 'a', 'j' };
-pub const K_PN_IMPORT = [_]u32{ 'a', 'n', 'o', 'y', 'o', 'n' };
-pub const K_PN_PANIC = [_]u32{ 'p', 'a', 'n', 'i', 'c' };
-pub const K_PN_DO = [_]u32{ 'k', 'o', 'r', 'o' };
-pub const K_PN_BREAK = [_]u32{ 'b', 'h', 'a', 'n', 'g', 'o' };
-pub const K_PN_LEN = [_]u32{ 'a', 'y', 'o', 't', 'o', 'n' };
-pub const K_PN_CLOCK = [_]u32{ 's', 'o', 'm', 'o', 'y' };
+pub const K_PN_LET: []const u8 = "dhori";
+pub const K_PN_SHOW: []const u8 = "dekhau";
+pub const K_PN_AND: []const u8 = "ebong";
+pub const K_PN_OR: []const u8 = "ba";
+pub const K_PN_END: []const u8 = "sesh";
+pub const K_PN_IF: []const u8 = "jodi";
+pub const K_PN_THEN: []const u8 = "tahole";
+pub const K_PN_ELSE: []const u8 = "nahole";
+pub const K_PN_WHILE: []const u8 = "jotokhon";
+pub const K_PN_NIL: []const u8 = K_EN_NIL;
+pub const K_PN_TRUE: []const u8 = "sotti";
+pub const K_PN_FALSE: []const u8 = "mittha";
+pub const K_PN_RETURN: []const u8 = "ferau";
+pub const K_PN_FUNC: []const u8 = "kaj";
+pub const K_PN_IMPORT: []const u8 = "anoyon";
+pub const K_PN_PANIC: []const u8 = K_EN_PANIC;
+pub const K_PN_DO: []const u8 = "koro";
+pub const K_PN_BREAK: []const u8 = "bhango";
+pub const K_PN_LEN: []const u8 = "ayoton";
+pub const K_PN_CLOCK: []const u8 = "somoy";

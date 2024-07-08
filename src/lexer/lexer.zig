@@ -147,13 +147,11 @@ pub const Token = struct {
     }
 
     pub fn toString(self: *const Token, al: std.mem.Allocator) ![]u8 {
-        const lexeme = try utils.u32tou8(self.lexeme, al);
         const result = try std.fmt.allocPrint(
             al,
             "T[{s}|{s}|]",
-            .{ toktypeToString(self.toktype), lexeme },
+            .{ toktypeToString(self.toktype), self.lexeme },
         );
-        al.free(lexeme);
         return result;
     }
 };
@@ -205,10 +203,6 @@ pub const Lexer = struct {
             self.current += (self.it.i - j);
             return cp;
         }
-        //self.colpos += 1;
-        //self.current += 1;
-        //return self.src[self.current - 1];
-
         return 0;
     }
 
@@ -431,219 +425,135 @@ pub const Lexer = struct {
         return self.makeIdentifierToken(colpos);
     }
 
-    fn getIdentifierType(_: *Self, lx: []u32) TokenType {
-        //LET
-        if (utils.matchU32(
+    fn getIdentifierType(_: *Self, lx: []const u8) TokenType {
+        if (utils.matchIdent(
             lx,
-            &kw.K_EN_LET,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_BN_LET,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_PN_LET,
+            kw.K_EN_LET,
+            kw.K_PN_LET,
+            kw.K_BN_LET,
         )) {
-            return .Let;
-            //AND
-        } else if (utils.matchU32(
+            return TokenType.Let;
+        } else if (utils.matchIdent(
             lx,
-            &kw.K_EN_AND,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_BN_AND,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_PN_AND,
+            kw.K_EN_AND,
+            kw.K_PN_AND,
+            kw.K_BN_AND,
         )) {
-            return .And;
-            // OR
-        } else if (utils.matchU32(
+            return TokenType.And;
+        } else if (utils.matchIdent(
             lx,
-            &kw.K_EN_OR,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_BN_OR,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_PN_OR,
+            kw.K_EN_OR,
+            kw.K_PN_OR,
+            kw.K_BN_OR,
         )) {
-            return .Or;
-            // END
-        } else if (utils.matchU32(
+            return TokenType.Or;
+        } else if (utils.matchIdent(
             lx,
-            &kw.K_EN_END,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_BN_END,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_PN_END,
+            kw.K_EN_END,
+            kw.K_PN_END,
+            kw.K_BN_END,
         )) {
-            return .End;
-            //IF
-        } else if (utils.matchU32(
+            return TokenType.End;
+        } else if (utils.matchIdent(
             lx,
-            &kw.K_EN_IF,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_BN_IF,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_PN_IF,
+            kw.K_EN_IF,
+            kw.K_PN_IF,
+            kw.K_BN_IF,
         )) {
-            return .If;
-            // THEN
-        } else if (utils.matchU32(
+            return TokenType.If;
+        } else if (utils.matchIdent(
             lx,
-            &kw.K_EN_THEN,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_BN_THEN,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_PN_THEN,
+            kw.K_EN_THEN,
+            kw.K_PN_THEN,
+            kw.K_BN_THEN,
         )) {
-            return .Then;
-            // ELSE
-        } else if (utils.matchU32(
+            return TokenType.Then;
+        } else if (utils.matchIdent(
             lx,
-            &kw.K_EN_ELSE,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_BN_ELSE,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_PN_ELSE,
+            kw.K_EN_ELSE,
+            kw.K_PN_ELSE,
+            kw.K_BN_ELSE,
         )) {
-            return .Else;
-            // WHILE
-        } else if (utils.matchU32(
+            return TokenType.Else;
+        } else if (utils.matchIdent(
             lx,
-            &kw.K_EN_WHILE,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_BN_WHILE,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_PN_WHILE,
+            kw.K_EN_WHILE,
+            kw.K_PN_WHILE,
+            kw.K_BN_WHILE,
         )) {
-            return .PWhile;
-            // NIL
-        } else if (utils.matchU32(
+            return TokenType.PWhile;
+        } else if (utils.matchIdent(
             lx,
-            &kw.K_EN_NIL,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_BN_NIL,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_PN_NIL,
+            kw.K_EN_NIL,
+            kw.K_PN_NIL,
+            kw.K_BN_NIL,
         )) {
-            return .Nil;
-            //TRUE
-        } else if (utils.matchU32(
+            return TokenType.Nil;
+        } else if (utils.matchIdent(
             lx,
-            &kw.K_EN_TRUE,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_BN_TRUE,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_PN_TRUE,
+            kw.K_EN_TRUE,
+            kw.K_PN_TRUE,
+            kw.K_BN_TRUE,
         )) {
-            return .True;
-            //FALSE
-        } else if (utils.matchU32(
+            return TokenType.True;
+        } else if (utils.matchIdent(
             lx,
-            &kw.K_EN_FALSE,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_BN_FALSE,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_PN_FALSE,
+            kw.K_EN_FALSE,
+            kw.K_PN_FALSE,
+            kw.K_BN_FALSE,
         )) {
-            return .False;
-            //RETURN
-        } else if (utils.matchU32(
+            return TokenType.False;
+        } else if (utils.matchIdent(
             lx,
-            &kw.K_EN_RETURN,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_BN_RETURN,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_PN_RETURN,
+            kw.K_EN_RETURN,
+            kw.K_PN_RETURN,
+            kw.K_BN_RETURN,
         )) {
-            return .Return;
-            //FUNC
-        } else if (utils.matchU32(
+            return TokenType.Return;
+        } else if (utils.matchIdent(
             lx,
-            &kw.K_EN_FUNC,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_BN_FUNC,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_PN_FUNC,
+            kw.K_EN_FUNC,
+            kw.K_PN_FUNC,
+            kw.K_BN_FUNC,
         )) {
-            return .Func;
-            //IMPORT
-        } else if (utils.matchU32(
+            return TokenType.Func;
+        } else if (utils.matchIdent(
             lx,
-            &kw.K_EN_IMPORT,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_BN_IMPORT,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_PN_IMPORT,
+            kw.K_EN_IMPORT,
+            kw.K_PN_IMPORT,
+            kw.K_BN_IMPORT,
         )) {
-            return .Import;
-            //PANIC
-        } else if (utils.matchU32(
+            return TokenType.Import;
+        } else if (utils.matchIdent(
             lx,
-            &kw.K_EN_PANIC,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_BN_PANIC,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_PN_PANIC,
+            kw.K_EN_PANIC,
+            kw.K_PN_PANIC,
+            kw.K_BN_PANIC,
         )) {
-            return .Panic;
-            //DO
-        } else if (utils.matchU32(
+            return TokenType.Panic;
+        } else if (utils.matchIdent(
             lx,
-            &kw.K_EN_DO,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_BN_DO,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_PN_DO,
+            kw.K_EN_DO,
+            kw.K_PN_DO,
+            kw.K_BN_DO,
         )) {
-            return .Do;
-            //BREAK
-        } else if (utils.matchU32(
+            return TokenType.Do;
+        } else if (utils.matchIdent(
             lx,
-            &kw.K_EN_BREAK,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_BN_BREAK,
-        ) or utils.matchU32(
-            lx,
-            &kw.K_PN_BREAK,
+            kw.K_EN_BREAK,
+            kw.K_PN_BREAK,
+            kw.K_BN_BREAK,
         )) {
-            return .Break;
+            return TokenType.Break;
         }
-        return .Identifer;
+
+        return TokenType.Identifer;
     }
 
     fn makeIdentifierToken(self: *Self, colpos: usize) Token {
         const lexeme = self.src[self.start..self.current];
         return Token{
-            .toktype = .Identifer, //self.getIdentifierType(lexeme),
+            .toktype = self.getIdentifierType(lexeme),
             .lexeme = lexeme,
             .line = self.line,
             .colpos = colpos,
@@ -675,10 +585,15 @@ fn tx(t: TokenType) Token {
 }
 
 test "lexer TokenType testing" {
-    const rawSource = "show(1+2);";
+    const rawSource = "let name = 1; show(1+2);";
     var Lx = Lexer.new(rawSource);
 
     const toks: []const Token = &[_]Token{
+        tx(.Let),
+        tx(.Identifer),
+        tx(.Eq),
+        tx(.Number),
+        tx(.Semicolon),
         tx(.Identifer),
         tx(.Lparen),
         tx(.Number),
@@ -686,6 +601,7 @@ test "lexer TokenType testing" {
         tx(.Number),
         tx(.Rparen),
         tx(.Semicolon),
+        tx(.Eof),
     };
 
     for (toks) |t| {

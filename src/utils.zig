@@ -15,6 +15,22 @@ const bn = @import("bengali/bn.zig");
 
 pub extern fn getTimestamp() usize;
 
+pub fn matchIdent(
+    i: []const u8,
+    a: []const u8,
+    b: []const u8,
+    c: []const u8,
+) bool {
+    if (std.mem.eql(u8, i, a) or std.mem.eql(u8, i, b) or std.mem.eql(
+        u8,
+        i,
+        c,
+    )) {
+        return true;
+    }
+    return false;
+}
+
 pub fn isInt(v: f64) bool {
     return @ceil(v) == v;
 }

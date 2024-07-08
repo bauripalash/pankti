@@ -32,23 +32,15 @@ pub export fn runCode(src: [*]const u8, len: u32) callconv(.C) [*c]u8 {
 
     gc.boot(warr.writer().any(), warr.writer().any());
 
-    const source = utils.u8tou32(rawSrc, gc.hal()) catch {
-        return result.ptr;
-    };
-
-    utils.printu32(source, std.io.getStdErr().writer().any());
-
     var myVm = Vm.newVm(gc.hal()) catch {
         return result.ptr;
     };
 
     myVm.bootVm(gc);
 
-    const vmResult = myVm.interpret(source);
+    const vmResult = myVm.interpret(rawSrc);
 
     myVm.freeVm(gc.hal());
-
-    gc.hal().free(source);
 
     switch (vmResult) {
         .Ok => {
