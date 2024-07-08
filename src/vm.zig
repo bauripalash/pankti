@@ -205,8 +205,8 @@ pub const Vm = struct {
                 vmErrors.NONG_LINE,
             }) catch return;
             if (fun.name) |n| {
-                utils.printu32(n.chars, self.gc.pstdout);
-                self.gc.pstdout.print("()\n", .{}) catch return;
+                //utils.printu32(n.chars, self.gc.pstdout);
+                self.gc.pstdout.print("{s}()\n", .{n.chars}) catch return;
             } else {
                 self.gc.pstdout.print("<script>\n", .{}) catch return;
             }

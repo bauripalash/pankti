@@ -657,13 +657,13 @@ pub const Compiler = struct {
     }
 
     fn rNumber(self: *Self, _: bool) !void {
-        const stru8 = try utils.u32tou8(
-            self.parser.previous.lexeme,
-            self.gc.hal(),
-        );
-        const rawNum: f64 = try std.fmt.parseFloat(f64, stru8);
+        //const stru8 = try utils.u32tou8(
+        //    self.parser.previous.lexeme,
+        //    self.gc.hal(),
+        //);
+        const rawNum: f64 = try std.fmt.parseFloat(f64, self.parser.previous.lexeme);
         try self.emitConst(PValue.makeNumber(rawNum));
-        self.gc.hal().free(stru8);
+        //self.gc.hal().free(stru8);
     }
 
     fn rArray(self: *Self, _: bool) !void {
@@ -830,20 +830,20 @@ pub const Compiler = struct {
     fn rString(self: *Self, _: bool) !void {
         const prevLen = self.parser.previous.lexeme.len;
         const lexeme = self.parser.previous.lexeme[1 .. prevLen - 1];
-        var string = self.escapeString(lexeme) catch {
-            self.parser.err(compErrors.STRING_COMPILE_FAIL);
-            return;
-        };
+        // var string = self.escapeString(lexeme) catch {
+        // self.parser.err(compErrors.STRING_COMPILE_FAIL);
+        // return;
+        // };
 
         const s: *PObj.OString = try self.gc.copyString(
-            string.items,
-            @intCast(string.items.len),
+            lexeme,
+            @intCast(lexeme.len),
             //self.parser.previous.lexeme[1 .. prevLen - 1],
             //self.parser.previous.length - 2,
         );
 
-        string.clearAndFree(self.gc.hal());
-        string.deinit(self.gc.hal());
+        //string.clearAndFree(self.gc.hal());
+        //string.deinit(self.gc.hal());
 
         try self.emitConst(s.obj.asValue());
     }
@@ -1424,7 +1424,8 @@ pub const Parser = struct {
             self.gc.pstdout.print(" {s} ''", .{
                 compErrors.ERR_AT,
             }) catch return;
-            utils.printu32(token.lexeme, self.gc.pstdout);
+            //utils.printu32(token.lexeme, self.gc.pstdout);
+            self.gc.pstdout.print("{s}", .{token.lexeme}) catch return;
             self.gc.pstdout.print("' ", .{}) catch return;
         }
 
@@ -1447,12 +1448,12 @@ pub const Parser = struct {
             if (self.current.toktype != .Err) {
                 break;
             }
-            const lxm = utils.u32tou8(
-                self.current.lexeme,
-                self.gc.hal(),
-            ) catch return;
-            self.errCur(lxm);
-            self.gc.hal().free(lxm);
+            // const lxm = utils.u32tou8(
+            //     self.current.lexeme,
+            //     self.gc.hal(),
+            // ) catch return;
+            self.errCur(self.current.lexeme);
+            // self.gc.hal().free(lxm);
         }
     }
 };

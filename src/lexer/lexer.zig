@@ -636,3 +636,23 @@ test "lexer double char tokens" {
         try std.testing.expectEqual(t.toktype, tk.toktype);
     }
 }
+
+test "lexer bengali keywords" {
+    const src = "ধরি নাম = ১০০**২০০";
+    var lx = Lexer.new(src);
+
+    const toks = &[_]Token{
+        tx(.Let),
+        tx(.Identifer),
+        tx(.Eq),
+        tx(.Number),
+        tx(.PowAstr),
+        tx(.Number),
+    };
+
+    for (toks) |t| {
+        const tk = lx.getToken();
+        //std.debug.print("{any}->{any}\n", .{ t.toktype, tk.toktype });
+        try std.testing.expectEqual(t.toktype, tk.toktype);
+    }
+}

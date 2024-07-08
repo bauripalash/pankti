@@ -62,7 +62,7 @@ pub const StdLibProxy = struct {
     proxyName: []u32,
     proxyHash: u32,
 
-    pub fn new(hash: u32, proxyname: []u32) StdLibProxy {
+    pub fn new(hash: u32, proxyname: []u8) StdLibProxy {
         return StdLibProxy{
             .stdmod = undefined,
             .originName = undefined,
@@ -78,17 +78,17 @@ pub const Module = struct {
     stdProxies: std.ArrayListUnmanaged(StdLibProxy),
     frames: stck.CallStack,
     frameCount: u32,
-    name: []u32,
+    name: []u8,
     hash: u32,
     openValues: ?*PObj.OUpValue,
     isDefault: bool,
     origin: ?*Module,
-    sourceCode: ?[]u32,
+    sourceCode: ?[]u8,
 
     const Self = @This();
 
-    pub fn init(self: *Self, gc: *Gc, name: []const u32) bool {
-        self.name = gc.hal().alloc(u32, name.len) catch return false;
+    pub fn init(self: *Self, gc: *Gc, name: []const u8) bool {
+        self.name = gc.hal().alloc(u8, name.len) catch return false;
         @memcpy(self.name, name);
         return true;
     }
@@ -346,10 +346,11 @@ pub const Gc = struct {
         return ptr;
     }
 
-    pub fn newString(self: *Self, chars: []u32, len: u32) !*PObj.OString {
+    pub fn newString(self: *Self, chars: []u8, len: usize) !*PObj.OString {
         var ptr = try self.newObj(.Ot_String, PObj.OString);
         ptr.chars = chars;
         ptr.len = @intCast(len);
+        //ptr.len = @truncate();
         ptr.obj.isMarked = true;
         ptr.hash = try utils.hashU32(chars, self);
 
@@ -367,7 +368,7 @@ pub const Gc = struct {
         return v.stack.pop() catch return null;
     }
 
-    pub fn copyString(self: *Gc, chars: []const u32, len: u32) !*PObj.OString {
+    pub fn copyString(self: *Gc, chars: []const u8, len: usize) !*PObj.OString {
         if (table.getString(
             self.strings,
             try utils.hashU32(chars, self),
@@ -382,7 +383,7 @@ pub const Gc = struct {
             return interned;
         }
 
-        const mem_chars = try self.getAlc().alloc(u32, len);
+        const mem_chars = try self.getAlc().alloc(u8, len);
         @memcpy(mem_chars, chars);
 
         return self.newString(mem_chars, len);
@@ -399,7 +400,7 @@ pub const Gc = struct {
         return result;
     }
 
-    pub fn takeString(self: *Gc, chars: []const u32, len: u32) !*PObj.OString {
+    pub fn takeString(self: *Gc, chars: []const u8, len: u32) !*PObj.OString {
         if (self.strings.get(chars)) |interned| {
             try self.getAlc().free(chars);
             return interned;
@@ -411,7 +412,7 @@ pub const Gc = struct {
     pub fn makeString(self: *Gc, chars: []const u8) PValue {
         const s = self.copyStringU8(
             chars,
-            @truncate(@as(u32, @intCast(chars.len))),
+            @truncate(@as(u8, @intCast(chars.len))),
         ) catch {
             return PValue.makeNil();
         };

@@ -114,7 +114,7 @@ pub const OpCode = enum(u8) {
 pub const InstPos = struct {
     virtual: bool,
     colpos: u32,
-    line: u32,
+    line: usize,
     length: u32,
 
     pub fn dummy() InstPos {
@@ -126,7 +126,7 @@ pub const InstPos = struct {
         };
     }
 
-    pub fn line(l: u32) InstPos {
+    pub fn line(l: usize) InstPos {
         return InstPos{
             .virtual = true,
             .colpos = 0,

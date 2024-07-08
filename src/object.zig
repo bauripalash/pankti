@@ -338,7 +338,7 @@ pub const PObj = struct {
         obj: PObj,
         name: *OString,
 
-        pub fn new(vm: *Vm, gc: *Gc, name: []const u32) ?*OModule {
+        pub fn new(vm: *Vm, gc: *Gc, name: []const u8) ?*OModule {
             const om: *OModule = gc.newObj(.Ot_Module, PObj.OModule) catch return null;
             om.name = undefined;
 
@@ -397,11 +397,8 @@ pub const PObj = struct {
             return true;
         }
 
-        pub fn initU32(self: *OError, gc: *Gc, msg: []const u32) bool {
-            const msgU8 = utils.u32tou8(msg, gc.hal()) catch return false;
-            self.initU8(gc, msgU8);
-            gc.hal().free(msgU8);
-            return true;
+        pub fn initU32(self: *OError, gc: *Gc, msg: []const u8) bool {
+            return self.initU8(gc, msg);
         }
 
         pub fn createCopy(
@@ -979,7 +976,7 @@ pub const PObj = struct {
             return @ptrCast(self);
         }
 
-        pub fn getName(self: *OFunction) ?[]const u32 {
+        pub fn getName(self: *OFunction) ?[]const u8 {
             if (self.name) |name| {
                 if (name.len < 0) {
                     return null;
@@ -987,16 +984,19 @@ pub const PObj = struct {
                     return name.chars[0..name.chars.len];
                 }
             } else if (self.fromMod) {
-                return &[_]u32{ '<', 'm', 'o', 'd', '>' };
+                return "<mod>";
+                //return &[_]u32{ '<', 'm', 'o', 'd', '>' };
             } else {
-                return &[_]u32{ '<', 's', 'c', 'r', 'i', 'p', 't', '>' };
+                return "<script>";
+                //return &[_]u32{ '<', 's', 'c', 'r', 'i', 'p', 't', '>' };
             }
         }
 
         pub fn print(self: *OFunction, gc: *Gc, _: ?*ParentLink) bool {
             gc.pstdout.print("<Fun ", .{}) catch return false;
             if (self.getName()) |n| {
-                utils.printu32(n, gc.pstdout);
+                gc.pstdout.print("{s}", n) catch return false;
+                //utils.printu32(n, gc.pstdout);
             } else {
                 gc.pstdout.print("0x{x}", .{@intFromPtr(self.name.?)}) catch
                     return false;
@@ -1013,16 +1013,16 @@ pub const PObj = struct {
 
     pub const OString = struct {
         obj: PObj,
-        chars: []u32,
+        chars: []u8,
         hash: u32,
         len: isize,
 
-        fn allocate(gc: *Gc, chars: []const u32) !*OString {
+        fn allocate(gc: *Gc, chars: []const u8) !*OString {
             const obj = try PObj.create(gc, PObj.OString, .Ot_String);
             const str = obj.asString();
-            const temp_chars = try gc.getAlc().alloc(u32, chars.len);
+            const temp_chars = try gc.getAlc().alloc(u8, chars.len);
             str.len = @intCast(chars.len);
-            str.hash = utils.hashU32(chars) catch 0;
+            str.hash = utils.hashChars(chars) catch 0;
             @memcpy(temp_chars.ptr, chars);
             str.chars = temp_chars;
 
@@ -1050,7 +1050,8 @@ pub const PObj = struct {
                 gc.pstdout.print("0x{x}", .{@intFromPtr(self)}) catch return false;
                 return true;
             }
-            utils.printu32(self.chars, gc.pstdout);
+            gc.pstdout.print("{s}", .{self.chars}) catch return false;
+            //utils.printu32(self.chars, gc.pstdout);
             return true;
         }
 
@@ -1064,8 +1065,7 @@ pub const PObj = struct {
 
         pub fn size(self: *OString) usize {
             var total: usize = @sizeOf(OString);
-            total += self.chars.len + 1 * @sizeOf(u32);
-            //+1 is for self.hash each a u32
+            total += self.chars.len + 1 * @sizeOf(u8);
 
             total += @sizeOf(@TypeOf(self.len));
             return total;

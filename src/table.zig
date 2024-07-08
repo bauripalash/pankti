@@ -73,7 +73,7 @@ pub fn freeGlobalsTable(vm: *Vm, table: PankTable()) bool {
     return true;
 }
 
-pub fn getString(self: PankTable(), hash: u32, len: u32) ?*Pobj.OString {
+pub fn getString(self: PankTable(), hash: u32, len: usize) ?*Pobj.OString {
     var ite = self.iterator();
     while (ite.next()) |n| {
         const rawStr: *Pobj.OString = n.key_ptr.*;

@@ -183,14 +183,12 @@ pub fn u32tou8(
     return u8str;
 }
 
-pub fn hashU32(input: []const u32, gc: *Gc) !u32 {
+pub fn hashU32(input: []const u8, _: *Gc) !u32 {
     var result: u32 = 0;
 
     //if (IS_WASM) {
     var hasher = std.hash.Fnv1a_32.init();
-    const u = try u32tou8(input, gc.hal());
-    hasher.update(u);
-    gc.hal().free(u);
+    hasher.update(input);
     result = hasher.final();
 
     // Do we really need XxHash?
