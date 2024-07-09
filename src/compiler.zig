@@ -656,14 +656,44 @@ pub const Compiler = struct {
         }
     }
 
+    fn parseNum(self: *Self) !f64 {
+        const lexeme = self.parser.previous.lexeme;
+        const uv = std.unicode.Utf8View.initUnchecked(lexeme);
+        var it = uv.iterator();
+        var rawNum = std.ArrayList(u8).init(self.gc.hal());
+
+        while (it.nextCodepoint()) |cp| {
+            const c: u8 = switch (cp) {
+                '০' => '0',
+                '১' => '1',
+                '২' => '2',
+                '৩' => '3',
+                '৪' => '4',
+                '৫' => '5',
+                '৬' => '6',
+                '৭' => '7',
+                '৮' => '8',
+                '৯' => '9',
+                '.' => '.',
+                else => @truncate(cp),
+            };
+
+            try rawNum.append(c);
+        }
+
+        const result = try std.fmt.parseFloat(f64, rawNum.items);
+
+        rawNum.clearAndFree();
+        rawNum.deinit();
+
+        return result;
+    }
+
     fn rNumber(self: *Self, _: bool) !void {
-        //const stru8 = try utils.u32tou8(
-        //    self.parser.previous.lexeme,
-        //    self.gc.hal(),
-        //);
-        const rawNum: f64 = try std.fmt.parseFloat(f64, self.parser.previous.lexeme);
+        const rawNum: f64 = try self.parseNum();
+
+        //std.debug.print("N->{s}\n\n", .{self.parser.previous.lexeme});
         try self.emitConst(PValue.makeNumber(rawNum));
-        //self.gc.hal().free(stru8);
     }
 
     fn rArray(self: *Self, _: bool) !void {
