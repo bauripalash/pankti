@@ -15,6 +15,10 @@ const bn = @import("bengali/bn.zig");
 
 pub extern fn getTimestamp() usize;
 
+pub fn matchU8(a: []const u8, b: []const u8) bool {
+    return std.mem.eql(u8, a, b);
+}
+
 pub fn matchIdent(
     i: []const u8,
     a: []const u8,
@@ -183,7 +187,7 @@ pub fn u32tou8(
     return u8str;
 }
 
-pub fn hashU32(input: []const u8, _: *Gc) !u32 {
+pub fn hashChars(input: []const u8, _: *Gc) !u32 {
     var result: u32 = 0;
 
     //if (IS_WASM) {

@@ -247,7 +247,7 @@ pub const PObj = struct {
                 ) orelse return std.mem.Allocator.Error.OutOfMemory;
             },
             .Ot_String => {
-                return try utils.u32tou8(self.asString().chars, al);
+                return self.asString().chars;
             },
 
             .Ot_Function => {
@@ -995,7 +995,7 @@ pub const PObj = struct {
         pub fn print(self: *OFunction, gc: *Gc, _: ?*ParentLink) bool {
             gc.pstdout.print("<Fun ", .{}) catch return false;
             if (self.getName()) |n| {
-                gc.pstdout.print("{s}", n) catch return false;
+                gc.pstdout.print("{s}", .{n}) catch return false;
                 //utils.printu32(n, gc.pstdout);
             } else {
                 gc.pstdout.print("0x{x}", .{@intFromPtr(self.name.?)}) catch

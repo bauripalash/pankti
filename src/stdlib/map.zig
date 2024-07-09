@@ -16,9 +16,9 @@ const stdlib = @import("stdlib.zig");
 const PObj = @import("../object.zig").PObj;
 
 //ম্যাপ
-pub const Name = &[_]u32{ 0x09ae, 0x09cd, 0x09af, 0x09be, 0x09aa };
+pub const Name: []const u8 = "ম্যাপ";
 
-pub const NameFuncExists = &[_]u32{ 0x09ac, 0x09b0, 0x09cd, 0x09a4, 0x09ae, 0x09be, 0x09a8 };
+pub const NameFuncExists: []const u8 = "বর্তমান";
 pub fn map_Exists(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 2) {
         return PValue.makeError(vm.gc, "বর্তমান(ম্যাপ, সূচক) কাজটি মাত্র দুটি চলরাশি গ্রহণ করে").?;
@@ -40,7 +40,7 @@ pub fn map_Exists(vm: *Vm, argc: u8, values: []PValue) PValue {
         return PValue.makeBool(false);
     }
 }
-pub const NameFuncKeys = &[_]u32{ 0x09b8, 0x09c2, 0x099a, 0x0995 };
+pub const NameFuncKeys: []const u8 = "সূচক";
 pub fn map_Keys(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
         return PValue.makeError(vm.gc, "সূচক(ম্যাপ) কাজটি মাত্র একটি চলরাশি গ্রহণ করে।").?;
@@ -75,7 +75,7 @@ pub fn map_Keys(vm: *Vm, argc: u8, values: []PValue) PValue {
     return vm.stack.pop() catch return PValue.makeNil();
 }
 
-pub const NameFuncValues = &[_]u32{ 0x09ae, 0x09be, 0x09a8 };
+pub const NameFuncValues: []const u8 = "মান";
 pub fn map_Values(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
         return PValue.makeError(vm.gc, "মান(ম্যাপ) কাজটি মাত্র একটি চলরাশি গ্রহণ করে।").?;

@@ -74,7 +74,7 @@ pub const Vm = struct {
         self.*.gc = gc;
         self.*.compiler = undefined;
         const mod = gcz.Module.new(gc).?;
-        if (!mod.init(self.gc, &[_]u32{ '_', 'd', '_' })) return;
+        if (!mod.init(self.gc, "_d_")) return;
         self.*.gc.modules.append(self.gc.hal(), mod) catch return;
         self.*.gc.modCount += 1;
 
@@ -88,20 +88,20 @@ pub const Vm = struct {
 
         self.gc.stack = &self.stack;
 
-        self.defineNative(&kws.K_EN_CLOCK, builtins.nClock) catch return;
-        self.defineNative(&kws.K_BN_CLOCK, builtins.nClock) catch return;
-        self.defineNative(&kws.K_PN_CLOCK, builtins.nClock) catch return;
+        self.defineNative(kws.K_EN_CLOCK, builtins.nClock) catch return;
+        self.defineNative(kws.K_BN_CLOCK, builtins.nClock) catch return;
+        self.defineNative(kws.K_PN_CLOCK, builtins.nClock) catch return;
 
-        self.defineNative(&kws.K_EN_LEN, builtins.nLen) catch return;
-        self.defineNative(&kws.K_BN_LEN, builtins.nLen) catch return;
-        self.defineNative(&kws.K_PN_LEN, builtins.nLen) catch return;
+        self.defineNative(kws.K_EN_LEN, builtins.nLen) catch return;
+        self.defineNative(kws.K_BN_LEN, builtins.nLen) catch return;
+        self.defineNative(kws.K_PN_LEN, builtins.nLen) catch return;
 
-        self.defineNative(&kws.K_EN_SHOW, builtins.nShow) catch return;
-        self.defineNative(&kws.K_BN_SHOW, builtins.nShow) catch return;
-        self.defineNative(&kws.K_PN_SHOW, builtins.nShow) catch return;
+        self.defineNative(kws.K_EN_SHOW, builtins.nShow) catch return;
+        self.defineNative(kws.K_BN_SHOW, builtins.nShow) catch return;
+        self.defineNative(kws.K_PN_SHOW, builtins.nShow) catch return;
 
         self.defineNative(
-            &[_]u32{ 'c', 'o', 'p', 'y' },
+            "copy",
             builtins.nCopy,
         ) catch return;
     }
@@ -236,7 +236,7 @@ pub const Vm = struct {
 
     pub fn defineNative(
         self: *Self,
-        name: []const u32,
+        comptime name: []const u8,
         func: PObj.ONativeFunction.NativeFn,
     ) !void {
         const nstr = try self.gc.copyString(name, @intCast(name.len));
@@ -275,7 +275,7 @@ pub const Vm = struct {
             const as = a.asObj().asString();
 
             var temp_chars = self.gc.hal().alloc(
-                u32,
+                u8,
                 as.chars.len + bs.chars.len,
             ) catch return false;
             var i: usize = 0;
@@ -578,11 +578,11 @@ pub const Vm = struct {
         return f;
     }
 
-    pub fn pushStdlib(self: *Self, importName: []const u32) bool {
+    pub fn pushStdlib(self: *Self, importName: []const u8) bool {
         return stdlib.PushStdlib(self, importName);
     }
 
-    fn importStdlib(self: *Self, customName: []const u32, importName: []const u32) bool {
+    fn importStdlib(self: *Self, customName: []const u8, importName: []const u8) bool {
         const strname = self.gc.copyString(customName, @intCast(customName.len)) catch {
             self.throwRuntimeError("failed to convert import name to string", .{});
             return false;
@@ -641,7 +641,7 @@ pub const Vm = struct {
         return true;
     }
 
-    fn importModule(self: *Self, customName: []const u32, importName: []const u32) bool {
+    fn importModule(self: *Self, customName: []const u8, importName: []const u8) bool {
         if (stdlib.IsStdlib(importName)) {
             return self.importStdlib(customName, importName);
         }
@@ -650,19 +650,19 @@ pub const Vm = struct {
             self.throwRuntimeError("File module import in wasm is unsupported", .{});
             return false;
         }
-        const filename = utils.u32tou8(importName, self.gc.hal()) catch {
-            self.gc.pstdout.print(
-                "failed to convert filename",
-                .{},
-            ) catch return false;
-            return false;
-        };
-        const src = openfile.openfile(filename, self.gc.hal()) catch {
-            self.gc.hal().free(filename);
+        //const filename = utils.u32tou8(importName, self.gc.hal()) catch {
+        //    self.gc.pstdout.print(
+        //        "failed to convert filename",
+        //        .{},
+        //    ) catch return false;
+        //    return false;
+        //};
+        const src = openfile.openfile(importName, self.gc.hal()) catch {
+            //self.gc.hal().free(filename);
             return false;
         };
 
-        self.gc.hal().free(filename);
+        //self.gc.hal().free(filename);
 
         const newModule: *gcz.Module = gcz.Module.new(self.gc) orelse {
             self.throwRuntimeError("Failed to create a new module", .{});
@@ -712,16 +712,16 @@ pub const Vm = struct {
             return false;
         };
 
-        const source = utils.u8tou32(src, self.gc.hal()) catch {
-            self.throwRuntimeError("failed to encode module source to UTF-32", .{});
-            return false;
-        };
-        const modComp = Compiler.new(source, self.gc, .Ft_SCRIPT) catch {
+        // const source = utils.u8tou32(src, self.gc.hal()) catch {
+        //     self.throwRuntimeError("failed to encode module source to UTF-32", .{});
+        //     return false;
+        // };
+        const modComp = Compiler.new(src, self.gc, .Ft_SCRIPT) catch {
             self.throwRuntimeError("failed to create a new compiler for module", .{});
             return false;
         };
         self.gc.compiler = modComp;
-        const rawFunc = modComp.compileModule(source) catch {
+        const rawFunc = modComp.compileModule(src) catch {
             self.throwRuntimeError("failed to compile module source code", .{});
             return false;
         };
@@ -733,7 +733,7 @@ pub const Vm = struct {
             //ofunu.ins.disasm("import");
 
             self.stack.push(PValue.makeObj(ofunu.parent())) catch {
-                self.gc.hal().free(source);
+                //self.gc.hal().free(source);
                 self.throwRuntimeError("failed to push new source function to stack", .{});
                 return false;
             };
@@ -742,7 +742,7 @@ pub const Vm = struct {
             return false;
         }
 
-        self.gc.hal().free(source);
+        //self.gc.hal().free(source);
         const f = rawFunc.?;
 
         f.fromMod = true;
@@ -1187,7 +1187,7 @@ pub const Vm = struct {
                             }
 
                             const charString = self.gc.copyString(
-                                &[_]u32{str.chars[index]},
+                                &[_]u8{str.chars[index]},
                                 1,
                             ) catch {
                                 self.throwRuntimeError(

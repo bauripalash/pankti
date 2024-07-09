@@ -13,7 +13,7 @@ const Vm = @import("../vm.zig").Vm;
 const PValue = value.PValue;
 const utils = @import("../utils.zig");
 
-pub const Name = &[_]u32{ 'f', 'i', 'l', 'e' };
+pub const Name: []const u8 = "file";
 
 fn fileExists(path: []const u8) ?std.fs.File.Stat {
     const stat = std.fs.cwd().statFile(path) catch {
@@ -23,7 +23,7 @@ fn fileExists(path: []const u8) ?std.fs.File.Stat {
     return stat;
 }
 
-pub const NameFuncWrite = &[_]u32{ 'w', 'r', 'i', 't', 'e' };
+pub const NameFuncWrite: []const u8 = "write";
 pub fn file_Write(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (utils.IS_WASM) {
         return PValue.makeError(vm.gc, "write(...) is not supported on web editor").?;
@@ -142,7 +142,7 @@ pub fn file_Write(vm: *Vm, argc: u8, values: []PValue) PValue {
     return PValue.makeNumber(bw);
 }
 
-pub const NameFuncRead = &[_]u32{ 'r', 'e', 'a', 'd' };
+pub const NameFuncRead: []const u8 = "read";
 pub fn file_Read(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (utils.IS_WASM) {
         return PValue.makeError(vm.gc, "file(path) is not supported on web editor").?;

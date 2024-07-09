@@ -20,8 +20,8 @@ const CONST_PI: f64 = 3.14159265358979323846;
 const CONST_E: f64 = 2.71828182845904523536;
 
 //গণিত
-pub const Name = &[_]u32{ 0x0997, 0x09a3, 0x09bf, 0x09a4 };
-pub const NameFuncPi = &[_]u32{ 0x09aa, 0x09be, 0x0987 };
+pub const Name = "গণিত";
+pub const NameFuncPi = "পাই";
 pub fn math_Pi(vm: *Vm, argc: u8, values: []PValue) PValue {
     _ = values;
     if (argc != 0) {
@@ -34,7 +34,7 @@ pub fn math_Pi(vm: *Vm, argc: u8, values: []PValue) PValue {
     return PValue.makeNumber(CONST_PI);
 }
 
-pub const NameFuncE = &[_]u32{0x0987};
+pub const NameFuncE = "ই";
 pub fn math_E(vm: *Vm, argc: u8, values: []PValue) PValue {
     _ = values;
     if (argc != 0) {
@@ -47,7 +47,7 @@ pub fn math_E(vm: *Vm, argc: u8, values: []PValue) PValue {
     return PValue.makeNumber(CONST_E);
 }
 
-pub const NameFuncSqrt = &[_]u32{ 0x09ac, 0x09b0, 0x09cd, 0x0997, 0x09ae, 0x09c2, 0x09b2 };
+pub const NameFuncSqrt = "বর্গমূল";
 pub fn math_Sqrt(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
         return PValue.makeError(
@@ -67,7 +67,7 @@ pub fn math_Sqrt(vm: *Vm, argc: u8, values: []PValue) PValue {
     return PValue.makeNumber(std.math.sqrt(rawValue.asNumber()));
 }
 
-pub const NameFuncLog10 = &[_]u32{ 0x09b2, 0x0997, 0x09a6, 0x09b6 };
+pub const NameFuncLog10 = "লগদশ";
 pub fn math_Log10(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
         return PValue.makeError(
@@ -87,7 +87,7 @@ pub fn math_Log10(vm: *Vm, argc: u8, values: []PValue) PValue {
     return PValue.makeNumber(std.math.log10(rawValue.asNumber()));
 }
 
-pub const NameFuncLog = &[_]u32{ 0x09b2, 0x0997 };
+pub const NameFuncLog = "লগ";
 pub fn math_Log(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
         return PValue.makeError(
@@ -107,7 +107,7 @@ pub fn math_Log(vm: *Vm, argc: u8, values: []PValue) PValue {
     return PValue.makeNumber(@log(rawValue.asNumber()));
 }
 
-pub const NameFuncLogX = &[_]u32{ 0x09b2, 0x0997, 0x09ac, 0x09c7, 0x09b8 };
+pub const NameFuncLogX = "লগবেস";
 pub fn math_LogX(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 2) {
         return PValue.makeError(
@@ -144,7 +144,7 @@ pub fn getGcd(a: f64, b: f64) f64 {
     return x;
 }
 
-pub const NameFuncGcd = &[_]u32{ 0x0997, 0x09b8, 0x09be, 0x0997, 0x09c1 };
+pub const NameFuncGcd = "গসাগু";
 pub fn math_Gcd(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 2) {
         return PValue.makeError(
@@ -166,7 +166,7 @@ pub fn math_Gcd(vm: *Vm, argc: u8, values: []PValue) PValue {
     ));
 }
 
-pub const NameFuncLcm = &[_]u32{ 0x09b2, 0x09b8, 0x09be, 0x0997, 0x09c1 };
+pub const NameFuncLcm = "লসাগু";
 pub fn math_Lcm(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 2) {
         return PValue.makeError(
@@ -188,7 +188,7 @@ pub fn math_Lcm(vm: *Vm, argc: u8, values: []PValue) PValue {
     return PValue.makeNumber((a * b) / getGcd(a, b));
 }
 
-pub const NameFuncSine = &[_]u32{ 0x09b8, 0x09be, 0x0987, 0x09a8 };
+pub const NameFuncSine = "সাইন";
 pub fn math_Sine(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
         return PValue.makeError(
@@ -207,7 +207,7 @@ pub fn math_Sine(vm: *Vm, argc: u8, values: []PValue) PValue {
     return PValue.makeNumber(std.math.sin(values[0].asNumber()));
 }
 
-pub const NameFuncCosine = &[_]u32{ 0x0995, 0x09b8 };
+pub const NameFuncCosine = "কস";
 pub fn math_Cosine(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
         return PValue.makeError(
@@ -226,7 +226,7 @@ pub fn math_Cosine(vm: *Vm, argc: u8, values: []PValue) PValue {
     return PValue.makeNumber(std.math.cos(values[0].asNumber()));
 }
 
-pub const NameFuncTangent = &[_]u32{ 0x099f, 0x09cd, 0x09af, 0x09be, 0x09a8 };
+pub const NameFuncTangent = "ট্যান";
 pub fn math_Tangent(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
         return PValue.makeError(
@@ -245,7 +245,7 @@ pub fn math_Tangent(vm: *Vm, argc: u8, values: []PValue) PValue {
     return PValue.makeNumber(std.math.tan(values[0].asNumber()));
 }
 
-pub const NameFuncDegree = &[_]u32{ 0x09a1, 0x09bf, 0x0997, 0x09cd, 0x09b0, 0x09bf };
+pub const NameFuncDegree = "ডিগ্রি";
 pub fn math_Degree(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
         return PValue.makeError(
@@ -264,7 +264,7 @@ pub fn math_Degree(vm: *Vm, argc: u8, values: []PValue) PValue {
     return PValue.makeNumber(values[0].asNumber() * (180 / CONST_PI));
 }
 
-pub const NameFuncRadians = &[_]u32{ 0x09b0, 0x09c7, 0x09a1, 0x09bf, 0x09df, 0x09be, 0x09a8 };
+pub const NameFuncRadians = "রেডিয়ান";
 pub fn math_Radians(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
         return PValue.makeError(
@@ -283,7 +283,7 @@ pub fn math_Radians(vm: *Vm, argc: u8, values: []PValue) PValue {
     return PValue.makeNumber(values[0].asNumber() * (CONST_PI / 180));
 }
 
-pub const NameFuncNumber = &[_]u32{ 0x09b8, 0x0982, 0x0996, 0x09cd, 0x09af, 0x09be };
+pub const NameFuncNumber = "সংখ্যা";
 pub fn math_Number(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
         return PValue.makeError(
@@ -299,20 +299,21 @@ pub fn math_Number(vm: *Vm, argc: u8, values: []PValue) PValue {
         ).?;
     }
 
-    const stringU8 = utils.u32tou8(
-        values[0].asObj().asString().chars,
-        vm.gc.hal(),
-    ) catch return PValue.makeNumber(0);
+    //    const stringU8 = utils.u32tou8(
+    //        values[0].asObj().asString().chars,
+    //        vm.gc.hal(),
+    //    ) catch return PValue.makeNumber(0);
+    const stringU8 = values[0].asObj().asString().chars;
     const rawNum: f64 = std.fmt.parseFloat(f64, stringU8) catch 0;
 
     const result = PValue.makeNumber(rawNum);
 
-    vm.gc.hal().free(stringU8);
+    //vm.gc.hal().free(stringU8);
 
     return result;
 }
 
-pub const NameFuncAbs = &[_]u32{ 0x09aa, 0x09b0, 0x09ae };
+pub const NameFuncAbs = "পরম";
 pub fn math_Abs(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
         return PValue.makeError(
@@ -331,7 +332,7 @@ pub fn math_Abs(vm: *Vm, argc: u8, values: []PValue) PValue {
     return PValue.makeNumber(@abs(values[0].asNumber()));
 }
 
-pub const NameFuncRound = &[_]u32{ 0x09b0, 0x09be, 0x0989, 0x09a8, 0x09cd, 0x09a1 };
+pub const NameFuncRound = "রাউন্ড";
 pub fn math_Round(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
         return PValue.makeError(
@@ -350,7 +351,7 @@ pub fn math_Round(vm: *Vm, argc: u8, values: []PValue) PValue {
     return PValue.makeNumber(std.math.round(values[0].asNumber()));
 }
 
-pub const NameFuncFloor = &[_]u32{ 0x09ab, 0x09cd, 0x09b2, 0x09cb, 0x09b0 };
+pub const NameFuncFloor = "ফ্লোর";
 pub fn math_Floor(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
         return PValue.makeError(
@@ -369,7 +370,7 @@ pub fn math_Floor(vm: *Vm, argc: u8, values: []PValue) PValue {
     return PValue.makeNumber(std.math.floor(values[0].asNumber()));
 }
 
-pub const NameFuncCeil = &[_]u32{ 0x09b8, 0x09bf, 0x09b2 };
+pub const NameFuncCeil = "সিল";
 pub fn math_Ceil(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
         return PValue.makeError(

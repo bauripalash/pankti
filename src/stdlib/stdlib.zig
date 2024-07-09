@@ -20,13 +20,13 @@ const mathMod = @import("math.zig");
 const stringMod = @import("string.zig");
 const mapMod = @import("map.zig");
 const bigMod = @import("big.zig");
-const fileMod = @import("file.zig");
+//const fileMod = @import("file.zig");
 
 pub const msl = struct {
-    key: []const u32,
+    key: []const u8,
     func: PObj.ONativeFunction.NativeFn,
 
-    pub fn m(key: []const u32, func: PObj.ONativeFunction.NativeFn) msl {
+    pub fn m(key: []const u8, func: PObj.ONativeFunction.NativeFn) msl {
         return msl{
             .key = key,
             .func = func,
@@ -37,7 +37,7 @@ pub const msl = struct {
 pub fn _addStdlib(
     v: *vm.Vm,
     tab: *table.PankTable(),
-    name: []const u32,
+    name: []const u8,
     func: PObj.ONativeFunction.NativeFn,
 ) !void {
     const nstr = try v.gc.copyString(name, @truncate(name.len));
@@ -56,8 +56,8 @@ pub fn _addStdlib(
     _ = try v.stack.pop();
 }
 
-fn _pushStdlib(v: *vm.Vm, modname: []const u32, items: []const msl) void {
-    const nameHash = utils.hashU32(modname, v.gc) catch return;
+fn _pushStdlib(v: *vm.Vm, modname: []const u8, items: []const msl) void {
+    const nameHash = utils.hashChars(modname, v.gc) catch return;
 
     //std.debug.print("HASH AT PUSH->{d}\n" , .{nameHash});
     v.gc.stdlibs[v.gc.stdlibCount] = gc.StdLibMod.new();
@@ -85,15 +85,15 @@ pub const MathName = mathMod.Name;
 pub const StringName = stringMod.Name;
 pub const MapName = mapMod.Name;
 pub const BigName = bigMod.Name;
-pub const FileName = fileMod.Name;
+//pub const FileName = fileMod.Name;
 
-pub fn IsStdlib(name: []const u32) bool {
-    if (utils.matchU32(name, OsName) or
-        utils.matchU32(name, MathName) or
-        utils.matchU32(name, StringName) or
-        utils.matchU32(name, MapName) or
-        utils.matchU32(name, BigName) or
-        utils.matchU32(name, FileName))
+pub fn IsStdlib(name: []const u8) bool {
+    if (utils.matchU8(name, OsName) or
+        utils.matchU8(name, MathName) or
+        utils.matchU8(name, StringName) or
+        utils.matchU8(name, MapName) or
+        utils.matchU8(name, BigName))
+        //utils.matchU8(name, FileName))
     {
         return true;
     }
@@ -101,25 +101,26 @@ pub fn IsStdlib(name: []const u32) bool {
     return false;
 }
 
-pub fn PushStdlib(v: *vm.Vm, name: []const u32) bool {
-    if (utils.matchU32(name, OsName)) {
+pub fn PushStdlib(v: *vm.Vm, name: []const u8) bool {
+    if (utils.matchU8(name, OsName)) {
         pushStdlibOs(v);
         return true;
-    } else if (utils.matchU32(name, MathName)) {
+    } else if (utils.matchU8(name, MathName)) {
         pushStdlibMath(v);
         return true;
-    } else if (utils.matchU32(name, StringName)) {
+    } else if (utils.matchU8(name, StringName)) {
         pushStdlibString(v);
         return true;
-    } else if (utils.matchU32(name, MapName)) {
+    } else if (utils.matchU8(name, MapName)) {
         pushStdlibMap(v);
         return true;
-    } else if (utils.matchU32(name, BigName)) {
+    } else if (utils.matchU8(name, BigName)) {
         pushStdlibBig(v);
         return true;
-    } else if (utils.matchU32(name, FileName)) {
-        pushStdlibFile(v);
-        return true;
+        // } else if (utils.matchU8(name, FileName)) {
+        //     pushStdlibFile(v);
+        //     return true;
+        // }
     }
 
     return false;
@@ -166,12 +167,12 @@ pub fn pushStdlibString(v: *vm.Vm) void {
     });
 }
 
-pub fn pushStdlibFile(v: *vm.Vm) void {
-    _pushStdlib(v, fileMod.Name, &[_]msl{
-        msl.m(fileMod.NameFuncRead, fileMod.file_Read),
-        msl.m(fileMod.NameFuncWrite, fileMod.file_Write),
-    });
-}
+// pub fn pushStdlibFile(v: *vm.Vm) void {
+//     _pushStdlib(v, fileMod.Name, &[_]msl{
+//         msl.m(fileMod.NameFuncRead, fileMod.file_Read),
+//         msl.m(fileMod.NameFuncWrite, fileMod.file_Write),
+//     });
+// }
 
 pub fn pushStdlibMap(v: *vm.Vm) void {
     _pushStdlib(v, mapMod.Name, &[_]msl{

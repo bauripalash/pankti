@@ -35,7 +35,7 @@ fn dprint(color: u8, w: std.io.AnyWriter, comptime fmt: []const u8, args: anytyp
 
 pub const StdLibMod = struct {
     items: table.PankTable(),
-    name: []const u32,
+    name: []const u8,
     hash: u32,
     owners: std.ArrayListUnmanaged(u32),
     ownerCount: u32,
@@ -58,8 +58,8 @@ pub const StdLibMod = struct {
 
 pub const StdLibProxy = struct {
     stdmod: *StdLibMod,
-    originName: []const u32,
-    proxyName: []u32,
+    originName: []const u8,
+    proxyName: []u8,
     proxyHash: u32,
 
     pub fn new(hash: u32, proxyname: []u8) StdLibProxy {
@@ -352,7 +352,7 @@ pub const Gc = struct {
         ptr.len = @intCast(len);
         //ptr.len = @truncate();
         ptr.obj.isMarked = true;
-        ptr.hash = try utils.hashU32(chars, self);
+        ptr.hash = try utils.hashChars(chars, self);
 
         try self.strings.put(self.hal(), ptr, PValue.makeNil());
         ptr.obj.isMarked = false;
@@ -371,7 +371,7 @@ pub const Gc = struct {
     pub fn copyString(self: *Gc, chars: []const u8, len: usize) !*PObj.OString {
         if (table.getString(
             self.strings,
-            try utils.hashU32(chars, self),
+            try utils.hashChars(chars, self),
             len,
         )) |interned| {
             if (DEBUG_GC) {
@@ -389,13 +389,10 @@ pub const Gc = struct {
         return self.newString(mem_chars, len);
     }
 
-    pub fn copyStringU8(self: *Gc, chars: []const u8, len: u32) !*PObj.OString {
+    pub fn copyStringU8(self: *Gc, chars: []const u8, len: usize) !*PObj.OString {
         _ = len;
-        const msg32 = try utils.u8tou32(chars, self.hal());
 
-        const result = try self.copyString(msg32, @truncate(msg32.len));
-
-        self.hal().free(msg32);
+        const result = try self.copyString(chars, chars.len);
 
         return result;
     }
@@ -410,10 +407,7 @@ pub const Gc = struct {
     }
 
     pub fn makeString(self: *Gc, chars: []const u8) PValue {
-        const s = self.copyStringU8(
-            chars,
-            @truncate(@as(u8, @intCast(chars.len))),
-        ) catch {
+        const s = self.copyStringU8(chars, chars.len) catch {
             return PValue.makeNil();
         };
         return PValue.makeObj(s.parent());

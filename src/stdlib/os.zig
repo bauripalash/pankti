@@ -18,9 +18,9 @@ const builtin = @import("builtin");
 const errs = @import("os_errors.zig");
 
 //ওএস
-pub const Name = &[_]u32{ 0x0993, 0x098f, 0x09b8 };
+pub const Name = "ওএস";
 // নাম
-pub const NameFuncName = &[_]u32{ 0x09a8, 0x09be, 0x09ae };
+pub const NameFuncName = "নাম";
 pub fn os_Name(vm: *Vm, argc: u8, values: []PValue) PValue {
     _ = values;
     if (argc != 0) {
@@ -49,7 +49,7 @@ pub fn os_Name(vm: *Vm, argc: u8, values: []PValue) PValue {
     return PValue.makeObj(obj.parent());
 }
 
-pub const NameFuncArch = &[_]u32{ 0x0986, 0x09b0, 0x09cd, 0x099a };
+pub const NameFuncArch = "আর্চ";
 pub fn os_Arch(vm: *Vm, argc: u8, values: []PValue) PValue {
     _ = values;
     if (argc != 0) {
@@ -70,19 +70,7 @@ pub fn os_Arch(vm: *Vm, argc: u8, values: []PValue) PValue {
 
     return vm.gc.makeString(anm);
 }
-pub const NameFuncUsername = &[_]u32{
-    0x09ac,
-    0x09cd,
-    0x09af,
-    0x09ac,
-    0x09b9,
-    0x09be,
-    0x09b0,
-    0x0995,
-    0x09be,
-    0x09b0,
-    0x09c0,
-};
+pub const NameFuncUsername = "ব্যবহারকারী";
 pub fn os_Username(vm: *Vm, argc: u8, values: []PValue) PValue {
     _ = values;
     if (argc != 0) {
@@ -111,7 +99,7 @@ pub fn os_Username(vm: *Vm, argc: u8, values: []PValue) PValue {
         return vm.gc.makeString("অজানা");
     }
 }
-pub const NameFuncHomdir = &[_]u32{ 0x0998, 0x09b0 };
+pub const NameFuncHomdir = "ঘর";
 pub fn os_Homedir(vm: *Vm, argc: u8, values: []PValue) PValue {
     _ = values;
     if (argc != 0) {
@@ -138,15 +126,7 @@ pub fn os_Homedir(vm: *Vm, argc: u8, values: []PValue) PValue {
         return vm.gc.makeString("অজানা");
     }
 }
-pub const NameFuncCurdir = &[_]u32{
-    0x09ac,
-    0x09b0,
-    0x09cd,
-    0x09a4,
-    0x09ae,
-    0x09be,
-    0x09a8,
-};
+pub const NameFuncCurdir = "বর্তমান";
 pub fn os_Curdir(vm: *Vm, argc: u8, values: []PValue) PValue {
     _ = values;
     if (argc != 0) {

@@ -17,25 +17,9 @@ const PObj = @import("../object.zig").PObj;
 const errs = @import("string_errors.zig");
 
 //স্ট্রিং
-pub const Name = &[_]u32{
-    0x09b8,
-    0x09cd,
-    0x099f,
-    0x09cd,
-    0x09b0,
-    0x09bf,
-    0x0982,
-};
+pub const Name = "স্ট্রিং";
 
-pub const NameFuncUnicode = &[_]u32{
-    0x0987,
-    0x0989,
-    0x09a8,
-    0x09bf,
-    0x0995,
-    0x09cb,
-    0x09a1,
-};
+pub const NameFuncUnicode = "ইউনিকোড";
 
 pub fn str_Unicode(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
@@ -77,7 +61,7 @@ pub fn str_Unicode(vm: *Vm, argc: u8, values: []PValue) PValue {
     }
 
     const r = vm.gc.copyString(
-        &[1]u32{@intCast(utils.asUint(raw_num))},
+        &[1]u8{@truncate(utils.asUint(raw_num))},
         1,
     ) catch {
         return PValue.makeComptimeError(
@@ -90,15 +74,7 @@ pub fn str_Unicode(vm: *Vm, argc: u8, values: []PValue) PValue {
     return PValue.makeObj(r.parent());
 }
 
-pub const NameFuncString = &[_]u32{
-    0x09b8,
-    0x09cd,
-    0x099f,
-    0x09cd,
-    0x09b0,
-    0x09bf,
-    0x0982,
-};
+pub const NameFuncString = "স্ট্রিং";
 pub fn str_String(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
         return PValue.makeComptimeError(
@@ -111,10 +87,11 @@ pub fn str_String(vm: *Vm, argc: u8, values: []PValue) PValue {
     const rawString = values[0].toString(vm.gc.hal()) catch {
         return vm.gc.makeString("");
     };
-    const myString = utils.u8tou32(rawString, vm.gc.hal()) catch {
-        vm.gc.hal().free(rawString);
-        return vm.gc.makeString("");
-    };
+    //const myString = utils.u8tou32(rawString, vm.gc.hal()) catch {
+    //    vm.gc.hal().free(rawString);
+    //    return vm.gc.makeString("");
+    //};
+    const myString = rawString;
     const strObj = vm.gc.copyString(
         myString,
         @intCast(myString.len),
@@ -133,7 +110,7 @@ pub fn str_String(vm: *Vm, argc: u8, values: []PValue) PValue {
 
     return vm.stack.pop() catch return vm.gc.makeString("");
 }
-pub const NameFuncSplit = &[_]u32{ 0x09ad, 0x09be, 0x0997 };
+pub const NameFuncSplit = "ভাগ";
 pub fn str_Split(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 2) {
         return PValue.makeComptimeError(
@@ -193,7 +170,7 @@ pub fn str_Split(vm: *Vm, argc: u8, values: []PValue) PValue {
         return PValue.makeNil();
     };
 
-    var ite = std.mem.splitAny(u32, rawString.chars, rawDelim.chars);
+    var ite = std.mem.splitAny(u8, rawString.chars, rawDelim.chars);
     while (ite.next()) |s| {
         const objString = vm.gc.copyString(s, @intCast(s.len)) catch {
             return PValue.makeNil();

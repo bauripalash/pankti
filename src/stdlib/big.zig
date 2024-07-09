@@ -16,9 +16,9 @@ const stdlib = @import("stdlib.zig");
 const PObj = @import("../object.zig").PObj;
 
 //বড়
-pub const Name = &[_]u32{ 0x09ac, 0x09dc };
+pub const Name: []const u8 = "বড়";
 
-pub const NamefuncSub = &[_]u32{ 0x09ac, 0x09bf, 0x09df, 0x09cb, 0x0997 };
+pub const NamefuncSub: []const u8 = "বিয়োগ";
 pub fn big_Sub(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 2) {
         return PValue.makeError(
@@ -60,7 +60,7 @@ pub fn big_Sub(vm: *Vm, argc: u8, values: []PValue) PValue {
     return vm.stack.pop() catch return PValue.makeNil();
 }
 
-pub const NamefuncAdd = &[_]u32{ 0x09af, 0x09cb, 0x0997 };
+pub const NamefuncAdd: []const u8 = "যোগ";
 pub fn big_Add(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 2) {
         return PValue.makeError(
@@ -101,7 +101,7 @@ pub fn big_Add(vm: *Vm, argc: u8, values: []PValue) PValue {
     return vm.stack.pop() catch return PValue.makeNil();
 }
 
-pub const NameFuncNew = &[_]u32{ 0x09a8, 0x09a4, 0x09c1, 0x09a8 };
+pub const NameFuncNew: []const u8 = "নতুন";
 pub fn big_New(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (argc != 1) {
         return PValue.makeError(
@@ -129,15 +129,16 @@ pub fn big_New(vm: *Vm, argc: u8, values: []PValue) PValue {
     if (item.isString()) {
         const rawString = item.asObj().asString();
 
-        const u8string = utils.u32tou8(rawString.chars, vm.gc.hal()) catch {
-            return PValue.makeNil();
-        };
+        const u8string = rawString.chars;
+        //utils.u32tou8(rawString.chars, vm.gc.hal()) catch {
+        //    return PValue.makeNil();
+        //};
 
         if (!x.ival.setstr(vm.gc.hal(), u8string)) {
             return PValue.makeNil();
         }
 
-        vm.gc.hal().free(u8string);
+        //vm.gc.hal().free(u8string);
     } else if (item.isNumber()) {
         const number = item.asNumber();
 

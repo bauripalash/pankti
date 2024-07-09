@@ -1328,7 +1328,7 @@ pub const Compiler = struct {
         }
     }
 
-    pub fn compileModule(self: *Self, source: []u32) !?*PObj.OFunction {
+    pub fn compileModule(self: *Self, source: []u8) !?*PObj.OFunction {
         self.parser.init(source, self.gc);
         self.parser.advance();
 
