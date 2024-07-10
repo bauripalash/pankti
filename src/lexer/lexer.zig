@@ -208,22 +208,27 @@ pub const Lexer = struct {
 
     fn _peek(self: *Self, n: usize) u21 {
         if (self.isEof()) return 0;
+        if (n < 0) return 0;
+        const raw = self.it.peek(n);
+        if (raw.len <= 0) return 0;
+        const s = raw[n - 1 ..];
+        return std.unicode.utf8Decode(s) catch return 0;
 
-        if (n == 1) {
-            const raw = self.it.peek(n);
-            return std.unicode.utf8Decode(raw) catch return 0;
-        } else if (n == 2) {
-            const raw = self.it.peek(n);
-
-            if (raw.len < 2) {
-                return 0;
-            }
-
-            const s = raw[1..];
-            return std.unicode.utf8Decode(s) catch return 0;
-        }
-
-        return 0;
+        // if (n == 1) {
+        //     const raw = self.it.peek(n);
+        //     return std.unicode.utf8Decode(raw) catch return 0;
+        // } else if (n == 2) {
+        //     const raw = self.it.peek(n);
+        //
+        //     if (raw.len < 2) {
+        //         return 0;
+        //     }
+        //
+        //     const s = raw[1..];
+        //     return std.unicode.utf8Decode(s) catch return 0;
+        // }
+        //
+        // return 0;
         // if (self.isEof()) return 0x04;
         // std.debug.print("\n\n->>{d}|'{u}'\n\n", .{ n, self.it.peek(n) });
         // const result = std.unicode.utf8Decode(self.it.peek(n)) catch {
