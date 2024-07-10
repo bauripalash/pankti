@@ -739,19 +739,17 @@ pub const Compiler = struct {
         self.eat(.Rparen, compErrors.EXPECTED_RPAREN_AFTER_GROUP);
     }
 
-    fn readHexDigit(self: *Self, char: u32) ?u8 {
+    fn readHexDigit(self: *Self, char: u8) ?u8 {
         _ = self;
-        var _c: [1]u8 = [1]u8{0};
-        _ = std.unicode.utf8Encode(@intCast(char), &_c) catch return null;
-        const c = std.ascii.toUpper(_c[0]);
+        const c = std.ascii.toUpper(char);
 
         if (c >= '0' and c <= '9') return @intCast(c - '0');
         if (c >= 'A' and c <= 'F') return @intCast(c - 'A' + 10);
 
         return null;
     }
-    fn readUnicodeCodePoint(self: *Self, lexeme: []const u32) ?u32 {
-        var r: u32 = 0;
+    fn readUnicodeCodePoint(self: *Self, lexeme: []const u8) ?u21 {
+        var r: u21 = 0;
         for (lexeme) |value| {
             const h = self.readHexDigit(value);
             if (h) |val| {
@@ -760,7 +758,6 @@ pub const Compiler = struct {
                 return null;
             }
         }
-
         return r;
     }
 
@@ -794,29 +791,100 @@ pub const Compiler = struct {
                 };
 
                 const nc = rawNc[0];
-                var char: u8 = nc;
 
                 //std.debug.print("rawNC->'{s}' | nc->'{c}\n'", .{ rawNc, nc });
 
                 switch (nc) {
-                    '\\' => char = '\\',
-                    'a' => char = '\x07', // Bell
-                    'b' => char = '\x08', // Backspace
-                    'e' => char = '\x1B', // Escape Character
-                    'f' => char = '\x0C', // Formfeed Page Break
-                    'n' => char = '\n', // Newline
-                    'r' => char = '\x0D', // Carriage Return
-                    't' => char = '\t', // Horizontal Tab
-                    'v' => char = '\x0B', // Vertical Tab
+                    '\\' => raw = &[_]u8{'\\'},
+                    'a' => raw = &[_]u8{'\x07'}, // Bell
+                    'b' => raw = &[_]u8{'\x08'}, // Backspace
+                    'e' => raw = &[_]u8{'\x1B'}, // Escape Character
+                    'f' => raw = &[_]u8{'\x0C'}, // Formfeed Page Break
+                    'n' => raw = &[_]u8{'\n'}, // Newline
+                    'r' => raw = &[_]u8{'\x0D'}, // Carriage Return
+                    't' => raw = &[_]u8{'\t'}, // Horizontal Tab
+                    'v' => raw = &[_]u8{'\x0B'}, // Vertical Tab
+                    'u' => {
+                        const hexChars = ite.peek(4);
+                        if (hexChars.len < 4) {
+                            _string.clearAndFree(al);
+                            _string.deinit(al);
+                            self.parser.err(compErrors.STRING_U4_NOT_4);
+                            return Allocator.Error.OutOfMemory;
+                        }
+                        if (self.readUnicodeCodePoint(hexChars)) |hex| {
+                            var u8hex = [4]u8{ 0, 0, 0, 0 };
+                            const u8len = std.unicode.utf8Encode(hex, &u8hex) catch {
+                                _string.clearAndFree(al);
+                                _string.deinit(al);
+                                self.parser.err(compErrors.STRING_INVALID_CP);
+                                return Allocator.Error.OutOfMemory;
+                            };
+                            //std.debug.print("hex='{u}'\n", .{hex});
+                            raw = u8hex[0..u8len];
+                            var x: usize = 0;
+                            while (x < 4) : (x += 1) {
+                                _ = ite.nextCodepoint() orelse {
+                                    _string.clearAndFree(al);
+                                    _string.deinit(al);
+                                    self.parser.err(compErrors.STRING_INVALID_CP);
+                                    return Allocator.Error.OutOfMemory;
+                                };
+                            }
+                        } else {
+                            _string.clearAndFree(al);
+                            _string.deinit(al);
+                            self.parser.err(compErrors.STRING_INVALID_CP);
+                            return Allocator.Error.OutOfMemory;
+                        }
+                        //std.debug.print("\n->{s}\n", .{ite.peek(4)});
+                    },
+                    'U' => {
+                        const hexChars = ite.peek(8);
+                        if (hexChars.len < 8) {
+                            _string.clearAndFree(al);
+                            _string.deinit(al);
+                            self.parser.err(compErrors.STRING_U4_NOT_4);
+                            return Allocator.Error.OutOfMemory;
+                        }
+                        if (self.readUnicodeCodePoint(hexChars)) |hex| {
+                            var u8hex = [4]u8{ 0, 0, 0, 0 };
+
+                            const u8len = std.unicode.utf8Encode(hex, &u8hex) catch {
+                                _string.clearAndFree(al);
+                                _string.deinit(al);
+                                self.parser.err(compErrors.STRING_INVALID_CP);
+                                return Allocator.Error.OutOfMemory;
+                            };
+                            //std.debug.print("hex='{u}'\n", .{hex});
+                            //std.debug.print("\n\n->'{s}'\n\n", .{hex});
+                            raw = u8hex[0..u8len];
+                            var x: usize = 0;
+                            while (x < 8) : (x += 1) {
+                                _ = ite.nextCodepoint() orelse {
+                                    _string.clearAndFree(al);
+                                    _string.deinit(al);
+                                    self.parser.err(compErrors.STRING_INVALID_CP);
+                                    return Allocator.Error.OutOfMemory;
+                                };
+                            }
+                        } else {
+                            _string.clearAndFree(al);
+                            _string.deinit(al);
+                            self.parser.err(compErrors.STRING_INVALID_CP);
+                            return Allocator.Error.OutOfMemory;
+                        }
+                    },
                     else => {
+                        _string.clearAndFree(al);
+                        _string.deinit(al);
                         self.parser.err("Invalid escape characters in string");
                         return Allocator.Error.OutOfMemory;
                     },
                 }
-
-                raw = &[_]u8{char};
             }
 
+            //std.debug.print("\nraw->'{s}'<-\n", .{raw});
             _string.appendSlice(al, raw) catch {
                 _string.clearAndFree(al);
                 _string.deinit(al);

@@ -1,2 +1,4 @@
-show(১.৯৮)
-show("hello", "\n", "world")
+#show(১.৯৮)
+#show("hello", "\n", "world\n")
+show("<\u09e6>","\n")
+show("X\U0001f418", "\n")
