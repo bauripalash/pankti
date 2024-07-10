@@ -766,93 +766,140 @@ pub const Compiler = struct {
 
     fn escapeString(
         self: *Self,
-        lexeme: []const u32,
-    ) !std.ArrayListUnmanaged(u32) {
+        lexeme: []const u8,
+    ) !std.ArrayListUnmanaged(u8) {
         const len = lexeme.len;
         const al = self.gc.hal();
 
-        var _string = std.ArrayListUnmanaged(u32).initCapacity(
-            self.gc.hal(),
-            len,
+        var _string = std.ArrayListUnmanaged(u8).initCapacity(
+            al,
+            len / 2,
         ) catch {
             self.parser.err("Failed to create memory while compiling string");
             return Allocator.Error.OutOfMemory;
         };
 
-        var i: usize = 0;
-        var c = lexeme[i];
+        const view = std.unicode.Utf8View.initUnchecked(lexeme);
+        var ite = view.iterator();
 
-        while (i < len) {
-            c = lexeme[i];
-            var rawc = c;
+        while (ite.nextCodepointSlice()) |cp| {
+            var raw = cp;
+            const c = cp[0];
+            //std.debug.print("raw->{c}\n\n", .{c});
 
             if (c == '\\') {
-                i = i + 1;
-                c = lexeme[i];
-                switch (c) {
-                    '\\' => rawc = '\\',
-                    'a' => rawc = '\x07', // Bell
-                    'b' => rawc = '\x08', // Backspace
-                    'e' => rawc = '\x1B', // Escape Character
-                    'f' => rawc = '\x0C', // Formfeed Page Break
-                    'n' => rawc = '\n', // Newline
-                    'r' => rawc = '\x0D', // Carriage Return
-                    't' => rawc = '\t', // Horizontal Tab
-                    'v' => rawc = '\x0B', // Vertical Tab
-                    'u' => { // \uXXXX -> Unicode Codepoint with 4 chars
-                        if (i + 4 >= len) {
-                            _string.clearAndFree(al);
-                            _string.deinit(al);
-                            self.parser.err(compErrors.STRING_U4_NOT_4);
-                            return Allocator.Error.OutOfMemory;
-                        }
-                        const hexSeq = lexeme[i + 1 .. i + 5];
-                        if (self.readUnicodeCodePoint(hexSeq)) |uni| {
-                            rawc = uni;
-                        } else {
-                            _string.clearAndFree(al);
-                            _string.deinit(al);
-                            self.parser.err(compErrors.STRING_INVALID_CP);
-                            return Allocator.Error.OutOfMemory;
-                        }
+                const rawNc = ite.nextCodepointSlice() orelse {
+                    self.parser.err("Invalid codepoint in string");
+                    return Allocator.Error.OutOfMemory;
+                };
 
-                        i += 4;
-                    },
-                    'U' => { // \UXXXXXXXX -> Unicode Codepoint with 8 chars
-                        if (i + 8 >= len) {
-                            _string.clearAndFree(al);
-                            _string.deinit(al);
-                            self.parser.err(compErrors.STRING_U8_NOT_8);
-                            return Allocator.Error.OutOfMemory;
-                        }
-                        const hexSeq = lexeme[i + 1 .. i + 9];
-                        if (self.readUnicodeCodePoint(hexSeq)) |uni| {
-                            rawc = uni;
-                        } else {
-                            _string.clearAndFree(al);
-                            _string.deinit(al);
-                            self.parser.err(compErrors.STRING_INVALID_CP);
-                            return Allocator.Error.OutOfMemory;
-                        }
-                        i += 8;
-                    },
+                const nc = rawNc[0];
+                var char: u8 = nc;
+
+                //std.debug.print("rawNC->'{s}' | nc->'{c}\n'", .{ rawNc, nc });
+
+                switch (nc) {
+                    '\\' => char = '\\',
+                    'a' => char = '\x07', // Bell
+                    'b' => char = '\x08', // Backspace
+                    'e' => char = '\x1B', // Escape Character
+                    'f' => char = '\x0C', // Formfeed Page Break
+                    'n' => char = '\n', // Newline
+                    'r' => char = '\x0D', // Carriage Return
+                    't' => char = '\t', // Horizontal Tab
+                    'v' => char = '\x0B', // Vertical Tab
                     else => {
-                        _string.clearAndFree(al);
-                        _string.deinit(al);
-                        self.parser.err(compErrors.STRING_INVALID_ESCAPE);
+                        self.parser.err("Invalid escape characters in string");
                         return Allocator.Error.OutOfMemory;
                     },
                 }
+
+                raw = &[_]u8{char};
             }
 
-            _string.append(self.gc.hal(), rawc) catch {
+            _string.appendSlice(al, raw) catch {
                 _string.clearAndFree(al);
                 _string.deinit(al);
                 self.parser.err(compErrors.STRING_TEMP_APPEND);
                 return Allocator.Error.OutOfMemory;
+                //
             };
-            i += 1;
         }
+
+        // var i: usize = 0;
+        // var c = lexeme[i];
+        //
+        // while (i < len) {
+        //     c = lexeme[i];
+        //     var rawc = c;
+        //
+        //     if (c == '\\') {
+        //         i = i + 1;
+        //         c = lexeme[i];
+        //         switch (c) {
+        //             '\\' => rawc = '\\',
+        //             'a' => rawc = '\x07', // Bell
+        //             'b' => rawc = '\x08', // Backspace
+        //             'e' => rawc = '\x1B', // Escape Character
+        //             'f' => rawc = '\x0C', // Formfeed Page Break
+        //             'n' => rawc = '\n', // Newline
+        //             'r' => rawc = '\x0D', // Carriage Return
+        //             't' => rawc = '\t', // Horizontal Tab
+        //             'v' => rawc = '\x0B', // Vertical Tab
+        //             'u' => { // \uXXXX -> Unicode Codepoint with 4 chars
+        //                 if (i + 4 >= len) {
+        //                     _string.clearAndFree(al);
+        //                     _string.deinit(al);
+        //                     self.parser.err(compErrors.STRING_U4_NOT_4);
+        //                     return Allocator.Error.OutOfMemory;
+        //                 }
+        //                 const hexSeq = lexeme[i + 1 .. i + 5];
+        //                 if (self.readUnicodeCodePoint(hexSeq)) |uni| {
+        //                     rawc = uni;
+        //                 } else {
+        //                     _string.clearAndFree(al);
+        //                     _string.deinit(al);
+        //                     self.parser.err(compErrors.STRING_INVALID_CP);
+        //                     return Allocator.Error.OutOfMemory;
+        //                 }
+        //
+        //                 i += 4;
+        //             },
+        //             'U' => { // \UXXXXXXXX -> Unicode Codepoint with 8 chars
+        //                 if (i + 8 >= len) {
+        //                     _string.clearAndFree(al);
+        //                     _string.deinit(al);
+        //                     self.parser.err(compErrors.STRING_U8_NOT_8);
+        //                     return Allocator.Error.OutOfMemory;
+        //                 }
+        //                 const hexSeq = lexeme[i + 1 .. i + 9];
+        //                 if (self.readUnicodeCodePoint(hexSeq)) |uni| {
+        //                     rawc = uni;
+        //                 } else {
+        //                     _string.clearAndFree(al);
+        //                     _string.deinit(al);
+        //                     self.parser.err(compErrors.STRING_INVALID_CP);
+        //                     return Allocator.Error.OutOfMemory;
+        //                 }
+        //                 i += 8;
+        //             },
+        //             else => {
+        //                 _string.clearAndFree(al);
+        //                 _string.deinit(al);
+        //                 self.parser.err(compErrors.STRING_INVALID_ESCAPE);
+        //                 return Allocator.Error.OutOfMemory;
+        //             },
+        //         }
+        //     }
+        //
+        //     _string.append(self.gc.hal(), rawc) catch {
+        //         _string.clearAndFree(al);
+        //         _string.deinit(al);
+        //         self.parser.err(compErrors.STRING_TEMP_APPEND);
+        //         return Allocator.Error.OutOfMemory;
+        //     };
+        //     i += 1;
+        // }
 
         return _string;
     }
@@ -860,20 +907,20 @@ pub const Compiler = struct {
     fn rString(self: *Self, _: bool) !void {
         const prevLen = self.parser.previous.lexeme.len;
         const lexeme = self.parser.previous.lexeme[1 .. prevLen - 1];
-        // var string = self.escapeString(lexeme) catch {
-        // self.parser.err(compErrors.STRING_COMPILE_FAIL);
-        // return;
-        // };
+        var string = self.escapeString(lexeme) catch {
+            self.parser.err(compErrors.STRING_COMPILE_FAIL);
+            return;
+        };
 
         const s: *PObj.OString = try self.gc.copyString(
-            lexeme,
-            @intCast(lexeme.len),
+            string.items,
+            @intCast(string.items.len),
             //self.parser.previous.lexeme[1 .. prevLen - 1],
             //self.parser.previous.length - 2,
         );
 
-        //string.clearAndFree(self.gc.hal());
-        //string.deinit(self.gc.hal());
+        string.clearAndFree(self.gc.hal());
+        string.deinit(self.gc.hal());
 
         try self.emitConst(s.obj.asValue());
     }

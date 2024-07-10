@@ -208,7 +208,7 @@ pub const Lexer = struct {
 
     fn _peek(self: *Self, n: usize) u21 {
         if (self.isEof()) return 0;
-        if (n < 0) return 0;
+        if (n <= 0) return 0;
         const raw = self.it.peek(n);
         if (raw.len <= 0) return 0;
         const s = raw[n - 1 ..];
