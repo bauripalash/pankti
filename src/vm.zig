@@ -1178,7 +1178,7 @@ pub const Vm = struct {
                         } else if (rawObj.asObj().isString()) {
                             const str = rawObj.asObj().asString();
 
-                            if (index >= str.len) {
+                            if (index >= str.utlen) {
                                 self.throwRuntimeError(
                                     "Index out of range",
                                     .{},
@@ -1186,9 +1186,16 @@ pub const Vm = struct {
                                 return .RuntimeError;
                             }
 
+                            var u = [_]u8{ 0, 0, 0, 0 };
+
+                            const len = str.getU21Index(index, &u) orelse {
+                                self.throwRuntimeError("failed to index string", .{});
+                                return .RuntimeError;
+                            };
+
                             const charString = self.gc.copyString(
-                                &[_]u8{str.chars[index]},
-                                1,
+                                u[0..len],
+                                len,
                             ) catch {
                                 self.throwRuntimeError(
                                     "failed to create a new string for string indexing",

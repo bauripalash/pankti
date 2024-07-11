@@ -19,6 +19,56 @@ const errs = @import("string_errors.zig");
 //স্ট্রিং
 pub const Name = "স্ট্রিং";
 
+// pub const NameFuncIndex = "index";
+// pub fn str_Index(vm : *Vm , argc : u8, values : []PValue) PValue {
+//     if (argc != 2) {
+//         return PValue.makeComptimeError(vm.gc, "index(..) expected 2 args but got {d}" , .{argc},).?;
+//     }
+//
+//     const rawString = values[0];
+//     const rawIndex = values[1];
+//
+//     if (!rawString.isString()) {
+//         return PValue.makeComptimeError(
+//             vm.gc,
+//             "1st argument must be string",
+//             .{},
+//         ).?;
+//     }
+//
+//     if (!rawIndex.isNumber()) {
+//         return PValue.makeComptimeError(
+//             vm.gc,
+//             "2nd argument must be number",
+//             .{},
+//         ).?;
+//     }
+//
+//     const str = rawString.asObj().asString();
+//     const _index = rawIndex.asNumber();
+//
+//     if (!utils.isInt(_index)) {
+//                 return PValue.makeComptimeError(
+//             vm.gc,
+//             "Index must be a integer",
+//             .{},
+//         ).?;
+//     }
+//
+//     const _n = utils.asInt(_index);
+//
+//     if (_n < 0) {
+//         return PValue.makeComptimeError(
+//             vm.gc,
+//             "Index must be positive number",
+//             .{},
+//         ).?;
+//     }
+//
+//     const index = utils.asUint(_index);
+//
+// }
+
 pub const NameFuncUnicode = "ইউনিকোড";
 
 pub fn str_Unicode(vm: *Vm, argc: u8, values: []PValue) PValue {

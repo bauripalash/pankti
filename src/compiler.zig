@@ -883,81 +883,6 @@ pub const Compiler = struct {
             };
         }
 
-        // var i: usize = 0;
-        // var c = lexeme[i];
-        //
-        // while (i < len) {
-        //     c = lexeme[i];
-        //     var rawc = c;
-        //
-        //     if (c == '\\') {
-        //         i = i + 1;
-        //         c = lexeme[i];
-        //         switch (c) {
-        //             '\\' => rawc = '\\',
-        //             'a' => rawc = '\x07', // Bell
-        //             'b' => rawc = '\x08', // Backspace
-        //             'e' => rawc = '\x1B', // Escape Character
-        //             'f' => rawc = '\x0C', // Formfeed Page Break
-        //             'n' => rawc = '\n', // Newline
-        //             'r' => rawc = '\x0D', // Carriage Return
-        //             't' => rawc = '\t', // Horizontal Tab
-        //             'v' => rawc = '\x0B', // Vertical Tab
-        //             'u' => { // \uXXXX -> Unicode Codepoint with 4 chars
-        //                 if (i + 4 >= len) {
-        //                     _string.clearAndFree(al);
-        //                     _string.deinit(al);
-        //                     self.parser.err(compErrors.STRING_U4_NOT_4);
-        //                     return Allocator.Error.OutOfMemory;
-        //                 }
-        //                 const hexSeq = lexeme[i + 1 .. i + 5];
-        //                 if (self.readUnicodeCodePoint(hexSeq)) |uni| {
-        //                     rawc = uni;
-        //                 } else {
-        //                     _string.clearAndFree(al);
-        //                     _string.deinit(al);
-        //                     self.parser.err(compErrors.STRING_INVALID_CP);
-        //                     return Allocator.Error.OutOfMemory;
-        //                 }
-        //
-        //                 i += 4;
-        //             },
-        //             'U' => { // \UXXXXXXXX -> Unicode Codepoint with 8 chars
-        //                 if (i + 8 >= len) {
-        //                     _string.clearAndFree(al);
-        //                     _string.deinit(al);
-        //                     self.parser.err(compErrors.STRING_U8_NOT_8);
-        //                     return Allocator.Error.OutOfMemory;
-        //                 }
-        //                 const hexSeq = lexeme[i + 1 .. i + 9];
-        //                 if (self.readUnicodeCodePoint(hexSeq)) |uni| {
-        //                     rawc = uni;
-        //                 } else {
-        //                     _string.clearAndFree(al);
-        //                     _string.deinit(al);
-        //                     self.parser.err(compErrors.STRING_INVALID_CP);
-        //                     return Allocator.Error.OutOfMemory;
-        //                 }
-        //                 i += 8;
-        //             },
-        //             else => {
-        //                 _string.clearAndFree(al);
-        //                 _string.deinit(al);
-        //                 self.parser.err(compErrors.STRING_INVALID_ESCAPE);
-        //                 return Allocator.Error.OutOfMemory;
-        //             },
-        //         }
-        //     }
-        //
-        //     _string.append(self.gc.hal(), rawc) catch {
-        //         _string.clearAndFree(al);
-        //         _string.deinit(al);
-        //         self.parser.err(compErrors.STRING_TEMP_APPEND);
-        //         return Allocator.Error.OutOfMemory;
-        //     };
-        //     i += 1;
-        // }
-
         return _string;
     }
 
@@ -969,12 +894,19 @@ pub const Compiler = struct {
             return;
         };
 
+        const ulen = utils.getUtf32LenFor8(string.items, string.items.len) catch {
+            self.parser.err("failed to parse string; length could not be calculated");
+            return;
+        };
+
         const s: *PObj.OString = try self.gc.copyString(
             string.items,
             @intCast(string.items.len),
             //self.parser.previous.lexeme[1 .. prevLen - 1],
             //self.parser.previous.length - 2,
         );
+
+        s.utlen = ulen;
 
         string.clearAndFree(self.gc.hal());
         string.deinit(self.gc.hal());

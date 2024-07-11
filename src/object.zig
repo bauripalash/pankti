@@ -1020,6 +1020,7 @@ pub const PObj = struct {
         chars: []u8,
         hash: u32,
         len: isize,
+        utlen: usize,
 
         fn allocate(gc: *Gc, chars: []const u8) !*OString {
             const obj = try PObj.create(gc, PObj.OString, .Ot_String);
@@ -1027,10 +1028,30 @@ pub const PObj = struct {
             const temp_chars = try gc.getAlc().alloc(u8, chars.len);
             str.len = @intCast(chars.len);
             str.hash = utils.hashChars(chars) catch 0;
+            str.utlen = 0;
             @memcpy(temp_chars.ptr, chars);
             str.chars = temp_chars;
 
             return str;
+        }
+
+        pub fn getU21Index(self: *OString, index: usize, out: []u8) ?usize {
+            const view = std.unicode.Utf8View.initUnchecked(self.chars);
+
+            if (index >= self.utlen) {
+                return null;
+            }
+
+            var ite = view.iterator();
+            var i: usize = 0;
+            while (ite.nextCodepointSlice()) |cp| : (i += 1) {
+                if (i == index) {
+                    std.mem.copyForwards(u8, out, cp);
+                    return cp.len;
+                }
+            }
+
+            return null;
         }
 
         pub fn createCopy(

@@ -7,4 +7,4 @@ let b = "পলাশ"
 show(a,"\n")
 show(b, "\n")
 show(a[2], "\n")
-show(b[2], "\n")
+show(b[3], "\n")
