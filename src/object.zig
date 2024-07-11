@@ -247,7 +247,11 @@ pub const PObj = struct {
                 ) orelse return std.mem.Allocator.Error.OutOfMemory;
             },
             .Ot_String => {
-                return self.asString().chars;
+                return try std.fmt.allocPrint(
+                    al,
+                    "{s}",
+                    .{self.asString().chars},
+                );
             },
 
             .Ot_Function => {

@@ -32,7 +32,7 @@ pub inline fn isBnChar(c: u32) bool {
     return c >= BN_RANGE_START and c <= BN_RANGE_END;
 }
 
-pub inline fn bnToEnNum(c: u32) u32 {
+pub inline fn bnToEnNum(c: u21) u21 {
     return switch (c) {
         BN_NUM_0 => '0',
         BN_NUM_1 => '1',

@@ -60,9 +60,20 @@ pub fn str_Unicode(vm: *Vm, argc: u8, values: []PValue) PValue {
         ).?;
     }
 
+    const uf: u21 = @truncate(utils.asUint(raw_num));
+
+    var a = [_]u8{ 0, 0, 0, 0 };
+    const len = std.unicode.utf8Encode(uf, &a) catch {
+        return PValue.makeComptimeError(
+            vm.gc,
+            "Invalid unicode codepoint",
+            .{},
+        ).?;
+    };
+
     const r = vm.gc.copyString(
-        &[1]u8{@truncate(utils.asUint(raw_num))},
-        1,
+        a[0..len],
+        len,
     ) catch {
         return PValue.makeComptimeError(
             vm.gc,
@@ -106,7 +117,7 @@ pub fn str_String(vm: *Vm, argc: u8, values: []PValue) PValue {
     };
 
     vm.gc.hal().free(rawString);
-    vm.gc.hal().free(myString);
+    //vm.gc.hal().free(myString);
 
     return vm.stack.pop() catch return vm.gc.makeString("");
 }
