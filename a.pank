@@ -2,3 +2,9 @@
 #show("hello", "\n", "world\n")
 show("<\u09e6>","\n")
 show("X\U0001f418", "\n")
+let a = "palash"
+let b = "পলাশ"
+show(a,"\n")
+show(b, "\n")
+show(a[2], "\n")
+show(b[2], "\n")

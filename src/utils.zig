@@ -94,7 +94,7 @@ pub fn getUTF8LenFor32(input: []const u32) UTFError!usize {
 
 /// Convert a UTF-8 encoded string to UTF-32 encoded string
 /// You must free the result
-pub fn u8tou32(input: []const u8, alc: std.mem.Allocator) ![]u32 {
+pub fn _u8tou32(input: []const u8, alc: std.mem.Allocator) ![]u32 {
     const inputLen = input.len;
     const outLen = try getUtf32LenFor8(input, inputLen);
     var ustr = try alc.alloc(u32, outLen);
@@ -139,7 +139,7 @@ pub fn u8tou32(input: []const u8, alc: std.mem.Allocator) ![]u32 {
 
 /// Convert UTF-32 encoded string to UTF-8 encoded string
 /// You must free the result
-pub fn u32tou8(
+pub fn _u32tou8(
     input: []const u32,
     al: std.mem.Allocator,
 ) anyerror![]u8 {
@@ -268,7 +268,7 @@ test "test utils->u8tou32->english" {
     const al = std.testing.allocator;
     const text = "The quick brown fox jumps over the lazy dog";
 
-    const textU32 = try u8tou32(text, al);
+    const textU32 = try _u8tou32(text, al);
 
     const textU32X = [_]u32{
         84,
@@ -329,7 +329,7 @@ test "test utils->u8tou32->english" {
 test "test utils->u8tou32->bengali" {
     const al = std.testing.allocator;
     const text = "এ বিশ্বকে এ শিশুর বাসযোগ্য করে যাব আমি\nনবজাতকের কাছে এ আমার দৃঢ় অঙ্গীকার";
-    const textU32 = try u8tou32(text, al);
+    const textU32 = try _u8tou32(text, al);
 
     const textU32X = [_]u32{
         0x098f,
@@ -464,7 +464,7 @@ test "test utils->u32tou8->english" {
         103,
     };
 
-    const textU8 = try u32tou8(&textU32, al);
+    const textU8 = try _u32tou8(&textU32, al);
 
     const text = "The quick brown fox jumps over the lazy dog";
 
