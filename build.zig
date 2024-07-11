@@ -12,7 +12,7 @@ const builtin = @import("builtin");
 
 const pankti_version = std.SemanticVersion{
     .major = 0,
-    .minor = 4,
+    .minor = 5,
     .patch = 0,
 };
 
