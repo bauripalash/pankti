@@ -65,7 +65,7 @@ perf:
 	@echo "Building Release"
 	$(ZIG) build -Doptimize=ReleaseFast
 	@echo "[+] Running Perf"
-	perf record -g -F 999 ./$(TARGET) ./sample/fib35.pank
+	perf record -g -F 999 ./$(TARGET) ./gctest.pank
 	perf script -F +pid > neopank.perf
 	@echo "[+] Finished Running Perf"
 

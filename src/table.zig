@@ -24,7 +24,7 @@ const MapTableContext = struct {
 
     pub fn hash(self: @This(), key: PValue) u64 {
         _ = self;
-        return @as(u64, @intCast(key.hash()));
+        return @intCast(key.hash());
     }
 };
 
