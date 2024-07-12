@@ -546,11 +546,10 @@ pub const Gc = struct {
     }
 
     pub fn tryCollect(self: *Self) void {
+        if (NO_GC) return;
         //std.debug.print("STRESS->{any}\n", .{self.stress});
-        if (!NO_GC) {
-            if ((self.alocAmount > self.nextGc) or STRESS_GC) {
-                self.collect();
-            }
+        if ((self.alocAmount > self.nextGc) or STRESS_GC) {
+            self.collect();
         }
     }
 

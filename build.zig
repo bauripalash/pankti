@@ -110,6 +110,7 @@ pub fn build(b: *Build) !void {
     lib.root_module.addImport("build_options", build_options_module);
     b.installArtifact(lib);
     lib.linkLibC();
+    //exe.linkLibC();
 
     const webExe = b.addExecutable(.{
         .name = "pankti",
