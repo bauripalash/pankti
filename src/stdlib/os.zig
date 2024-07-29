@@ -35,7 +35,7 @@ pub fn os_Name(vm: *Vm, argc: u8, values: []PValue) PValue {
         .linux => "লিনাক্স", //should be unix detection instead of linux
         .ios => "আইওএস",
         .macos => "ম্যাকওএস",
-        .kfreebsd, .freebsd, .openbsd, .netbsd, .dragonfly => "বিএসডি",
+        .freebsd, .openbsd, .netbsd, .dragonfly => "বিএসডি",
         .plan9 => "প্ল্যান9",
         else => if (builtin.target.abi == .android)
             "আন্ড্রয়েড"

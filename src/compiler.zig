@@ -780,6 +780,16 @@ pub const Compiler = struct {
             return Allocator.Error.OutOfMemory;
         };
 
+        errdefer {
+            _string.clearAndFree(al);
+            _string.deinit(al);
+        }
+
+        // errdefer {
+        //     _string.clearAndFree(al);
+        //     _string.deinit(al);
+        // }
+
         const view = std.unicode.Utf8View.initUnchecked(lexeme);
         var ite = view.iterator();
 
@@ -808,12 +818,34 @@ pub const Compiler = struct {
                     'r' => raw = &[_]u8{'\x0D'}, // Carriage Return
                     't' => raw = &[_]u8{'\t'}, // Horizontal Tab
                     'v' => raw = &[_]u8{'\x0B'}, // Vertical Tab
+                    'x' => {
+                        const uLen = 2;
+                        const hexChars = ite.peek(uLen);
+
+                        if (hexChars.len < uLen) {
+                            self.parser.err("hex escape requires 2 chars");
+                            return Allocator.Error.OutOfMemory;
+                        }
+
+                        var hex = [4]u8{ 0, 0, 0, 0 };
+                        if (self.readUnicodeCodePoint(hexChars, &hex)) |hlen| {
+                            raw = hex[0..hlen];
+
+                            for (0..uLen) |_| {
+                                _ = ite.nextCodepoint() orelse {
+                                    self.parser.err("Invalid string hex escape codepoint");
+                                    return Allocator.Error.OutOfMemory;
+                                };
+                            }
+                        } else {
+                            self.parser.err("Invalid string hex escape codepoint");
+                            return Allocator.Error.OutOfMemory;
+                        }
+                    },
                     'u' => {
                         const uLen = 4;
                         const hexChars = ite.peek(uLen);
                         if (hexChars.len < uLen) {
-                            _string.clearAndFree(al);
-                            _string.deinit(al);
                             self.parser.err(compErrors.STRING_U4_NOT_4);
                             return Allocator.Error.OutOfMemory;
                         }
@@ -823,15 +855,11 @@ pub const Compiler = struct {
                             raw = hex[0..hlen];
                             for (0..uLen) |_| {
                                 _ = ite.nextCodepoint() orelse {
-                                    _string.clearAndFree(al);
-                                    _string.deinit(al);
                                     self.parser.err(compErrors.STRING_INVALID_CP);
                                     return Allocator.Error.OutOfMemory;
                                 };
                             }
                         } else {
-                            _string.clearAndFree(al);
-                            _string.deinit(al);
                             self.parser.err(compErrors.STRING_INVALID_CP);
                             return Allocator.Error.OutOfMemory;
                         }
@@ -840,8 +868,6 @@ pub const Compiler = struct {
                         const uLen = 8;
                         const hexChars = ite.peek(uLen);
                         if (hexChars.len < uLen) {
-                            _string.clearAndFree(al);
-                            _string.deinit(al);
                             self.parser.err(compErrors.STRING_U4_NOT_4);
                             return Allocator.Error.OutOfMemory;
                         }
@@ -851,22 +877,16 @@ pub const Compiler = struct {
 
                             for (0..uLen) |_| {
                                 _ = ite.nextCodepoint() orelse {
-                                    _string.clearAndFree(al);
-                                    _string.deinit(al);
                                     self.parser.err(compErrors.STRING_INVALID_CP);
                                     return Allocator.Error.OutOfMemory;
                                 };
                             }
                         } else {
-                            _string.clearAndFree(al);
-                            _string.deinit(al);
                             self.parser.err(compErrors.STRING_INVALID_CP);
                             return Allocator.Error.OutOfMemory;
                         }
                     },
                     else => {
-                        _string.clearAndFree(al);
-                        _string.deinit(al);
                         self.parser.err("Invalid escape characters in string");
                         return Allocator.Error.OutOfMemory;
                     },
@@ -875,8 +895,6 @@ pub const Compiler = struct {
 
             //std.debug.print("\nraw->'{s}'<-\n", .{raw});
             _string.appendSlice(al, raw) catch {
-                _string.clearAndFree(al);
-                _string.deinit(al);
                 self.parser.err(compErrors.STRING_TEMP_APPEND);
                 return Allocator.Error.OutOfMemory;
                 //
