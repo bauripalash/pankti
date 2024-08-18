@@ -61,7 +61,7 @@ pub fn os_Arch(vm: *Vm, argc: u8, values: []PValue) PValue {
     }
 
     const anm = switch (builtin.target.cpu.arch) {
-        .arm, .armeb, .aarch64, .aarch64_be, .aarch64_32 => "আর্ম",
+        .arm, .armeb, .aarch64, .aarch64_be => "আর্ম",
         .x86 => "এক্স86",
         .x86_64 => "এক্স86_64",
         .wasm32, .wasm64 => "ওয়েব",

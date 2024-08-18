@@ -112,17 +112,17 @@ pub fn _u8tou32(input: []const u8, alc: std.mem.Allocator) ![]u32 {
             cp = @intCast(bt);
             index += 1;
         } else if (byteLen == 2) {
-            cp = try std.unicode.utf8Decode2(&[2]u8{ bt, input[index + 1] });
+            cp = try std.unicode.utf8Decode2([2]u8{ bt, input[index + 1] });
             index += 2;
         } else if (byteLen == 3) {
-            cp = try std.unicode.utf8Decode3(&[3]u8{
+            cp = try std.unicode.utf8Decode3([3]u8{
                 bt,
                 input[index + 1],
                 input[index + 2],
             });
             index += 3;
         } else {
-            cp = try std.unicode.utf8Decode4(&[4]u8{
+            cp = try std.unicode.utf8Decode4([4]u8{
                 bt,
                 input[index + 1],
                 input[index + 2],
