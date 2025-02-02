@@ -187,5 +187,8 @@ pub fn pushStdlibBig(v: *vm.Vm) void {
         msl.m(bigMod.NameFuncNew, bigMod.big_New),
         msl.m(bigMod.NamefuncAdd, bigMod.big_Add),
         msl.m(bigMod.NamefuncSub, bigMod.big_Sub),
+        msl.m(bigMod.NamefuncDiv, bigMod.big_Div),
+        msl.m(bigMod.NamefuncMul, bigMod.big_Mul),
+        msl.m(bigMod.NamefuncSqrt, bigMod.big_Sqrt),
     });
 }
