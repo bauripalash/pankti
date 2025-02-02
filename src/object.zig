@@ -8,6 +8,8 @@
 // SPDX-License-Identifier: MPL-2.0
 
 const std = @import("std");
+const math = std.math;
+const big = math.big;
 const Vm = @import("vm.zig").Vm;
 const value = @import("value.zig");
 const ParentLink = value.ParentLink;
@@ -18,7 +20,6 @@ const instruction = @import("instruction.zig");
 const Instruction = instruction.Instruction;
 const writer = @import("writer.zig");
 const table = @import("table.zig");
-const Bnum = @import("ext/baurinum/src/bnum.zig").Bnum;
 const BnName = @import("bengali/names.zig");
 const valueerrors = @import("value_errors.zig");
 const CopyError = valueerrors.CopyError;
@@ -289,10 +290,14 @@ pub const PObj = struct {
 
     pub const OBigInt = struct {
         obj: PObj,
-        ival: *Bnum,
+        ival: big.int.Managed,
 
         pub fn initInt(self: *OBigInt, gc: *Gc) bool {
-            self.ival = Bnum.new(gc.hal()) catch return false;
+            self.ival = big.int.Managed.initCapacity(
+                gc.hal(),
+                10,
+            ) catch return false;
+
             return true;
         }
 
@@ -309,22 +314,18 @@ pub const PObj = struct {
                 return CopyError.BigInt_InitInt;
             }
 
-            for (self.ival.digits.items) |digit| {
-                if (!cop.ival.addDig(gc.hal(), @intCast(digit))) {
-                    return CopyError.BigInt_AddDigit;
-                }
-            }
+            cop.ival = self.ival.clone() catch return CopyError.BigInt_InitInt;
+
+            //self.ival.copy(cop.ival) orelse {
+            //    return CopyError.BigInt_AddDigit;
+            //};
 
             cop.parent().isMarked = false;
             return cop.parent();
         }
 
         pub fn print(self: *OBigInt, gc: *Gc, _: ?*ParentLink) bool {
-            const x = self.ival.toString(gc.hal(), true) orelse {
-                return false;
-            };
-            gc.pstdout.print("{s}", .{x}) catch return false;
-            gc.hal().free(x);
+            gc.pstdout.print("{any}", .{self.ival}) catch return false;
             return true;
         }
 
@@ -333,7 +334,7 @@ pub const PObj = struct {
         }
 
         pub fn free(self: *OBigInt, gc: *Gc) void {
-            self.ival.free(gc.hal());
+            self.ival.deinit();
             gc.getAlc().destroy(self);
         }
     };

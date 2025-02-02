@@ -47,13 +47,13 @@ pub fn big_Sub(vm: *Vm, argc: u8, values: []PValue) PValue {
     const aInt = a.asObj().asBigInt();
     const bInt = b.asObj().asBigInt();
 
-    const resultInt = aInt.ival.sub(bInt.ival, vm.gc.hal()) orelse return PValue.makeNil();
-
     const x: *PObj.OBigInt = vm.gc.newObj(.Ot_BigInt, PObj.OBigInt) catch {
         return PValue.makeNil();
     };
 
-    x.ival = resultInt;
+    if (!x.initInt(vm.gc)) return PValue.makeNil();
+
+    x.ival.sub(&aInt.ival, &bInt.ival) catch return PValue.makeNil();
 
     vm.stack.push(x.parent().asValue()) catch return PValue.makeNil();
 
@@ -88,13 +88,15 @@ pub fn big_Add(vm: *Vm, argc: u8, values: []PValue) PValue {
     const aInt = a.asObj().asBigInt();
     const bInt = b.asObj().asBigInt();
 
-    const resultInt = aInt.ival.add(bInt.ival, vm.gc.hal()) orelse return PValue.makeNil();
-
     const x: *PObj.OBigInt = vm.gc.newObj(.Ot_BigInt, PObj.OBigInt) catch {
         return PValue.makeNil();
     };
 
-    x.ival = resultInt;
+    if (!x.initInt(vm.gc)) return PValue.makeNil();
+
+    x.ival.add(&aInt.ival, &bInt.ival) catch {
+        return PValue.makeNil();
+    };
 
     vm.stack.push(x.parent().asValue()) catch return PValue.makeNil();
 
@@ -130,21 +132,12 @@ pub fn big_New(vm: *Vm, argc: u8, values: []PValue) PValue {
         const rawString = item.asObj().asString();
 
         const u8string = rawString.chars;
-        //utils.u32tou8(rawString.chars, vm.gc.hal()) catch {
-        //    return PValue.makeNil();
-        //};
 
-        if (!x.ival.setstr(vm.gc.hal(), u8string)) {
-            return PValue.makeNil();
-        }
-
-        //vm.gc.hal().free(u8string);
+        x.ival.setString(10, u8string) catch return PValue.makeNil();
     } else if (item.isNumber()) {
         const number = item.asNumber();
 
-        if (!x.ival.seti64(vm.gc.hal(), @intFromFloat(number))) {
-            return PValue.makeNil();
-        }
+        x.ival.set(@as(usize, @intFromFloat(number))) catch return PValue.makeNil();
     }
 
     return vm.stack.pop() catch return PValue.makeNil();
