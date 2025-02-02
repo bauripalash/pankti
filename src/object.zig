@@ -119,6 +119,8 @@ pub const PObj = struct {
 
         if (self.isString()) {
             return self.asString().hash == other.asString().hash;
+        } else if (self.isBigInt()) {
+            return self.asBigInt().isEq(other.asBigInt());
         }
 
         return false;
@@ -331,6 +333,13 @@ pub const PObj = struct {
 
         pub fn parent(self: *OBigInt) *PObj {
             return @ptrCast(self);
+        }
+
+        pub fn isEq(self: *OBigInt, other: *OBigInt) bool {
+            const a = self.ival;
+            const b = other.ival;
+
+            return a.eql(b);
         }
 
         pub fn free(self: *OBigInt, gc: *Gc) void {
