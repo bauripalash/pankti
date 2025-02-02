@@ -126,7 +126,7 @@ pub const InstPos = struct {
         };
     }
 
-    pub fn line(l: usize) InstPos {
+    pub fn lined(l: usize) InstPos {
         return InstPos{
             .virtual = true,
             .colpos = 0,

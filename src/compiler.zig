@@ -342,14 +342,14 @@ pub const Compiler = struct {
     fn emitBtRaw(self: *Self, bt: u8) Allocator.Error!void {
         try self.curIns().write_raw(
             bt,
-            ins.InstPos.line(self.parser.previous.line),
+            ins.InstPos.lined(self.parser.previous.line),
         );
     }
 
     fn emitBt(self: *Self, bt: ins.OpCode) Allocator.Error!void {
         try self.curIns().write(
             bt,
-            ins.InstPos.line(self.parser.previous.line),
+            ins.InstPos.lined(self.parser.previous.line),
         );
     }
 
