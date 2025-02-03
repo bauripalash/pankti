@@ -481,6 +481,7 @@ pub const Vm = struct {
                         argc,
                         (self.stack.top - argc)[0..argc],
                     );
+
                     self.stack.top -= argc + 1;
 
                     if (result.isError()) {

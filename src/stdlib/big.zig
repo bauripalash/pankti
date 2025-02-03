@@ -310,11 +310,17 @@ pub fn big_New(vm: *Vm, argc: u8, values: []PValue) PValue {
 
         const u8string = rawString.chars;
 
-        x.ival.setString(10, u8string) catch return PValue.makeNil();
+        x.ival.setString(10, u8string) catch {
+            return PValue.makeComptimeError(
+                vm.gc,
+                "নতুন(...) কাজটিতে অবৈধ স্ট্রিং \"{s}\" দেওয়া হয়েছে!",
+                .{u8string},
+            ).?;
+        };
     } else if (item.isNumber()) {
         const number = item.asNumber();
-
-        x.ival.set(@as(usize, @intFromFloat(number))) catch return PValue.makeNil();
+        const f_temp: i64 = std.math.lossyCast(isize, @trunc(number));
+        x.ival.set(f_temp) catch return PValue.makeNil();
     }
 
     return vm.stack.pop() catch return PValue.makeNil();
