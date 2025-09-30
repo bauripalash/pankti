@@ -16,7 +16,7 @@ const pankti_version = std.SemanticVersion{
     .patch = 0,
 };
 
-const min_zig_version = "0.12.0-dev.3659+1e5075f81";
+const min_zig_version = "0.15.1";
 
 pub fn getVersion(b: *Build) []const u8 {
     const version_string = b.fmt("{d}.{d}.{d}", .{
@@ -90,21 +90,26 @@ pub fn build(b: *Build) !void {
     build_options.addOption([]const u8, "version_string", version_result);
     build_options.addOption(std.SemanticVersion, "version", try std.SemanticVersion.parse(version_result));
 
-    //Standard Executable
-    const exe = b.addExecutable(.{
-        .name = "pankti",
+    const exeMod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
     });
-
-    const khataapi = b.addModule("khataapi", .{ .root_source_file = b.path("src/khataapi.zig") });
-
-    const lib = b.addStaticLibrary(.{
+    //Standard Executable
+    const exe = b.addExecutable(.{
         .name = "pankti",
+        .root_module = exeMod,
+    });
+
+    const khataapi = b.createModule(.{
         .root_source_file = b.path("src/khataapi.zig"),
         .target = target,
         .optimize = optimize,
+    });
+
+    const lib = b.addLibrary(.{
+        .name = "panktilib",
+        .root_module = khataapi,
     });
 
     lib.root_module.addImport("build_options", build_options_module);
@@ -114,9 +119,14 @@ pub fn build(b: *Build) !void {
 
     const webExe = b.addExecutable(.{
         .name = "pankti",
-        .root_source_file = b.path("src/wasm.zig"),
-        .target = target,
-        .optimize = optimize,
+        .root_module = b.createModule(
+            .{
+                .root_source_file = b.path("src/wasm.zig"),
+                .target = target,
+                .optimize = optimize,
+            },
+        ),
+        //.root_source_file = b.path("src/wasm.zig"),
     });
 
     webExe.root_module.addImport("build_options", build_options_module);
@@ -143,9 +153,7 @@ pub fn build(b: *Build) !void {
     run_step.dependOn(&run_cmd.step);
 
     const unit_tests = b.addTest(.{
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize,
+        .root_module = exeMod,
     });
 
     unit_tests.root_module.addImport("build_options", build_options_module);

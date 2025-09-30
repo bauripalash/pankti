@@ -157,33 +157,6 @@ pub fn _u32tou8(
         i += l;
     }
 
-    //var i: usize = 0;
-    //for (input) |value| {
-    //    //std.debug.print("\n->{any}|{}\n", .{value , value});
-    //    if (value <= 0x7F) {
-    //        u8str[i] = @intCast(value); //1
-    //        i += 1;
-    //    } else if (value <= 0x7FF) {
-    //        u8str[i] = (0xC0 | @as(u8, @intCast((value >> 6) & 0x1F)));
-    //        u8str[i + 1] = (0x80 | @as(u8, @intCast(value & 0x3F)));
-    //        i += 2;
-    //    } else if (value <= 0xFFFF) {
-    //        u8str[i] = (0xE0 | @as(u8, @intCast((value >> 12) & 0x0F)));
-    //        u8str[i + 1] = (0x80 | @as(u8, @intCast((value >> 6) & 0x3F)));
-    //        u8str[i + 2] = (0x80 | @as(u8, @intCast(value & 0x3F)));
-    //        i += 3;
-    //    } else {
-    //        u8str[i] = (0xF0 | @as(u8, @intCast((value >> 18) & 0x07)));
-    //        u8str[i + 1] = (0x80 | @as(u8, @intCast((value >> 12) & 0x3F)));
-    //        u8str[i + 2] = (0x80 | @as(u8, @intCast((value >> 6) & 0x3F)));
-    //        u8str[i + 3] = (0x80 | @as(u8, @intCast(value & 0x3F)));
-    //        i += 4;
-    //    }
-    //}
-
-    //u8str = al.realloc(u8str, i) catch u8str;
-    //std.debug.print("-->string-->|<{d}> => <{d}>|{s}\n\n", .{ len32, i, u8str });
-
     return u8str;
 }
 
@@ -258,7 +231,7 @@ pub fn u8tou16(a: []const u8) u16 {
     return result;
 }
 
-pub const IS_WASM = (builtin.target.isWasm() and builtin.target.os.tag == .freestanding);
+pub const IS_WASM = (builtin.target.cpu.arch.isWasm() and builtin.target.os.tag == .freestanding);
 
 pub const IS_WIN: bool = builtin.target.os.tag == .windows;
 pub const IS_MAC: bool = builtin.target.isDarwin();

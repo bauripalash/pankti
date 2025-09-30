@@ -60,7 +60,8 @@ pub fn runCode16(rawSource: []const u16) bool {
         return false;
     };
 
-    gc.boot(std.io.getStdOut().writer(), std.io.getStdErr().writer());
+    var a = [0]u8{};
+    gc.boot(std.fs.File.stdout().writer(&a), std.fs.File.stderr().writer(&a));
 
     const source: []u8 = std.unicode.utf16leToUtf8Alloc(
         gc.hal(),
@@ -117,7 +118,8 @@ pub fn runFile(filepath: []const u8) bool {
 
     //var a = std.ArrayList(u8).init(gc.hal());
 
-    gc.boot(std.io.getStdOut().writer().any(), std.io.getStdErr().writer().any());
+    var a = [0]u8{};
+    gc.boot(std.fs.File.stdout().writer(&a), std.fs.File.stdout().writer(&a));
     //gc.boot(a.writer().any(), a.writer().any());
 
     const rawSource: []u8 = openfile(filepath, gc.hal()) catch {
