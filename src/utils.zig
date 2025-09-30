@@ -234,8 +234,8 @@ pub fn u8tou16(a: []const u8) u16 {
 pub const IS_WASM = (builtin.target.cpu.arch.isWasm() and builtin.target.os.tag == .freestanding);
 
 pub const IS_WIN: bool = builtin.target.os.tag == .windows;
-pub const IS_MAC: bool = builtin.target.isDarwin();
-pub const IS_LINUX: bool = builtin.target.os.tag == .linux;
+pub const IS_MAC: bool = builtin.target.os.tag.isDarwin();
+pub const IS_LINUX: bool = builtin.target.os.tag == .windows;
 
 test "test utils->u8tou32->english" {
     const al = std.testing.allocator;

@@ -17,7 +17,9 @@ pub export fn freeCode(src: [*c]u8, len: u32) void {
     std.heap.c_allocator.free(src[0..len]);
 }
 
-pub export fn runCode(src: [*]const u8, len: u32) callconv(.C) [*c]u8 {
+const InitBufferCap = 4096;
+
+pub export fn runCode(src: [*]const u8, len: u32) callconv(.c) [*c]u8 {
     const handyAl = std.heap.c_allocator;
     const gcAl = std.heap.c_allocator;
     var result = std.fmt.allocPrint(handyAl, "error", .{}) catch return null;
@@ -28,9 +30,10 @@ pub export fn runCode(src: [*]const u8, len: u32) callconv(.C) [*c]u8 {
         return result.ptr;
     };
 
-    var warr = std.ArrayList(u8).init(gc.hal());
+    //var warr = std.ArrayList(u8).initCapacity(gc.hal(), InitBufferCap) catch return null;
+    const warr = std.Io.Writer.Allocating.initCapacity(gc.hal(), InitBufferCap) catch return null;
 
-    gc.boot(warr.writer().any(), warr.writer().any());
+    gc.boot(warr.writer, warr.writer);
 
     var myVm = Vm.newVm(gc.hal()) catch {
         return result.ptr;
