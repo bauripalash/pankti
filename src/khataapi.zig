@@ -31,9 +31,9 @@ pub export fn runCode(src: [*]const u8, len: u32) callconv(.c) [*c]u8 {
     };
 
     //var warr = std.ArrayList(u8).initCapacity(gc.hal(), InitBufferCap) catch return null;
-    const warr = std.Io.Writer.Allocating.initCapacity(gc.hal(), InitBufferCap) catch return null;
+    var warr = std.Io.Writer.Allocating.initCapacity(gc.hal(), InitBufferCap) catch return null;
 
-    gc.boot(warr.writer, warr.writer);
+    gc.bootWithWriter(&warr.writer, &warr.writer);
 
     var myVm = Vm.newVm(gc.hal()) catch {
         return result.ptr;
@@ -48,7 +48,7 @@ pub export fn runCode(src: [*]const u8, len: u32) callconv(.c) [*c]u8 {
     switch (vmResult) {
         .Ok => {
             handyAl.free(result);
-            result = std.fmt.allocPrintZ(handyAl, "{s}", .{warr.items}) catch return null;
+            result = std.fmt.allocPrint(handyAl, "{s}", .{warr.toArrayList().items}) catch return null;
             return result.ptr;
         },
         .RuntimeError => return result.ptr,

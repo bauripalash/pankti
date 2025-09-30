@@ -660,7 +660,7 @@ pub const Compiler = struct {
         const lexeme = self.parser.previous.lexeme;
         const uv = std.unicode.Utf8View.initUnchecked(lexeme);
         var it = uv.iterator();
-        var rawNum = std.ArrayList(u8).init(self.gc.hal());
+        var rawNum = try std.ArrayList(u8).initCapacity(self.gc.hal(), 1024);
 
         while (it.nextCodepoint()) |cp| {
             const c: u8 = switch (cp) {
@@ -678,13 +678,13 @@ pub const Compiler = struct {
                 else => @truncate(cp),
             };
 
-            try rawNum.append(c);
+            try rawNum.append(self.gc.hal(), c);
         }
 
         const result = try std.fmt.parseFloat(f64, rawNum.items);
 
-        rawNum.clearAndFree();
-        rawNum.deinit();
+        rawNum.clearAndFree(self.gc.hal());
+        rawNum.deinit(self.gc.hal());
 
         return result;
     }

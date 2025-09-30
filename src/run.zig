@@ -61,7 +61,9 @@ pub fn runCode16(rawSource: []const u16) bool {
     };
 
     var a = [0]u8{};
-    gc.boot(std.fs.File.stdout().writer(&a), std.fs.File.stderr().writer(&a));
+    var stdWriter = std.fs.File.stdout().writer(&a);
+    var sterrWriter = std.fs.File.stderr().writer(&a);
+    gc.boot(&stdWriter, &sterrWriter);
 
     const source: []u8 = std.unicode.utf16leToUtf8Alloc(
         gc.hal(),
@@ -119,7 +121,9 @@ pub fn runFile(filepath: []const u8) bool {
     //var a = std.ArrayList(u8).init(gc.hal());
 
     var a = [0]u8{};
-    gc.boot(std.fs.File.stdout().writer(&a), std.fs.File.stdout().writer(&a));
+    var stdWriter = std.fs.File.stdout().writer(&a);
+    var sterrWriter = std.fs.File.stderr().writer(&a);
+    gc.boot(&stdWriter, &sterrWriter);
     //gc.boot(a.writer().any(), a.writer().any());
 
     const rawSource: []u8 = openfile(filepath, gc.hal()) catch {

@@ -27,7 +27,7 @@ var DEBUG: bool = false;
 var STRESS_GC: bool = false;
 var NO_GC: bool = false;
 
-fn dprint(color: u8, w: std.io.AnyWriter, comptime fmt: []const u8, args: anytype) void {
+fn dprint(color: u8, w: *std.io.Writer, comptime fmt: []const u8, args: anytype) void {
     ansicolors.TermColor(color, w);
     w.print(fmt, args) catch return;
     ansicolors.ResetColor(w);
@@ -169,8 +169,10 @@ pub const Gc = struct {
     stack: ?*stck.VStack,
     compiler: ?*compiler.Compiler,
     grayStack: std.ArrayListUnmanaged(*PObj),
-    pstdout: std.io.AnyWriter,
-    pstderr: std.io.AnyWriter,
+    pstdoutW: *std.fs.File.Writer,
+    pstdout: *std.io.Writer,
+    pstderrW: *std.fs.File.Writer,
+    pstderr: *std.io.Writer,
     modules: std.ArrayListUnmanaged(*Module),
     modCount: usize,
     stdlibs: [STDMAX]StdLibMod,
@@ -223,6 +225,8 @@ pub const Gc = struct {
             //.callstack = null,
             .compiler = null,
             .grayStack = std.ArrayListUnmanaged(*PObj){},
+            .pstdoutW = undefined,
+            .pstderrW = undefined,
             .pstdout = undefined,
             .pstderr = undefined,
             .modules = undefined,
@@ -241,9 +245,19 @@ pub const Gc = struct {
 
     pub fn boot(
         self: *Self,
-        stdout: anytype,
-        stderr: anytype,
+        stdout: *std.fs.File.Writer,
+        stderr: *std.fs.File.Writer,
     ) void {
+        self.al = self.allocator();
+        self.pstdoutW = stdout;
+        self.pstdout = &self.pstdoutW.interface;
+        self.pstderrW = stderr;
+        self.pstderr = &self.pstderrW.interface;
+        self.modules = std.ArrayListUnmanaged(*Module){};
+        self.stdlibs[0] = StdLibMod.new();
+    }
+
+    pub fn bootWithWriter(self: *Self, stdout: *std.io.Writer, stderr: *std.io.Writer) void {
         self.al = self.allocator();
         self.pstdout = stdout;
         self.pstderr = stderr;
@@ -252,17 +266,26 @@ pub const Gc = struct {
     }
 
     pub inline fn allocator(self: *Self) Allocator {
-        return .{ .ptr = self, .vtable = comptime &Allocator.VTable{
-            .alloc = allocImpl,
-            .free = freeImpl,
-            .resize = resizeImpl,
-        } };
+        return .{
+            .ptr = self,
+            .vtable = comptime &Allocator.VTable{
+                .alloc = allocImpl,
+                .free = freeImpl,
+                .resize = resizeImpl,
+                .remap = remapImpl,
+            },
+        };
     }
 
+    pub fn remapImpl(ptr: *anyopaque, memory: []u8, alignment: std.mem.Alignment, new_len: usize, ret_addr: usize) ?[*]u8 {
+        const self: *Gc = @ptrCast(@alignCast(ptr));
+        const bts = self.internal_al.rawRemap(memory, alignment, new_len, ret_addr);
+        return bts;
+    }
     pub fn allocImpl(
         ptr: *anyopaque,
         len: usize,
-        ptr_align: u8,
+        ptr_align: std.mem.Alignment,
         ret_addr: usize,
     ) ?[*]u8 {
         const self: *Gc = @ptrCast(@alignCast(ptr));
@@ -276,7 +299,7 @@ pub const Gc = struct {
     pub fn freeImpl(
         ptr: *anyopaque,
         buf: []u8,
-        bufalign: u8,
+        bufalign: std.mem.Alignment,
         ret_addr: usize,
     ) void {
         const self: *Gc = @ptrCast(@alignCast(ptr));
@@ -289,7 +312,7 @@ pub const Gc = struct {
     pub fn resizeImpl(
         ptr: *anyopaque,
         buf: []u8,
-        bufalign: u8,
+        bufalign: std.mem.Alignment,
         newlen: usize,
         ret_addr: usize,
     ) bool {
@@ -681,7 +704,9 @@ pub const Gc = struct {
     fn traceRefs(self: *Self) void {
         while (self.grayStack.items.len > 0) {
             const obj = self.grayStack.pop();
-            self.paintObject(obj);
+            if (obj) |o| {
+                self.paintObject(o);
+            }
         }
     }
 

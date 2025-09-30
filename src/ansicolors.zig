@@ -19,7 +19,7 @@ pub const ANSI_COLOR_CYAN = "\x1b[36m";
 pub const ANSI_COLOR_WHITE = "\x1b[37m";
 pub const ANSI_COLOR_RESET = "\x1b[0m";
 
-pub fn TermColor(color: u8, w: std.io.AnyWriter) void {
+pub fn TermColor(color: u8, w: *std.io.Writer) void {
     switch (color) {
         'B' => {
             w.print("{s}", .{ANSI_COLOR_BLACK}) catch return;
@@ -51,6 +51,6 @@ pub fn TermColor(color: u8, w: std.io.AnyWriter) void {
     }
 }
 
-pub fn ResetColor(w: std.io.AnyWriter) void {
+pub fn ResetColor(w: *std.io.Writer) void {
     w.print("{s}", .{ANSI_COLOR_RESET}) catch return;
 }

@@ -327,7 +327,9 @@ pub const PObj = struct {
         }
 
         pub fn print(self: *OBigInt, gc: *Gc, _: ?*ParentLink) bool {
-            gc.pstdout.print("{any}", .{self.ival}) catch return false;
+            const strValue = self.ival.toString(gc.hal(), 10, .lower) catch return false;
+            gc.pstdout.print("{s}", .{strValue}) catch return false;
+            gc.hal().free(strValue);
             return true;
         }
 
