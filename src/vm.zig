@@ -1124,7 +1124,7 @@ pub const Vm = struct {
 
                     if (rawObj.isObj() and
                         (rawObj.asObj().isString() or
-                        rawObj.asObj().isArray()))
+                            rawObj.asObj().isArray()))
                     {
                         if (!rawIndex.isNumber()) {
                             self.throwRuntimeError(
