@@ -318,10 +318,6 @@ pub const PObj = struct {
 
             cop.ival = self.ival.clone() catch return CopyError.BigInt_InitInt;
 
-            //self.ival.copy(cop.ival) orelse {
-            //    return CopyError.BigInt_AddDigit;
-            //};
-
             cop.parent().isMarked = false;
             return cop.parent();
         }
