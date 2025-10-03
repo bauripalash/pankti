@@ -1,0 +1,49 @@
+cmake --build build
+[0/2] Re-checking globbed directories...
+ninja: no work to do.
+./build/pankti
+Pankti Programming Language
+Source -> 
+ ধরি নাম =  "পলাশ বাউরি"
+dhori age = 24
+(())
+
+L1 : Invalid character : 0xffffffe0 | '�'
+L1 : Invalid character : 0xffffffa6 | '�'
+L1 : Invalid character : 0xffffffa7 | '�'
+L1 : Invalid character : 0xffffffe0 | '�'
+L1 : Invalid character : 0xffffffa6 | '�'
+L1 : Invalid character : 0xffffffb0 | '�'
+L1 : Invalid character : 0xffffffe0 | '�'
+L1 : Invalid character : 0xffffffa6 | '�'
+L1 : Invalid character : 0xffffffbf | '�'
+L1 : Invalid character : 0xffffffe0 | '�'
+L1 : Invalid character : 0xffffffa6 | '�'
+L1 : Invalid character : 0xffffffa8 | '�'
+L1 : Invalid character : 0xffffffe0 | '�'
+L1 : Invalid character : 0xffffffa6 | '�'
+L1 : Invalid character : 0xffffffbe | '�'
+L1 : Invalid character : 0xffffffe0 | '�'
+L1 : Invalid character : 0xffffffa6 | '�'
+L1 : Invalid character : 0xffffffae | '�'
+Lexer : start 24 | current 54
+ | '"পলাশ বাউরি"
+dhori age = 24
+(())
+'substr -> >>পলাশ বাউরি<<L2 : Invalid character : 0x64 | 'd'
+L2 : Invalid character : 0x68 | 'h'
+L2 : Invalid character : 0x6f | 'o'
+L2 : Invalid character : 0x72 | 'r'
+L2 : Invalid character : 0x69 | 'i'
+L2 : Invalid character : 0x61 | 'a'
+L2 : Invalid character : 0x67 | 'g'
+L2 : Invalid character : 0x65 | 'e'
+L2 : Invalid character : 0x32 | '2'
+L2 : Invalid character : 0x34 | '4'
+Token[Token[Eq:'[NULL]'][L0]
+Token[Token[Str:'পলাশ বাউরি'][L0]
+Token[Token[Eq:'[NULL]'][L0]
+Token[Token[LeftParen:'[NULL]'][L0]
+Token[Token[LeftParen:'[NULL]'][L0]
+Token[Token[RightParen:'[NULL]'][L0]
+Token[Token[RightParen:'[NULL]'][L0]
