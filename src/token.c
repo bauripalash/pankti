@@ -11,10 +11,14 @@ char * TokTypeToStr(TokenType type){
 		case T_RIGHT_PAREN: return "RightParen";
 		case T_LEFT_BRACE: return "LeftBrace";
 		case T_RIGHT_BRACE: return "RightBrace";
+		case T_LS_BRACKET: return "LSBracket";
+		case T_RS_BRACKET: return "RSBracket";
 		case T_COMMA: return "Comma";
 		case T_DOT: return "Dot";
 		case T_PLUS: return "Plus";
 		case T_MINUS: return "Minus";
+		case T_COLON: return "Colon";
+		case T_MOD: return "Mod";
 		case T_SEMICOLON: return "Semicolon";
 		case T_SLASH: return "Slash";
 		case T_ASTR: return "Astr";
@@ -32,18 +36,36 @@ char * TokTypeToStr(TokenType type){
 		case T_LET: return "Let";
 		case T_AND: return "And";
 		case T_OR: return "Or";
-		case T_FUNC: return "Fun";
+		case T_FUNC: return "Func";
 		case T_IF: return "If";
 		case T_THEN: return "Then";
 		case T_ELSE: return "Else";
 		case T_END: return "End";
+		case T_WHILE: return "While";
+		case T_DO: return "Do";
+		case T_BREAK: return "Break";
+		case T_NIL: return "Nil";
+		case T_TRUE: return "True";
+		case T_FALSE: return "False";
+		case T_RETURN: return "Return";
+		case T_IMPORT: return "Import";
+		case T_PANIC: return "Panic";
+		case T_LEN: return "Len";
 		case T_EOF: return "EOF";
 
-		default: return "Unknown";
 	};
+
+	return "Unknown";
 }
 void PrintTokType(TokenType type){
 	printf("%s", TokTypeToStr(type));
+}
+
+bool IsDoubleTok(TokenType type){
+	if (type == T_BANG_EQ || type == T_EQEQ || type == T_GTE || type == T_LTE) {
+		return true;
+	}
+	return false;
 }
 
 Token * NewToken(TokenType type){
@@ -83,10 +105,5 @@ bool SetTokenLexeme(Token * token, char * str){
 }
 
 void PrintToken(const Token * token){
-	printf("Token[%s:'%s'()][L%ld]", TokTypeToStr(token->type), token->lexeme != NULL ? token->lexeme : "[NULL]", token->line);
-	if (token->type == T_IDENT) {
-		printf("(");
-		printf("0x%02x", U8ToU32((unsigned char*)token->lexeme));
-		printf(")");
-	}
+	printf("Token[l%zu|%s:'%s'<%ld>]", token->line, TokTypeToStr(token->type), token->lexeme != NULL ? token->lexeme : "", token->len);
 }

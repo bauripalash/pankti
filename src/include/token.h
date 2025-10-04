@@ -8,10 +8,14 @@ typedef enum TokenType{
 	T_RIGHT_PAREN,
 	T_LEFT_BRACE,
 	T_RIGHT_BRACE,
+	T_LS_BRACKET,
+	T_RS_BRACKET,
 	T_COMMA,
 	T_DOT,
 	T_PLUS,
 	T_MINUS,
+	T_COLON,
+	T_MOD,
 	T_SEMICOLON,
 	T_SLASH,
 	T_ASTR,
@@ -37,17 +41,30 @@ typedef enum TokenType{
 	T_THEN,
 	T_ELSE,
 	T_END,
+	T_WHILE,
+	T_DO,
+	T_BREAK,
+	T_NIL,
+	T_TRUE,
+	T_FALSE,
+	T_RETURN,
+	T_IMPORT,
+	T_PANIC,
+	T_LEN,
 
 	T_EOF
 }TokenType;
 
 char * TokTypeToStr(TokenType type);
 void PrintTokType(TokenType type);
+bool IsDoubleTok(TokenType type);
 
 typedef struct Token{
 	TokenType type;
 	char * lexeme;
 	long line;
+	long col;
+	long len;
 }Token;
 
 Token * NewToken(TokenType type);

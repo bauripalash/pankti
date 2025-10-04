@@ -15,7 +15,7 @@ int main(int argc, char ** argv){
 	Lexer * lx = NewLexer(str);
 	Token ** toks = ScanTokens(lx);
 	for (int i = 0; i < arrlen(toks); i++) {
-		printf("%d -> " , i);
+		printf("%04d -> " , i);
 		PrintToken(toks[i]);
 		printf("\n");
 	}

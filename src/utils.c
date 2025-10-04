@@ -1,4 +1,5 @@
 #include "include/utils.h"
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -55,6 +56,20 @@ char * SubString(const char * str, int start, int end){
 	return result;
 
 
+}
+
+
+bool StrEqual(const char * str1, const char * str2){
+	return strcmp(str1, str2) == 0;
+}
+
+long StrLength(const char * str){
+	return strlen(str);
+
+}
+
+bool MatchKW(const char * s, const char * en, const char * pn, const char * bn){
+	return StrEqual(s, en) || StrEqual(s, pn) || StrEqual(s, bn);
 }
 
 char32_t U8ToU32(const unsigned char * str){
