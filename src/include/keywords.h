@@ -19,6 +19,7 @@
 #define KW_EN_DO "do"
 #define KW_EN_BREAK "break"
 #define KW_EN_LEN "len"
+#define KW_EN_PRINT "print"
 
 #define KW_PN_LET "dhori"
 #define KW_PN_AND "ebong"
@@ -38,25 +39,7 @@
 #define KW_PN_DO "koro"
 #define KW_PN_BREAK "bhango"
 #define KW_PN_LEN "ayoton"
-
-#define KW_EN_LET "let"
-#define KW_EN_AND "and"
-#define KW_EN_OR "or"
-#define KW_EN_END "end"
-#define KW_EN_IF "if"
-#define KW_EN_THEN "then"
-#define KW_EN_ELSE "else"
-#define KW_EN_WHILE "while"
-#define KW_EN_NIL "nil"
-#define KW_EN_TRUE "true"
-#define KW_EN_FALSE "false"
-#define KW_EN_RETURN "return"
-#define KW_EN_FUNC "func"
-#define KW_EN_IMPORT "import"
-#define KW_EN_PANIC "panic"
-#define KW_EN_DO "do"
-#define KW_EN_BREAK "break"
-#define KW_EN_LEN "len"
+#define KW_PN_PRINT "print"
 
 #define KW_BN_LET "ধরি"
 #define KW_BN_AND "এবং"
@@ -76,5 +59,6 @@
 #define KW_BN_DO "করো"
 #define KW_BN_BREAK "ভাঙো"
 #define KW_BN_LEN "আয়তন"
+#define KW_BN_PRINT "print"
 
 #endif

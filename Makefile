@@ -23,15 +23,15 @@ fmt:
 
 .PHONY: cmake_setup
 cmake_setup:
-	cmake -S . -B build -G Ninja
+	cmake -S . -B build
 
 .PHONY: cmake_setup_clang
 cmake_setup_clang:
-	cmake -S . -B build -G Ninja -DCMAKE_C_COMPILER=clang
+	cmake -S . -B build -DCMAKE_C_COMPILER=clang
 
 .PHONY: cmake_clean
 cmake_clean:
-	cd build && ninja clean
+	cd build
 
 
 .PHONY: infer

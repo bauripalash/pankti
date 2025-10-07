@@ -51,6 +51,7 @@ typedef enum TokenType{
 	T_IMPORT,
 	T_PANIC,
 	T_LEN,
+	T_PRINT,
 
 	T_EOF
 }TokenType;
@@ -71,5 +72,5 @@ Token * NewToken(TokenType type);
 void FreeToken(Token * token);
 bool SetTokenLexeme(Token * token, char * str);
 void PrintToken(const Token * token);
-
+void PrintOpToken(const Token * token);
 #endif

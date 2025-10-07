@@ -51,6 +51,7 @@ char * TokTypeToStr(TokenType type){
 		case T_IMPORT: return "Import";
 		case T_PANIC: return "Panic";
 		case T_LEN: return "Len";
+		case T_PRINT: return "Print";
 		case T_EOF: return "EOF";
 
 	};
@@ -105,5 +106,9 @@ bool SetTokenLexeme(Token * token, char * str){
 }
 
 void PrintToken(const Token * token){
-	printf("Token[l%zu|%s:'%s'<%ld>]", token->line, TokTypeToStr(token->type), token->lexeme != NULL ? token->lexeme : "", token->len);
+	printf("T[l%zu|%s:'%s'<%ld>]", token->line, TokTypeToStr(token->type), token->lexeme != NULL ? token->lexeme : "", token->len);
+}
+
+void PrintOpToken(const Token * token){
+	printf("[%s]", TokTypeToStr(token->type));
 }

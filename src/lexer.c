@@ -9,6 +9,7 @@
 
 #include "include/lexer.h"
 #include "include/bengali.h"
+#include "include/core.h"
 #include "include/keywords.h"
 #include "include/token.h"
 #include "include/ustring.h"
@@ -37,6 +38,7 @@ Lexer * NewLexer(char * src){
 	lx->source = src;
 	lx->length = strlen(src);
 	lx->tokens = NULL;
+	lx->core = NULL;
 
 	return lx;
 }
@@ -50,7 +52,12 @@ void FreeLexer(Lexer * lexer){
 	}
 
 	if (lexer->tokens != NULL) {
+		for (int i = 0; i < arrlen(lexer->tokens); i++) {
+			Token * tok = arrpop(lexer->tokens);
+			FreeToken(tok);
+		}
 		//Free Tokens;
+		arrfree(lexer->tokens);
 	}
 
 	if (lexer->iter != NULL) {
@@ -218,6 +225,8 @@ static TokenType getIdentType(const char * str){
 		return T_BREAK;
 	}else if (MatchKW(str, KW_EN_LEN, KW_PN_LEN, KW_BN_LEN)){
 		return T_LEN;
+	} else if (MatchKW(str, KW_EN_PRINT, KW_PN_PRINT, KW_BN_PRINT)){
+		return T_PRINT;
 	}
 
 
@@ -297,10 +306,13 @@ static void scanToken(Lexer * lx){
 		default:{
 			if (isAnyNumber(c)) {
 				readNumber(lx);
+				break;
 			}else if (isAnyAlpha(c)){
 				readIdent(lx);
+				break;
 			}else{
-				printf("L%ld : Invalid character : 0x%x | '%c'\n", lx->line,c, c);
+				CoreError(lx->core, lx->line, "Unknown character found");
+				break;
 			}
 			break;
 		}
@@ -312,8 +324,9 @@ Token ** ScanTokens(Lexer * lexer){
 	while (!atEnd(lexer)) {
 		lexer->start = lexer->current;
 		scanToken(lexer);
-		
 	}
+
+	addToken(lexer, T_EOF);
 
 	return lexer->tokens;
 }
