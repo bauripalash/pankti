@@ -1,5 +1,6 @@
 #ifndef UTILS_H
 #define UTILS_H
+#include <stdint.h>
 #include <uchar.h>
 #include <stdbool.h>
 
@@ -18,5 +19,6 @@ long StrLength(const char * str);
 bool MatchKW(const char * s, const char * en, const char * pn, const char * bn);
 
 char32_t U8ToU32(const unsigned char * str);
+uint32_t Fnv1a(const char * str, int len);
 
 #endif

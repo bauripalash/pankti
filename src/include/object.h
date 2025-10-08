@@ -29,4 +29,7 @@ PObj * NewNumberObj(double value);
 PObj * NewBoolObj(bool value);
 PObj * NewStrObject(char * value);
 
+
+bool IsObjTruthy(const PObj * o);
+
 #endif

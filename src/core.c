@@ -7,6 +7,7 @@
 #include "include/lexer.h"
 #include "include/parser.h"
 #include "include/alloc.h"
+#include "include/token.h"
 #include "include/utils.h"
 #include "include/core.h"
 #include "external/stb/stb_ds.h"
@@ -19,6 +20,7 @@ PanktiCore * NewCore(const char * path){
 	core->lexer->core = core;
 	core->parser = NULL;
 	core->caughtError = false;
+	core->runtimeError = false;
 	core->it = NULL;
 	return core;
 }
@@ -36,16 +38,25 @@ void FreeCore(PanktiCore * core){
 		FreeLexer(core->lexer);
 	}
 
-	if (core) {
-	
+	if (core->it != NULL) {
+		FreeInterpreter(core->it);
 	}
 
 	free(core);
 }
 
+static bool DebugLexer = false;
+static bool DebugParser = true;
+
 void RunCore(PanktiCore * core){
 	core->lexer->core = core;
 	ScanTokens(core->lexer);
+	if (DebugLexer) {
+		for (int i = 0; i < arrlen(core->lexer->tokens); i++) {
+			PrintToken(core->lexer->tokens[i]);
+		}
+	}
+
 
 	if (core->caughtError) {
 		printf("Lexer Error found!\n");
@@ -55,18 +66,27 @@ void RunCore(PanktiCore * core){
 	core->parser = NewParser(core->lexer);
 	core->parser->core = core;
 
-	PExpr * prog = ParseParser(core->parser);
+	PStmt ** prog = ParseParser(core->parser);
 
 	if (core->caughtError) {
 		printf("Parser Error found!\n");
 		exit(1);
 	}
-	printf("AST{\n");
-	AstPrint(prog);
+	if (DebugParser) {
+		printf("AST{\n");
+		for (int i = 0; i < arrlen(prog); i++) {
+			AstStmtPrint(prog[i]);
+		}
+		printf("\n}\n");
 
-	printf("\n}\n");
+	}
 	core->it = NewInterpreter(prog);
+	core->it->core = core;
 	Interpret(core->it);
+	if (core->caughtError) {
+		printf("Runtime Error found!\n");
+		exit(1);
+	}
 
 }
 

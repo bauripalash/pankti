@@ -2,6 +2,7 @@
 #define TOKEN_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef enum TokenType{
 	T_LEFT_PAREN,
@@ -66,6 +67,7 @@ typedef struct Token{
 	long line;
 	long col;
 	long len;
+	uint32_t hash;
 }Token;
 
 Token * NewToken(TokenType type);

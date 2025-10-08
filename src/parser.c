@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static PStmt * rLet(Parser * p);
+static PStmt * rStmt(Parser * p);
 static PExpr * rEquality(Parser * p);
 static PExpr * rComparison(Parser * p);
 static PExpr * rTerm(Parser * p);
@@ -17,6 +19,8 @@ static PExpr * rUnary(Parser * p);
 static PExpr * rPrimary(Parser * p);
 static PExpr * rExpression(Parser * p);
 
+static bool atEnd(const Parser * p);
+
 Parser * NewParser(Lexer * lexer){
 	Parser * parser = PCreate(Parser);
 	//ERROR HANDLE
@@ -24,6 +28,8 @@ Parser * NewParser(Lexer * lexer){
 	parser->tokens = lexer->tokens;
 	parser->pos = 0;
 	parser->core = NULL;
+	parser->stmts = NULL;
+	parser->hasError = false;
 	return parser;
 }
 void FreeParser(Parser * parser){
@@ -33,8 +39,13 @@ void FreeParser(Parser * parser){
 	free(parser);
 }
 
-PExpr * ParseParser(Parser * parser){
-	return rExpression(parser);
+PStmt ** ParseParser(Parser * parser){
+	//return rExpression(parser);
+	while (!atEnd(parser)) {
+		arrput(parser->stmts, rLet(parser));
+	}
+
+	return parser->stmts;
 }
 
 static Token * peek(const Parser * p){
@@ -86,6 +97,7 @@ static bool matchOne(Parser * p, TokenType type){
 }
 
 static void error(Parser * p, Token * tok, char * msg){
+	p->hasError = true;
 	CoreError(p->core, -1, msg);
 }
 
@@ -160,11 +172,13 @@ static PExpr * rPrimary(Parser * p){
 	if (matchOne(p, T_TRUE)) {
 		PExpr * e = NewLiteral(previous(p), EXP_LIT_BOOL);
 		e->exp.ELiteral.value.bvalue = true;
+		return e;
 	} 
 
 	if (matchOne(p, T_FALSE)) {
 		PExpr * e = NewLiteral(previous(p), EXP_LIT_BOOL);
 		e->exp.ELiteral.value.bvalue = false;
+		return e;
 	}
 
 	if (matchOne(p, T_NIL)) {
@@ -178,6 +192,10 @@ static PExpr * rPrimary(Parser * p){
 
 	if (matchOne(p, T_STR)) {
 		return NewLiteral(previous(p), EXP_LIT_STR);
+	}
+
+	if (matchOne(p, T_IDENT)) {
+		return NewVaribaleExpr(previous(p));
 	}
 
 	if (matchOne(p, T_LEFT_PAREN)) {
@@ -208,4 +226,44 @@ static void syncParser(Parser * p){
 			default:advance(p);break;
 		}
 	}
+}
+
+static PStmt * rExprStmt(Parser * p){
+	PExpr * value = rExpression(p);
+	return NewExprStmt(previous(p), value);
+}
+
+static PStmt * rPrintStmt(Parser * p){
+	PExpr * value = rExpression(p);
+	return NewPrintStmt(previous(p), value);
+}
+
+static PStmt * rLetStmt(Parser * p){
+	Token * name = eat(p, T_IDENT, "Expected Identifier");
+	eat(p, T_EQ, "Expected equal");
+	PExpr * value = rExpression(p);
+	return NewLetStmt(name, value);
+
+}
+
+static PStmt * rStmt(Parser * p){
+	if (matchOne(p, T_PRINT)) {
+		return rPrintStmt(p);
+	}
+
+	return rExprStmt(p);
+}
+
+
+static PStmt * rLet(Parser * p){
+	if (matchOne(p, T_LET)) {
+		return rLetStmt(p);
+	}
+
+	PStmt * s = rStmt(p);
+	if (p->hasError) {
+		syncParser(p);
+	}
+
+	return s;
 }

@@ -46,3 +46,11 @@ PObj * NewStrObject(char * value){
 	o->v.str = value;
 	return o;
 }
+
+bool IsObjTruthy(const PObj * o){
+	if (o != NULL && o->type == OT_BOOL) {
+		return o->v.bl;
+	}
+
+	return false;
+}

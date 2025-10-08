@@ -10,10 +10,13 @@ typedef struct Parser{
 	Token ** tokens;
 	void * core;
 	int pos;
+
+	PStmt ** stmts;
+	bool hasError;
 }Parser;
 
 Parser * NewParser(Lexer * lexer);
 void FreeParser(Parser * parser);
-PExpr * ParseParser(Parser * parser);
+PStmt ** ParseParser(Parser * parser);
 
 #endif

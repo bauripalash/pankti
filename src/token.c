@@ -1,5 +1,4 @@
 #include "include/token.h"
-#include "include/utils.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -78,6 +77,7 @@ Token * NewToken(TokenType type){
 	tok->lexeme = NULL;
 	tok->type = type;
 	tok->line = 0;
+	tok->hash = 0;
 
 	return tok;
 }

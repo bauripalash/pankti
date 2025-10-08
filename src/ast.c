@@ -3,9 +3,16 @@
 #include "include/token.h"
 #include <stdio.h>
 
-PExpr * NewBinaryExpr(PExpr * left, Token * op, PExpr * right){
+PExpr * NewExpr(PExprType type){
 	PExpr * e = PCreate(PExpr);
-	e->type = EXPR_BINARY;
+	//error handle
+	
+	e->type = type;
+	return e;
+}
+
+PExpr * NewBinaryExpr(PExpr * left, Token * op, PExpr * right){
+	PExpr * e = NewExpr(EXPR_BINARY);
 	e->exp.EBinary.left = left;
 	e->exp.EBinary.opr = op;
 	e->exp.EBinary.right = right;
@@ -14,8 +21,7 @@ PExpr * NewBinaryExpr(PExpr * left, Token * op, PExpr * right){
 }
 
 PExpr * NewUnary(Token * op, PExpr * right){
-	PExpr * e = PCreate(PExpr);
-	e->type = EXPR_UNARY;
+	PExpr * e = NewExpr(EXPR_UNARY);
 	e->exp.EUnary.opr = op;
 	e->exp.EUnary.right = right;
 	return e;
@@ -23,18 +29,52 @@ PExpr * NewUnary(Token * op, PExpr * right){
 
 
 PExpr * NewLiteral(Token * op, ExpLitType type){
-	PExpr * e = PCreate(PExpr);
-	e->type = EXPR_LITERAL;
+	PExpr * e = NewExpr(EXPR_LITERAL);
 	e->exp.ELiteral.op = op;
 	e->exp.ELiteral.type = type;
 	return e;
 }
 
 PExpr * NewGrouping(PExpr * expr){
-	PExpr * e = PCreate(PExpr);
-	e->type = EXPR_GROUPING;
+	PExpr * e = NewExpr(EXPR_GROUPING);
 	e->exp.EGrouping.expr = expr;
 	return e;
+}
+
+
+PExpr * NewVaribaleExpr(Token * name){
+	PExpr * e = NewExpr(EXPR_VARIABLE);
+	e->exp.EVariable.name = name;
+	return e;
+}
+
+PStmt * NewStmt(PStmtType type){
+	PStmt * p = PCreate(PStmt);
+	//error handle
+	p->type = type;
+	return p;
+}
+
+PStmt * NewPrintStmt(Token * op, PExpr * value){
+	PStmt * s = NewStmt(STMT_PRINT);
+	s->stmt.SPrint.op = op;
+	s->stmt.SPrint.value = value;
+	return s;
+}
+PStmt * NewExprStmt(Token * op, PExpr * value){
+	PStmt * s = NewStmt(STMT_EXPR);
+	s->stmt.SExpr.op = op;
+	s->stmt.SExpr.expr = value;
+	return s;;
+}
+
+
+PStmt * NewLetStmt(Token * name, PExpr * value){
+	PStmt * s = NewStmt(STMT_LET);
+	s->stmt.SLet.name = name;
+	s->stmt.SLet.expr = value;
+
+	return s;
 }
 
 void AstPrint(PExpr * expr){
@@ -67,6 +107,45 @@ void AstPrint(PExpr * expr){
 			printf("%s", expr->exp.ELiteral.op->lexeme);
 			break;
 		} 
+		case EXPR_GROUPING:{
+			printf("Group : { E: \n");
+			AstPrint(expr->exp.EGrouping.expr);
+			printf("}");
+			break;
+		}
+		case EXPR_VARIABLE:{
+			printf("Var : { N: \n");
+			PrintToken(expr->exp.EVariable.name);
+			printf("}");
+			break;
+		}
 		default:printf("Unknown Expression to print\n");break;
+	}
+}
+
+void AstStmtPrint(PStmt * stmt){
+	switch (stmt->type) {
+		case STMT_PRINT:{
+			printf("Print : { E: \n");
+			AstPrint(stmt->stmt.SPrint.value);
+			printf("}");
+			break;
+		}
+
+		case STMT_EXPR:{
+			printf("Expr : { E: \n");
+			AstPrint(stmt->stmt.SExpr.expr);
+			printf("}");
+			break;
+		}
+		case STMT_LET:{
+			printf("Let : { N: \n");
+			PrintToken(stmt->stmt.SLet.name);
+			printf("} V: {\n");
+			AstPrint(stmt->stmt.SLet.expr);
+			printf("}\n}");
+			break;
+		}
+		default:printf("Unknown stmt to print : %d\n" ,stmt->type );break;
 	}
 }

@@ -1,1 +1,4 @@
-"false"+"true"
+let name = "palash"
+print name
+let name = "mango"
+print name

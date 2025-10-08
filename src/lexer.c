@@ -141,6 +141,7 @@ static bool addTokenWithLexeme(Lexer * lx, TokenType type, char * str, int len){
 	tok->line = lx->line;
 	if (len != -1) {
 		tok->len = len;
+		tok->hash = Fnv1a(str, len);
 	} else {
 		if (IsDoubleTok(type)) {
 			tok->len = 2;

@@ -13,6 +13,7 @@ typedef struct PanktiCore{
 	const char * path;
 
 	bool caughtError;
+	bool runtimeError;
 }PanktiCore;
 
 

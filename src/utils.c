@@ -1,6 +1,7 @@
 #include "include/utils.h"
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -74,4 +75,14 @@ bool MatchKW(const char * s, const char * en, const char * pn, const char * bn){
 
 char32_t U8ToU32(const unsigned char * str){
 	return ((str[0] & 0x0F) << 12) | ((str[1] & 0x3F) << 6) | (str[2] & 0x3F);
+}
+
+
+uint32_t Fnv1a(const char * str, int len){
+	uint32_t hash = 2166136261u;
+	for (int i = 0; i < len; i++) {
+		hash ^= (uint8_t)str[i];
+		hash *= 16777619;
+	}
+	return hash;
 }

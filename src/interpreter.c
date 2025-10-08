@@ -1,54 +1,60 @@
 #include "include/interpreter.h"
 #include "include/alloc.h"
 #include "include/ast.h"
+#include "include/env.h"
 #include "include/object.h"
 #include "include/token.h"
-#include "include/utils.h"
+#include "include/core.h"
+#include "external/stb/stb_ds.h"
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 
+static void execute(PInterpreter * it, PStmt * stmt);
 static PObj * evaluate(PInterpreter * it, PExpr * expr);
-PInterpreter * NewInterpreter(PExpr * prog){
+
+PInterpreter * NewInterpreter(PStmt ** prog){
 	PInterpreter * it = PCreate(PInterpreter);
 	it->program = prog;
+	it->core = NULL;
+	it->env = NewEnv();
 	return it;
 }
 void FreeInterpreter(PInterpreter * it){
 	if (it == NULL) {
 		return;
 	}
+	FreeEnv(it->env);
 
 	free(it);
 }
 void Interpret(PInterpreter * it){
-	PObj * obj = evaluate(it, it->program);
-	PrintObject(obj);
+	for (int i = 0; i < arrlen(it->program); i++) {
+		execute(it, it->program[i]);
+	}
 
 }
-
+static void error(PInterpreter * it, void * tok, char * msg){
+	CoreError(it->core, -1, msg);
+}
 static PObj * vLiteral(PInterpreter * it, PExpr * expr){
 	PObj * litObj;
 	switch (expr->exp.ELiteral.type) {
 		case EXP_LIT_NUM: {
-			litObj = NewObject(OT_NUM);
-			litObj->v.num = atof(expr->exp.ELiteral.op->lexeme);
+			double value = atof(expr->exp.ELiteral.op->lexeme);
+			litObj = NewNumberObj(value);
 			break;
 		}
 		case EXP_LIT_STR:{
-			litObj = NewObject(OT_STR);
-			litObj->v.str = expr->exp.ELiteral.op->lexeme;
+			litObj = NewStrObject(expr->exp.ELiteral.op->lexeme);
 			break;
 		}
 		case EXP_LIT_BOOL:{
 			bool bvalue = false;
-			if (StrEqual(expr->exp.ELiteral.op->lexeme, "true")) {
+			if (expr->exp.ELiteral.op->type == T_TRUE) {
 				bvalue = true;
-			} else {
-				bvalue = false; //error check;
 			}
-
-			litObj = NewObject(OT_BOOL);
-			litObj->v.bl = bvalue;
+			litObj = NewBoolObj(false);
 			break;
 
 		}
@@ -64,9 +70,13 @@ static PObj * vLiteral(PInterpreter * it, PExpr * expr){
 static PObj * vBinary(PInterpreter * it, PExpr * expr){
 	PObj * l = 	evaluate(it, expr->exp.EBinary.left);
 	PObj * r = 	evaluate(it, expr->exp.EBinary.right);
-	PObj * result;
+	PObj * result = NULL;
 	switch (expr->exp.EBinary.opr->type) {
 		case T_PLUS:{
+			if (l->type != OT_NUM || r->type != OT_NUM) {
+				error(it, NULL, "Plus operation can only be done with numbers;");
+				break;
+			}
 			double value = l->v.num + r->v.num;
 			result = NewNumberObj(value);
 			break;
@@ -76,10 +86,25 @@ static PObj * vBinary(PInterpreter * it, PExpr * expr){
 			result = NewNumberObj(value);
 			break;
 		}
+		case T_MINUS:{
+			double value = l->v.num - r->v.num;
+			result = NewNumberObj(value);
+			break;
+		}
+		case T_SLASH:{
+			double value = l->v.num / r->v.num;
+			result = NewNumberObj(value);
+			break;
+		}
 		default: result = NewNumberObj(-1);break;
 	}
 
 	return result;
+}
+
+static PObj * vVariable(PInterpreter * it, PExpr * expr){
+	PObj * v = EnvGetValue(it->env, expr->exp.EVariable.name->hash);
+	return v;
 }
 
 static PObj * vUnary(PInterpreter * it, PExpr * expr){
@@ -90,6 +115,10 @@ static PObj * vUnary(PInterpreter * it, PExpr * expr){
 		case T_MINUS:{
 			double value = -r->v.num;
 			result = NewNumberObj(value);
+			break;
+		}
+		case T_BANG:{
+			result = NewBoolObj(!IsObjTruthy(r));
 			break;
 		}
 		default:break;
@@ -103,8 +132,35 @@ static PObj * evaluate(PInterpreter * it, PExpr * expr){
 		case EXPR_LITERAL: return vLiteral(it, expr);
 		case EXPR_BINARY: return vBinary(it, expr);
 		case EXPR_UNARY: return vUnary(it, expr);
+		case EXPR_VARIABLE:return vVariable(it, expr);
 		default:break;
 	}
 
 	return NULL;
+}
+
+static void vsLet(PInterpreter *it, PStmt * stmt){
+	PObj * value = evaluate(it, stmt->stmt.SLet.expr);
+	EnvPutValue(it->env, stmt->stmt.SLet.name->hash, value);
+}
+
+static void vsPrint(PInterpreter * it, PStmt * stmt){
+	PObj * obj = evaluate(it, stmt->stmt.SPrint.value);
+	PrintObject(obj);
+}
+
+static void vsExprStmt(PInterpreter * it, PStmt * stmt){
+	evaluate(it, stmt->stmt.SExpr.expr);
+}
+
+static void execute(PInterpreter * it, PStmt * stmt){
+	switch (stmt->type) {
+		case STMT_PRINT: vsPrint(it, stmt);break;
+		case STMT_EXPR: vsExprStmt(it, stmt);break;
+		case STMT_LET: vsLet(it, stmt);break;
+		default:error(it, NULL, "Unknown statement found!");
+	}
+
+	return;
+
 }
