@@ -70,7 +70,7 @@ void RunCore(PanktiCore * core){
 
 	if (core->caughtError) {
 		printf("Parser Error found!\n");
-		exit(1);
+		//exit(1);
 	}
 	if (DebugParser) {
 		printf("AST{\n");

@@ -17,7 +17,7 @@ PInterpreter * NewInterpreter(PStmt ** prog){
 	PInterpreter * it = PCreate(PInterpreter);
 	it->program = prog;
 	it->core = NULL;
-	it->env = NewEnv();
+	it->env = NewEnv(NULL);
 	return it;
 }
 void FreeInterpreter(PInterpreter * it){
@@ -107,6 +107,17 @@ static PObj * vVariable(PInterpreter * it, PExpr * expr){
 	return v;
 }
 
+static PObj * vAssignment(PInterpreter *it, PExpr * expr){
+	PObj * value = evaluate(it, expr->exp.EAssign.value);
+	if (EnvSetValue(it->env, expr->exp.EAssign.name->hash, value)) {
+		return value;
+	}else{
+		error(it, NULL, "Undefined variable assignment");
+		return NULL;
+	}
+
+}
+
 static PObj * vUnary(PInterpreter * it, PExpr * expr){
 	PObj * r = evaluate(it, expr->exp.EUnary.right);
 	PObj * result;
@@ -133,10 +144,30 @@ static PObj * evaluate(PInterpreter * it, PExpr * expr){
 		case EXPR_BINARY: return vBinary(it, expr);
 		case EXPR_UNARY: return vUnary(it, expr);
 		case EXPR_VARIABLE:return vVariable(it, expr);
+		case EXPR_ASSIGN: return vAssignment(it, expr);
 		default:break;
 	}
 
 	return NULL;
+}
+
+static void execBlock(PInterpreter * it, PStmt * stmt, PEnv * env){
+	PEnv * prevEnv = it->env;
+	it->env = env;
+
+	PStmt ** stmtList = stmt->stmt.SBlock.stmts;
+	for (int i = 0; i < arrlen(stmtList); i++) {
+		execute(it, stmtList[i]);
+	}
+
+	it->env = prevEnv;
+}
+
+static void vsBlock(PInterpreter * it, PStmt * stmt){
+	PEnv * blockEnv = NewEnv(it->env);
+	execBlock(it, stmt, blockEnv);
+	FreeEnv(blockEnv);
+
 }
 
 static void vsLet(PInterpreter *it, PStmt * stmt){
@@ -158,6 +189,7 @@ static void execute(PInterpreter * it, PStmt * stmt){
 		case STMT_PRINT: vsPrint(it, stmt);break;
 		case STMT_EXPR: vsExprStmt(it, stmt);break;
 		case STMT_LET: vsLet(it, stmt);break;
+		case STMT_BLOCK: vsBlock(it, stmt);break;
 		default:error(it, NULL, "Unknown statement found!");
 	}
 

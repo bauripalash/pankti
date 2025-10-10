@@ -1,6 +1,7 @@
 #include "include/ast.h"
 #include "include/alloc.h"
 #include "include/token.h"
+#include "external/stb/stb_ds.h"
 #include <stdio.h>
 
 PExpr * NewExpr(PExprType type){
@@ -42,9 +43,17 @@ PExpr * NewGrouping(PExpr * expr){
 }
 
 
-PExpr * NewVaribaleExpr(Token * name){
+PExpr * NewVarExpr(Token * name){
 	PExpr * e = NewExpr(EXPR_VARIABLE);
 	e->exp.EVariable.name = name;
+	return e;
+}
+
+
+PExpr * NewAssignment(Token * name, PExpr * value){
+	PExpr * e = NewExpr(EXPR_ASSIGN);
+	e->exp.EAssign.name = name;
+	e->exp.EAssign.value = value;
 	return e;
 }
 
@@ -74,6 +83,14 @@ PStmt * NewLetStmt(Token * name, PExpr * value){
 	s->stmt.SLet.name = name;
 	s->stmt.SLet.expr = value;
 
+	return s;
+}
+
+
+PStmt * NewBlockStmt(Token * op, PStmt ** stmts){
+	PStmt * s = NewStmt(STMT_BLOCK);
+	s->stmt.SBlock.op = op;
+	s->stmt.SBlock.stmts = stmts;
 	return s;
 }
 
@@ -119,6 +136,14 @@ void AstPrint(PExpr * expr){
 			printf("}");
 			break;
 		}
+		case EXPR_ASSIGN:{
+			printf("Assign : { N: \n");
+			PrintToken(expr->exp.EAssign.name);
+			printf("} V: {\n");
+			AstPrint(expr->exp.EAssign.value);
+			printf("}");
+			break;
+		}
 		default:printf("Unknown Expression to print\n");break;
 	}
 }
@@ -144,6 +169,17 @@ void AstStmtPrint(PStmt * stmt){
 			printf("} V: {\n");
 			AstPrint(stmt->stmt.SLet.expr);
 			printf("}\n}");
+			break;
+		}
+		case STMT_BLOCK:{
+			printf("Block : { S: { \n");
+			for (int i = 0; i < arrlen(stmt->stmt.SBlock.stmts); i++) {
+				printf("{");
+				AstStmtPrint(stmt->stmt.SBlock.stmts[i]);
+				printf("}");
+			}
+			printf("}}\n");
+
 			break;
 		}
 		default:printf("Unknown stmt to print : %d\n" ,stmt->type );break;

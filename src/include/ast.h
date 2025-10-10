@@ -8,6 +8,7 @@ typedef enum PExprType{
 	EXPR_LITERAL,
 	EXPR_GROUPING,
 	EXPR_VARIABLE,
+	EXPR_ASSIGN,
 }PExprType;
 
 typedef enum PLitType{
@@ -48,6 +49,11 @@ typedef struct PExpr{
 			Token * name;
 		}EVariable;
 
+		struct EAssign{
+			Token * name;
+			struct PExpr * value;
+		}EAssign;
+
 	}exp;
 }PExpr;
 
@@ -58,6 +64,7 @@ typedef enum PStmtType{
 	STMT_LET,
 	STMT_FUNC,
 	STMT_WHILE,
+	STMT_BLOCK,
 }PStmtType;
 
 typedef struct PStmt{
@@ -77,6 +84,11 @@ typedef struct PStmt{
 			Token * name;
 			PExpr * expr;
 		}SLet;
+
+		struct SBlock{
+			Token * op;
+			struct PStmt ** stmts;
+		}SBlock;
 	}stmt;
 
 }PStmt;
@@ -88,12 +100,14 @@ PExpr * NewBinaryExpr(PExpr * left, Token * op, PExpr * right);
 PExpr * NewUnary(Token * op, PExpr * right);
 PExpr * NewLiteral(Token * op, ExpLitType type);
 PExpr * NewGrouping(PExpr * expr);
-PExpr * NewVaribaleExpr(Token * name);
+PExpr * NewVarExpr(Token * name);
+PExpr * NewAssignment(Token * name, PExpr * value);
 
 PStmt * NewStmt(PStmtType type);
 PStmt * NewPrintStmt(Token * op, PExpr * value);
 PStmt * NewExprStmt(Token * op, PExpr * value);
 PStmt * NewLetStmt(Token * name, PExpr * value);
+PStmt * NewBlockStmt(Token * op, PStmt ** stmts);
 
 
 

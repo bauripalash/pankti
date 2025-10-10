@@ -11,6 +11,9 @@
 
 static PStmt * rLet(Parser * p);
 static PStmt * rStmt(Parser * p);
+
+
+static PExpr * rAssignment(Parser * p);
 static PExpr * rEquality(Parser * p);
 static PExpr * rComparison(Parser * p);
 static PExpr * rTerm(Parser * p);
@@ -111,7 +114,26 @@ static Token * eat(Parser * p, TokenType t, char * msg){
 }
 
 static PExpr * rExpression(Parser * p){
-	return rEquality(p);
+	return rAssignment(p);
+}
+
+static PExpr * rAssignment(Parser * p){
+	PExpr * expr = rEquality(p);
+	if (matchOne(p, T_EQ)) {
+		Token * op = previous(p);
+		PExpr * value = rAssignment(p);
+
+		if (expr->type == EXPR_VARIABLE) {
+			Token * name = expr->exp.EVariable.name;
+			return NewAssignment(name, value);
+		}
+
+		error(p, NULL, "Invalid assignment");
+		return NULL;
+	}
+
+	return expr;
+
 }
 
 static PExpr * rEquality(Parser * p){
@@ -195,7 +217,7 @@ static PExpr * rPrimary(Parser * p){
 	}
 
 	if (matchOne(p, T_IDENT)) {
-		return NewVaribaleExpr(previous(p));
+		return NewVarExpr(previous(p));
 	}
 
 	if (matchOne(p, T_LEFT_PAREN)) {
@@ -246,9 +268,23 @@ static PStmt * rLetStmt(Parser * p){
 
 }
 
+static PStmt * rBlockStmt(Parser * p){
+	PStmt ** stmtList = NULL;
+	while (!check(p, T_RIGHT_BRACE) && !atEnd(p)) {
+		PStmt * tempStmt = 
+		arrput(stmtList, rLet(p));
+	}
+
+	eat(p, T_RIGHT_BRACE, "Expected '}' after block stmt");
+	PStmt * block = NewBlockStmt(previous(p), stmtList);
+	return block;
+}
+
 static PStmt * rStmt(Parser * p){
 	if (matchOne(p, T_PRINT)) {
 		return rPrintStmt(p);
+	} if (matchOne(p, T_LEFT_BRACE)){
+		return rBlockStmt(p);
 	}
 
 	return rExprStmt(p);

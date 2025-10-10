@@ -1,4 +1,14 @@
-let name = "palash"
-print name
-let name = "mango"
-print name
+let a = 100
+{
+	let a = 2
+	print a
+}
+
+print a
+
+{
+	a = 200
+	print 3
+}
+
+print a
