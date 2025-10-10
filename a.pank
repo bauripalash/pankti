@@ -1,8 +1,5 @@
-let a = 100
-if 1 == 1 and 1 != 1 then
-	let a = 200
+let a = 1
+while a != 10 do
 	print a
-else
-	print a
+	a = a + 1
 end
-print a

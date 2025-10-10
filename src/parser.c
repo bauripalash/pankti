@@ -343,6 +343,13 @@ static PStmt * rIfStmt(Parser * p){
 	return NewIfStmt(op, cond, thenBranch, elseBranch);
 }
 
+static PStmt * rWhileStmt(Parser * p){
+	Token * op = previous(p);
+	PExpr * cond = rExpression(p);
+	eat(p, T_DO, "Expected do after while expression");
+	PStmt * body = rToEndBlockStmt(p);
+	return NewWhileStmt(op, cond, body);
+}
 static PStmt * rStmt(Parser * p){
 	if (matchOne(p, T_PRINT)) {
 		return rPrintStmt(p);
@@ -350,6 +357,8 @@ static PStmt * rStmt(Parser * p){
 		return rBlockStmt(p);
 	} if (matchOne(p, T_IF)) {
 		return rIfStmt(p);
+	} if (matchOne(p, T_WHILE)){
+		return rWhileStmt(p);
 	}
 
 	return rExprStmt(p);

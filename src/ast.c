@@ -113,6 +113,13 @@ PStmt * NewIfStmt(Token * op, PExpr * cond, PStmt * then, PStmt * elseB){
 	return s;
 }
 
+PStmt * NewWhileStmt(Token * op, PExpr * cond, PStmt * body){
+	PStmt * s = NewStmt(STMT_WHILE);
+	s->stmt.SWhile.op = op;
+	s->stmt.SWhile.cond = cond;
+	s->stmt.SWhile.body = body;
+	return s;
+}
 void AstPrint(PExpr * expr){
 	if (expr == NULL) {
 		printf("Null Invalid Expression\n");

@@ -103,6 +103,12 @@ typedef struct PStmt{
 			struct PStmt * thenBranch;
 			struct PStmt * elseBranch;
 		}SIf;
+
+		struct SWhile{
+			Token * op;
+			PExpr * cond;
+			struct PStmt * body;
+		}SWhile;
 	}stmt;
 
 }PStmt;
@@ -124,6 +130,7 @@ PStmt * NewExprStmt(Token * op, PExpr * value);
 PStmt * NewLetStmt(Token * name, PExpr * value);
 PStmt * NewBlockStmt(Token * op, PStmt ** stmts);
 PStmt * NewIfStmt(Token * op, PExpr * cond, PStmt * then, PStmt * elseB);
+PStmt * NewWhileStmt(Token * op, PExpr * cond, PStmt * body);
 
 
 

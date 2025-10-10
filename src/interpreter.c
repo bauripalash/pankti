@@ -239,6 +239,12 @@ static void vsIfStmt(PInterpreter* it, PStmt * stmt){
 
 }
 
+static void vsWhileStmt(PInterpreter * it, PStmt * stmt){
+	while (IsObjTruthy(evaluate(it, stmt->stmt.SWhile.cond))) {
+		execute(it, stmt->stmt.SWhile.body);
+	}
+}
+
 static void execute(PInterpreter * it, PStmt * stmt){
 	switch (stmt->type) {
 		case STMT_PRINT: vsPrint(it, stmt);break;
@@ -246,6 +252,7 @@ static void execute(PInterpreter * it, PStmt * stmt){
 		case STMT_LET: vsLet(it, stmt);break;
 		case STMT_BLOCK: vsBlock(it, stmt);break;
 		case STMT_IF: vsIfStmt(it, stmt);break;
+		case STMT_WHILE: vsWhileStmt(it, stmt);break;
 		default:error(it, NULL, "Unknown statement found!");
 	}
 
