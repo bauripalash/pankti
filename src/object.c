@@ -1,5 +1,6 @@
 #include "include/object.h"
 #include "include/alloc.h"
+#include "include/utils.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,4 +54,33 @@ bool IsObjTruthy(const PObj * o){
 	}
 
 	return false;
+}
+
+bool isObjEqual(const PObj * a, const PObj * b){
+	if (a->type != b->type) {
+		return false;
+	}
+	bool result = false;
+	switch (a->type) {
+		case OT_NUM:{
+			result = (a->v.num == b->v.num);
+			break;
+		}
+		case OT_BOOL:{
+			result = (a->v.bl == b->v.bl);
+			break;
+		}
+
+		case OT_NIL:{
+			result = true;
+			break;
+		}
+
+		case OT_STR:{
+			result = StrEqual(a->v.str, b->v.str);
+			break;
+		}
+	}
+
+	return result;
 }

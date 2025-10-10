@@ -9,6 +9,7 @@ typedef enum PExprType{
 	EXPR_GROUPING,
 	EXPR_VARIABLE,
 	EXPR_ASSIGN,
+	EXPR_LOGICAL
 }PExprType;
 
 typedef enum PLitType{
@@ -54,6 +55,12 @@ typedef struct PExpr{
 			struct PExpr * value;
 		}EAssign;
 
+		struct ELogical{
+			struct PExpr * left;
+			Token * op;
+			struct PExpr * right;
+		}ELogical;
+
 	}exp;
 }PExpr;
 
@@ -89,6 +96,13 @@ typedef struct PStmt{
 			Token * op;
 			struct PStmt ** stmts;
 		}SBlock;
+
+		struct SIf{
+			Token * op;
+			PExpr * cond;
+			struct PStmt * thenBranch;
+			struct PStmt * elseBranch;
+		}SIf;
 	}stmt;
 
 }PStmt;
@@ -102,12 +116,14 @@ PExpr * NewLiteral(Token * op, ExpLitType type);
 PExpr * NewGrouping(PExpr * expr);
 PExpr * NewVarExpr(Token * name);
 PExpr * NewAssignment(Token * name, PExpr * value);
+PExpr * NewLogical(PExpr * left, Token * op, PExpr * right);
 
 PStmt * NewStmt(PStmtType type);
 PStmt * NewPrintStmt(Token * op, PExpr * value);
 PStmt * NewExprStmt(Token * op, PExpr * value);
 PStmt * NewLetStmt(Token * name, PExpr * value);
 PStmt * NewBlockStmt(Token * op, PStmt ** stmts);
+PStmt * NewIfStmt(Token * op, PExpr * cond, PStmt * then, PStmt * elseB);
 
 
 

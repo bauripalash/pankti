@@ -54,7 +54,7 @@ static PObj * vLiteral(PInterpreter * it, PExpr * expr){
 			if (expr->exp.ELiteral.op->type == T_TRUE) {
 				bvalue = true;
 			}
-			litObj = NewBoolObj(false);
+			litObj = NewBoolObj(bvalue);
 			break;
 
 		}
@@ -94,6 +94,14 @@ static PObj * vBinary(PInterpreter * it, PExpr * expr){
 		case T_SLASH:{
 			double value = l->v.num / r->v.num;
 			result = NewNumberObj(value);
+			break;
+		}
+		case T_EQEQ:{
+			result = NewBoolObj(isObjEqual(l, r));
+			break;
+		}
+		case T_BANG_EQ:{
+			result = NewBoolObj(!isObjEqual(l, r));
 			break;
 		}
 		default: result = NewNumberObj(-1);break;
@@ -138,6 +146,40 @@ static PObj * vUnary(PInterpreter * it, PExpr * expr){
 	return result;
 }
 
+static PObj * vLogical(PInterpreter * it, PExpr * expr){
+	PObj * left = evaluate(it, expr->exp.ELogical.left);
+	Token * op = expr->exp.ELogical.op;
+
+	if (op->type == T_OR) {
+		if (IsObjTruthy(left)) {
+			return NewBoolObj(true);
+		} else {
+			PObj * right = evaluate(it, expr->exp.ELogical.right);
+			if (IsObjTruthy(right)) {
+				return NewBoolObj(true);
+			}else{
+				return NewBoolObj(false);
+			}
+		}
+	} else if (op->type == T_AND){
+		if (!IsObjTruthy(left)) {
+			return NewBoolObj(false);
+		} else {
+			PObj * right = evaluate(it, expr->exp.ELogical.right);
+			if (IsObjTruthy(right)) {
+				return NewBoolObj(true);
+			}else{
+				return NewBoolObj(false);
+			}
+		}
+	}
+
+	PrintToken(expr->exp.ELogical.op);
+	error(it, NULL, "Invalid logical operation");
+	return NULL;
+
+}
+
 static PObj * evaluate(PInterpreter * it, PExpr * expr){
 	switch (expr->type) {
 		case EXPR_LITERAL: return vLiteral(it, expr);
@@ -145,6 +187,7 @@ static PObj * evaluate(PInterpreter * it, PExpr * expr){
 		case EXPR_UNARY: return vUnary(it, expr);
 		case EXPR_VARIABLE:return vVariable(it, expr);
 		case EXPR_ASSIGN: return vAssignment(it, expr);
+		case EXPR_LOGICAL:return vLogical(it, expr);
 		default:break;
 	}
 
@@ -184,12 +227,25 @@ static void vsExprStmt(PInterpreter * it, PStmt * stmt){
 	evaluate(it, stmt->stmt.SExpr.expr);
 }
 
+static void vsIfStmt(PInterpreter* it, PStmt * stmt){
+	PObj * cond = evaluate(it, stmt->stmt.SIf.cond);
+	if (IsObjTruthy(cond)) {
+		execute(it, stmt->stmt.SIf.thenBranch);
+	} else{
+		if (stmt->stmt.SIf.elseBranch != NULL) {
+			execute(it, stmt->stmt.SIf.elseBranch);
+		}
+	}
+
+}
+
 static void execute(PInterpreter * it, PStmt * stmt){
 	switch (stmt->type) {
 		case STMT_PRINT: vsPrint(it, stmt);break;
 		case STMT_EXPR: vsExprStmt(it, stmt);break;
 		case STMT_LET: vsLet(it, stmt);break;
 		case STMT_BLOCK: vsBlock(it, stmt);break;
+		case STMT_IF: vsIfStmt(it, stmt);break;
 		default:error(it, NULL, "Unknown statement found!");
 	}
 

@@ -117,8 +117,30 @@ static PExpr * rExpression(Parser * p){
 	return rAssignment(p);
 }
 
-static PExpr * rAssignment(Parser * p){
+static PExpr * rAnd(Parser * p){
 	PExpr * expr = rEquality(p);
+	while (matchOne(p, T_AND)) {
+		Token * op = previous(p);
+		PExpr * right = rEquality(p);
+		expr = NewLogical(expr, op, right);
+	}
+	return expr;
+}
+
+static PExpr * rOr(Parser * p){
+	PExpr * expr = rAnd(p);
+	while (matchOne(p, T_OR)) {
+		Token * op = previous(p);
+		PExpr * right = rAnd(p);
+		expr = NewLogical(expr, op, right);
+		
+	}
+	return expr;
+
+}
+
+static PExpr * rAssignment(Parser * p){
+	PExpr * expr = rOr(p);
 	if (matchOne(p, T_EQ)) {
 		Token * op = previous(p);
 		PExpr * value = rAssignment(p);
@@ -271,7 +293,6 @@ static PStmt * rLetStmt(Parser * p){
 static PStmt * rBlockStmt(Parser * p){
 	PStmt ** stmtList = NULL;
 	while (!check(p, T_RIGHT_BRACE) && !atEnd(p)) {
-		PStmt * tempStmt = 
 		arrput(stmtList, rLet(p));
 	}
 
@@ -280,11 +301,55 @@ static PStmt * rBlockStmt(Parser * p){
 	return block;
 }
 
+static PStmt * rToEndBlockStmt(Parser * p){
+	PStmt ** stmtList = NULL;
+	while (!check(p, T_END) && !atEnd(p)) {
+		arrput(stmtList, rLet(p));
+	}
+
+	eat(p, T_END, "Expected 'end' after block");
+	PStmt * block = NewBlockStmt(previous(p), stmtList);
+	return block;
+}
+
+static PStmt * rToEndOrElseBlockStmt(Parser * p, bool * hasElse){
+	PStmt ** stmtList = NULL;
+
+	while ((!check(p, T_END) && !check(p, T_ELSE)) && !atEnd(p)) {
+		arrput(stmtList, rLet(p));
+	}
+
+	if (check(p, T_ELSE)) {
+		eat(p, T_ELSE, "Expected 'else' ");
+		*hasElse = true;
+	} else if (check(p, T_END)) {
+		eat(p, T_END, "Expected 'end'");
+		*hasElse = false;
+	} 
+	PStmt * block = NewBlockStmt(previous(p), stmtList);
+	return block;
+}
+static PStmt * rIfStmt(Parser * p){
+	Token * op = previous(p);
+	PExpr * cond = rExpression(p);
+	eat(p, T_THEN, "Expected then after if expression");
+	bool hasElse = false;
+	PStmt * thenBranch = rToEndOrElseBlockStmt(p, &hasElse);
+	PStmt * elseBranch = NULL;
+	if (hasElse) {
+		elseBranch = rToEndBlockStmt(p);
+	}
+
+	return NewIfStmt(op, cond, thenBranch, elseBranch);
+}
+
 static PStmt * rStmt(Parser * p){
 	if (matchOne(p, T_PRINT)) {
 		return rPrintStmt(p);
 	} if (matchOne(p, T_LEFT_BRACE)){
 		return rBlockStmt(p);
+	} if (matchOne(p, T_IF)) {
+		return rIfStmt(p);
 	}
 
 	return rExprStmt(p);

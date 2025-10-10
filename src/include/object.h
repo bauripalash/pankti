@@ -31,5 +31,6 @@ PObj * NewStrObject(char * value);
 
 
 bool IsObjTruthy(const PObj * o);
+bool isObjEqual(const PObj * a, const PObj * b);
 
 #endif

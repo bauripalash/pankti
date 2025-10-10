@@ -57,6 +57,15 @@ PExpr * NewAssignment(Token * name, PExpr * value){
 	return e;
 }
 
+
+PExpr * NewLogical(PExpr * left, Token * op, PExpr * right){
+	PExpr * e = NewExpr(EXPR_LOGICAL);
+	e->exp.ELogical.op = op;
+	e->exp.ELogical.left = left;
+	e->exp.ELogical.right = right;
+	return e;
+}
+
 PStmt * NewStmt(PStmtType type){
 	PStmt * p = PCreate(PStmt);
 	//error handle
@@ -91,6 +100,16 @@ PStmt * NewBlockStmt(Token * op, PStmt ** stmts){
 	PStmt * s = NewStmt(STMT_BLOCK);
 	s->stmt.SBlock.op = op;
 	s->stmt.SBlock.stmts = stmts;
+	return s;
+}
+
+
+PStmt * NewIfStmt(Token * op, PExpr * cond, PStmt * then, PStmt * elseB){
+	PStmt * s = NewStmt(STMT_IF);
+	s->stmt.SIf.op = op;
+	s->stmt.SIf.cond = cond;
+	s->stmt.SIf.thenBranch = then;
+	s->stmt.SIf.elseBranch = elseB;
 	return s;
 }
 
@@ -158,7 +177,7 @@ void AstStmtPrint(PStmt * stmt){
 		}
 
 		case STMT_EXPR:{
-			printf("Expr : { E: \n");
+			printf("SExpr : { E: \n");
 			AstPrint(stmt->stmt.SExpr.expr);
 			printf("}");
 			break;
@@ -179,6 +198,21 @@ void AstStmtPrint(PStmt * stmt){
 				printf("}");
 			}
 			printf("}}\n");
+
+			break;
+		}
+		case STMT_IF:{
+			printf("If : { C: {");
+			AstPrint(stmt->stmt.SIf.cond);
+			printf("} : { T: \n");
+			AstStmtPrint(stmt->stmt.SIf.thenBranch);
+			if (stmt->stmt.SIf.elseBranch != NULL) {
+
+				printf("} : { E: \n");
+				AstStmtPrint(stmt->stmt.SIf.elseBranch);
+
+			}
+			printf("}}");
 
 			break;
 		}
