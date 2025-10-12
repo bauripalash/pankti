@@ -67,19 +67,6 @@ PExpr * NewLogical(PExpr * left, Token * op, PExpr * right){
 }
 
 
-PExpr * NewCall(PExpr * callee, Token * op, PExpr ** args){
-	PExpr * e = NewExpr(EXPR_CALL);
-	e->exp.ECall.callee = callee;
-	e->exp.ECall.op = op;
-	e->exp.ECall.args = args;
-	return e;
-}
-
-
-
-
-
-
 
 PStmt * NewStmt(PStmtType type){
 	PStmt * p = PCreate(PStmt);
@@ -144,14 +131,6 @@ PStmt * NewReturnStmt(Token * op, PExpr * value){
 }
 
 
-PStmt * NewFuncStmt(Token * name, Token ** params, PStmt * body){
-	PStmt * s = NewStmt(STMT_FUNC);
-	s->stmt.SFunc.name = name;
-	s->stmt.SFunc.params = params;
-	s->stmt.SFunc.body = body;
-	return s;
-}
-
 void AstPrint(PExpr * expr){
 	if (expr == NULL) {
 		printf("Null Invalid Expression\n");
@@ -202,12 +181,7 @@ void AstPrint(PExpr * expr){
 			printf("}");
 			break;
 		}
-		case EXPR_CALL:{
-			printf("Call : { C:\n");
-			AstPrint(expr->exp.ECall.callee);
-			printf("}");
-			break;
-		}
+
 		default:printf("Unknown Expression to print\n");break;
 	}
 }
@@ -274,12 +248,7 @@ void AstStmtPrint(PStmt * stmt){
 			printf("}}\n");
 			break;
 		}
-		case STMT_FUNC:{
-			printf("Func <%s> : { B: {" , stmt->stmt.SFunc.name->lexeme);
-			AstStmtPrint(stmt->stmt.SFunc.body);
-			printf("}}\n");
-			break;
-		}
+
 		default:printf("Unknown stmt to print : %d\n" ,stmt->type );break;
 	}
 }
@@ -287,7 +256,6 @@ void AstStmtPrint(PStmt * stmt){
 
 char * StmtTypeToStr(PStmtType type){
 	switch (type) {
-		case STMT_FUNC: return "Func Stmt";break;
 		case STMT_RETURN: return "Return Stmt";break;
 		case STMT_WHILE: return "While Stmt";break;
 		case STMT_IF: return "If Stmt";break;

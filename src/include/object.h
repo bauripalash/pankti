@@ -9,8 +9,7 @@ typedef enum PObjType{
 	OT_STR,
 	OT_BOOL,
 	OT_NIL,
-	OT_FUNC,
-	OT_META
+	OT_RET
 }PObjType;
 
 
@@ -22,17 +21,10 @@ typedef struct PObj{
 		double num;
 		char * str;
 		bool bl;
-		struct OFunc{
-			//PEnv* env
-			void * env;
-			PStmt * body;
-			Token ** params;
-			Token * name;
-		}OFunc;
 
-		struct _OMeta{
-			struct PObj * ret;
-		}_OMeta;
+		struct OReturn{
+			struct PObj * rvalue;
+		}OReturn;
 	}v;
 
 }PObj;
@@ -47,8 +39,7 @@ PObj * NewNumberObj(double value);
 PObj * NewBoolObj(bool value);
 PObj * NewStrObject(char * value);
 PObj * NewNilObject();
-PObj * NewFuncObject(Token * name, Token ** params, PStmt * body, void * env);
-PObj * NewOMeta();
+PObj * NewReturnObject(PObj * value);
 
 
 bool IsObjTruthy(const PObj * o);

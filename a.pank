@@ -1,27 +1,12 @@
-let globalOne = 0
-let globalTwo = 0
+let x = 111
+{
+	let x = 99
+	print x
+}
 
-kaj main()
-	{
-		let a = "one"
-		kaj one()
-			print a
-		end
+{
+	let x = 1
+	print x
+}
 
-		globalOne = one
-	}
-
-	{
-		let a = "two"
-		kaj two()
-			print a
-		end
-
-		globalTwo = two
-	}
-end
-
-
-main()
-print globalOne
-print globalTwo
+print x

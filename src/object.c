@@ -27,8 +27,12 @@ void PrintObject(const PObj * o){
 		case OT_STR: printf("%s", o->v.str);break;
 		case OT_BOOL: printf("%s", o->v.bl ? "true" : "false");break;
 		case OT_NIL: printf("nil");break;
-		case OT_FUNC:printf("<fn %s>", o->v.OFunc.name->lexeme);break;
-		case OT_META:printf("_META_");break;
+		case OT_RET:{
+			printf("<ret "); 
+			PrintObject(o->v.OReturn.rvalue);
+			printf(">");
+			break;
+		}
 	}
 }
 
@@ -39,8 +43,7 @@ char * ObjTypeToString(PObjType type){
 		case OT_STR: return "String";break;
 		case OT_BOOL: return "Bool";break;
 		case OT_NIL: return "Nil";break;
-		case OT_FUNC: return "Func";break;
-		case OT_META:return "_META_";break;
+		case OT_RET: return "Return";break;
 	}
 
 	return "";
@@ -68,20 +71,14 @@ PObj * NewNilObject(){
 	return NewObject(OT_NIL);
 }
 
-PObj * NewFuncObject(Token * name, Token ** params, PStmt * body, void * env){
-	PObj * o = NewObject(OT_FUNC);
-	o->v.OFunc.name = name;
-	o->v.OFunc.env = env;
-	o->v.OFunc.params = params;
-	o->v.OFunc.body = body;
+
+PObj * NewReturnObject(PObj * value){
+	PObj * o = NewObject(OT_RET);
+	o->v.OReturn.rvalue = value;
 	return o;
 }
 
-PObj * NewOMeta(){
-	PObj * o = NewObject(OT_META);
-	o->v._OMeta.ret = NULL;
-	return o;
-}
+
 
 bool IsObjTruthy(const PObj * o){
 	if (o != NULL && o->type == OT_BOOL) {
@@ -118,10 +115,11 @@ bool isObjEqual(const PObj * a, const PObj * b){
 			result = StrEqual(a->v.str, b->v.str);
 			break;
 		}
-		case OT_META:
-		case OT_FUNC:{
+		case OT_RET:{
+			result = isObjEqual(a->v.OReturn.rvalue, a->v.OReturn.rvalue);
 			break;
 		}
+
 	}
 
 	return result;

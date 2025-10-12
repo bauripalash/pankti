@@ -2,17 +2,22 @@
 #define ENV_H
 
 #include "object.h"
-#include "token.h"
 #include <stdint.h>
+typedef struct EnvPair{
+	uint32_t key;
+	PObj * value;
+}EnvPair;
 typedef struct PEnv{
-	struct table{ uint32_t key; PObj * value; } * table;
+	EnvPair ** table;
 	int count;
 	struct PEnv * enclosing;
 }PEnv;
 
 #define GetEnv(ptr) ((PEnv*)ptr)
 PEnv * NewEnv(PEnv * enclosing);
+EnvPair * NewPair(uint32_t key, PObj * value);
 void FreeEnv(PEnv * e);
+void DebugEnv(PEnv * e);
 
 //Set/Create New Variable-Value pair
 void EnvPutValue(PEnv * e, uint32_t hash, PObj*value);

@@ -11,10 +11,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static void execute(PInterpreter * it, PStmt * stmt);
+static PObj * execute(PInterpreter * it, PStmt * stmt);
 static PObj * evaluate(PInterpreter * it, PExpr * expr);
-static void execBlock(PInterpreter * it, PStmt * stmt, PEnv * env);
-#define META_HASH (uint32_t)0
+static PObj * execBlock(PInterpreter * it, PStmt * stmt, PEnv * env, bool ret);
 
 PInterpreter * NewInterpreter(PStmt ** prog){
 	PInterpreter * it = PCreate(PInterpreter);
@@ -119,6 +118,11 @@ static PObj * vBinary(PInterpreter * it, PExpr * expr){
 
 static PObj * vVariable(PInterpreter * it, PExpr * expr){
 	PObj * v = EnvGetValue(it->env, expr->exp.EVariable.name->hash);
+	if (v == NULL) {
+		error(it, NULL, "Undefined variable");
+		printf("at line %ld\n", expr->exp.EVariable.name->line);
+		return NewNilObject();
+	}
 	return v;
 }
 
@@ -128,6 +132,7 @@ static PObj * vAssignment(PInterpreter *it, PExpr * expr){
 		return value;
 	}else{
 		error(it, NULL, "Undefined variable assignment");
+		printf("at line %ld\n", expr->exp.EAssign.name->line);
 		return NULL;
 	}
 
@@ -147,7 +152,10 @@ static PObj * vUnary(PInterpreter * it, PExpr * expr){
 			result = NewBoolObj(!IsObjTruthy(r));
 			break;
 		}
-		default:break;
+		default:{
+			result = NewNilObject();
+			break;
+		}
 	}
 
 	return result;
@@ -187,48 +195,6 @@ static PObj * vLogical(PInterpreter * it, PExpr * expr){
 
 }
 
-static PEnv * extendFuncEnv(PInterpreter * it, PObj * fn , PObj ** args){
-	struct OFunc * func = &fn->v.OFunc;
-	PEnv * tempEnv = NewEnv(func->env);
-	
-	for (int i = 0; i < arrlen(func->params); i++) {
-		EnvPutValue(tempEnv, func->params[i]->hash, args[i]);
-	}
-
-	PObj * meta = NewOMeta();
-
-	EnvPutValue(tempEnv, META_HASH, meta);
-
-	return tempEnv;
-
-}
-
-static PObj * vCall(PInterpreter * it, PExpr * expr){
-	struct ECall * call = &expr->exp.ECall;
-	PObj * callee = evaluate(it, call->callee);
-	PObj ** args = NULL;
-	for (int i = 0; i < arrlen(call->args); i++) {
-		arrput(args, evaluate(it, call->args[i]));
-	}
-
-	struct OFunc * func = &callee->v.OFunc;
-
-	if (arrlen(args) != arrlen(func->params)) {
-		return NewNilObject();
-	}
-
-	PEnv * fnEnv = extendFuncEnv(it, callee, args);
-	execBlock(it, func->body , fnEnv);
-	PObj * meta = EnvGetValue(fnEnv, META_HASH);
-	if (meta != NULL && meta->type == OT_META) {
-		PObj * mret = meta->v._OMeta.ret;
-		printf("RET -> %s\n", mret != NULL ? "yes" : "no");
-		return meta->v._OMeta.ret;
-	}else{
-		return NewNilObject();
-	}
-}
-
 static PObj * evaluate(PInterpreter * it, PExpr * expr){
 	switch (expr->type) {
 		case EXPR_LITERAL: return vLiteral(it, expr);
@@ -237,104 +203,94 @@ static PObj * evaluate(PInterpreter * it, PExpr * expr){
 		case EXPR_VARIABLE:return vVariable(it, expr);
 		case EXPR_ASSIGN: return vAssignment(it, expr);
 		case EXPR_LOGICAL:return vLogical(it, expr);
-		case EXPR_CALL: return vCall(it, expr);
 		default:break;
 	}
 
 	return NULL;
 }
 
-static void execBlock(PInterpreter * it, PStmt * stmt, PEnv * env){
-	PEnv * prevEnv = it->env;
+static PObj * execBlock(PInterpreter * it, PStmt * stmt, PEnv * env, bool ret){
+	PObj * obj;
+	PEnv * ogEnv = it->env;
 	it->env = env;
-
 	PStmt ** stmtList = stmt->stmt.SBlock.stmts;
 	for (int i = 0; i < arrlen(stmtList); i++) {
-		PStmt * iStmt = stmtList[i];
-		execute(it, iStmt);
+		obj = execute(it, stmtList[i]);
 	}
-
-	it->env = prevEnv;
+	it->env = ogEnv;
+	return obj;
 }
 
-static void vsBlock(PInterpreter * it, PStmt * stmt){
+static PObj * vsBlock(PInterpreter * it, PStmt * stmt){
 	PEnv * blockEnv = NewEnv(it->env);
-	execBlock(it, stmt, blockEnv);
+	PObj * obj = execBlock(it, stmt, blockEnv, true);
 	FreeEnv(blockEnv);
+	return obj;
 
 }
 
-static void vsLet(PInterpreter *it, PStmt * stmt){
+static PObj * vsLet(PInterpreter *it, PStmt * stmt){
 	PObj * value = evaluate(it, stmt->stmt.SLet.expr);
 	EnvPutValue(it->env, stmt->stmt.SLet.name->hash, value);
+	return value;
 }
 
-static void vsPrint(PInterpreter * it, PStmt * stmt){
+static PObj* vsPrint(PInterpreter * it, PStmt * stmt){
 	PObj * obj = evaluate(it, stmt->stmt.SPrint.value);
 	PrintObject(obj);
+	return obj;
 }
 
-static void vsExprStmt(PInterpreter * it, PStmt * stmt){
-	evaluate(it, stmt->stmt.SExpr.expr);
+static PObj * vsExprStmt(PInterpreter * it, PStmt * stmt){
+	return evaluate(it, stmt->stmt.SExpr.expr);
 }
 
-static void vsIfStmt(PInterpreter* it, PStmt * stmt){
+static PObj * vsIfStmt(PInterpreter* it, PStmt * stmt){
 	PObj * cond = evaluate(it, stmt->stmt.SIf.cond);
 	if (IsObjTruthy(cond)) {
-		execute(it, stmt->stmt.SIf.thenBranch);
+		return execute(it, stmt->stmt.SIf.thenBranch);
 	} else{
 		if (stmt->stmt.SIf.elseBranch != NULL) {
-			execute(it, stmt->stmt.SIf.elseBranch);
+			return execute(it, stmt->stmt.SIf.elseBranch);
 		}
 	}
 
+	return NewNilObject();
+
 }
 
-static void vsWhileStmt(PInterpreter * it, PStmt * stmt){
+static PObj * vsWhileStmt(PInterpreter * it, PStmt * stmt){
+	PObj * obj;
 	while (IsObjTruthy(evaluate(it, stmt->stmt.SWhile.cond))) {
-		execute(it, stmt->stmt.SWhile.body);
+		obj = execute(it, stmt->stmt.SWhile.body);
 	}
+
+	return obj;
 }
 
-static void vsFuncStmt(PInterpreter * it, PStmt * stmt){
-	struct SFunc * fn = &stmt->stmt.SFunc;
 
-	PEnv * env = NewEnv(it->env);
-	PObj * fo = NewFuncObject(fn->name, fn->params, fn->body, env);
-	EnvPutValue(it->env, fn->name->hash, fo);
-}
 
-static void vsReturnStmt(PInterpreter * it, PStmt * stmt){
-	printf("Calling return statement\n");
+static PObj * vsReturnStmt(PInterpreter * it, PStmt * stmt){
 	struct SReturn * ret = &stmt->stmt.SReturn;
-	if (it->env->enclosing != NULL) {
-		PObj * meta = EnvGetValue(it->env, META_HASH);
-		if (meta != NULL) {
-			printf("[+] Has Meta -> %s\n",meta != NULL ? "yes" : "no" );
-			PObj * value = evaluate(it, ret->value);
-			meta->v._OMeta.ret = value;
-			return;
-		}
-	}
+	PObj * value = evaluate(it, ret->value);
 
+	PObj * retValue = NewReturnObject(value);
+	return retValue;
 		
-	error(it, NULL, "Return outside function");
-	return;
 }
 
-static void execute(PInterpreter * it, PStmt * stmt){
+static PObj * execute(PInterpreter * it, PStmt * stmt){
 	switch (stmt->type) {
-		case STMT_PRINT: vsPrint(it, stmt);break;
-		case STMT_EXPR: vsExprStmt(it, stmt);break;
-		case STMT_LET: vsLet(it, stmt);break;
-		case STMT_BLOCK: vsBlock(it, stmt);break;
-		case STMT_IF: vsIfStmt(it, stmt);break;
-		case STMT_WHILE: vsWhileStmt(it, stmt);break;
-		case STMT_FUNC: vsFuncStmt(it, stmt);break;
-		case STMT_RETURN: vsReturnStmt(it, stmt);break;
+		case STMT_PRINT: return vsPrint(it, stmt);break;
+		case STMT_EXPR: return vsExprStmt(it, stmt);break;
+		case STMT_LET: return vsLet(it, stmt);break;
+		case STMT_BLOCK: return vsBlock(it, stmt);break;
+		case STMT_IF: return vsIfStmt(it, stmt);break;
+		case STMT_WHILE: return vsWhileStmt(it, stmt);break;
+		case STMT_RETURN: return vsReturnStmt(it, stmt);break;
 		default:error(it, NULL, "Unknown statement found!");
 	}
 
-	return;
+	return NewNilObject();
 
 }

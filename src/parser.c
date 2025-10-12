@@ -203,36 +203,6 @@ static PExpr * rFactor(Parser * p){
 	return expr;
 }
 
-static PExpr * rFinishCall(Parser * p, PExpr * callee){
-	PExpr ** args = NULL;
-	int argCount = 0;
-	if (!check(p, T_RIGHT_PAREN)) {
-		do {
-			if (argCount >= 255) {
-				error(p, NULL, "more than 255 arguments");
-			}
-			arrput(args, rExpression(p));
-			argCount++;
-		}while (matchOne(p, T_COMMA));
-	}
-
-	Token * opParen = eat(p, T_RIGHT_PAREN, "Expected ')' after args list");;
-	return NewCall(callee, opParen, args);
-}
-
-static PExpr * rCall(Parser * p){
-	PExpr * expr = rPrimary(p);
-
-	while (true) {
-		if (matchOne(p, T_LEFT_PAREN)) {
-			expr = rFinishCall(p, expr);
-		}else{
-			break;
-		}
-	}
-
-	return expr;
-}
 
 static PExpr * rUnary(Parser * p){
 	if (matchMany(p, (TokenType[]){T_BANG, T_MINUS}, 2)) {
@@ -241,7 +211,7 @@ static PExpr * rUnary(Parser * p){
 		return NewUnary(op, right);
 	}
 
-	return rCall(p);
+	return rPrimary(p);
 }
 
 static PExpr * rPrimary(Parser * p){
@@ -399,25 +369,6 @@ static PStmt * rReturnStmt(Parser * p){
 
 }
 
-static PStmt * rFuncStmt(Parser * p){
-	Token * name = eat(p, T_IDENT, "Expected function name");
-	eat(p, T_LEFT_PAREN, "Expected left paren after function name");
-
-	Token ** params = NULL;
-	if (!check(p, T_RIGHT_PAREN)) {
-	
-	do {
-		arrput(params, eat(p, T_IDENT, "Expected function pararms"));
-	}while (matchOne(p, T_COMMA));
-
-	}
-	eat(p, T_RIGHT_PAREN, "Expected right paren after function params");
-
-	PStmt * body = rToEndBlockStmt(p);
-
-
-	return NewFuncStmt(name, params, body);
-}
 
 static PStmt * rStmt(Parser * p){
 	if (matchOne(p, T_PRINT)) {
@@ -430,9 +381,7 @@ static PStmt * rStmt(Parser * p){
 		return rWhileStmt(p);
 	} else if (matchOne(p, T_RETURN)) {
 		return rReturnStmt(p);
-	} else if (matchOne(p, T_FUNC)){
-		return rFuncStmt(p);
-	}
+	} 
 
 	return rExprStmt(p);
 }

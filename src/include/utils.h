@@ -19,6 +19,7 @@ long StrLength(const char * str);
 bool MatchKW(const char * s, const char * en, const char * pn, const char * bn);
 
 char32_t U8ToU32(const unsigned char * str);
+char * BoolToString(bool v);
 uint32_t Fnv1a(const char * str, int len);
 
 #endif
