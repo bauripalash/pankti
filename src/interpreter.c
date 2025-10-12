@@ -196,6 +196,9 @@ static PObj * vLogical(PInterpreter * it, PExpr * expr){
 }
 
 static PObj * evaluate(PInterpreter * it, PExpr * expr){
+	if (expr == NULL) {
+		return NULL;
+	}
 	switch (expr->type) {
 		case EXPR_LITERAL: return vLiteral(it, expr);
 		case EXPR_BINARY: return vBinary(it, expr);
