@@ -1,6 +1,6 @@
 #include "include/core.h"
 #include <stdio.h>
-#define FLPATH "a.pank"
+#define FLPATH "/home/palash/work/cc/mpank/a.pank"
 
 int main(int argc, char ** argv){
 	printf("Pankti Programming Language\n");

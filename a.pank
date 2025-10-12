@@ -1,5 +1,27 @@
-ধরি ক = 1
-যতক্ষণ ক != 10 করো
-	দেখাও ক
-	ক = ক + 1
-শেষ
+let globalOne = 0
+let globalTwo = 0
+
+kaj main()
+	{
+		let a = "one"
+		kaj one()
+			print a
+		end
+
+		globalOne = one
+	}
+
+	{
+		let a = "two"
+		kaj two()
+			print a
+		end
+
+		globalTwo = two
+	}
+end
+
+
+main()
+print globalOne
+print globalTwo

@@ -66,6 +66,21 @@ PExpr * NewLogical(PExpr * left, Token * op, PExpr * right){
 	return e;
 }
 
+
+PExpr * NewCall(PExpr * callee, Token * op, PExpr ** args){
+	PExpr * e = NewExpr(EXPR_CALL);
+	e->exp.ECall.callee = callee;
+	e->exp.ECall.op = op;
+	e->exp.ECall.args = args;
+	return e;
+}
+
+
+
+
+
+
+
 PStmt * NewStmt(PStmtType type){
 	PStmt * p = PCreate(PStmt);
 	//error handle
@@ -120,6 +135,23 @@ PStmt * NewWhileStmt(Token * op, PExpr * cond, PStmt * body){
 	s->stmt.SWhile.body = body;
 	return s;
 }
+
+PStmt * NewReturnStmt(Token * op, PExpr * value){
+	PStmt * s = NewStmt(STMT_RETURN);
+	s->stmt.SReturn.op = op;
+	s->stmt.SReturn.value = value;
+	return s;
+}
+
+
+PStmt * NewFuncStmt(Token * name, Token ** params, PStmt * body){
+	PStmt * s = NewStmt(STMT_FUNC);
+	s->stmt.SFunc.name = name;
+	s->stmt.SFunc.params = params;
+	s->stmt.SFunc.body = body;
+	return s;
+}
+
 void AstPrint(PExpr * expr){
 	if (expr == NULL) {
 		printf("Null Invalid Expression\n");
@@ -167,6 +199,12 @@ void AstPrint(PExpr * expr){
 			PrintToken(expr->exp.EAssign.name);
 			printf("} V: {\n");
 			AstPrint(expr->exp.EAssign.value);
+			printf("}");
+			break;
+		}
+		case EXPR_CALL:{
+			printf("Call : { C:\n");
+			AstPrint(expr->exp.ECall.callee);
 			printf("}");
 			break;
 		}
@@ -223,6 +261,42 @@ void AstStmtPrint(PStmt * stmt){
 
 			break;
 		}
+		case STMT_WHILE:{
+			printf("While : { C: {");
+			AstPrint(stmt->stmt.SWhile.cond);
+			printf("} {...} }");
+			break;
+		}
+
+		case STMT_RETURN:{
+			printf("Return : { V: {");
+			AstPrint(stmt->stmt.SReturn.value);
+			printf("}}\n");
+			break;
+		}
+		case STMT_FUNC:{
+			printf("Func <%s> : { B: {" , stmt->stmt.SFunc.name->lexeme);
+			AstStmtPrint(stmt->stmt.SFunc.body);
+			printf("}}\n");
+			break;
+		}
 		default:printf("Unknown stmt to print : %d\n" ,stmt->type );break;
 	}
+}
+
+
+char * StmtTypeToStr(PStmtType type){
+	switch (type) {
+		case STMT_FUNC: return "Func Stmt";break;
+		case STMT_RETURN: return "Return Stmt";break;
+		case STMT_WHILE: return "While Stmt";break;
+		case STMT_IF: return "If Stmt";break;
+		case STMT_BLOCK: return "Block Stmt";break;
+		case STMT_LET: return "Let Stmt";break;
+		case STMT_EXPR: return "Expr Stmt";break;
+		case STMT_PRINT: return "Print Stmt";break;
+	
+	}
+
+	return "";
 }

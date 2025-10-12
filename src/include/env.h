@@ -10,6 +10,7 @@ typedef struct PEnv{
 	struct PEnv * enclosing;
 }PEnv;
 
+#define GetEnv(ptr) ((PEnv*)ptr)
 PEnv * NewEnv(PEnv * enclosing);
 void FreeEnv(PEnv * e);
 

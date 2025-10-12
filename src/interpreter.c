@@ -7,11 +7,14 @@
 #include "include/core.h"
 #include "external/stb/stb_ds.h"
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 static void execute(PInterpreter * it, PStmt * stmt);
 static PObj * evaluate(PInterpreter * it, PExpr * expr);
+static void execBlock(PInterpreter * it, PStmt * stmt, PEnv * env);
+#define META_HASH (uint32_t)0
 
 PInterpreter * NewInterpreter(PStmt ** prog){
 	PInterpreter * it = PCreate(PInterpreter);
@@ -104,6 +107,10 @@ static PObj * vBinary(PInterpreter * it, PExpr * expr){
 			result = NewBoolObj(!isObjEqual(l, r));
 			break;
 		}
+		case T_GT:{
+			result = NewBoolObj(l->v.num > r->v.num);
+			break;
+		}
 		default: result = NewNumberObj(-1);break;
 	}
 
@@ -180,6 +187,48 @@ static PObj * vLogical(PInterpreter * it, PExpr * expr){
 
 }
 
+static PEnv * extendFuncEnv(PInterpreter * it, PObj * fn , PObj ** args){
+	struct OFunc * func = &fn->v.OFunc;
+	PEnv * tempEnv = NewEnv(func->env);
+	
+	for (int i = 0; i < arrlen(func->params); i++) {
+		EnvPutValue(tempEnv, func->params[i]->hash, args[i]);
+	}
+
+	PObj * meta = NewOMeta();
+
+	EnvPutValue(tempEnv, META_HASH, meta);
+
+	return tempEnv;
+
+}
+
+static PObj * vCall(PInterpreter * it, PExpr * expr){
+	struct ECall * call = &expr->exp.ECall;
+	PObj * callee = evaluate(it, call->callee);
+	PObj ** args = NULL;
+	for (int i = 0; i < arrlen(call->args); i++) {
+		arrput(args, evaluate(it, call->args[i]));
+	}
+
+	struct OFunc * func = &callee->v.OFunc;
+
+	if (arrlen(args) != arrlen(func->params)) {
+		return NewNilObject();
+	}
+
+	PEnv * fnEnv = extendFuncEnv(it, callee, args);
+	execBlock(it, func->body , fnEnv);
+	PObj * meta = EnvGetValue(fnEnv, META_HASH);
+	if (meta != NULL && meta->type == OT_META) {
+		PObj * mret = meta->v._OMeta.ret;
+		printf("RET -> %s\n", mret != NULL ? "yes" : "no");
+		return meta->v._OMeta.ret;
+	}else{
+		return NewNilObject();
+	}
+}
+
 static PObj * evaluate(PInterpreter * it, PExpr * expr){
 	switch (expr->type) {
 		case EXPR_LITERAL: return vLiteral(it, expr);
@@ -188,6 +237,7 @@ static PObj * evaluate(PInterpreter * it, PExpr * expr){
 		case EXPR_VARIABLE:return vVariable(it, expr);
 		case EXPR_ASSIGN: return vAssignment(it, expr);
 		case EXPR_LOGICAL:return vLogical(it, expr);
+		case EXPR_CALL: return vCall(it, expr);
 		default:break;
 	}
 
@@ -200,7 +250,8 @@ static void execBlock(PInterpreter * it, PStmt * stmt, PEnv * env){
 
 	PStmt ** stmtList = stmt->stmt.SBlock.stmts;
 	for (int i = 0; i < arrlen(stmtList); i++) {
-		execute(it, stmtList[i]);
+		PStmt * iStmt = stmtList[i];
+		execute(it, iStmt);
 	}
 
 	it->env = prevEnv;
@@ -245,6 +296,32 @@ static void vsWhileStmt(PInterpreter * it, PStmt * stmt){
 	}
 }
 
+static void vsFuncStmt(PInterpreter * it, PStmt * stmt){
+	struct SFunc * fn = &stmt->stmt.SFunc;
+
+	PEnv * env = NewEnv(it->env);
+	PObj * fo = NewFuncObject(fn->name, fn->params, fn->body, env);
+	EnvPutValue(it->env, fn->name->hash, fo);
+}
+
+static void vsReturnStmt(PInterpreter * it, PStmt * stmt){
+	printf("Calling return statement\n");
+	struct SReturn * ret = &stmt->stmt.SReturn;
+	if (it->env->enclosing != NULL) {
+		PObj * meta = EnvGetValue(it->env, META_HASH);
+		if (meta != NULL) {
+			printf("[+] Has Meta -> %s\n",meta != NULL ? "yes" : "no" );
+			PObj * value = evaluate(it, ret->value);
+			meta->v._OMeta.ret = value;
+			return;
+		}
+	}
+
+		
+	error(it, NULL, "Return outside function");
+	return;
+}
+
 static void execute(PInterpreter * it, PStmt * stmt){
 	switch (stmt->type) {
 		case STMT_PRINT: vsPrint(it, stmt);break;
@@ -253,6 +330,8 @@ static void execute(PInterpreter * it, PStmt * stmt){
 		case STMT_BLOCK: vsBlock(it, stmt);break;
 		case STMT_IF: vsIfStmt(it, stmt);break;
 		case STMT_WHILE: vsWhileStmt(it, stmt);break;
+		case STMT_FUNC: vsFuncStmt(it, stmt);break;
+		case STMT_RETURN: vsReturnStmt(it, stmt);break;
 		default:error(it, NULL, "Unknown statement found!");
 	}
 
