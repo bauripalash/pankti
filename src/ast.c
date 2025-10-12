@@ -131,6 +131,12 @@ PStmt * NewReturnStmt(Token * op, PExpr * value){
 }
 
 
+PStmt * NewBreakStmt(Token * op){
+	PStmt * s = NewStmt(STMT_BREAK);
+	s->stmt.SBreak.op = op;
+	return s;
+}
+
 void AstPrint(PExpr * expr){
 	if (expr == NULL) {
 		printf("Null Invalid Expression\n");
@@ -181,8 +187,11 @@ void AstPrint(PExpr * expr){
 			printf("}");
 			break;
 		}
+		case EXPR_LOGICAL:{
+			printf("Logical : {}\n");
+			break;
+		}
 
-		default:printf("Unknown Expression to print\n");break;
 	}
 }
 
@@ -248,8 +257,10 @@ void AstStmtPrint(PStmt * stmt){
 			printf("}}\n");
 			break;
 		}
-
-		default:printf("Unknown stmt to print : %d\n" ,stmt->type );break;
+		case STMT_BREAK:{
+			printf("Break : {}\n");
+			break;
+		}
 	}
 }
 
@@ -263,6 +274,7 @@ char * StmtTypeToStr(PStmtType type){
 		case STMT_LET: return "Let Stmt";break;
 		case STMT_EXPR: return "Expr Stmt";break;
 		case STMT_PRINT: return "Print Stmt";break;
+		case STMT_BREAK: return "Break Stmt";break;
 	
 	}
 

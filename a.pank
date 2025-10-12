@@ -1,12 +1,8 @@
-let x = 111
-{
-	let x = 99
+let x = 0
+while true do
 	print x
-}
-
-{
-	let x = 1
-	print x
-}
-
-print x
+	x = x + 1
+	if x > 10 then
+		break
+	end
+end

@@ -143,7 +143,6 @@ static PExpr * rOr(Parser * p){
 static PExpr * rAssignment(Parser * p){
 	PExpr * expr = rOr(p);
 	if (matchOne(p, T_EQ)) {
-		Token * op = previous(p);
 		PExpr * value = rAssignment(p);
 
 		if (expr->type == EXPR_VARIABLE) {
@@ -369,6 +368,15 @@ static PStmt * rReturnStmt(Parser * p){
 
 }
 
+static PStmt * rBreakStmt(Parser * p){
+	Token * op = previous(p);
+	if (check(p, T_SEMICOLON)) {
+		eat(p, T_SEMICOLON, "Expected ';'");
+	}
+
+	return NewBreakStmt(op);
+}
+
 
 static PStmt * rStmt(Parser * p){
 	if (matchOne(p, T_PRINT)) {
@@ -381,8 +389,9 @@ static PStmt * rStmt(Parser * p){
 		return rWhileStmt(p);
 	} else if (matchOne(p, T_RETURN)) {
 		return rReturnStmt(p);
-	} 
-
+	} else if (matchOne(p, T_BREAK)){
+		return rBreakStmt(p);
+	}
 	return rExprStmt(p);
 }
 

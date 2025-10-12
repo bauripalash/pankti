@@ -9,7 +9,8 @@ typedef enum PObjType{
 	OT_STR,
 	OT_BOOL,
 	OT_NIL,
-	OT_RET
+	OT_RET,
+	OT_BRK,
 }PObjType;
 
 
@@ -25,6 +26,8 @@ typedef struct PObj{
 		struct OReturn{
 			struct PObj * rvalue;
 		}OReturn;
+
+		struct OBreak{}OBreak;
 	}v;
 
 }PObj;
@@ -40,6 +43,7 @@ PObj * NewBoolObj(bool value);
 PObj * NewStrObject(char * value);
 PObj * NewNilObject();
 PObj * NewReturnObject(PObj * value);
+PObj * NewBreakObject();
 
 
 bool IsObjTruthy(const PObj * o);

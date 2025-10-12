@@ -263,6 +263,9 @@ static PObj * vsWhileStmt(PInterpreter * it, PStmt * stmt){
 	PObj * obj;
 	while (IsObjTruthy(evaluate(it, stmt->stmt.SWhile.cond))) {
 		obj = execute(it, stmt->stmt.SWhile.body);
+		if (obj->type == OT_BRK) {
+			break;
+		}
 	}
 
 	return obj;
@@ -279,6 +282,10 @@ static PObj * vsReturnStmt(PInterpreter * it, PStmt * stmt){
 		
 }
 
+static PObj * vsBreakStmt(PInterpreter * it, PStmt * stmt){
+	return NewBreakObject();
+}
+
 static PObj * execute(PInterpreter * it, PStmt * stmt){
 	switch (stmt->type) {
 		case STMT_PRINT: return vsPrint(it, stmt);break;
@@ -288,6 +295,7 @@ static PObj * execute(PInterpreter * it, PStmt * stmt){
 		case STMT_IF: return vsIfStmt(it, stmt);break;
 		case STMT_WHILE: return vsWhileStmt(it, stmt);break;
 		case STMT_RETURN: return vsReturnStmt(it, stmt);break;
+		case STMT_BREAK: return vsBreakStmt(it, stmt);
 		default:error(it, NULL, "Unknown statement found!");
 	}
 

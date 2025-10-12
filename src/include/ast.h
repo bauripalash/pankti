@@ -72,7 +72,8 @@ typedef enum PStmtType{
 	STMT_LET,
 	STMT_WHILE,
 	STMT_BLOCK,
-	STMT_RETURN
+	STMT_RETURN,
+	STMT_BREAK,
 }PStmtType;
 
 typedef struct PStmt{
@@ -115,6 +116,10 @@ typedef struct PStmt{
 			Token * op;
 			PExpr * value;
 		}SReturn;
+
+		struct SBreak{
+			Token * op;
+		}SBreak;
 	}stmt;
 
 }PStmt;
@@ -138,6 +143,7 @@ PStmt * NewBlockStmt(Token * op, PStmt ** stmts);
 PStmt * NewIfStmt(Token * op, PExpr * cond, PStmt * then, PStmt * elseB);
 PStmt * NewWhileStmt(Token * op, PExpr * cond, PStmt * body);
 PStmt * NewReturnStmt(Token * op, PExpr * value);
+PStmt * NewBreakStmt(Token * op);
 
 
 

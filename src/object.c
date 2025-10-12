@@ -33,6 +33,7 @@ void PrintObject(const PObj * o){
 			printf(">");
 			break;
 		}
+		case OT_BRK:{printf("<break>\n");break;}
 	}
 }
 
@@ -44,6 +45,7 @@ char * ObjTypeToString(PObjType type){
 		case OT_BOOL: return "Bool";break;
 		case OT_NIL: return "Nil";break;
 		case OT_RET: return "Return";break;
+		case OT_BRK: return "Break";break;
 	}
 
 	return "";
@@ -79,6 +81,10 @@ PObj * NewReturnObject(PObj * value){
 }
 
 
+PObj * NewBreakObject(){
+	PObj * o = NewObject(OT_BRK);
+	return o;
+}
 
 bool IsObjTruthy(const PObj * o){
 	if (o != NULL && o->type == OT_BOOL) {
@@ -117,6 +123,11 @@ bool isObjEqual(const PObj * a, const PObj * b){
 		}
 		case OT_RET:{
 			result = isObjEqual(a->v.OReturn.rvalue, a->v.OReturn.rvalue);
+			break;
+		}
+
+		case OT_BRK:{
+			result = true;
 			break;
 		}
 
