@@ -5,12 +5,20 @@
 #include <stdbool.h>
 
 typedef enum PObjType{
+	//Number
 	OT_NUM,
+	//String
 	OT_STR,
+	//Bool
 	OT_BOOL,
+	//Nil
 	OT_NIL,
+	//Return
 	OT_RET,
+	//Break
 	OT_BRK,
+	//Function
+	OT_FNC,
 }PObjType;
 
 
@@ -28,6 +36,14 @@ typedef struct PObj{
 		}OReturn;
 
 		struct OBreak{}OBreak;
+
+		struct OFunction{
+			Token * name;
+			Token ** params;
+			int paramCount;
+			void * env;
+			PStmt * body;
+		}OFunction;
 	}v;
 
 }PObj;
@@ -44,6 +60,7 @@ PObj * NewStrObject(char * value);
 PObj * NewNilObject();
 PObj * NewReturnObject(PObj * value);
 PObj * NewBreakObject();
+PObj * NewFuncObject(Token * name, Token ** params, PStmt * body, void * env, int count);
 
 
 bool IsObjTruthy(const PObj * o);

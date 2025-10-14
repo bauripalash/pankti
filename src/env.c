@@ -14,6 +14,7 @@ PEnv * NewEnv(PEnv * enclosing){
 	//error check;
 	e->count = 0;
 	e->table = NULL;
+	arrsetcap(e->table, 32);
 	e->enclosing = enclosing;
 	return e;
 }
@@ -68,10 +69,7 @@ static EnvPair * getValue(PEnv * e, uint32_t hash){
 	if (e == NULL) {
 		return NULL;
 	}
-	if (e->table == NULL) {
-		return NULL;
-	}
-	for (int i = 0; i < arrlen(e->table); i++) {
+	for (int i = 0; i < e->count; i++) {
 		EnvPair * p = e->table[i];
 		if (p->key == hash) {
 			return p;
@@ -128,17 +126,10 @@ PObj * EnvGetValue(PEnv * e, uint32_t hash){
 		return NULL;
 	}
 
-	if (e->table == NULL) {
-		if (e->enclosing != NULL) {
-			return EnvGetValue(e->enclosing, hash);
-		}else{
-			return NULL;
+	for (int i = 0; i < e->count; i++) {
+		if (e->table[i]->key == hash) {
+			return e->table[i]->value;
 		}
-	}
-
-	EnvPair * p = getValue(e, hash);
-	if (p != NULL) {
-		return p->value;
 	}
 
 	if (e->enclosing != NULL) {

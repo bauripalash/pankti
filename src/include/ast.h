@@ -10,6 +10,7 @@ typedef enum PExprType{
 	EXPR_VARIABLE,
 	EXPR_ASSIGN,
 	EXPR_LOGICAL,
+	EXPR_CALL,
 }PExprType;
 
 typedef enum PLitType{
@@ -61,6 +62,13 @@ typedef struct PExpr{
 			struct PExpr * right;
 		}ELogical;
 
+		struct ECall{
+			Token * op;
+			struct 	PExpr * callee;
+			struct PExpr ** args;
+			int argCount;
+		}ECall;
+
 
 	}exp;
 }PExpr;
@@ -74,6 +82,7 @@ typedef enum PStmtType{
 	STMT_BLOCK,
 	STMT_RETURN,
 	STMT_BREAK,
+	STMT_FUNC,
 }PStmtType;
 
 typedef struct PStmt{
@@ -120,6 +129,13 @@ typedef struct PStmt{
 		struct SBreak{
 			Token * op;
 		}SBreak;
+
+		struct SFunc{
+			Token * name;
+			Token ** params;
+			struct PStmt * body;
+			int paramCount;
+		}SFunc;
 	}stmt;
 
 }PStmt;
@@ -134,6 +150,7 @@ PExpr * NewGrouping(PExpr * expr);
 PExpr * NewVarExpr(Token * name);
 PExpr * NewAssignment(Token * name, PExpr * value);
 PExpr * NewLogical(PExpr * left, Token * op, PExpr * right);
+PExpr * NewCallExpr(Token * op, PExpr * callee, PExpr ** args, int count);
 
 PStmt * NewStmt(PStmtType type);
 PStmt * NewPrintStmt(Token * op, PExpr * value);
@@ -144,6 +161,7 @@ PStmt * NewIfStmt(Token * op, PExpr * cond, PStmt * then, PStmt * elseB);
 PStmt * NewWhileStmt(Token * op, PExpr * cond, PStmt * body);
 PStmt * NewReturnStmt(Token * op, PExpr * value);
 PStmt * NewBreakStmt(Token * op);
+PStmt * NewFuncStmt(Token * name, Token ** params, PStmt * body, int count);
 
 
 

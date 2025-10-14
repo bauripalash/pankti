@@ -1,8 +1,26 @@
-let x = 0
-while true do
-	print x
-	x = x + 1
-	if x > 10 then
-		break
-	end
+let globalOne = 0
+let globalTwo = 0
+
+
+kaj main()
+	{
+		let a = "one"
+		kaj one()
+			print a
+		end
+
+		globalOne = one
+	}
+
+	{
+		let a = "two"
+		kaj two()
+			print a
+		end
+		globalTwo = two
+	}
 end
+
+main()
+globalOne()
+globalTwo()

@@ -11,8 +11,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static PObj * execute(PInterpreter * it, PStmt * stmt);
-static PObj * evaluate(PInterpreter * it, PExpr * expr);
+static PObj * execute(PInterpreter * it, PStmt * stmt, PEnv * env);
+static PObj * evaluate(PInterpreter * it, PExpr * expr, PEnv * env);
 static PObj * execBlock(PInterpreter * it, PStmt * stmt, PEnv * env, bool ret);
 
 PInterpreter * NewInterpreter(PStmt ** prog){
@@ -26,20 +26,23 @@ void FreeInterpreter(PInterpreter * it){
 	if (it == NULL) {
 		return;
 	}
-	FreeEnv(it->env);
+
+	if (it->env != NULL) {
+		FreeEnv(it->env);
+	}
 
 	free(it);
 }
 void Interpret(PInterpreter * it){
 	for (int i = 0; i < arrlen(it->program); i++) {
-		execute(it, it->program[i]);
+		execute(it, it->program[i], it->env);
 	}
 
 }
 static void error(PInterpreter * it, void * tok, char * msg){
 	CoreError(it->core, -1, msg);
 }
-static PObj * vLiteral(PInterpreter * it, PExpr * expr){
+static PObj * vLiteral(PInterpreter * it, PExpr * expr, PEnv * env){
 	PObj * litObj;
 	switch (expr->exp.ELiteral.type) {
 		case EXP_LIT_NUM: {
@@ -69,9 +72,9 @@ static PObj * vLiteral(PInterpreter * it, PExpr * expr){
 	return litObj;
 }
 
-static PObj * vBinary(PInterpreter * it, PExpr * expr){
-	PObj * l = 	evaluate(it, expr->exp.EBinary.left);
-	PObj * r = 	evaluate(it, expr->exp.EBinary.right);
+static PObj * vBinary(PInterpreter * it, PExpr * expr, PEnv * env){
+	PObj * l = 	evaluate(it, expr->exp.EBinary.left, env);
+	PObj * r = 	evaluate(it, expr->exp.EBinary.right, env);
 	PObj * result = NULL;
 	switch (expr->exp.EBinary.opr->type) {
 		case T_PLUS:{
@@ -116,8 +119,8 @@ static PObj * vBinary(PInterpreter * it, PExpr * expr){
 	return result;
 }
 
-static PObj * vVariable(PInterpreter * it, PExpr * expr){
-	PObj * v = EnvGetValue(it->env, expr->exp.EVariable.name->hash);
+static PObj * vVariable(PInterpreter * it, PExpr * expr, PEnv * env){
+	PObj * v = EnvGetValue(env, expr->exp.EVariable.name->hash);
 	if (v == NULL) {
 		error(it, NULL, "Undefined variable");
 		printf("at line %ld\n", expr->exp.EVariable.name->line);
@@ -126,9 +129,9 @@ static PObj * vVariable(PInterpreter * it, PExpr * expr){
 	return v;
 }
 
-static PObj * vAssignment(PInterpreter *it, PExpr * expr){
-	PObj * value = evaluate(it, expr->exp.EAssign.value);
-	if (EnvSetValue(it->env, expr->exp.EAssign.name->hash, value)) {
+static PObj * vAssignment(PInterpreter *it, PExpr * expr, PEnv * env){
+	PObj * value = evaluate(it, expr->exp.EAssign.value, env);
+	if (EnvSetValue(env, expr->exp.EAssign.name->hash, value)) {
 		return value;
 	}else{
 		error(it, NULL, "Undefined variable assignment");
@@ -138,8 +141,8 @@ static PObj * vAssignment(PInterpreter *it, PExpr * expr){
 
 }
 
-static PObj * vUnary(PInterpreter * it, PExpr * expr){
-	PObj * r = evaluate(it, expr->exp.EUnary.right);
+static PObj * vUnary(PInterpreter * it, PExpr * expr,PEnv * env){
+	PObj * r = evaluate(it, expr->exp.EUnary.right, env);
 	PObj * result;
 
 	switch (expr->exp.EUnary.opr->type) {
@@ -161,15 +164,15 @@ static PObj * vUnary(PInterpreter * it, PExpr * expr){
 	return result;
 }
 
-static PObj * vLogical(PInterpreter * it, PExpr * expr){
-	PObj * left = evaluate(it, expr->exp.ELogical.left);
+static PObj * vLogical(PInterpreter * it, PExpr * expr, PEnv * env){
+	PObj * left = evaluate(it, expr->exp.ELogical.left, env);
 	Token * op = expr->exp.ELogical.op;
 
 	if (op->type == T_OR) {
 		if (IsObjTruthy(left)) {
 			return NewBoolObj(true);
 		} else {
-			PObj * right = evaluate(it, expr->exp.ELogical.right);
+			PObj * right = evaluate(it, expr->exp.ELogical.right, env);
 			if (IsObjTruthy(right)) {
 				return NewBoolObj(true);
 			}else{
@@ -180,7 +183,7 @@ static PObj * vLogical(PInterpreter * it, PExpr * expr){
 		if (!IsObjTruthy(left)) {
 			return NewBoolObj(false);
 		} else {
-			PObj * right = evaluate(it, expr->exp.ELogical.right);
+			PObj * right = evaluate(it, expr->exp.ELogical.right, env);
 			if (IsObjTruthy(right)) {
 				return NewBoolObj(true);
 			}else{
@@ -195,66 +198,116 @@ static PObj * vLogical(PInterpreter * it, PExpr * expr){
 
 }
 
-static PObj * evaluate(PInterpreter * it, PExpr * expr){
+static PObj * handleCall(PInterpreter * it, PObj * func, PObj ** args, int count){
+	struct OFunction * f = &func->v.OFunction;
+	PEnv * fnEnv = NewEnv((PEnv *)f->env);
+	for (int i = 0; i < count; i++) {
+		EnvPutValue(fnEnv, f->params[i]->hash, args[i]);
+	}
+
+	PObj * evalOut = execBlock(it, f->body, fnEnv, true);
+
+	if (evalOut != NULL) {
+		if (evalOut->type == OT_RET) {
+			return evalOut->v.OReturn.rvalue;
+		}
+	} else {
+		evalOut = NewNilObject();
+	}
+	//printf("return->\n");
+
+	//FreeEnv(fnEnv);
+
+	return evalOut;
+}
+
+static PObj * vCall(PInterpreter * it, PExpr * expr, PEnv * env){
+	struct ECall * ec = &expr->exp.ECall;
+	PObj * co = evaluate(it, ec->callee, env);
+	if (co->type != OT_FNC) {
+		error(it, NULL, "Can only call functions");
+		return NULL;
+	}
+
+	if (co->v.OFunction.paramCount != ec->argCount) {
+		error(it, NULL, "Func param count != call arg count");
+		return NULL;
+	}
+
+	PObj ** args = NULL;
+
+	for (int i = 0; i < ec->argCount; i++) {
+		arrput(args, evaluate(it, ec->args[i], env));
+	}
+
+	return handleCall(it, co, args, ec->argCount);
+}
+
+static PObj * evaluate(PInterpreter * it, PExpr * expr, PEnv * env){
 	if (expr == NULL) {
 		return NULL;
 	}
 	switch (expr->type) {
-		case EXPR_LITERAL: return vLiteral(it, expr);
-		case EXPR_BINARY: return vBinary(it, expr);
-		case EXPR_UNARY: return vUnary(it, expr);
-		case EXPR_VARIABLE:return vVariable(it, expr);
-		case EXPR_ASSIGN: return vAssignment(it, expr);
-		case EXPR_LOGICAL:return vLogical(it, expr);
-		default:break;
+		case EXPR_LITERAL: return vLiteral(it, expr, env);
+		case EXPR_BINARY: return vBinary(it, expr, env);
+		case EXPR_UNARY: return vUnary(it, expr, env);
+		case EXPR_VARIABLE:return vVariable(it, expr, env);
+		case EXPR_ASSIGN: return vAssignment(it, expr, env);
+		case EXPR_LOGICAL:return vLogical(it, expr, env);
+		case EXPR_CALL:return vCall(it, expr, env);
+		case EXPR_GROUPING: return evaluate(it, expr->exp.EGrouping.expr, env);
 	}
 
 	return NULL;
 }
 
 static PObj * execBlock(PInterpreter * it, PStmt * stmt, PEnv * env, bool ret){
-	PObj * obj;
-	PEnv * ogEnv = it->env;
-	it->env = env;
 	PStmt ** stmtList = stmt->stmt.SBlock.stmts;
-	for (int i = 0; i < arrlen(stmtList); i++) {
-		obj = execute(it, stmtList[i]);
+	if (stmtList == NULL) {
+		return NewNilObject();
 	}
-	it->env = ogEnv;
+	PObj * obj = NULL;
+	//PEnv * ogEnv = it->env;
+	//it->env = env;
+
+	PEnv * blockEnv = NewEnv(env);
+	for (int i = 0; i < arrlen(stmtList); i++) {
+		obj = execute(it, stmtList[i], blockEnv);
+	}
+
+	//it->env = ogEnv;
 	return obj;
 }
 
-static PObj * vsBlock(PInterpreter * it, PStmt * stmt){
-	PEnv * blockEnv = NewEnv(it->env);
-	PObj * obj = execBlock(it, stmt, blockEnv, true);
-	FreeEnv(blockEnv);
+static PObj * vsBlock(PInterpreter * it, PStmt * stmt, PEnv * env){
+	PObj * obj = execBlock(it, stmt, env, true);
 	return obj;
 
 }
 
-static PObj * vsLet(PInterpreter *it, PStmt * stmt){
-	PObj * value = evaluate(it, stmt->stmt.SLet.expr);
-	EnvPutValue(it->env, stmt->stmt.SLet.name->hash, value);
+static PObj * vsLet(PInterpreter *it, PStmt * stmt, PEnv * env){
+	PObj * value = evaluate(it, stmt->stmt.SLet.expr, env);
+	EnvPutValue(env, stmt->stmt.SLet.name->hash, value);
 	return value;
 }
 
-static PObj* vsPrint(PInterpreter * it, PStmt * stmt){
-	PObj * obj = evaluate(it, stmt->stmt.SPrint.value);
+static PObj* vsPrint(PInterpreter * it, PStmt * stmt, PEnv * env){
+	PObj * obj = evaluate(it, stmt->stmt.SPrint.value, env);
 	PrintObject(obj);
 	return obj;
 }
 
-static PObj * vsExprStmt(PInterpreter * it, PStmt * stmt){
-	return evaluate(it, stmt->stmt.SExpr.expr);
+static PObj * vsExprStmt(PInterpreter * it, PStmt * stmt, PEnv * env){
+	return evaluate(it, stmt->stmt.SExpr.expr, env);
 }
 
-static PObj * vsIfStmt(PInterpreter* it, PStmt * stmt){
-	PObj * cond = evaluate(it, stmt->stmt.SIf.cond);
+static PObj * vsIfStmt(PInterpreter* it, PStmt * stmt, PEnv * env){
+	PObj * cond = evaluate(it, stmt->stmt.SIf.cond, env);
 	if (IsObjTruthy(cond)) {
-		return execute(it, stmt->stmt.SIf.thenBranch);
+		return execute(it, stmt->stmt.SIf.thenBranch, env);
 	} else{
 		if (stmt->stmt.SIf.elseBranch != NULL) {
-			return execute(it, stmt->stmt.SIf.elseBranch);
+			return execute(it, stmt->stmt.SIf.elseBranch, env);
 		}
 	}
 
@@ -262,10 +315,10 @@ static PObj * vsIfStmt(PInterpreter* it, PStmt * stmt){
 
 }
 
-static PObj * vsWhileStmt(PInterpreter * it, PStmt * stmt){
+static PObj * vsWhileStmt(PInterpreter * it, PStmt * stmt, PEnv * env){
 	PObj * obj;
-	while (IsObjTruthy(evaluate(it, stmt->stmt.SWhile.cond))) {
-		obj = execute(it, stmt->stmt.SWhile.body);
+	while (IsObjTruthy(evaluate(it, stmt->stmt.SWhile.cond, env))) {
+		obj = execute(it, stmt->stmt.SWhile.body, env);
 		if (obj->type == OT_BRK) {
 			break;
 		}
@@ -276,29 +329,37 @@ static PObj * vsWhileStmt(PInterpreter * it, PStmt * stmt){
 
 
 
-static PObj * vsReturnStmt(PInterpreter * it, PStmt * stmt){
+static PObj * vsReturnStmt(PInterpreter * it, PStmt * stmt, PEnv * env){
 	struct SReturn * ret = &stmt->stmt.SReturn;
-	PObj * value = evaluate(it, ret->value);
+	PObj * value = evaluate(it, ret->value, env);
 
 	PObj * retValue = NewReturnObject(value);
 	return retValue;
 		
 }
 
-static PObj * vsBreakStmt(PInterpreter * it, PStmt * stmt){
+static PObj * vsBreakStmt(PInterpreter * it, PStmt * stmt, PEnv * env){
 	return NewBreakObject();
 }
 
-static PObj * execute(PInterpreter * it, PStmt * stmt){
+static PObj * vsFuncStmt(PInterpreter * it, PStmt * stmt, PEnv * env){
+	struct SFunc * fs = &stmt->stmt.SFunc;
+	PObj * f = NewFuncObject(fs->name, fs->params, fs->body, NewEnv(env),fs->paramCount);
+	EnvPutValue(env, fs->name->hash, f);
+	return NewNilObject();
+}
+
+static PObj * execute(PInterpreter * it, PStmt * stmt, PEnv * env){
 	switch (stmt->type) {
-		case STMT_PRINT: return vsPrint(it, stmt);break;
-		case STMT_EXPR: return vsExprStmt(it, stmt);break;
-		case STMT_LET: return vsLet(it, stmt);break;
-		case STMT_BLOCK: return vsBlock(it, stmt);break;
-		case STMT_IF: return vsIfStmt(it, stmt);break;
-		case STMT_WHILE: return vsWhileStmt(it, stmt);break;
-		case STMT_RETURN: return vsReturnStmt(it, stmt);break;
-		case STMT_BREAK: return vsBreakStmt(it, stmt);
+		case STMT_PRINT: return vsPrint(it, stmt, env);break;
+		case STMT_EXPR: return vsExprStmt(it, stmt, env);break;
+		case STMT_LET: return vsLet(it, stmt, env);break;
+		case STMT_BLOCK: return vsBlock(it, stmt, env);break;
+		case STMT_IF: return vsIfStmt(it, stmt, env);break;
+		case STMT_WHILE: return vsWhileStmt(it, stmt, env);break;
+		case STMT_RETURN: return vsReturnStmt(it, stmt, env);break;
+		case STMT_BREAK: return vsBreakStmt(it, stmt, env);
+		case STMT_FUNC: return vsFuncStmt(it, stmt, env);
 		default:error(it, NULL, "Unknown statement found!");
 	}
 

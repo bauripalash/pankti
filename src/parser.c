@@ -20,6 +20,7 @@ static PExpr * rComparison(Parser * p);
 static PExpr * rTerm(Parser * p);
 static PExpr * rFactor(Parser * p);
 static PExpr * rUnary(Parser * p);
+static PExpr * rCall(Parser * p);
 static PExpr * rPrimary(Parser * p);
 static PExpr * rExpression(Parser * p);
 
@@ -210,7 +211,38 @@ static PExpr * rUnary(Parser * p){
 		return NewUnary(op, right);
 	}
 
-	return rPrimary(p);
+	return rCall(p);
+}
+
+static PExpr * finishCallExpr(Parser * p, PExpr * expr){
+	PExpr ** args = NULL;
+	int count = 0;
+	if (!check(p,T_RIGHT_PAREN)) {
+		do {
+			if (count >= 255) {
+				error(p, NULL, "Can't have more than 255 arguments");
+			}
+			arrput(args, rExpression(p));
+			count++;
+		}while (matchOne(p, T_COMMA));
+	}
+
+	Token * rparen = eat(p, T_RIGHT_PAREN, "Expected ')' after arguments");
+	return NewCallExpr(rparen, expr, args, count);
+
+}
+
+static PExpr * rCall(Parser * p){
+	PExpr * expr = rPrimary(p);
+	while (true) {
+		if (matchOne(p, T_LEFT_PAREN)) {
+			expr = finishCallExpr(p, expr);
+		}else{
+			break;
+		}
+	}
+
+	return expr;
 }
 
 static PExpr * rPrimary(Parser * p){
@@ -377,6 +409,24 @@ static PStmt * rBreakStmt(Parser * p){
 	return NewBreakStmt(op);
 }
 
+static PStmt * rFuncStmt(Parser * p){
+	Token * name = eat(p, T_IDENT, "Expected function name");
+	eat(p, T_LEFT_PAREN, "Expected '(' after function name");
+	Token ** params = NULL;
+	int paramCount = 0;
+	if (!check(p, T_RIGHT_PAREN)) {
+		do {
+			Token * parm = eat(p, T_IDENT, "Expected param");
+			arrput(params, parm);
+			paramCount++;
+		}while (matchOne(p, T_COMMA));
+
+	}
+	eat(p, T_RIGHT_PAREN, "Expected ')' after expression list");
+	PStmt * body = rToEndBlockStmt(p);
+
+	return NewFuncStmt(name, params, body, paramCount);
+}
 
 static PStmt * rStmt(Parser * p){
 	if (matchOne(p, T_PRINT)) {
@@ -391,6 +441,8 @@ static PStmt * rStmt(Parser * p){
 		return rReturnStmt(p);
 	} else if (matchOne(p, T_BREAK)){
 		return rBreakStmt(p);
+	} else if (matchOne(p, T_FUNC)) {
+		return rFuncStmt(p);
 	}
 	return rExprStmt(p);
 }

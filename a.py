@@ -1,11 +1,15 @@
-def x(a,b):
-    def o(c):
-        print(a + b + c)
+from typing import Any
 
-    return o
 
-lx = x
-print(lx)
-cx = lx(1,2)
-print(cx)
-print(cx(3))
+globalOne = None
+globalTwo = None
+
+def main():
+    global globalOne
+    a = "one"
+    def one():
+        print(a)
+    globalOne = one
+
+main()
+globalOne()

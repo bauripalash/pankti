@@ -34,6 +34,10 @@ void PrintObject(const PObj * o){
 			break;
 		}
 		case OT_BRK:{printf("<break>\n");break;}
+		case OT_FNC:{
+			printf("<fn %s>",o->v.OFunction.name->lexeme);
+			break;
+		}
 	}
 }
 
@@ -46,6 +50,7 @@ char * ObjTypeToString(PObjType type){
 		case OT_NIL: return "Nil";break;
 		case OT_RET: return "Return";break;
 		case OT_BRK: return "Break";break;
+		case OT_FNC: return "Function";break;
 	}
 
 	return "";
@@ -83,6 +88,17 @@ PObj * NewReturnObject(PObj * value){
 
 PObj * NewBreakObject(){
 	PObj * o = NewObject(OT_BRK);
+	return o;
+}
+
+
+PObj * NewFuncObject(Token * name, Token ** params, PStmt * body, void * env, int count){
+	PObj * o = NewObject(OT_FNC);
+	o->v.OFunction.name = name;
+	o->v.OFunction.params = params;
+	o->v.OFunction.body = body;
+	o->v.OFunction.env = env;
+	o->v.OFunction.paramCount = count;
 	return o;
 }
 
@@ -130,6 +146,8 @@ bool isObjEqual(const PObj * a, const PObj * b){
 			result = true;
 			break;
 		}
+
+		case OT_FNC:result = false;break;
 
 	}
 
