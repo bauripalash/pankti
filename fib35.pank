@@ -6,6 +6,4 @@ kaj fib(n)
 	return fib(n-2) + fib(n-1)
 end
 
-let start = clock()
-show(fib(35), "\n")
-show((clock() - start) / 1000)
+print fib(10)

@@ -113,6 +113,9 @@ static PObj * vBinary(PInterpreter * it, PExpr * expr, PEnv * env){
 			result = NewBoolObj(l->v.num > r->v.num);
 			break;
 		}
+		case T_GTE: result = NewBoolObj(l->v.num >= r->v.num);break;
+		case T_LT: result = NewBoolObj(l->v.num < r->v.num);break;
+		case T_LTE: result = NewBoolObj(l->v.num <= r->v.num);break;
 		default: result = NewNumberObj(-1);break;
 	}
 
@@ -273,6 +276,9 @@ static PObj * execBlock(PInterpreter * it, PStmt * stmt, PEnv * env, bool ret){
 	PEnv * blockEnv = NewEnv(env);
 	for (int i = 0; i < arrlen(stmtList); i++) {
 		obj = execute(it, stmtList[i], blockEnv);
+		if (ret && obj->type == OT_RET) {
+			return obj;
+		}
 	}
 
 	//it->env = ogEnv;

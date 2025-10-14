@@ -1,26 +1,12 @@
-let globalOne = 0
-let globalTwo = 0
+kaj fib(n)
+	print "--"
+	print n 
+	print "--"
+	if n < 2 then
+		return n
+	end
 
-
-kaj main()
-	{
-		let a = "one"
-		kaj one()
-			print a
-		end
-
-		globalOne = one
-	}
-
-	{
-		let a = "two"
-		kaj two()
-			print a
-		end
-		globalTwo = two
-	}
+	return fib(n-2) + fib(n-1)
 end
 
-main()
-globalOne()
-globalTwo()
+print fib(30)
