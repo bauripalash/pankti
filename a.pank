@@ -1,12 +1,1 @@
-kaj fib(n)
-	print "--"
-	print n 
-	print "--"
-	if n < 2 then
-		return n
-	end
-
-	return fib(n-2) + fib(n-1)
-end
-
-print fib(30)
+print 1

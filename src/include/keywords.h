@@ -1,6 +1,10 @@
 #ifndef KEYWORDS_H
 #define KEYWORDS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define KW_EN_LET    "let"
 #define KW_EN_AND    "and"
 #define KW_EN_OR     "or"
@@ -60,5 +64,9 @@
 #define KW_BN_BREAK  "ভাঙো"
 #define KW_BN_LEN    "আয়তন"
 #define KW_BN_PRINT  "দেখাও"
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

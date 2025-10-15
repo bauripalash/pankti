@@ -10,10 +10,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// Create New Let Statement;
+// Returns PStmt with type `STMT_LET`
 static PStmt * rLet(Parser * p);
+
+// Create New Statement
 static PStmt * rStmt(Parser * p);
 
 
+// Read assignment expression;
+// Returns expression with type `EXPR_ASSIGN`
 static PExpr * rAssignment(Parser * p);
 static PExpr * rEquality(Parser * p);
 static PExpr * rComparison(Parser * p);
@@ -24,6 +30,7 @@ static PExpr * rCall(Parser * p);
 static PExpr * rPrimary(Parser * p);
 static PExpr * rExpression(Parser * p);
 
+// Check if parser has reached end
 static bool atEnd(const Parser * p);
 
 Parser * NewParser(Lexer * lexer){
@@ -45,7 +52,6 @@ void FreeParser(Parser * parser){
 }
 
 PStmt ** ParseParser(Parser * parser){
-	//return rExpression(parser);
 	while (!atEnd(parser)) {
 		arrput(parser->stmts, rLet(parser));
 	}
@@ -311,8 +317,9 @@ static PStmt * rExprStmt(Parser * p){
 }
 
 static PStmt * rPrintStmt(Parser * p){
+	Token * op = previous(p);
 	PExpr * value = rExpression(p);
-	return NewPrintStmt(previous(p), value);
+	return NewPrintStmt(op, value);
 }
 
 static PStmt * rLetStmt(Parser * p){
@@ -324,13 +331,14 @@ static PStmt * rLetStmt(Parser * p){
 }
 
 static PStmt * rBlockStmt(Parser * p){
+	Token * curTok = previous(p);
 	PStmt ** stmtList = NULL;
 	while (!check(p, T_RIGHT_BRACE) && !atEnd(p)) {
 		arrput(stmtList, rLet(p));
 	}
 
 	eat(p, T_RIGHT_BRACE, "Expected '}' after block stmt");
-	PStmt * block = NewBlockStmt(previous(p), stmtList);
+	PStmt * block = NewBlockStmt(curTok, stmtList);
 	return block;
 }
 

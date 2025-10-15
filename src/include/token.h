@@ -1,6 +1,10 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -75,4 +79,9 @@ void FreeToken(Token * token);
 bool SetTokenLexeme(Token * token, char * str);
 void PrintToken(const Token * token);
 void PrintOpToken(const Token * token);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
