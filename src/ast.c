@@ -1,19 +1,25 @@
 #include "include/ast.h"
 #include "include/alloc.h"
 #include "include/token.h"
+#include "include/ansicolors.h"
 #include "external/stb/stb_ds.h"
 #include <stdio.h>
 
 PExpr * NewExpr(PExprType type){
 	PExpr * e = PCreate(PExpr);
-	//error handle
-	
+	if (e == NULL) {
+		return NULL;
+	}
 	e->type = type;
 	return e;
 }
 
+
 PExpr * NewBinaryExpr(PExpr * left, Token * op, PExpr * right){
 	PExpr * e = NewExpr(EXPR_BINARY);
+	if (e == NULL) {
+		return NULL;
+	}
 	e->exp.EBinary.left = left;
 	e->exp.EBinary.opr = op;
 	e->exp.EBinary.right = right;
@@ -23,6 +29,9 @@ PExpr * NewBinaryExpr(PExpr * left, Token * op, PExpr * right){
 
 PExpr * NewUnary(Token * op, PExpr * right){
 	PExpr * e = NewExpr(EXPR_UNARY);
+	if (e == NULL) {
+		return NULL;
+	}
 	e->exp.EUnary.opr = op;
 	e->exp.EUnary.right = right;
 	return e;
@@ -31,6 +40,9 @@ PExpr * NewUnary(Token * op, PExpr * right){
 
 PExpr * NewLiteral(Token * op, ExpLitType type){
 	PExpr * e = NewExpr(EXPR_LITERAL);
+	if (e == NULL) {
+		return NULL;
+	}
 	e->exp.ELiteral.op = op;
 	e->exp.ELiteral.type = type;
 	return e;
@@ -38,6 +50,9 @@ PExpr * NewLiteral(Token * op, ExpLitType type){
 
 PExpr * NewGrouping(PExpr * expr){
 	PExpr * e = NewExpr(EXPR_GROUPING);
+	if (e == NULL) {
+		return NULL;
+	}
 	e->exp.EGrouping.expr = expr;
 	return e;
 }
@@ -45,6 +60,9 @@ PExpr * NewGrouping(PExpr * expr){
 
 PExpr * NewVarExpr(Token * name){
 	PExpr * e = NewExpr(EXPR_VARIABLE);
+	if (e == NULL) {
+		return NULL;
+	}
 	e->exp.EVariable.name = name;
 	return e;
 }
@@ -52,6 +70,9 @@ PExpr * NewVarExpr(Token * name){
 
 PExpr * NewAssignment(Token * name, PExpr * value){
 	PExpr * e = NewExpr(EXPR_ASSIGN);
+	if (e == NULL) {
+		return NULL;
+	}
 	e->exp.EAssign.name = name;
 	e->exp.EAssign.value = value;
 	return e;
@@ -60,6 +81,9 @@ PExpr * NewAssignment(Token * name, PExpr * value){
 
 PExpr * NewLogical(PExpr * left, Token * op, PExpr * right){
 	PExpr * e = NewExpr(EXPR_LOGICAL);
+	if (e == NULL) {
+		return NULL;
+	}
 	e->exp.ELogical.op = op;
 	e->exp.ELogical.left = left;
 	e->exp.ELogical.right = right;
@@ -69,6 +93,9 @@ PExpr * NewLogical(PExpr * left, Token * op, PExpr * right){
 
 PExpr * NewCallExpr(Token * op, PExpr * callee, PExpr ** args, int count){
 	PExpr * e = NewExpr(EXPR_CALL);
+	if (e == NULL) {
+		return NULL;
+	}
 	e->exp.ECall.op = op;
 	e->exp.ECall.callee = callee;
 	e->exp.ECall.args = args;
@@ -78,20 +105,28 @@ PExpr * NewCallExpr(Token * op, PExpr * callee, PExpr ** args, int count){
 
 
 PStmt * NewStmt(PStmtType type){
-	PStmt * p = PCreate(PStmt);
-	//error handle
-	p->type = type;
-	return p;
+	PStmt * s = PCreate(PStmt);
+	if (s == NULL) {
+		return NULL;
+	}
+	s->type = type;
+	return s;
 }
 
 PStmt * NewPrintStmt(Token * op, PExpr * value){
 	PStmt * s = NewStmt(STMT_PRINT);
+	if (s == NULL) {
+		return NULL;
+	}
 	s->stmt.SPrint.op = op;
 	s->stmt.SPrint.value = value;
 	return s;
 }
 PStmt * NewExprStmt(Token * op, PExpr * value){
 	PStmt * s = NewStmt(STMT_EXPR);
+	if (s == NULL) {
+		return NULL;
+	}
 	s->stmt.SExpr.op = op;
 	s->stmt.SExpr.expr = value;
 	return s;;
@@ -100,6 +135,9 @@ PStmt * NewExprStmt(Token * op, PExpr * value){
 
 PStmt * NewLetStmt(Token * name, PExpr * value){
 	PStmt * s = NewStmt(STMT_LET);
+	if (s == NULL) {
+		return NULL;
+	}
 	s->stmt.SLet.name = name;
 	s->stmt.SLet.expr = value;
 
@@ -109,6 +147,9 @@ PStmt * NewLetStmt(Token * name, PExpr * value){
 
 PStmt * NewBlockStmt(Token * op, PStmt ** stmts){
 	PStmt * s = NewStmt(STMT_BLOCK);
+	if (s == NULL) {
+		return NULL;
+	}
 	s->stmt.SBlock.op = op;
 	s->stmt.SBlock.stmts = stmts;
 	return s;
@@ -117,6 +158,9 @@ PStmt * NewBlockStmt(Token * op, PStmt ** stmts){
 
 PStmt * NewIfStmt(Token * op, PExpr * cond, PStmt * then, PStmt * elseB){
 	PStmt * s = NewStmt(STMT_IF);
+	if (s == NULL) {
+		return NULL;
+	}
 	s->stmt.SIf.op = op;
 	s->stmt.SIf.cond = cond;
 	s->stmt.SIf.thenBranch = then;
@@ -126,6 +170,9 @@ PStmt * NewIfStmt(Token * op, PExpr * cond, PStmt * then, PStmt * elseB){
 
 PStmt * NewWhileStmt(Token * op, PExpr * cond, PStmt * body){
 	PStmt * s = NewStmt(STMT_WHILE);
+	if (s == NULL) {
+		return NULL;
+	}
 	s->stmt.SWhile.op = op;
 	s->stmt.SWhile.cond = cond;
 	s->stmt.SWhile.body = body;
@@ -134,6 +181,9 @@ PStmt * NewWhileStmt(Token * op, PExpr * cond, PStmt * body){
 
 PStmt * NewReturnStmt(Token * op, PExpr * value){
 	PStmt * s = NewStmt(STMT_RETURN);
+	if (s == NULL) {
+		return NULL;
+	}
 	s->stmt.SReturn.op = op;
 	s->stmt.SReturn.value = value;
 	return s;
@@ -142,6 +192,9 @@ PStmt * NewReturnStmt(Token * op, PExpr * value){
 
 PStmt * NewBreakStmt(Token * op){
 	PStmt * s = NewStmt(STMT_BREAK);
+	if (s == NULL) {
+		return NULL;
+	}
 	s->stmt.SBreak.op = op;
 	return s;
 }
@@ -149,6 +202,9 @@ PStmt * NewBreakStmt(Token * op){
 
 PStmt * NewFuncStmt(Token * name, Token ** params, PStmt * body, int count){
 	PStmt * s = NewStmt(STMT_FUNC);
+	if (s == NULL) {
+		return NULL;
+	}
 	s->stmt.SFunc.name = name;
 	s->stmt.SFunc.params = params;
 	s->stmt.SFunc.body = body;
@@ -156,54 +212,125 @@ PStmt * NewFuncStmt(Token * name, Token ** params, PStmt * body, int count){
 	return s;
 }
 
-void AstPrint(PExpr * expr){
+static void printIndent(int indent){
+	for (int i = 0; i < indent; i++) {
+		printf("  ");
+	}
+}
+
+void AstPrintLiteral(PExpr * expr){
 	if (expr == NULL) {
-		printf("Null Invalid Expression\n");
 		return;
 	}
 
+	if (expr->type != EXPR_LITERAL) {
+		return;
+	}
+
+	struct ELiteral * lit = &expr->exp.ELiteral;
+	switch (lit->type) {
+		case EXP_LIT_NUM:{ 
+			printf(
+				TERMC_YELLOW
+				"Number(" 
+				TERMC_RESET 
+				"%s" 
+				TERMC_YELLOW 
+				")" 
+				TERMC_RESET, lit->op->lexeme);
+			printf("\n");
+			break;
+		}
+		case EXP_LIT_STR:{
+			printf(
+				TERMC_YELLOW
+				"String("
+				TERMC_RESET
+				"%s"
+				TERMC_YELLOW
+				")"
+				TERMC_RESET, lit->op->lexeme
+			);
+			printf("\n");
+			break;
+
+		}
+		default:return;
+	}
+}
+
+void AstPrint(PExpr * expr, int indent){
+	if (expr == NULL) {
+		printf("Invalid Expression!\n");
+		return;
+	}
+
+	printIndent(indent);
 
 	switch (expr->type) {
 		case EXPR_BINARY:{
-			printf("Binary: {\n L: {");
-			AstPrint(expr->exp.EBinary.left);
-			printf("} Op: {");
-			PrintOpToken(expr->exp.EBinary.opr);
-			printf("} R: {");
-			AstPrint(expr->exp.EBinary.right);
-			printf("}\n}");
+			printf(
+				TERMC_PURPLE
+				"BinaryExpr("
+				TERMC_RESET
+				"%s"
+				TERMC_PURPLE
+				")\n" 
+				TERMC_RESET, TokTypeToStr(expr->exp.EBinary.opr->type));
+
+			AstPrint(expr->exp.EBinary.left, indent + 1);
+			AstPrint(expr->exp.EBinary.right, indent + 1);
 			break;
 		}
 		case EXPR_UNARY:{
-			printf("Unary : {\n Op: {");
-			PrintOpToken(expr->exp.EUnary.opr);
-			printf("} R: {");
-			AstPrint(expr->exp.EUnary.right);
-			printf("}");
+			printf(
+				TERMC_GREEN
+				"Unary("
+				TERMC_RESET
+				"%s"
+				TERMC_GREEN
+				")\n"
+				TERMC_RESET, TokTypeToStr(expr->exp.EBinary.opr->type));
+
+			AstPrint(expr->exp.EUnary.right, indent + 1);
 			break;
 		}
 		case EXPR_LITERAL: {
-			printf("%s", expr->exp.ELiteral.op->lexeme);
+			AstPrintLiteral(expr);
 			break;
 		} 
 		case EXPR_GROUPING:{
-			printf("Group : { E: \n");
-			AstPrint(expr->exp.EGrouping.expr);
-			printf("}");
+			printf(
+				TERMC_GREEN 
+				"Group\n" 
+				TERMC_RESET);
+
+			AstPrint(expr->exp.EGrouping.expr, indent + 1);
 			break;
 		}
 		case EXPR_VARIABLE:{
-			printf("Var : { N: \n");
-			PrintToken(expr->exp.EVariable.name);
-			printf("}");
+			printf(
+				TERMC_RED 
+				"Var(" 
+				TERMC_GREEN 
+				"%s" 
+				TERMC_RED 
+				")\n" 
+				TERMC_RESET, expr->exp.EVariable.name->lexeme);
+
 			break;
 		}
 		case EXPR_ASSIGN:{
-			printf("Assign : { N: \n");
-			PrintToken(expr->exp.EAssign.name);
-			printf("} V: {\n");
-			AstPrint(expr->exp.EAssign.value);
-			printf("}");
+			printf(
+				TERMC_YELLOW 
+				"Assign(" 
+				TERMC_GREEN 
+				"%s" 
+				TERMC_YELLOW 
+				")\n" 
+				TERMC_RESET, expr->exp.EAssign.name->lexeme);
+
+			AstPrint(expr->exp.EAssign.value, indent + 1);
 			break;
 		}
 		case EXPR_LOGICAL:{
@@ -218,65 +345,83 @@ void AstPrint(PExpr * expr){
 	}
 }
 
-void AstStmtPrint(PStmt * stmt){
+void AstStmtPrint(PStmt * stmt, int indent){
+	if (stmt == NULL) {
+		printf("Invalid Statement\n");
+		return;
+	}
+	printIndent(indent);
 	switch (stmt->type) {
 		case STMT_PRINT:{
-			printf("Print : { E: \n");
-			AstPrint(stmt->stmt.SPrint.value);
-			printf("}");
+			printf("Print [\n");
+			AstPrint(stmt->stmt.SPrint.value,indent + 1);
+			printIndent(indent);
+			printf("]\n");
 			break;
 		}
 
 		case STMT_EXPR:{
-			printf("SExpr : { E: \n");
-			AstPrint(stmt->stmt.SExpr.expr);
-			printf("}");
+			printf("Expr [\n");
+			AstPrint(stmt->stmt.SExpr.expr,indent + 1);
+			printf("\n]\n");
 			break;
 		}
 		case STMT_LET:{
-			printf("Let : { N: \n");
-			PrintToken(stmt->stmt.SLet.name);
-			printf("} V: {\n");
-			AstPrint(stmt->stmt.SLet.expr);
-			printf("}\n}");
+			printf(
+				"Let (" 
+				TERMC_GREEN 
+				"%s" 
+				TERMC_RESET 
+				") [\n", stmt->stmt.SLet.name->lexeme);
+
+			AstPrint(stmt->stmt.SLet.expr, indent + 1);
+			printf("\n]\n");
 			break;
 		}
 		case STMT_BLOCK:{
-			printf("Block : { S: { \n");
+			printf("Block [\n");
 			for (int i = 0; i < arrlen(stmt->stmt.SBlock.stmts); i++) {
-				printf("{");
-				AstStmtPrint(stmt->stmt.SBlock.stmts[i]);
-				printf("}");
+				AstStmtPrint(stmt->stmt.SBlock.stmts[i],indent + 1);
 			}
-			printf("}}\n");
+			printIndent(indent);
+			printf("]\n");
 
 			break;
 		}
 		case STMT_IF:{
-			printf("If : { C: {");
-			AstPrint(stmt->stmt.SIf.cond);
-			printf("} : { T: \n");
-			AstStmtPrint(stmt->stmt.SIf.thenBranch);
+			printf("If [\n");
+			printIndent(indent + 1);
+			printf("Cond {\n");
+			AstPrint(stmt->stmt.SIf.cond,indent + 2);
+			printIndent(indent + 1);
+			printf("}\n");
+			printIndent(indent + 1);
+			printf("Then {\n");
+			AstStmtPrint(stmt->stmt.SIf.thenBranch,indent+2);
+			printIndent(indent + 1);
+			printf("}\n");
+			printIndent(indent + 1);
+			printf("Else {\n");
 			if (stmt->stmt.SIf.elseBranch != NULL) {
-
-				printf("} : { E: \n");
-				AstStmtPrint(stmt->stmt.SIf.elseBranch);
-
+				AstStmtPrint(stmt->stmt.SIf.elseBranch,indent + 2);
 			}
-			printf("}}");
+			printIndent(indent+1);
+			printf("}\n");
+			printIndent(indent);
+			printf("]\n");
 
 			break;
 		}
 		case STMT_WHILE:{
 			printf("While : { C: {");
-			AstPrint(stmt->stmt.SWhile.cond);
+			AstPrint(stmt->stmt.SWhile.cond,indent);
 			printf("} {...} }");
 			break;
 		}
 
 		case STMT_RETURN:{
 			printf("Return : { V: {");
-			AstPrint(stmt->stmt.SReturn.value);
+			AstPrint(stmt->stmt.SReturn.value,indent);
 			printf("}}\n");
 			break;
 		}
@@ -306,5 +451,5 @@ char * StmtTypeToStr(PStmtType type){
 	
 	}
 
-	return "";
+	return "Unknown Statement";
 }

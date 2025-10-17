@@ -45,7 +45,7 @@ void FreeCore(PanktiCore * core){
 }
 
 static bool DebugLexer = false;
-static bool DebugParser = false;
+static bool DebugParser = true;
 
 void RunCore(PanktiCore * core){
 	core->lexer->core = core;
@@ -72,11 +72,11 @@ void RunCore(PanktiCore * core){
 		//exit(1);
 	}
 	if (DebugParser) {
-		printf("AST{\n");
+		printf("==== AST ====\n");
 		for (int i = 0; i < arrlen(prog); i++) {
-			AstStmtPrint(prog[i]);
+			AstStmtPrint(prog[i], 0);
 		}
-		printf("\n}\n");
+		printf("==== END ====\n");
 
 	}
 	core->it = NewInterpreter(prog);

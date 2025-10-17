@@ -1,1 +1,10 @@
-print 1
+let age = 100
+age = 111
+print 100 + 100 * age
+print -1
+
+jodi age > 100 then
+	print "old"
+nahole
+	print "young"
+end
