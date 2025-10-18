@@ -267,6 +267,9 @@ typedef struct PStmt {
 // Return => New Expression with type `type` or NULL in case of failure
 PExpr *NewExpr(PExprType type);
 
+// Free Expression
+void FreeExpr(PExpr * expr);
+
 // New Binary Expression. Type : `EXPR_BINARY`
 // `op` = Raw operator token
 // `left` = Left hand side expression
@@ -316,6 +319,9 @@ PExpr *NewCallExpr(Token *op, PExpr *callee, PExpr **args, int count);
 // Create New (Empty) Statement
 // Return => New Expression with type `type` or NULL in case of failure
 PStmt *NewStmt(PStmtType type);
+
+// Free Statement
+void FreeStmt(PStmt * stmt);
 
 // New (Debug) Print Statement
 // `op` = The `print` token

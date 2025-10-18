@@ -3,6 +3,13 @@
 #include "../include/ast.h"
 #include "../include/token.h"
 #include <stdio.h>
+#include <stdlib.h>
+
+
+// ===================
+// Creation Functions
+// ===================
+
 
 PExpr *NewExpr(PExprType type) {
     PExpr *e = PCreate(PExpr);
@@ -94,4 +101,74 @@ PExpr *NewCallExpr(Token *op, PExpr *callee, PExpr **args, int count) {
     e->exp.ECall.args = args;
     e->exp.ECall.argCount = count;
     return e;
+}
+
+// ===================
+// Freeing Functions
+// ===================
+
+// Free the base Expr Struct with NULL check
+static inline void freeBaseExpr(PExpr * expr){
+	if (expr != NULL) {
+		free(expr);
+	}
+}
+
+
+
+void FreeExpr(PExpr * e){
+	// Freeing Expressions
+	// Never Free tokens. Token are directly referenced from Lexer
+	if (e == NULL) {
+		return;
+	}
+
+	switch (e->type) {
+		case EXPR_CALL:{
+			FreeExpr(e->exp.ECall.callee);
+			int count = e->exp.ECall.argCount;
+			for (int i = 0; i < count; i++) {
+				FreeExpr(e->exp.ECall.args[i]);
+			}
+			freeBaseExpr(e);
+			break;
+		}
+		case EXPR_LOGICAL:{
+			FreeExpr(e->exp.ELogical.left);
+			FreeExpr(e->exp.ELogical.right);
+			freeBaseExpr(e);
+			break;
+		}
+		case EXPR_ASSIGN:{
+			FreeExpr(e->exp.EAssign.value);
+			freeBaseExpr(e);
+			break;
+		}
+		case EXPR_VARIABLE:{
+			freeBaseExpr(e);
+			break;
+		}
+		case EXPR_GROUPING:{
+			FreeExpr(e->exp.EGrouping.expr);
+			freeBaseExpr(e);
+			break;
+		}
+
+		case EXPR_LITERAL:{
+			freeBaseExpr(e);
+			break;
+		}
+		case EXPR_UNARY:{
+			FreeExpr(e->exp.EUnary.right);
+			freeBaseExpr(e);
+			break;
+		}
+		case EXPR_BINARY:{
+			FreeExpr(e->exp.EBinary.left);
+			FreeExpr(e->exp.EBinary.right);
+			freeBaseExpr(e);
+			break;
+		}
+	}
+
 }

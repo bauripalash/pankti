@@ -3,6 +3,11 @@
 #include "../include/ast.h"
 #include "../include/token.h"
 #include <stdio.h>
+#include <stdlib.h>
+
+// ===================
+// Creation Functions
+// ===================
 
 PStmt *NewStmt(PStmtType type) {
     PStmt *s = PCreate(PStmt);
@@ -106,4 +111,28 @@ PStmt *NewFuncStmt(Token *name, Token **params, PStmt *body, int count) {
     s->stmt.SFunc.body = body;
     s->stmt.SFunc.paramCount = count;
     return s;
+}
+
+// ===================
+// Freeing Functions
+// ===================
+
+static inline void freeBaseStmt(PStmt * stmt){
+	if (stmt != NULL) {
+		free(stmt);
+	}
+}
+
+void FreeStmt(PStmt * s){
+	if (s == NULL) {
+		return;
+	}
+	switch (s->type) {
+		case STMT_EXPR:{
+			FreeExpr(s->stmt.SExpr.expr);
+			freeBaseStmt(s);
+			break;
+		}
+		default:break;
+	}
 }

@@ -1,5 +1,6 @@
 #include "include/object.h"
 #include "include/alloc.h"
+#include "include/ast.h"
 #include "include/utils.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -11,13 +12,7 @@ PObj *NewObject(PObjType type) {
     o->type = type;
     return o;
 }
-void FreeObject(PObj *o) {
-    if (o == NULL) {
-        return;
-    }
 
-    free(o);
-}
 void PrintObject(const PObj *o) {
     if (o == NULL) {
         return;
@@ -171,4 +166,44 @@ bool isObjEqual(const PObj *a, const PObj *b) {
     }
 
     return result;
+}
+
+static inline void freeBaseObj(PObj *o){
+	if (o != NULL) {
+		free(o);
+	}
+}
+
+void FreeObject(PObj *o) {
+    if (o == NULL) {
+        return;
+    }
+
+	switch (o->type) {
+		case OT_FNC:{
+			struct OFunction * f = &o->v.OFunction;
+			FreeStmt(f->body);
+			//Todo: Free Env
+			freeBaseObj(o);
+			break;
+		}
+		case OT_RET:{
+			FreeObject(o->v.OReturn.rvalue);
+			freeBaseObj(o);
+			break;
+		}
+		case OT_STR:{
+			// where does the string come from?
+			freeBaseObj(o);
+			break;
+		}
+		case OT_BRK:
+		case OT_NIL:
+		case OT_BOOL:
+		case OT_NUM:{
+			freeBaseObj(o);
+			break;
+		}
+	}
+
 }
