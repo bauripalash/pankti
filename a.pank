@@ -8,3 +8,16 @@ jodi age > 100 then
 nahole
 	print "young"
 end
+
+let a = 0
+while true do
+	break
+	print a
+	a = a + 1
+end
+
+kaj add(a,b)
+	print a + b
+end
+
+return 1

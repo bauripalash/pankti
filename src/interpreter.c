@@ -279,6 +279,10 @@ static PObj * execBlock(PInterpreter * it, PStmt * stmt, PEnv * env, bool ret){
 		if (ret && obj->type == OT_RET) {
 			return obj;
 		}
+
+		if (obj->type == OT_BRK) {
+			return obj;
+		}
 	}
 
 	//it->env = ogEnv;

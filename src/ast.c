@@ -218,6 +218,17 @@ static void printIndent(int indent){
 	}
 }
 
+static char * LiteralTypeToStr(ExpLitType type){
+	switch (type) {
+		case EXP_LIT_NUM: return "Number";
+		case EXP_LIT_BOOL: return "Bool";
+		case EXP_LIT_STR: return "String";
+		case EXP_LIT_NIL: return "Nil";
+	}
+
+	return "Unknown";
+}
+
 void AstPrintLiteral(PExpr * expr){
 	if (expr == NULL) {
 		return;
@@ -228,35 +239,18 @@ void AstPrintLiteral(PExpr * expr){
 	}
 
 	struct ELiteral * lit = &expr->exp.ELiteral;
-	switch (lit->type) {
-		case EXP_LIT_NUM:{ 
-			printf(
-				TERMC_YELLOW
-				"Number(" 
-				TERMC_RESET 
-				"%s" 
-				TERMC_YELLOW 
-				")" 
-				TERMC_RESET, lit->op->lexeme);
-			printf("\n");
-			break;
-		}
-		case EXP_LIT_STR:{
-			printf(
-				TERMC_YELLOW
-				"String("
-				TERMC_RESET
-				"%s"
-				TERMC_YELLOW
-				")"
-				TERMC_RESET, lit->op->lexeme
-			);
-			printf("\n");
-			break;
 
-		}
-		default:return;
-	}
+	printf(
+		TERMC_YELLOW
+		"%s("
+		TERMC_RESET
+		"%s"
+		TERMC_YELLOW
+		")"
+		TERMC_RESET, LiteralTypeToStr(lit->type), lit->op->lexeme
+	);
+	printf("\n");
+
 }
 
 void AstPrint(PExpr * expr, int indent){
@@ -413,24 +407,53 @@ void AstStmtPrint(PStmt * stmt, int indent){
 			break;
 		}
 		case STMT_WHILE:{
-			printf("While : { C: {");
-			AstPrint(stmt->stmt.SWhile.cond,indent);
-			printf("} {...} }");
+			printf("While [\n");
+			printIndent(indent + 1);
+			printf("Cond {\n");
+			AstPrint(stmt->stmt.SWhile.cond,indent+2);
+			printIndent(indent+1);
+			printf("}\n");
+			printIndent(indent + 1);
+			printf("Body {\n");
+			AstStmtPrint(stmt->stmt.SWhile.body, indent + 2);
+			printIndent(indent + 1);
+			printf("}\n");
+			printIndent(indent);
+			printf("]\n");
 			break;
 		}
 
 		case STMT_RETURN:{
-			printf("Return : { V: {");
-			AstPrint(stmt->stmt.SReturn.value,indent);
-			printf("}}\n");
+			printf("Return [\n");
+			AstPrint(stmt->stmt.SReturn.value,indent + 1);
+			printIndent(indent);
+			printf("]\n");
 			break;
 		}
 		case STMT_BREAK:{
-			printf("Break : {}\n");
+			printf("Break []\n");
 			break;
 		}
 		case STMT_FUNC:{
-			printf("Func : <%s> {}\n",stmt->stmt.SFunc.name->lexeme);
+			struct SFunc * fn = &stmt->stmt.SFunc;
+
+			printf(
+				"Func("
+				TERMC_GREEN
+				"%s"
+				TERMC_RESET
+				") <", fn->name->lexeme);
+			printf(TERMC_GREEN);
+			for (int i = 0; i < fn->paramCount; i++) {
+				printf("%s", fn->params[i]->lexeme);
+				if (i != fn->paramCount - 1) {
+					printf(TERMC_RESET ", " TERMC_GREEN);
+				}
+			}
+			printf(TERMC_RESET "> [\n");
+			AstStmtPrint(fn->body, indent + 1);
+			printIndent(indent);
+			printf("]\n");
 			break;
 		}
 	}
