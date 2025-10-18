@@ -34,9 +34,12 @@ void FreeInterpreter(PInterpreter *it) {
     free(it);
 }
 void Interpret(PInterpreter *it) {
+    PObj *obj = NULL;
     for (int i = 0; i < arrlen(it->program); i++) {
-        execute(it, it->program[i], it->env);
+        obj = execute(it, it->program[i], it->env);
     }
+
+    FreeObject(obj);
 }
 static void error(PInterpreter *it, void *tok, char *msg) {
     CoreError(it->core, -1, msg);

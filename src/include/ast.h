@@ -268,7 +268,7 @@ typedef struct PStmt {
 PExpr *NewExpr(PExprType type);
 
 // Free Expression
-void FreeExpr(PExpr * expr);
+void FreeExpr(PExpr *expr);
 
 // New Binary Expression. Type : `EXPR_BINARY`
 // `op` = Raw operator token
@@ -321,7 +321,7 @@ PExpr *NewCallExpr(Token *op, PExpr *callee, PExpr **args, int count);
 PStmt *NewStmt(PStmtType type);
 
 // Free Statement
-void FreeStmt(PStmt * stmt);
+void FreeStmt(PStmt *stmt);
 
 // New (Debug) Print Statement
 // `op` = The `print` token

@@ -20,6 +20,9 @@ run: build
 fmt:
 	@clang-format -i -style=file --verbose $(SOURCES) $(HEADERS)
 
+.PHONY: valgrind
+valgrind: build
+	valgrind --leak-check=full --show-leak-kinds=all -s $(CMAKE_OUTPUT)
 
 .PHONY: cmake_setup
 cmake_setup:

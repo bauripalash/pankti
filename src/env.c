@@ -61,36 +61,12 @@ void DebugEnv(PEnv *e) {
     }
 }
 
-static EnvPair *getValue(PEnv *e, uint32_t hash) {
-    if (e == NULL) {
-        return NULL;
-    }
-    for (int i = 0; i < e->count; i++) {
-        EnvPair *p = e->table[i];
-        if (p->key == hash) {
-            return p;
-        }
-    }
-
-    return NULL;
-}
-
 void EnvPutValue(PEnv *e, uint32_t hash, PObj *value) {
     arrput(e->table, NewPair(hash, value));
     e->count++;
 }
 
 bool EnvSetValue(PEnv *e, uint32_t hash, PObj *value) {
-
-    /*
-    printf("\n====Setting Value====\n");
-    DebugEnv(e);
-    printf("to set -> %d\n", hash);
-
-    printf("\n|E:%s|T:%s|ENC:%s\n", BoolToString(e != NULL),
-    BoolToString(e->table != NULL), BoolToString(e->enclosing != NULL));
-    printf("\n====End Setting Value====\n");
-    */
     if (e == NULL) {
         return false;
     }
@@ -104,8 +80,6 @@ bool EnvSetValue(PEnv *e, uint32_t hash, PObj *value) {
 
     for (int i = 0; i < arrlen(e->table); i++) {
         EnvPair *p = e->table[i];
-        // printf("[[ %d %s %d ]]\n", p->key, p->key == hash ? "==" : "!=",
-        // hash);
         if (p->key == hash) {
             p->value = value;
             return true;

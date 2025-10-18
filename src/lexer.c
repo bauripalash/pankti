@@ -52,11 +52,10 @@ void FreeLexer(Lexer *lexer) {
     }
 
     if (lexer->tokens != NULL) {
-        for (int i = 0; i < arrlen(lexer->tokens); i++) {
-            Token *tok = arrpop(lexer->tokens);
-            FreeToken(tok);
+        int count = arrlen(lexer->tokens);
+        for (int i = 0; i < count; i++) {
+            FreeToken(arrpop(lexer->tokens));
         }
-        // Free Tokens;
         arrfree(lexer->tokens);
     }
 

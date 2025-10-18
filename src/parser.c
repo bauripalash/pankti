@@ -47,6 +47,14 @@ void FreeParser(Parser *parser) {
     if (parser == NULL) {
         return;
     }
+    if (parser->stmts != NULL) {
+        int count = arrlen(parser->stmts);
+        for (int i = 0; i < count; i++) {
+            FreeStmt(arrpop(parser->stmts));
+        }
+
+        arrfree(parser->stmts);
+    }
     free(parser);
 }
 

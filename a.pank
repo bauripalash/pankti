@@ -1,25 +1,2 @@
-let age = 100
-age = 111
-print 100 + 100 * age
-print -1
-
-jodi age > 100 then
-	print "old"
-nahole
-	print "young"
-end
-
-let a = 0
-while true do
-	break
-	print a
-	a = a + 1
-end
-
-kaj add(a,b)
-	print a + b
-end
-
-add(99, 99)
-
-return 1
+let a = 1
+print a

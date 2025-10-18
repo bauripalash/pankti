@@ -117,22 +117,35 @@ PStmt *NewFuncStmt(Token *name, Token **params, PStmt *body, int count) {
 // Freeing Functions
 // ===================
 
-static inline void freeBaseStmt(PStmt * stmt){
-	if (stmt != NULL) {
-		free(stmt);
-	}
+static inline void freeBaseStmt(PStmt *stmt) {
+    if (stmt != NULL) {
+        free(stmt);
+    }
 }
 
-void FreeStmt(PStmt * s){
-	if (s == NULL) {
-		return;
-	}
-	switch (s->type) {
-		case STMT_EXPR:{
-			FreeExpr(s->stmt.SExpr.expr);
-			freeBaseStmt(s);
-			break;
-		}
-		default:break;
-	}
+void FreeStmt(PStmt *s) {
+    if (s == NULL) {
+        return;
+    }
+    switch (s->type) {
+    case STMT_EXPR: {
+        FreeExpr(s->stmt.SExpr.expr);
+        freeBaseStmt(s);
+        break;
+    }
+    case STMT_LET: {
+        // should we do this?
+        FreeExpr(s->stmt.SLet.expr);
+        freeBaseStmt(s);
+        break;
+    }
+    case STMT_PRINT: {
+        // what if the variable is still in env and used later?
+        FreeExpr(s->stmt.SLet.expr);
+        freeBaseStmt(s);
+        break;
+    }
+    default:
+        break;
+    }
 }
