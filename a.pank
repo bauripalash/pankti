@@ -20,4 +20,6 @@ kaj add(a,b)
 	print a + b
 end
 
+add(99, 99)
+
 return 1

@@ -9,24 +9,24 @@ extern "C" {
 #include "env.h"
 
 // The Interpreter Object
-typedef struct PInterpreter{
-	// Array of statements to execute
-	PStmt ** program;
-	// Reference to `PanktiCore` object
-	void * core;
-	// The Parent Environment used across closures
-	PEnv * env;
-}PInterpreter;
+typedef struct PInterpreter {
+    // Array of statements to execute
+    PStmt **program;
+    // Reference to `PanktiCore` object
+    void *core;
+    // The Parent Environment used across closures
+    PEnv *env;
+} PInterpreter;
 
 // Create New Interpreter
 // `prog` = Array of statements to execute. Given by parser
-PInterpreter * NewInterpreter(PStmt ** prog);
+PInterpreter *NewInterpreter(PStmt **prog);
 
 // Free Interpreter
-void FreeInterpreter(PInterpreter * it);
+void FreeInterpreter(PInterpreter *it);
 
 // Execute the statements
-void Interpret(PInterpreter * it);
+void Interpret(PInterpreter *it);
 
 #ifdef __cplusplus
 }

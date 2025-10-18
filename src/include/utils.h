@@ -1,32 +1,32 @@
 #ifndef UTILS_H
 #define UTILS_H
+#include <stdbool.h>
 #include <stdint.h>
 #include <uchar.h>
-#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 // Return item count of array
-#define ArrCount(arr)     (sizeof(arr) / sizeof(arr[0]))
+#define ArrCount(arr) (sizeof(arr) / sizeof(arr[0]))
 
 // Read file to string (must free the returned string)
 // `path` = Path to the file
-char * ReadFile(const char * path);
+char *ReadFile(const char *path);
 
 // Create a substring from `str` which is str[start...end];
 // (must free the returned string)
 // `str` = String which the substring will be created from
 // `start` = Start index
 // `end` = End index
-char * SubString(const char * str, int start, int end);
+char *SubString(const char *str, int start, int end);
 
 // Check if `str1` and `str2` is same
-bool StrEqual(const char * str1, const char * str2);
+bool StrEqual(const char *str1, const char *str2);
 
 // Get the length of a string. Return how many bytes, not actual codepoints
-long StrLength(const char * str);
+long StrLength(const char *str);
 
 // Helper function for lexer to match English, Bengali and Phonetic version of
 // keywords
@@ -35,20 +35,20 @@ long StrLength(const char * str);
 // `en` = English keyword
 // `pn` = Phonetic keyword
 // `bn` = UTF-8 encoded Bengali keyword
-bool MatchKW(const char * s, const char * en, const char * pn, const char * bn);
+bool MatchKW(const char *s, const char *en, const char *pn, const char *bn);
 
 // Convert a single codepoint from UTF-8 to UTF-32 encoded character
 // Will return invalid unicode if `str` is invalid.
 // `str` = UTF-8 encoded string. Reads reads 1 to 4 bytes from string
-char32_t U8ToU32(const unsigned char * str);
+char32_t U8ToU32(const unsigned char *str);
 
 // Convert Bool to String; `"true"` or `"false"`
-char * BoolToString(bool v);
+char *BoolToString(bool v);
 
 // Calculated Fnv-1a Hash of string
 // `str` = UTF-8 encoded string
 // `len` = Length of string. Not codepoints length only bytes.
-uint32_t Fnv1a(const char * str, int len);
+uint32_t Fnv1a(const char *str, int len);
 
 #ifdef __cplusplus
 }

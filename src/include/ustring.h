@@ -15,41 +15,41 @@ extern "C" {
 #define UITER_INVALID_CODEPOINT 0xFFFD
 
 // Unicode Iterator Object
-typedef struct UIter{
-	// Raw UTF-8 encoded string. Reference to source from Lexer object
-	const char * str;
-	// How many characters is in `str`. 
-	size_t len;
-	// Current position of iterator
-	size_t pos;
+typedef struct UIter {
+    // Raw UTF-8 encoded string. Reference to source from Lexer object
+    const char *str;
+    // How many characters is in `str`.
+    size_t len;
+    // Current position of iterator
+    size_t pos;
 
-	// Stack allocated peek buffer.
-	// Index 0 is next codepoint.
-	uint32_t peekBuf[UITER_PEEK_BUFFER_SIZE];
+    // Stack allocated peek buffer.
+    // Index 0 is next codepoint.
+    uint32_t peekBuf[UITER_PEEK_BUFFER_SIZE];
 
-	// How many peekable codepoint is available
-	int peekCount;
-}UIter;
+    // How many peekable codepoint is available
+    int peekCount;
+} UIter;
 
 // New Unicode string iterator object
 // `text` = UTF-8 encoded string
-UIter * NewUIterator(const char * text);
+UIter *NewUIterator(const char *text);
 
 // Free Iterator object
-void FreeUIterator(UIter * iter);
+void FreeUIterator(UIter *iter);
 
 // Is the iterator at the end of string
-bool UIterIsEnd(const UIter * iter);
+bool UIterIsEnd(const UIter *iter);
 
 // Peek the next codepoint
-// `offset` = returns `current codepoint index + offset` 
-uint32_t UIterPeek(const UIter * iter, int offset);
+// `offset` = returns `current codepoint index + offset`
+uint32_t UIterPeek(const UIter *iter, int offset);
 
 // Advance the iterator
-void UIterAdvance(UIter * iter);
+void UIterAdvance(UIter *iter);
 
 // Advance the iterator and return the just passed codepoint
-uint32_t UIterNext(UIter * it);
+uint32_t UIterNext(UIter *it);
 
 // Convert the UTF-32 encoded codepoint to UTF-8 encoded character array
 // `value` = UTF-32 encoded codepoint
@@ -57,8 +57,7 @@ uint32_t UIterNext(UIter * it);
 void U32ToU8(uint32_t value, uint8_t result[4]);
 
 // Debug/Print the peek buffer
-void DebugPeekBuffer(const UIter * it);
-
+void DebugPeekBuffer(const UIter *it);
 
 #ifdef __cplusplus
 }
