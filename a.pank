@@ -1,2 +1,4 @@
 let a = 1
+let name = "palash"
 print a
+print name

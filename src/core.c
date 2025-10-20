@@ -2,6 +2,7 @@
 #include "external/stb/stb_ds.h"
 #include "include/alloc.h"
 #include "include/ast.h"
+#include "include/gc.h"
 #include "include/interpreter.h"
 #include "include/lexer.h"
 #include "include/parser.h"
@@ -21,6 +22,7 @@ PanktiCore *NewCore(const char *path) {
     core->caughtError = false;
     core->runtimeError = false;
     core->it = NULL;
+	core->gc = NewGc();
     return core;
 }
 
@@ -28,7 +30,9 @@ void FreeCore(PanktiCore *core) {
     if (core == NULL) {
         return;
     }
-
+	if (core->gc != NULL) {
+		FreeGc(core->gc);
+	}
     if (core->parser != NULL) {
         FreeParser(core->parser);
     }
@@ -40,6 +44,8 @@ void FreeCore(PanktiCore *core) {
     if (core->it != NULL) {
         FreeInterpreter(core->it);
     }
+
+
 
     free(core);
 }
@@ -77,7 +83,7 @@ void RunCore(PanktiCore *core) {
         }
         printf("==== END ====\n");
     }
-    core->it = NewInterpreter(prog);
+    core->it = NewInterpreter(core->gc, prog);
     core->it->core = core;
     Interpret(core->it);
     if (core->caughtError) {

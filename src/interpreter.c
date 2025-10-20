@@ -4,8 +4,10 @@
 #include "include/ast.h"
 #include "include/core.h"
 #include "include/env.h"
+#include "include/gc.h"
 #include "include/object.h"
 #include "include/token.h"
+#include "include/gc.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -15,11 +17,12 @@ static PObj *execute(PInterpreter *it, PStmt *stmt, PEnv *env);
 static PObj *evaluate(PInterpreter *it, PExpr *expr, PEnv *env);
 static PObj *execBlock(PInterpreter *it, PStmt *stmt, PEnv *env, bool ret);
 
-PInterpreter *NewInterpreter(PStmt **prog) {
+PInterpreter *NewInterpreter(Pgc * gc, PStmt **prog) {
     PInterpreter *it = PCreate(PInterpreter);
     it->program = prog;
     it->core = NULL;
     it->env = NewEnv(NULL);
+	it->gc = gc;
     return it;
 }
 void FreeInterpreter(PInterpreter *it) {
@@ -34,12 +37,11 @@ void FreeInterpreter(PInterpreter *it) {
     free(it);
 }
 void Interpret(PInterpreter *it) {
-    PObj *obj = NULL;
     for (int i = 0; i < arrlen(it->program); i++) {
-        obj = execute(it, it->program[i], it->env);
+    	execute(it, it->program[i], it->env);
     }
 
-    FreeObject(obj);
+    //FreeObject(it->gc, obj);
 }
 static void error(PInterpreter *it, void *tok, char *msg) {
     CoreError(it->core, -1, msg);
@@ -49,11 +51,11 @@ static PObj *vLiteral(PInterpreter *it, PExpr *expr, PEnv *env) {
     switch (expr->exp.ELiteral.type) {
     case EXP_LIT_NUM: {
         double value = atof(expr->exp.ELiteral.op->lexeme);
-        litObj = NewNumberObj(value);
+        litObj = NewNumberObj(it->gc, value);
         break;
     }
     case EXP_LIT_STR: {
-        litObj = NewStrObject(expr->exp.ELiteral.op->lexeme);
+        litObj = NewStrObject(it->gc, expr->exp.ELiteral.op->lexeme);
         break;
     }
     case EXP_LIT_BOOL: {
@@ -61,11 +63,11 @@ static PObj *vLiteral(PInterpreter *it, PExpr *expr, PEnv *env) {
         if (expr->exp.ELiteral.op->type == T_TRUE) {
             bvalue = true;
         }
-        litObj = NewBoolObj(bvalue);
+        litObj = NewBoolObj(it->gc, bvalue);
         break;
     }
     case EXP_LIT_NIL: {
-        litObj = NewObject(OT_NIL);
+        litObj = NewObject(it->gc, OT_NIL);
         break;
     }
     }
@@ -84,47 +86,47 @@ static PObj *vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
             break;
         }
         double value = l->v.num + r->v.num;
-        result = NewNumberObj(value);
+        result = NewNumberObj(it->gc, value);
         break;
     }
     case T_ASTR: {
         double value = l->v.num * r->v.num;
-        result = NewNumberObj(value);
+        result = NewNumberObj(it->gc, value);
         break;
     }
     case T_MINUS: {
         double value = l->v.num - r->v.num;
-        result = NewNumberObj(value);
+        result = NewNumberObj(it->gc, value);
         break;
     }
     case T_SLASH: {
         double value = l->v.num / r->v.num;
-        result = NewNumberObj(value);
+        result = NewNumberObj(it->gc, value);
         break;
     }
     case T_EQEQ: {
-        result = NewBoolObj(isObjEqual(l, r));
+        result = NewBoolObj(it->gc, isObjEqual(l, r));
         break;
     }
     case T_BANG_EQ: {
-        result = NewBoolObj(!isObjEqual(l, r));
+        result = NewBoolObj(it->gc, !isObjEqual(l, r));
         break;
     }
     case T_GT: {
-        result = NewBoolObj(l->v.num > r->v.num);
+        result = NewBoolObj(it->gc, l->v.num > r->v.num);
         break;
     }
     case T_GTE:
-        result = NewBoolObj(l->v.num >= r->v.num);
+        result = NewBoolObj(it->gc, l->v.num >= r->v.num);
         break;
     case T_LT:
-        result = NewBoolObj(l->v.num < r->v.num);
+        result = NewBoolObj(it->gc, l->v.num < r->v.num);
         break;
     case T_LTE:
-        result = NewBoolObj(l->v.num <= r->v.num);
+        result = NewBoolObj(it->gc, l->v.num <= r->v.num);
         break;
     default:
-        result = NewNumberObj(-1);
+        result = NewNumberObj(it->gc, -1);
         break;
     }
 
@@ -136,7 +138,7 @@ static PObj *vVariable(PInterpreter *it, PExpr *expr, PEnv *env) {
     if (v == NULL) {
         error(it, NULL, "Undefined variable");
         printf("at line %ld\n", expr->exp.EVariable.name->line);
-        return NewNilObject();
+        return NewNilObject(it->gc);
     }
     return v;
 }
@@ -159,15 +161,15 @@ static PObj *vUnary(PInterpreter *it, PExpr *expr, PEnv *env) {
     switch (expr->exp.EUnary.opr->type) {
     case T_MINUS: {
         double value = -r->v.num;
-        result = NewNumberObj(value);
+        result = NewNumberObj(it->gc, value);
         break;
     }
     case T_BANG: {
-        result = NewBoolObj(!IsObjTruthy(r));
+        result = NewBoolObj(it->gc, !IsObjTruthy(r));
         break;
     }
     default: {
-        result = NewNilObject();
+        result = NewNilObject(it->gc);
         break;
     }
     }
@@ -181,24 +183,24 @@ static PObj *vLogical(PInterpreter *it, PExpr *expr, PEnv *env) {
 
     if (op->type == T_OR) {
         if (IsObjTruthy(left)) {
-            return NewBoolObj(true);
+            return NewBoolObj(it->gc, true);
         } else {
             PObj *right = evaluate(it, expr->exp.ELogical.right, env);
             if (IsObjTruthy(right)) {
-                return NewBoolObj(true);
+                return NewBoolObj(it->gc, true);
             } else {
-                return NewBoolObj(false);
+                return NewBoolObj(it->gc, false);
             }
         }
     } else if (op->type == T_AND) {
         if (!IsObjTruthy(left)) {
-            return NewBoolObj(false);
+            return NewBoolObj(it->gc, false);
         } else {
             PObj *right = evaluate(it, expr->exp.ELogical.right, env);
             if (IsObjTruthy(right)) {
-                return NewBoolObj(true);
+                return NewBoolObj(it->gc, true);
             } else {
-                return NewBoolObj(false);
+                return NewBoolObj(it->gc, false);
             }
         }
     }
@@ -222,7 +224,7 @@ static PObj *handleCall(PInterpreter *it, PObj *func, PObj **args, int count) {
             return evalOut->v.OReturn.rvalue;
         }
     } else {
-        evalOut = NewNilObject();
+        evalOut = NewNilObject(it->gc);
     }
     // printf("return->\n");
 
@@ -282,7 +284,7 @@ static PObj *evaluate(PInterpreter *it, PExpr *expr, PEnv *env) {
 static PObj *execBlock(PInterpreter *it, PStmt *stmt, PEnv *env, bool ret) {
     PStmt **stmtList = stmt->stmt.SBlock.stmts;
     if (stmtList == NULL) {
-        return NewNilObject();
+        return NewNilObject(it->gc);
     }
     PObj *obj = NULL;
     // PEnv * ogEnv = it->env;
@@ -335,7 +337,7 @@ static PObj *vsIfStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
         }
     }
 
-    return NewNilObject();
+    return NewNilObject(it->gc);
 }
 
 static PObj *vsWhileStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
@@ -354,21 +356,22 @@ static PObj *vsReturnStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     struct SReturn *ret = &stmt->stmt.SReturn;
     PObj *value = evaluate(it, ret->value, env);
 
-    PObj *retValue = NewReturnObject(value);
+    PObj *retValue = NewReturnObject(it->gc, value);
     return retValue;
 }
 
 static PObj *vsBreakStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
-    return NewBreakObject();
+    return NewBreakObject(it->gc);
 }
 
 static PObj *vsFuncStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     struct SFunc *fs = &stmt->stmt.SFunc;
     PObj *f = NewFuncObject(
-        fs->name, fs->params, fs->body, NewEnv(env), fs->paramCount
+        it->gc, fs->name, fs->params, fs->body, NewEnv(env), fs->paramCount
     );
     EnvPutValue(env, fs->name->hash, f);
-    return NewNilObject();
+    return NewNilObject(it->gc);
+
 }
 
 static PObj *execute(PInterpreter *it, PStmt *stmt, PEnv *env) {
@@ -402,5 +405,5 @@ static PObj *execute(PInterpreter *it, PStmt *stmt, PEnv *env) {
         error(it, NULL, "Unknown statement found!");
     }
 
-    return NewNilObject();
+    return NewNilObject(it->gc);
 }

@@ -1,6 +1,7 @@
 #ifndef INTERPRETER_H
 #define INTERPRETER_H
 
+#include "gc.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -16,11 +17,13 @@ typedef struct PInterpreter {
     void *core;
     // The Parent Environment used across closures
     PEnv *env;
+
+	Pgc * gc;
 } PInterpreter;
 
 // Create New Interpreter
 // `prog` = Array of statements to execute. Given by parser
-PInterpreter *NewInterpreter(PStmt **prog);
+PInterpreter *NewInterpreter(Pgc * gc, PStmt **prog);
 
 // Free Interpreter
 void FreeInterpreter(PInterpreter *it);

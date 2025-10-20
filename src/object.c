@@ -1,17 +1,10 @@
 #include "include/object.h"
-#include "include/alloc.h"
-#include "include/ast.h"
 #include "include/utils.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-PObj *NewObject(PObjType type) {
-    PObj *o = PCreate(PObj);
-    o->type = type;
-    return o;
-}
 
 void PrintObject(const PObj *o) {
     if (o == NULL) {
@@ -76,47 +69,7 @@ char *ObjTypeToString(PObjType type) {
     return "";
 }
 
-PObj *NewNumberObj(double value) {
-    PObj *o = NewObject(OT_NUM);
-    o->v.num = value;
-    return o;
-}
 
-PObj *NewBoolObj(bool value) {
-    PObj *o = NewObject(OT_BOOL);
-    o->v.bl = value;
-    return o;
-}
-
-PObj *NewStrObject(char *value) {
-    PObj *o = NewObject(OT_STR);
-    o->v.str = value;
-    return o;
-}
-
-PObj *NewNilObject() { return NewObject(OT_NIL); }
-
-PObj *NewReturnObject(PObj *value) {
-    PObj *o = NewObject(OT_RET);
-    o->v.OReturn.rvalue = value;
-    return o;
-}
-
-PObj *NewBreakObject() {
-    PObj *o = NewObject(OT_BRK);
-    return o;
-}
-
-PObj *
-NewFuncObject(Token *name, Token **params, PStmt *body, void *env, int count) {
-    PObj *o = NewObject(OT_FNC);
-    o->v.OFunction.name = name;
-    o->v.OFunction.params = params;
-    o->v.OFunction.body = body;
-    o->v.OFunction.env = env;
-    o->v.OFunction.paramCount = count;
-    return o;
-}
 
 bool IsObjTruthy(const PObj *o) {
     if (o != NULL && o->type == OT_BOOL) {
@@ -168,41 +121,3 @@ bool isObjEqual(const PObj *a, const PObj *b) {
     return result;
 }
 
-static inline void freeBaseObj(PObj *o) {
-    if (o != NULL) {
-        free(o);
-    }
-}
-
-void FreeObject(PObj *o) {
-    if (o == NULL) {
-        return;
-    }
-
-    switch (o->type) {
-    case OT_FNC: {
-        struct OFunction *f = &o->v.OFunction;
-        FreeStmt(f->body);
-        // Todo: Free Env
-        freeBaseObj(o);
-        break;
-    }
-    case OT_RET: {
-        FreeObject(o->v.OReturn.rvalue);
-        freeBaseObj(o);
-        break;
-    }
-    case OT_STR: {
-        // where does the string come from?
-        freeBaseObj(o);
-        break;
-    }
-    case OT_BRK:
-    case OT_NIL:
-    case OT_BOOL:
-    case OT_NUM: {
-        freeBaseObj(o);
-        break;
-    }
-    }
-}

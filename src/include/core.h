@@ -1,5 +1,6 @@
 #ifndef CORE_H
 #define CORE_H
+#include "gc.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -15,6 +16,9 @@ typedef struct PanktiCore {
     Parser *parser;
     // Interpreter
     PInterpreter *it;
+
+	Pgc *gc;
+
     // Original script as is
     char *source;
     // Path to script

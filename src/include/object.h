@@ -31,6 +31,7 @@ typedef enum PObjType {
 typedef struct PObj {
     // Pankti Object Type
     PObjType type;
+	struct PObj * next;
 
     // Union of All Pankti Objects
     union v {
@@ -70,54 +71,11 @@ typedef struct PObj {
 
 } PObj;
 
-// Create a New Empty Object.
-// `type` = Type of statement
-PObj *NewObject(PObjType type);
-
-// Free the Object
-// Handle all underlying values according to function type.
-void FreeObject(PObj *o);
-
 // Print Object
 void PrintObject(const PObj *o);
 
 // Get Object type as String
 char *ObjTypeToString(PObjType type);
-
-// Create New Number Object
-// `value` = Numerical floating point value of the object
-PObj *NewNumberObj(double value);
-
-// Create New Bool Object
-// `value` = Bool value
-PObj *NewBoolObj(bool value);
-
-// Create New String Object
-// `value` = String value
-PObj *NewStrObject(char *value);
-
-// New Nil Object
-PObj *NewNilObject();
-
-// New Return Statement Object
-// `value` = The actual value of the return statement.
-// Value will be Nil Object if it is empty return statement
-// Only used in functions
-PObj *NewReturnObject(PObj *value);
-
-// New Break Statement Object
-// Only used in while loops
-PObj *NewBreakObject();
-
-// Create Function Statement Object
-// `name` = Name of the function
-// `params` = Token array of parameters
-// `body` = Body of function. Statement will always be Block Statement
-// `env` = Environment
-// `count` = Count of parameters
-PObj *
-NewFuncObject(Token *name, Token **params, PStmt *body, void *env, int count);
-
 // Check if the object is Truthy
 // `obj` = Object to check
 // Will only return True if the object is Truthy.
