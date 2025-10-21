@@ -18,6 +18,7 @@ static PObj * makeOnlyNil(){
 	return o;
 }
 
+
 Pgc * NewGc(){
 	Pgc * gc = PCreate(Pgc);
 	gc->disable = false;
@@ -31,10 +32,22 @@ Pgc * NewGc(){
 
 	return gc;
 }
+
+static void freeObjects(Pgc *gc){
+	PObj * obj = gc->objects;
+	while (obj != NULL) {
+		PObj * nextObj = obj->next;
+		FreeObject(gc, obj);
+		obj = nextObj;
+	}
+}
+
 void FreeGc(Pgc * gc){
 	if (gc == NULL) {
 		return;
 	}
+
+	freeObjects(gc);
 
 	FreeObject(gc, gc->onlyNilObj);
 	FreeObject(gc, gc->onlyTrueObj);
