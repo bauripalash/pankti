@@ -22,7 +22,7 @@ PanktiCore *NewCore(const char *path) {
     core->caughtError = false;
     core->runtimeError = false;
     core->it = NULL;
-	core->gc = NewGc();
+    core->gc = NewGc();
     return core;
 }
 
@@ -30,9 +30,9 @@ void FreeCore(PanktiCore *core) {
     if (core == NULL) {
         return;
     }
-	if (core->gc != NULL) {
-		FreeGc(core->gc);
-	}
+    if (core->gc != NULL) {
+        FreeGc(core->gc);
+    }
     if (core->parser != NULL) {
         FreeParser(core->parser);
     }
@@ -44,8 +44,6 @@ void FreeCore(PanktiCore *core) {
     if (core->it != NULL) {
         FreeInterpreter(core->it);
     }
-
-
 
     free(core);
 }
@@ -67,7 +65,7 @@ void RunCore(PanktiCore *core) {
         exit(1);
     }
 
-    core->parser = NewParser(core->lexer);
+    core->parser = NewParser(core->gc, core->lexer);
     core->parser->core = core;
 
     PStmt **prog = ParseParser(core->parser);

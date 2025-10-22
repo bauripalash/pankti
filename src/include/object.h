@@ -31,7 +31,7 @@ typedef enum PObjType {
 typedef struct PObj {
     // Pankti Object Type
     PObjType type;
-	struct PObj * next;
+    struct PObj *next;
 
     // Union of All Pankti Objects
     union v {

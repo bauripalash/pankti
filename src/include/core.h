@@ -17,7 +17,7 @@ typedef struct PanktiCore {
     // Interpreter
     PInterpreter *it;
 
-	Pgc *gc;
+    Pgc *gc;
 
     // Original script as is
     char *source;

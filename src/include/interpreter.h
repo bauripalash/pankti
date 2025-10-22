@@ -18,12 +18,12 @@ typedef struct PInterpreter {
     // The Parent Environment used across closures
     PEnv *env;
 
-	Pgc * gc;
+    Pgc *gc;
 } PInterpreter;
 
 // Create New Interpreter
 // `prog` = Array of statements to execute. Given by parser
-PInterpreter *NewInterpreter(Pgc * gc, PStmt **prog);
+PInterpreter *NewInterpreter(Pgc *gc, PStmt **prog);
 
 // Free Interpreter
 void FreeInterpreter(PInterpreter *it);

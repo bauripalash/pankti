@@ -1,7 +1,7 @@
-#include "../external/stb/stb_ds.h"
-#include "../include/ansicolors.h"
-#include "../include/ast.h"
-#include "../include/token.h"
+#include "external/stb/stb_ds.h"
+#include "include/ansicolors.h"
+#include "include/ast.h"
+#include "include/token.h"
 #include <stdio.h>
 
 static void printIndent(int indent) {
@@ -94,7 +94,7 @@ void AstPrint(PExpr *expr, int indent) {
         printf(
             TERMC_YELLOW "Assign(" TERMC_GREEN "%s" TERMC_YELLOW
                          ")\n" TERMC_RESET,
-            expr->exp.EAssign.name->lexeme
+            expr->exp.EAssign.name->exp.EVariable.name->lexeme
         );
 
         AstPrint(expr->exp.EAssign.value, indent + 1);

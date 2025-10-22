@@ -7,7 +7,6 @@
 #include "include/gc.h"
 #include "include/object.h"
 #include "include/token.h"
-#include "include/gc.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -17,12 +16,12 @@ static PObj *execute(PInterpreter *it, PStmt *stmt, PEnv *env);
 static PObj *evaluate(PInterpreter *it, PExpr *expr, PEnv *env);
 static PObj *execBlock(PInterpreter *it, PStmt *stmt, PEnv *env, bool ret);
 
-PInterpreter *NewInterpreter(Pgc * gc, PStmt **prog) {
+PInterpreter *NewInterpreter(Pgc *gc, PStmt **prog) {
     PInterpreter *it = PCreate(PInterpreter);
     it->program = prog;
     it->core = NULL;
     it->env = NewEnv(NULL);
-	it->gc = gc;
+    it->gc = gc;
     return it;
 }
 void FreeInterpreter(PInterpreter *it) {
@@ -30,18 +29,18 @@ void FreeInterpreter(PInterpreter *it) {
         return;
     }
 
-    if (it->env != NULL) {
-        FreeEnv(it->env);
-    }
+    // if (it->env != NULL) {
+    FreeEnv(it->env);
+    //}
 
     free(it);
 }
 void Interpret(PInterpreter *it) {
     for (int i = 0; i < arrlen(it->program); i++) {
-    	execute(it, it->program[i], it->env);
+        execute(it, it->program[i], it->env);
     }
 
-    //FreeObject(it->gc, obj);
+    // FreeObject(it->gc, obj);
 }
 static void error(PInterpreter *it, void *tok, char *msg) {
     CoreError(it->core, -1, msg);
@@ -145,11 +144,11 @@ static PObj *vVariable(PInterpreter *it, PExpr *expr, PEnv *env) {
 
 static PObj *vAssignment(PInterpreter *it, PExpr *expr, PEnv *env) {
     PObj *value = evaluate(it, expr->exp.EAssign.value, env);
-    if (EnvSetValue(env, expr->exp.EAssign.name->hash, value)) {
+    if (EnvSetValue(env, expr->exp.EAssign.name->exp.EVariable.name->hash, value)) {
         return value;
     } else {
         error(it, NULL, "Undefined variable assignment");
-        printf("at line %ld\n", expr->exp.EAssign.name->line);
+        printf("at line %ld\n", expr->exp.EAssign.name->exp.EVariable.name->line);
         return NULL;
     }
 }
@@ -221,14 +220,14 @@ static PObj *handleCall(PInterpreter *it, PObj *func, PObj **args, int count) {
 
     if (evalOut != NULL) {
         if (evalOut->type == OT_RET) {
+            FreeEnv(fnEnv);
             return evalOut->v.OReturn.rvalue;
         }
     } else {
         evalOut = NewNilObject(it->gc);
     }
-    // printf("return->\n");
 
-    // FreeEnv(fnEnv);
+    FreeEnv(fnEnv);
 
     return evalOut;
 }
@@ -252,7 +251,9 @@ static PObj *vCall(PInterpreter *it, PExpr *expr, PEnv *env) {
         arrput(args, evaluate(it, ec->args[i], env));
     }
 
-    return handleCall(it, co, args, ec->argCount);
+    PObj *value = handleCall(it, co, args, ec->argCount);
+    arrfree(args);
+    return value;
 }
 
 static PObj *evaluate(PInterpreter *it, PExpr *expr, PEnv *env) {
@@ -294,15 +295,20 @@ static PObj *execBlock(PInterpreter *it, PStmt *stmt, PEnv *env, bool ret) {
     for (int i = 0; i < arrlen(stmtList); i++) {
         obj = execute(it, stmtList[i], blockEnv);
         if (ret && obj->type == OT_RET) {
+
+            FreeEnv(blockEnv);
             return obj;
         }
 
         if (obj->type == OT_BRK) {
+
+            FreeEnv(blockEnv);
             return obj;
         }
     }
 
     // it->env = ogEnv;
+    FreeEnv(blockEnv);
     return obj;
 }
 
@@ -320,6 +326,7 @@ static PObj *vsLet(PInterpreter *it, PStmt *stmt, PEnv *env) {
 static PObj *vsPrint(PInterpreter *it, PStmt *stmt, PEnv *env) {
     PObj *obj = evaluate(it, stmt->stmt.SPrint.value, env);
     PrintObject(obj);
+    printf("\n");
     return obj;
 }
 
@@ -371,7 +378,6 @@ static PObj *vsFuncStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     );
     EnvPutValue(env, fs->name->hash, f);
     return NewNilObject(it->gc);
-
 }
 
 static PObj *execute(PInterpreter *it, PStmt *stmt, PEnv *env) {

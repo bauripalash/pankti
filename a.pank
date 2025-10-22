@@ -1,4 +1,3 @@
-let a = 1
-let name = "palash"
-print a
+let name = 1
+name = 1
 print name

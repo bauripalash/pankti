@@ -4,6 +4,6 @@
 #include "stdlib.h"
 
 #define PCreate(type) (type *)(malloc(sizeof(type)))
-#define PFree(ptr) (free(ptr))
+#define PFree(ptr)    (free(ptr))
 
 #endif

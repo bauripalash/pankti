@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 void PrintObject(const PObj *o) {
     if (o == NULL) {
         return;
@@ -69,8 +68,6 @@ char *ObjTypeToString(PObjType type) {
     return "";
 }
 
-
-
 bool IsObjTruthy(const PObj *o) {
     if (o != NULL && o->type == OT_BOOL) {
         return o->v.bl;
@@ -120,4 +117,3 @@ bool isObjEqual(const PObj *a, const PObj *b) {
 
     return result;
 }
-

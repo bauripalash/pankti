@@ -1,6 +1,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include "gc.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -17,6 +18,8 @@ typedef struct Parser {
     Token **tokens;
     // Reference to PanktiCore
     void *core;
+    // Reference to GC
+    Pgc *gc;
     // Reading Postion of token from token array
     int pos;
 
@@ -28,7 +31,7 @@ typedef struct Parser {
 
 // Create New Parser Object
 // `lexer` = The lexer object. The lexer must have already scanned the source
-Parser *NewParser(Lexer *lexer);
+Parser *NewParser(Pgc *gc, Lexer *lexer);
 // Free the Parser object
 void FreeParser(Parser *parser);
 // Run the parser. Return reference to internal statements array

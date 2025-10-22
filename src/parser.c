@@ -3,6 +3,7 @@
 #include "include/alloc.h"
 #include "include/ast.h"
 #include "include/core.h"
+#include "include/gc.h"
 #include "include/lexer.h"
 #include "include/token.h"
 #include <math.h>
@@ -32,11 +33,12 @@ static PExpr *rExpression(Parser *p);
 // Check if parser has reached end
 static bool atEnd(const Parser *p);
 
-Parser *NewParser(Lexer *lexer) {
+Parser *NewParser(Pgc *gc, Lexer *lexer) {
     Parser *parser = PCreate(Parser);
     // ERROR HANDLE
     parser->lx = lexer;
     parser->tokens = lexer->tokens;
+    parser->gc = gc;
     parser->pos = 0;
     parser->core = NULL;
     parser->stmts = NULL;
@@ -47,14 +49,7 @@ void FreeParser(Parser *parser) {
     if (parser == NULL) {
         return;
     }
-    if (parser->stmts != NULL) {
-        int count = arrlen(parser->stmts);
-        for (int i = 0; i < count; i++) {
-            FreeStmt(arrpop(parser->stmts));
-        }
-
-        arrfree(parser->stmts);
-    }
+    arrfree(parser->stmts);
     free(parser);
 }
 
@@ -129,7 +124,7 @@ static PExpr *rAnd(Parser *p) {
     while (matchOne(p, T_AND)) {
         Token *op = previous(p);
         PExpr *right = rEquality(p);
-        expr = NewLogical(expr, op, right);
+        expr = NewLogical(p->gc, expr, op, right);
     }
     return expr;
 }
@@ -139,7 +134,7 @@ static PExpr *rOr(Parser *p) {
     while (matchOne(p, T_OR)) {
         Token *op = previous(p);
         PExpr *right = rAnd(p);
-        expr = NewLogical(expr, op, right);
+        expr = NewLogical(p->gc, expr, op, right);
     }
     return expr;
 }
@@ -150,8 +145,7 @@ static PExpr *rAssignment(Parser *p) {
         PExpr *value = rAssignment(p);
 
         if (expr->type == EXPR_VARIABLE) {
-            Token *name = expr->exp.EVariable.name;
-            return NewAssignment(name, value);
+            return NewAssignment(p->gc, expr, value);
         }
 
         error(p, NULL, "Invalid assignment");
@@ -166,7 +160,7 @@ static PExpr *rEquality(Parser *p) {
     while (matchMany(p, (TokenType[]){T_BANG_EQ, T_EQEQ}, 2)) {
         Token *op = previous(p);
         PExpr *right = rComparison(p);
-        expr = NewBinaryExpr(expr, op, right);
+        expr = NewBinaryExpr(p->gc, expr, op, right);
     }
 
     return expr;
@@ -177,7 +171,7 @@ static PExpr *rComparison(Parser *p) {
     while (matchMany(p, (TokenType[]){T_GT, T_GTE, T_LT, T_LTE}, 4)) {
         Token *op = previous(p);
         PExpr *right = rTerm(p);
-        expr = NewBinaryExpr(expr, op, right);
+        expr = NewBinaryExpr(p->gc, expr, op, right);
     }
 
     return expr;
@@ -188,7 +182,7 @@ static PExpr *rTerm(Parser *p) {
     while (matchMany(p, (TokenType[]){T_MINUS, T_PLUS}, 2)) {
         Token *op = previous(p);
         PExpr *right = rFactor(p);
-        expr = NewBinaryExpr(expr, op, right);
+        expr = NewBinaryExpr(p->gc, expr, op, right);
     }
 
     return expr;
@@ -199,7 +193,7 @@ static PExpr *rFactor(Parser *p) {
     while (matchMany(p, (TokenType[]){T_SLASH, T_ASTR}, 2)) {
         Token *op = previous(p);
         PExpr *right = rUnary(p);
-        expr = NewBinaryExpr(expr, op, right);
+        expr = NewBinaryExpr(p->gc, expr, op, right);
     }
     return expr;
 }
@@ -208,7 +202,7 @@ static PExpr *rUnary(Parser *p) {
     if (matchMany(p, (TokenType[]){T_BANG, T_MINUS}, 2)) {
         Token *op = previous(p);
         PExpr *right = rUnary(p);
-        return NewUnary(op, right);
+        return NewUnary(p->gc, op, right);
     }
 
     return rCall(p);
@@ -228,7 +222,7 @@ static PExpr *finishCallExpr(Parser *p, PExpr *expr) {
     }
 
     Token *rparen = eat(p, T_RIGHT_PAREN, "Expected ')' after arguments");
-    return NewCallExpr(rparen, expr, args, count);
+    return NewCallExpr(p->gc, rparen, expr, args, count);
 }
 
 static PExpr *rCall(Parser *p) {
@@ -246,38 +240,38 @@ static PExpr *rCall(Parser *p) {
 
 static PExpr *rPrimary(Parser *p) {
     if (matchOne(p, T_TRUE)) {
-        PExpr *e = NewLiteral(previous(p), EXP_LIT_BOOL);
+        PExpr *e = NewLiteral(p->gc, previous(p), EXP_LIT_BOOL);
         e->exp.ELiteral.value.bvalue = true;
         return e;
     }
 
     if (matchOne(p, T_FALSE)) {
-        PExpr *e = NewLiteral(previous(p), EXP_LIT_BOOL);
+        PExpr *e = NewLiteral(p->gc, previous(p), EXP_LIT_BOOL);
         e->exp.ELiteral.value.bvalue = false;
         return e;
     }
 
     if (matchOne(p, T_NIL)) {
-        return NewLiteral(previous(p), EXP_LIT_NIL);
+        return NewLiteral(p->gc, previous(p), EXP_LIT_NIL);
     }
 
     if (matchOne(p, T_NUM)) {
-        return NewLiteral(previous(p), EXP_LIT_NUM);
+        return NewLiteral(p->gc, previous(p), EXP_LIT_NUM);
         // convert token value to number;
     }
 
     if (matchOne(p, T_STR)) {
-        return NewLiteral(previous(p), EXP_LIT_STR);
+        return NewLiteral(p->gc, previous(p), EXP_LIT_STR);
     }
 
     if (matchOne(p, T_IDENT)) {
-        return NewVarExpr(previous(p));
+        return NewVarExpr(p->gc, previous(p));
     }
 
     if (matchOne(p, T_LEFT_PAREN)) {
         PExpr *e = rExpression(p);
         eat(p, T_RIGHT_PAREN, "Expected ')'");
-        return NewGrouping(e);
+        return NewGrouping(p->gc, e);
     }
 
     error(p, previous(p), "Expected expression");
@@ -309,20 +303,20 @@ static void syncParser(Parser *p) {
 
 static PStmt *rExprStmt(Parser *p) {
     PExpr *value = rExpression(p);
-    return NewExprStmt(previous(p), value);
+    return NewExprStmt(p->gc, previous(p), value);
 }
 
 static PStmt *rPrintStmt(Parser *p) {
     Token *op = previous(p);
     PExpr *value = rExpression(p);
-    return NewPrintStmt(op, value);
+    return NewPrintStmt(p->gc, op, value);
 }
 
 static PStmt *rLetStmt(Parser *p) {
     Token *name = eat(p, T_IDENT, "Expected Identifier");
     eat(p, T_EQ, "Expected equal");
     PExpr *value = rExpression(p);
-    return NewLetStmt(name, value);
+    return NewLetStmt(p->gc, name, value);
 }
 
 static PStmt *rBlockStmt(Parser *p) {
@@ -333,7 +327,7 @@ static PStmt *rBlockStmt(Parser *p) {
     }
 
     eat(p, T_RIGHT_BRACE, "Expected '}' after block stmt");
-    PStmt *block = NewBlockStmt(curTok, stmtList);
+    PStmt *block = NewBlockStmt(p->gc, curTok, stmtList);
     return block;
 }
 
@@ -344,7 +338,7 @@ static PStmt *rToEndBlockStmt(Parser *p) {
     }
 
     eat(p, T_END, "Expected 'end' after block");
-    PStmt *block = NewBlockStmt(previous(p), stmtList);
+    PStmt *block = NewBlockStmt(p->gc, previous(p), stmtList);
     return block;
 }
 
@@ -362,7 +356,7 @@ static PStmt *rToEndOrElseBlockStmt(Parser *p, bool *hasElse) {
         eat(p, T_END, "Expected 'end'");
         *hasElse = false;
     }
-    PStmt *block = NewBlockStmt(previous(p), stmtList);
+    PStmt *block = NewBlockStmt(p->gc, previous(p), stmtList);
     return block;
 }
 static PStmt *rIfStmt(Parser *p) {
@@ -376,7 +370,7 @@ static PStmt *rIfStmt(Parser *p) {
         elseBranch = rToEndBlockStmt(p);
     }
 
-    return NewIfStmt(op, cond, thenBranch, elseBranch);
+    return NewIfStmt(p->gc, op, cond, thenBranch, elseBranch);
 }
 
 static PStmt *rWhileStmt(Parser *p) {
@@ -384,7 +378,7 @@ static PStmt *rWhileStmt(Parser *p) {
     PExpr *cond = rExpression(p);
     eat(p, T_DO, "Expected do after while expression");
     PStmt *body = rToEndBlockStmt(p);
-    return NewWhileStmt(op, cond, body);
+    return NewWhileStmt(p->gc, op, cond, body);
 }
 
 static PStmt *rReturnStmt(Parser *p) {
@@ -398,7 +392,7 @@ static PStmt *rReturnStmt(Parser *p) {
     if (check(p, T_SEMICOLON)) {
         eat(p, T_SEMICOLON, "Expected ';' after empty return");
     }
-    return NewReturnStmt(op, value);
+    return NewReturnStmt(p->gc, op, value);
 }
 
 static PStmt *rBreakStmt(Parser *p) {
@@ -407,7 +401,7 @@ static PStmt *rBreakStmt(Parser *p) {
         eat(p, T_SEMICOLON, "Expected ';'");
     }
 
-    return NewBreakStmt(op);
+    return NewBreakStmt(p->gc, op);
 }
 
 static PStmt *rFuncStmt(Parser *p) {
@@ -425,7 +419,7 @@ static PStmt *rFuncStmt(Parser *p) {
     eat(p, T_RIGHT_PAREN, "Expected ')' after expression list");
     PStmt *body = rToEndBlockStmt(p);
 
-    return NewFuncStmt(name, params, body, paramCount);
+    return NewFuncStmt(p->gc, name, params, body, paramCount);
 }
 
 static PStmt *rStmt(Parser *p) {

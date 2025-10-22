@@ -2,6 +2,7 @@
 #include "external/stb/stb_ds.h"
 #include "include/alloc.h"
 #include "include/object.h"
+#include "include/utils.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -12,7 +13,6 @@ PEnv *NewEnv(PEnv *enclosing) {
     // error check;
     e->count = 0;
     e->table = NULL;
-    arrsetcap(e->table, 32);
     e->enclosing = enclosing;
     return e;
 }
@@ -30,13 +30,12 @@ void FreeEnv(PEnv *e) {
     }
 
     if (e->table != NULL) {
-        for (int i = 0; i < arrlen(e->table); i++) {
-            free(arrpop(e->table));
+        for (int i = 0; i < e->count; i++) {
+            EnvPair *pair = arrpop(e->table);
+            free(pair);
         }
 
         arrfree(e->table);
-
-        e->table = NULL;
     }
 
     free(e);
@@ -62,7 +61,8 @@ void DebugEnv(PEnv *e) {
 }
 
 void EnvPutValue(PEnv *e, uint32_t hash, PObj *value) {
-    arrput(e->table, NewPair(hash, value));
+    EnvPair *newPair = NewPair(hash, value);
+    arrput(e->table, newPair);
     e->count++;
 }
 

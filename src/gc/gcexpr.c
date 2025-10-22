@@ -1,6 +1,7 @@
 #include "../external/stb/stb_ds.h"
 #include "../include/alloc.h"
 #include "../include/ast.h"
+#include "../include/gc.h"
 #include "../include/token.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,7 +10,7 @@
 // Creation Functions
 // ===================
 
-PExpr *NewExpr(PExprType type) {
+PExpr *NewExpr(Pgc *gc, PExprType type) {
     PExpr *e = PCreate(PExpr);
     if (e == NULL) {
         return NULL;
@@ -18,8 +19,8 @@ PExpr *NewExpr(PExprType type) {
     return e;
 }
 
-PExpr *NewBinaryExpr(PExpr *left, Token *op, PExpr *right) {
-    PExpr *e = NewExpr(EXPR_BINARY);
+PExpr *NewBinaryExpr(Pgc *gc, PExpr *left, Token *op, PExpr *right) {
+    PExpr *e = NewExpr(gc, EXPR_BINARY);
     if (e == NULL) {
         return NULL;
     }
@@ -30,8 +31,8 @@ PExpr *NewBinaryExpr(PExpr *left, Token *op, PExpr *right) {
     return e;
 }
 
-PExpr *NewUnary(Token *op, PExpr *right) {
-    PExpr *e = NewExpr(EXPR_UNARY);
+PExpr *NewUnary(Pgc *gc, Token *op, PExpr *right) {
+    PExpr *e = NewExpr(gc, EXPR_UNARY);
     if (e == NULL) {
         return NULL;
     }
@@ -40,8 +41,8 @@ PExpr *NewUnary(Token *op, PExpr *right) {
     return e;
 }
 
-PExpr *NewLiteral(Token *op, ExpLitType type) {
-    PExpr *e = NewExpr(EXPR_LITERAL);
+PExpr *NewLiteral(Pgc *gc, Token *op, ExpLitType type) {
+    PExpr *e = NewExpr(gc, EXPR_LITERAL);
     if (e == NULL) {
         return NULL;
     }
@@ -50,8 +51,8 @@ PExpr *NewLiteral(Token *op, ExpLitType type) {
     return e;
 }
 
-PExpr *NewGrouping(PExpr *expr) {
-    PExpr *e = NewExpr(EXPR_GROUPING);
+PExpr *NewGrouping(Pgc *gc, PExpr *expr) {
+    PExpr *e = NewExpr(gc, EXPR_GROUPING);
     if (e == NULL) {
         return NULL;
     }
@@ -59,8 +60,8 @@ PExpr *NewGrouping(PExpr *expr) {
     return e;
 }
 
-PExpr *NewVarExpr(Token *name) {
-    PExpr *e = NewExpr(EXPR_VARIABLE);
+PExpr *NewVarExpr(Pgc *gc, Token *name) {
+    PExpr *e = NewExpr(gc, EXPR_VARIABLE);
     if (e == NULL) {
         return NULL;
     }
@@ -68,8 +69,8 @@ PExpr *NewVarExpr(Token *name) {
     return e;
 }
 
-PExpr *NewAssignment(Token *name, PExpr *value) {
-    PExpr *e = NewExpr(EXPR_ASSIGN);
+PExpr *NewAssignment(Pgc *gc, PExpr * name, PExpr *value) {
+    PExpr *e = NewExpr(gc, EXPR_ASSIGN);
     if (e == NULL) {
         return NULL;
     }
@@ -78,8 +79,8 @@ PExpr *NewAssignment(Token *name, PExpr *value) {
     return e;
 }
 
-PExpr *NewLogical(PExpr *left, Token *op, PExpr *right) {
-    PExpr *e = NewExpr(EXPR_LOGICAL);
+PExpr *NewLogical(Pgc *gc, PExpr *left, Token *op, PExpr *right) {
+    PExpr *e = NewExpr(gc, EXPR_LOGICAL);
     if (e == NULL) {
         return NULL;
     }
@@ -89,8 +90,8 @@ PExpr *NewLogical(PExpr *left, Token *op, PExpr *right) {
     return e;
 }
 
-PExpr *NewCallExpr(Token *op, PExpr *callee, PExpr **args, int count) {
-    PExpr *e = NewExpr(EXPR_CALL);
+PExpr *NewCallExpr(Pgc *gc, Token *op, PExpr *callee, PExpr **args, int count) {
+    PExpr *e = NewExpr(gc, EXPR_CALL);
     if (e == NULL) {
         return NULL;
     }
@@ -106,13 +107,14 @@ PExpr *NewCallExpr(Token *op, PExpr *callee, PExpr **args, int count) {
 // ===================
 
 // Free the base Expr Struct with NULL check
-static inline void freeBaseExpr(PExpr *expr) {
+static inline void freeBaseExpr(Pgc *gc, PExpr *expr) {
     if (expr != NULL) {
         free(expr);
+        expr = NULL;
     }
 }
 
-void FreeExpr(PExpr *e) {
+void FreeExpr(Pgc *gc, PExpr *e) {
     // Freeing Expressions
     // Never Free tokens. Token are directly referenced from Lexer
     if (e == NULL) {
@@ -121,48 +123,51 @@ void FreeExpr(PExpr *e) {
 
     switch (e->type) {
     case EXPR_CALL: {
-        FreeExpr(e->exp.ECall.callee);
+        FreeExpr(gc, e->exp.ECall.callee);
         int count = e->exp.ECall.argCount;
         for (int i = 0; i < count; i++) {
-            FreeExpr(e->exp.ECall.args[i]);
+            PExpr *ex = arrpop(e->exp.ECall.args);
+            FreeExpr(gc, ex);
         }
-        freeBaseExpr(e);
+        arrfree(e->exp.ECall.args);
+        freeBaseExpr(gc, e);
         break;
     }
     case EXPR_LOGICAL: {
-        FreeExpr(e->exp.ELogical.left);
-        FreeExpr(e->exp.ELogical.right);
-        freeBaseExpr(e);
+        FreeExpr(gc, e->exp.ELogical.left);
+        FreeExpr(gc, e->exp.ELogical.right);
+        freeBaseExpr(gc, e);
         break;
     }
     case EXPR_ASSIGN: {
-        FreeExpr(e->exp.EAssign.value);
-        freeBaseExpr(e);
+			FreeExpr(gc, e->exp.EAssign.name);
+        FreeExpr(gc, e->exp.EAssign.value);
+        freeBaseExpr(gc, e);
         break;
     }
     case EXPR_VARIABLE: {
-        freeBaseExpr(e);
+        freeBaseExpr(gc, e);
         break;
     }
     case EXPR_GROUPING: {
-        FreeExpr(e->exp.EGrouping.expr);
-        freeBaseExpr(e);
+        FreeExpr(gc, e->exp.EGrouping.expr);
+        freeBaseExpr(gc, e);
         break;
     }
 
     case EXPR_LITERAL: {
-        freeBaseExpr(e);
+        freeBaseExpr(gc, e);
         break;
     }
     case EXPR_UNARY: {
-        FreeExpr(e->exp.EUnary.right);
-        freeBaseExpr(e);
+        FreeExpr(gc, e->exp.EUnary.right);
+        freeBaseExpr(gc, e);
         break;
     }
     case EXPR_BINARY: {
-        FreeExpr(e->exp.EBinary.left);
-        FreeExpr(e->exp.EBinary.right);
-        freeBaseExpr(e);
+        FreeExpr(gc, e->exp.EBinary.left);
+        FreeExpr(gc, e->exp.EBinary.right);
+        freeBaseExpr(gc, e);
         break;
     }
     }
