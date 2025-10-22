@@ -49,7 +49,7 @@ void FreeCore(PanktiCore *core) {
 }
 
 static bool DebugLexer = false;
-static bool DebugParser = true;
+static bool DebugParser = false;
 
 void RunCore(PanktiCore *core) {
     core->lexer->core = core;
