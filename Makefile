@@ -1,6 +1,7 @@
 BIN:=pankti
 CMAKE_OUTPUT:=build/$(BIN)
 ZIG_OUTPUT:=zig-out/bin/$(BIN)
+TCC:=/usr/bin/tcc
 
 HEADERS:= $(shell find src/include -path 'src/external' -prune -o -path 'src/include/exported' -prune -o -name '*.h' -print)
 SOURCES:= $(shell find src/ -path 'src/external' -prune -o -name '*.c' -print)
@@ -23,6 +24,10 @@ fmt:
 .PHONY: valgrind
 valgrind: build
 	valgrind --leak-check=full --show-leak-kinds=all -s $(CMAKE_OUTPUT)
+
+.PHONY: cmake_tcc
+cmake_tcc:
+	cmake -S . -B build -G Ninja -DCMAKE_C_COMPILER=$(TCC)
 
 .PHONY: cmake_setup
 cmake_setup:

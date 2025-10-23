@@ -2,7 +2,6 @@
 #include "external/stb/stb_ds.h"
 #include "include/alloc.h"
 #include "include/object.h"
-#include "include/utils.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>

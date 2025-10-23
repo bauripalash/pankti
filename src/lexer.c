@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/ucontext.h>
 #include <uchar.h>
 
 #include "include/bengali.h"
