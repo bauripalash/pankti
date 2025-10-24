@@ -11,58 +11,36 @@ void PrintObject(const PObj *o) {
     }
 
     switch (o->type) {
-    case OT_NUM:
-        printf("%f", o->v.num);
-        break;
-    case OT_STR:
-        printf("%s", o->v.str);
-        break;
-    case OT_BOOL:
-        printf("%s", o->v.bl ? "true" : "false");
-        break;
-    case OT_NIL:
-        printf("nil");
-        break;
-    case OT_RET: {
-        printf("<ret ");
-        PrintObject(o->v.OReturn.rvalue);
-        printf(">");
-        break;
-    }
-    case OT_BRK: {
-        printf("<break>\n");
-        break;
-    }
-    case OT_FNC: {
-        printf("<fn %s>", o->v.OFunction.name->lexeme);
-        break;
-    }
+        case OT_NUM: printf("%f", o->v.num); break;
+        case OT_STR: printf("%s", o->v.str); break;
+        case OT_BOOL: printf("%s", o->v.bl ? "true" : "false"); break;
+        case OT_NIL: printf("nil"); break;
+        case OT_RET: {
+            printf("<ret ");
+            PrintObject(o->v.OReturn.rvalue);
+            printf(">");
+            break;
+        }
+        case OT_BRK: {
+            printf("<break>\n");
+            break;
+        }
+        case OT_FNC: {
+            printf("<fn %s>", o->v.OFunction.name->lexeme);
+            break;
+        }
     }
 }
 
 char *ObjTypeToString(PObjType type) {
     switch (type) {
-    case OT_NUM:
-        return "Number";
-        break;
-    case OT_STR:
-        return "String";
-        break;
-    case OT_BOOL:
-        return "Bool";
-        break;
-    case OT_NIL:
-        return "Nil";
-        break;
-    case OT_RET:
-        return "Return";
-        break;
-    case OT_BRK:
-        return "Break";
-        break;
-    case OT_FNC:
-        return "Function";
-        break;
+        case OT_NUM: return "Number"; break;
+        case OT_STR: return "String"; break;
+        case OT_BOOL: return "Bool"; break;
+        case OT_NIL: return "Nil"; break;
+        case OT_RET: return "Return"; break;
+        case OT_BRK: return "Break"; break;
+        case OT_FNC: return "Function"; break;
     }
 
     return "";
@@ -82,37 +60,35 @@ bool isObjEqual(const PObj *a, const PObj *b) {
     }
     bool result = false;
     switch (a->type) {
-    case OT_NUM: {
-        result = (a->v.num == b->v.num);
-        break;
-    }
-    case OT_BOOL: {
-        result = (a->v.bl == b->v.bl);
-        break;
-    }
+        case OT_NUM: {
+            result = (a->v.num == b->v.num);
+            break;
+        }
+        case OT_BOOL: {
+            result = (a->v.bl == b->v.bl);
+            break;
+        }
 
-    case OT_NIL: {
-        result = true;
-        break;
-    }
+        case OT_NIL: {
+            result = true;
+            break;
+        }
 
-    case OT_STR: {
-        result = StrEqual(a->v.str, b->v.str);
-        break;
-    }
-    case OT_RET: {
-        result = isObjEqual(a->v.OReturn.rvalue, a->v.OReturn.rvalue);
-        break;
-    }
+        case OT_STR: {
+            result = StrEqual(a->v.str, b->v.str);
+            break;
+        }
+        case OT_RET: {
+            result = isObjEqual(a->v.OReturn.rvalue, a->v.OReturn.rvalue);
+            break;
+        }
 
-    case OT_BRK: {
-        result = true;
-        break;
-    }
+        case OT_BRK: {
+            result = true;
+            break;
+        }
 
-    case OT_FNC:
-        result = false;
-        break;
+        case OT_FNC: result = false; break;
     }
 
     return result;

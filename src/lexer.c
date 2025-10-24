@@ -230,109 +230,74 @@ static void readIdent(Lexer *lx) {
 static void scanToken(Lexer *lx) {
     char32_t c = advance(lx);
     switch (c) {
-    case '(':
-        addToken(lx, T_LEFT_PAREN);
-        break;
-    case ')':
-        addToken(lx, T_RIGHT_PAREN);
-        break;
-    case '{':
-        addToken(lx, T_LEFT_BRACE);
-        break;
-    case '}':
-        addToken(lx, T_RIGHT_BRACE);
-        break;
-    case '[':
-        addToken(lx, T_LS_BRACKET);
-        break;
-    case ']':
-        addToken(lx, T_RS_BRACKET);
-        break;
-    case ',':
-        addToken(lx, T_COMMA);
-        break;
-    case '.':
-        addToken(lx, T_DOT);
-        break;
-    case '+':
-        addToken(lx, T_PLUS);
-        break;
-    case '-':
-        addToken(lx, T_MINUS);
-        break;
-    case '/':
-        addToken(lx, T_SLASH);
-        break;
-    case ':':
-        addToken(lx, T_COLON);
-        break;
-    case '%':
-        addToken(lx, T_MOD);
-        break;
-    case '*':
-        addToken(lx, T_ASTR);
-        break;
-    case ';':
-        addToken(lx, T_SEMICOLON);
-        break;
-    case '!': {
-        if (match(lx, '=')) {
-            addToken(lx, T_BANG_EQ);
-        } else {
-            addToken(lx, T_BANG);
-        }
-        break;
-    }
-
-    case '=': {
-        if (match(lx, '=')) {
-            addToken(lx, T_EQEQ);
-        } else {
-            addToken(lx, T_EQ);
-        }
-        break;
-    }
-
-    case '<': {
-        if (match(lx, '=')) {
-            addToken(lx, T_LTE);
-        } else {
-            addToken(lx, T_LT);
-        }
-        break;
-    }
-
-    case '>': {
-        if (match(lx, '=')) {
-            addToken(lx, T_GTE);
-        } else {
-            addToken(lx, T_GT);
-        }
-        break;
-    }
-    case '"':
-        readString(lx);
-        break;
-    case ' ':
-    case '\r':
-    case '\t':
-        break;
-    case '\n':
-        lx->line++;
-        break;
-    default: {
-        if (isAnyNumber(c)) {
-            readNumber(lx);
-            break;
-        } else if (isAnyAlpha(c)) {
-            readIdent(lx);
-            break;
-        } else {
-            CoreError(lx->core, lx->line, "Unknown character found");
+        case '(': addToken(lx, T_LEFT_PAREN); break;
+        case ')': addToken(lx, T_RIGHT_PAREN); break;
+        case '{': addToken(lx, T_LEFT_BRACE); break;
+        case '}': addToken(lx, T_RIGHT_BRACE); break;
+        case '[': addToken(lx, T_LS_BRACKET); break;
+        case ']': addToken(lx, T_RS_BRACKET); break;
+        case ',': addToken(lx, T_COMMA); break;
+        case '.': addToken(lx, T_DOT); break;
+        case '+': addToken(lx, T_PLUS); break;
+        case '-': addToken(lx, T_MINUS); break;
+        case '/': addToken(lx, T_SLASH); break;
+        case ':': addToken(lx, T_COLON); break;
+        case '%': addToken(lx, T_MOD); break;
+        case '*': addToken(lx, T_ASTR); break;
+        case ';': addToken(lx, T_SEMICOLON); break;
+        case '!': {
+            if (match(lx, '=')) {
+                addToken(lx, T_BANG_EQ);
+            } else {
+                addToken(lx, T_BANG);
+            }
             break;
         }
-        break;
-    }
+
+        case '=': {
+            if (match(lx, '=')) {
+                addToken(lx, T_EQEQ);
+            } else {
+                addToken(lx, T_EQ);
+            }
+            break;
+        }
+
+        case '<': {
+            if (match(lx, '=')) {
+                addToken(lx, T_LTE);
+            } else {
+                addToken(lx, T_LT);
+            }
+            break;
+        }
+
+        case '>': {
+            if (match(lx, '=')) {
+                addToken(lx, T_GTE);
+            } else {
+                addToken(lx, T_GT);
+            }
+            break;
+        }
+        case '"': readString(lx); break;
+        case ' ':
+        case '\r':
+        case '\t': break;
+        case '\n': lx->line++; break;
+        default: {
+            if (isAnyNumber(c)) {
+                readNumber(lx);
+                break;
+            } else if (isAnyAlpha(c)) {
+                readIdent(lx);
+                break;
+            } else {
+                CoreError(lx->core, lx->line, "Unknown character found");
+                break;
+            }
+            break;
+        }
     }
 }
 

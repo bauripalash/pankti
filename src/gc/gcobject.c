@@ -88,28 +88,28 @@ void FreeObject(Pgc *gc, PObj *o) {
 #endif
 
     switch (o->type) {
-    case OT_FNC: {
-        struct OFunction *f = &o->v.OFunction;
-        FreeEnv(f->env);
-        freeBaseObj(o);
-        break;
-    }
-    case OT_RET: {
-        // FreeObject(gc, o->v.OReturn.rvalue);
-        freeBaseObj(o);
-        break;
-    }
-    case OT_STR: {
-        // where does the string come from?
-        freeBaseObj(o);
-        break;
-    }
-    case OT_BRK:
-    case OT_NIL:
-    case OT_BOOL:
-    case OT_NUM: {
-        freeBaseObj(o);
-        break;
-    }
+        case OT_FNC: {
+            struct OFunction *f = &o->v.OFunction;
+            FreeEnv(f->env);
+            freeBaseObj(o);
+            break;
+        }
+        case OT_RET: {
+            // FreeObject(gc, o->v.OReturn.rvalue);
+            freeBaseObj(o);
+            break;
+        }
+        case OT_STR: {
+            // where does the string come from?
+            freeBaseObj(o);
+            break;
+        }
+        case OT_BRK:
+        case OT_NIL:
+        case OT_BOOL:
+        case OT_NUM: {
+            freeBaseObj(o);
+            break;
+        }
     }
 }

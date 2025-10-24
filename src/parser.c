@@ -286,17 +286,14 @@ static void syncParser(Parser *p) {
         }
 
         switch (peek(p)->type) {
-        case T_FUNC:
-        case T_LET:
-        case T_WHILE:
-        case T_IF:
-        case T_RETURN:
-        case T_IMPORT:
-        case T_PRINT:
-            return;
-        default:
-            advance(p);
-            break;
+            case T_FUNC:
+            case T_LET:
+            case T_WHILE:
+            case T_IF:
+            case T_RETURN:
+            case T_IMPORT:
+            case T_PRINT: return;
+            default: advance(p); break;
         }
     }
 }

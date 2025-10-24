@@ -50,7 +50,7 @@ void FreeCore(PanktiCore *core) {
 
 // Print All the Scanned Tokens
 static bool DebugLexer = false;
-// Print the Ast 
+// Print the Ast
 static bool DebugParser = true;
 
 void RunCore(PanktiCore *core) {

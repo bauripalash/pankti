@@ -146,54 +146,54 @@ void FreeStmt(Pgc *gc, PStmt *s) {
     );
 #endif
     switch (s->type) {
-    case STMT_EXPR: {
-        FreeExpr(gc, s->stmt.SExpr.expr);
-        freeBaseStmt(gc, s);
-        break;
-    }
-    case STMT_LET: {
-        // should we do this?
-        FreeExpr(gc, s->stmt.SLet.expr);
-        freeBaseStmt(gc, s);
-        break;
-    }
-    case STMT_PRINT: {
-        // what if the variable is still in env and used later?
-        FreeExpr(gc, s->stmt.SPrint.value);
-        freeBaseStmt(gc, s);
-        break;
-    }
-    case STMT_RETURN: {
-        FreeExpr(gc, s->stmt.SReturn.value);
-        freeBaseStmt(gc, s);
-        break;
-    }
-    case STMT_FUNC: {
-        struct SFunc *fs = &s->stmt.SFunc;
-        arrfree(fs->params);
-        freeBaseStmt(gc, s);
-        break;
-    }
-    case STMT_BLOCK: {
-        struct SBlock *blk = &s->stmt.SBlock;
-        arrfree(blk->stmts);
-        freeBaseStmt(gc, s);
-        break;
-    }
-    case STMT_IF: {
-        FreeExpr(gc, s->stmt.SIf.cond);
-        freeBaseStmt(gc, s);
-        break;
-    }
-    case STMT_WHILE: {
-        FreeExpr(gc, s->stmt.SWhile.cond);
-        freeBaseStmt(gc, s);
-        break;
-    }
+        case STMT_EXPR: {
+            FreeExpr(gc, s->stmt.SExpr.expr);
+            freeBaseStmt(gc, s);
+            break;
+        }
+        case STMT_LET: {
+            // should we do this?
+            FreeExpr(gc, s->stmt.SLet.expr);
+            freeBaseStmt(gc, s);
+            break;
+        }
+        case STMT_PRINT: {
+            // what if the variable is still in env and used later?
+            FreeExpr(gc, s->stmt.SPrint.value);
+            freeBaseStmt(gc, s);
+            break;
+        }
+        case STMT_RETURN: {
+            FreeExpr(gc, s->stmt.SReturn.value);
+            freeBaseStmt(gc, s);
+            break;
+        }
+        case STMT_FUNC: {
+            struct SFunc *fs = &s->stmt.SFunc;
+            arrfree(fs->params);
+            freeBaseStmt(gc, s);
+            break;
+        }
+        case STMT_BLOCK: {
+            struct SBlock *blk = &s->stmt.SBlock;
+            arrfree(blk->stmts);
+            freeBaseStmt(gc, s);
+            break;
+        }
+        case STMT_IF: {
+            FreeExpr(gc, s->stmt.SIf.cond);
+            freeBaseStmt(gc, s);
+            break;
+        }
+        case STMT_WHILE: {
+            FreeExpr(gc, s->stmt.SWhile.cond);
+            freeBaseStmt(gc, s);
+            break;
+        }
 
-    case STMT_BREAK: {
-        freeBaseStmt(gc, s);
-        break;
-    }
+        case STMT_BREAK: {
+            freeBaseStmt(gc, s);
+            break;
+        }
     }
 }

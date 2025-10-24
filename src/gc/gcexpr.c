@@ -69,7 +69,7 @@ PExpr *NewVarExpr(Pgc *gc, Token *name) {
     return e;
 }
 
-PExpr *NewAssignment(Pgc *gc, PExpr * name, PExpr *value) {
+PExpr *NewAssignment(Pgc *gc, PExpr *name, PExpr *value) {
     PExpr *e = NewExpr(gc, EXPR_ASSIGN);
     if (e == NULL) {
         return NULL;
@@ -122,53 +122,53 @@ void FreeExpr(Pgc *gc, PExpr *e) {
     }
 
     switch (e->type) {
-    case EXPR_CALL: {
-        FreeExpr(gc, e->exp.ECall.callee);
-        int count = e->exp.ECall.argCount;
-        for (int i = 0; i < count; i++) {
-            PExpr *ex = arrpop(e->exp.ECall.args);
-            FreeExpr(gc, ex);
+        case EXPR_CALL: {
+            FreeExpr(gc, e->exp.ECall.callee);
+            int count = e->exp.ECall.argCount;
+            for (int i = 0; i < count; i++) {
+                PExpr *ex = arrpop(e->exp.ECall.args);
+                FreeExpr(gc, ex);
+            }
+            arrfree(e->exp.ECall.args);
+            freeBaseExpr(gc, e);
+            break;
         }
-        arrfree(e->exp.ECall.args);
-        freeBaseExpr(gc, e);
-        break;
-    }
-    case EXPR_LOGICAL: {
-        FreeExpr(gc, e->exp.ELogical.left);
-        FreeExpr(gc, e->exp.ELogical.right);
-        freeBaseExpr(gc, e);
-        break;
-    }
-    case EXPR_ASSIGN: {
-			FreeExpr(gc, e->exp.EAssign.name);
-        FreeExpr(gc, e->exp.EAssign.value);
-        freeBaseExpr(gc, e);
-        break;
-    }
-    case EXPR_VARIABLE: {
-        freeBaseExpr(gc, e);
-        break;
-    }
-    case EXPR_GROUPING: {
-        FreeExpr(gc, e->exp.EGrouping.expr);
-        freeBaseExpr(gc, e);
-        break;
-    }
+        case EXPR_LOGICAL: {
+            FreeExpr(gc, e->exp.ELogical.left);
+            FreeExpr(gc, e->exp.ELogical.right);
+            freeBaseExpr(gc, e);
+            break;
+        }
+        case EXPR_ASSIGN: {
+            FreeExpr(gc, e->exp.EAssign.name);
+            FreeExpr(gc, e->exp.EAssign.value);
+            freeBaseExpr(gc, e);
+            break;
+        }
+        case EXPR_VARIABLE: {
+            freeBaseExpr(gc, e);
+            break;
+        }
+        case EXPR_GROUPING: {
+            FreeExpr(gc, e->exp.EGrouping.expr);
+            freeBaseExpr(gc, e);
+            break;
+        }
 
-    case EXPR_LITERAL: {
-        freeBaseExpr(gc, e);
-        break;
-    }
-    case EXPR_UNARY: {
-        FreeExpr(gc, e->exp.EUnary.right);
-        freeBaseExpr(gc, e);
-        break;
-    }
-    case EXPR_BINARY: {
-        FreeExpr(gc, e->exp.EBinary.left);
-        FreeExpr(gc, e->exp.EBinary.right);
-        freeBaseExpr(gc, e);
-        break;
-    }
+        case EXPR_LITERAL: {
+            freeBaseExpr(gc, e);
+            break;
+        }
+        case EXPR_UNARY: {
+            FreeExpr(gc, e->exp.EUnary.right);
+            freeBaseExpr(gc, e);
+            break;
+        }
+        case EXPR_BINARY: {
+            FreeExpr(gc, e->exp.EBinary.left);
+            FreeExpr(gc, e->exp.EBinary.right);
+            freeBaseExpr(gc, e);
+            break;
+        }
     }
 }
