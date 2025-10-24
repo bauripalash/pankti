@@ -1,15 +1,7 @@
-from typing import Any
+def fib(n):
+    if n < 2:
+        return n
 
+    return fib(n-2) + fib(n-1)
 
-globalOne = None
-globalTwo = None
-
-def main():
-    global globalOne
-    a = "one"
-    def one():
-        print(a)
-    globalOne = one
-
-main()
-globalOne()
+print(fib(35))
