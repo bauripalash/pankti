@@ -1,2 +1,2 @@
 dhori a = 100
-print "a" + a
+print a++a

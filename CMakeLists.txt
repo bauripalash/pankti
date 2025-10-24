@@ -8,8 +8,8 @@ add_executable(${PROJECT_NAME})
 add_subdirectory(src)
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
 #target_link_options(${PROJECT_NAME} PRIVATE "-static")
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g3 -Wall -fsanitize=undefined -fsanitize=float-cast-overflow" )
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=undefined -fsanitize=float-cast-overflow -flto")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g3 -Wall -fsanitize=address -fsanitize=undefined -fsanitize=float-cast-overflow" )
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address -fsanitize=undefined -fsanitize=float-cast-overflow -flto")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Wall -O3 -flto" )
 
 
