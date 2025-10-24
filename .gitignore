@@ -9,6 +9,7 @@ massif.out.*
 *.perf
 perf.data
 _temp*.png
+cachegrind.out.*
 ##### C.gitignore #####
 # Prerequisites
 *.d
