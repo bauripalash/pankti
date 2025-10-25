@@ -49,7 +49,7 @@ void FreeCore(PanktiCore *core) {
 }
 
 // Print All the Scanned Tokens
-static bool DebugLexer = false;
+static bool DebugLexer = true;
 // Print the Ast
 static bool DebugParser = true;
 
@@ -57,9 +57,12 @@ void RunCore(PanktiCore *core) {
     core->lexer->core = core;
     ScanTokens(core->lexer);
     if (DebugLexer) {
+		printf("==== Token ====\n");
         for (int i = 0; i < arrlen(core->lexer->tokens); i++) {
             PrintToken(core->lexer->tokens[i]);
+			printf("\n");
         }
+		printf("===============\n");
     }
 
     if (core->caughtError) {
@@ -77,11 +80,11 @@ void RunCore(PanktiCore *core) {
         // exit(1);
     }
     if (DebugParser) {
-        printf("==== AST ====\n");
+        printf("===== AST =====\n");
         for (int i = 0; i < arrlen(prog); i++) {
             AstStmtPrint(prog[i], 0);
         }
-        printf("==== END ====\n");
+        printf("===== END =====\n");
     }
     core->it = NewInterpreter(core->gc, prog);
     core->it->core = core;
