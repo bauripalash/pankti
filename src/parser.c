@@ -194,9 +194,9 @@ static PExpr *rFactor(Parser *p) {
     while (matchMany(p, (TokenType[]){T_SLASH, T_ASTR}, 2)) {
         Token *op = previous(p);
         PExpr *right = rUnary(p);
-		if (right == NULL) {
-			error(p, NULL, "Invaid expression found in factor expression");
-		}
+        if (right == NULL) {
+            error(p, NULL, "Invaid expression found in factor expression");
+        }
         expr = NewBinaryExpr(p->gc, expr, op, right);
     }
     return expr;

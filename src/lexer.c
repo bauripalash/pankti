@@ -33,7 +33,7 @@ Lexer *NewLexer(char *src) {
 
     lx->current = 0;
     lx->start = 0;
-	lx->column = 1;
+    lx->column = 1;
     lx->line = 1;
     lx->source = src;
     lx->length = strlen(src);
@@ -90,7 +90,7 @@ static char32_t advance(Lexer *lexer) {
     char32_t cp = UIterNext(lexer->iter);
     if (cp != 0) {
         lexer->current += (lexer->iter->pos - pos);
-		lexer->column += lexer->iter->pos - pos;
+        lexer->column += lexer->iter->pos - pos;
         return cp;
     }
 
@@ -138,11 +138,11 @@ static bool addTokenWithLexeme(Lexer *lx, TokenType type, char *str, int len) {
             tok->len = 1;
         }
     }
-	long column = lx->column;
+    long column = lx->column;
 
-	column -= tok->len;
-	
-	tok->col = column;
+    column -= tok->len;
+
+    tok->col = column;
     arrput(lx->tokens, tok);
     return true;
 }
@@ -292,10 +292,10 @@ static void scanToken(Lexer *lx) {
         case '\r':
         case '\t': break;
         case '\n': {
-			lx->line++; 
-			lx->column = 1;
-			break;
-		}
+            lx->line++;
+            lx->column = 1;
+            break;
+        }
         default: {
             if (isAnyNumber(c)) {
                 readNumber(lx);

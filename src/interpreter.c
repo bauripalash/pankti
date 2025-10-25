@@ -78,15 +78,15 @@ static PObj *vLiteral(PInterpreter *it, PExpr *expr, PEnv *env) {
 static PObj *vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
     PObj *l = evaluate(it, expr->exp.EBinary.left, env);
     PObj *r = evaluate(it, expr->exp.EBinary.right, env);
-	if (l == NULL) {
-		error(it, NULL, "Left hand side expression is invalid");
-		return NULL;
-	}
+    if (l == NULL) {
+        error(it, NULL, "Left hand side expression is invalid");
+        return NULL;
+    }
 
-	if (r == NULL) {
-		error(it, NULL, "Right hand side expression is invalid");
-		return NULL;
-	}
+    if (r == NULL) {
+        error(it, NULL, "Right hand side expression is invalid");
+        return NULL;
+    }
     PObj *result = NULL;
     switch (expr->exp.EBinary.opr->type) {
         case T_PLUS: {

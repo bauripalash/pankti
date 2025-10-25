@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 PanktiCore *NewCore(const char *path) {
     PanktiCore *core = PCreate(PanktiCore);
@@ -53,16 +54,28 @@ static bool DebugLexer = true;
 // Print the Ast
 static bool DebugParser = true;
 
+#define DEBUG_TIMES
+
 void RunCore(PanktiCore *core) {
     core->lexer->core = core;
+#if defined DEBUG_TIMES
+    clock_t lxTic = clock();
+#endif
     ScanTokens(core->lexer);
+#if defined DEBUG_TIMES
+    clock_t lxToc = clock();
+    printf(
+        "[DEBUG] Scanner finished : %f sec.\n",
+        (double)(lxToc - lxTic) / CLOCKS_PER_SEC
+    );
+#endif
     if (DebugLexer) {
-		printf("==== Token ====\n");
+        printf("==== Token ====\n");
         for (int i = 0; i < arrlen(core->lexer->tokens); i++) {
             PrintToken(core->lexer->tokens[i]);
-			printf("\n");
+            printf("\n");
         }
-		printf("===============\n");
+        printf("===============\n");
     }
 
     if (core->caughtError) {
@@ -72,8 +85,17 @@ void RunCore(PanktiCore *core) {
 
     core->parser = NewParser(core->gc, core->lexer);
     core->parser->core = core;
-
+#if defined DEBUG_TIMES
+    clock_t pTic = clock();
+#endif
     PStmt **prog = ParseParser(core->parser);
+#if defined DEBUG_TIMES
+    clock_t pToc = clock();
+    printf(
+        "[DEBUG] Parser finished : %f sec.\n",
+        (double)(pToc - pTic) / CLOCKS_PER_SEC
+    );
+#endif
 
     if (core->caughtError) {
         printf("Parser Error found!\n");
@@ -88,7 +110,19 @@ void RunCore(PanktiCore *core) {
     }
     core->it = NewInterpreter(core->gc, prog);
     core->it->core = core;
+#if defined DEBUG_TIMES
+    clock_t inTic = clock();
+#endif
+
     Interpret(core->it);
+#if defined DEBUG_TIMES
+    clock_t inToc = clock();
+    printf(
+        "[DEBUG] Interpreter finished : %f sec.\n",
+        (double)(inToc - inTic) / CLOCKS_PER_SEC
+    );
+#endif
+
     if (core->caughtError) {
         printf("Runtime Error found!\n");
         exit(1);

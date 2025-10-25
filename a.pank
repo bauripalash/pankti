@@ -1,2 +1,9 @@
-dhori apple = 100
-print apple
+kaj fib(n)
+	if n < 2 then
+		return n
+	end
+
+	return fib(n-2) + fib(n-1)
+end
+
+print fib(35)

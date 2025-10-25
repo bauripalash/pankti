@@ -25,8 +25,8 @@ typedef struct Lexer {
     long current;
     // Current line number
     long line;
-	// current column number of the start of the token
-	long column;
+    // current column number of the start of the token
+    long column;
 
     // Codepoint iterator. The characters are read as UTF-32 characters
     UIter *iter;
