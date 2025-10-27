@@ -2,6 +2,7 @@ BIN:=pankti
 CMAKE_OUTPUT:=build/$(BIN)
 ZIG_OUTPUT:=zig-out/bin/$(BIN)
 TCC:=/usr/bin/tcc
+PERFCC:=clang
 
 HEADERS:= $(shell find src/include -path 'src/external' -prune -o -path 'src/include/exported' -prune -o -name '*.h' -print)
 SOURCES:= $(shell find src/ -path 'src/external' -prune -o -name '*.c' -print)
@@ -40,6 +41,15 @@ cmake_clang:
 .PHONY: cmake_clean
 cmake_clean:
 	cd build
+
+.PHONY: run_perf
+run_perf:
+	rm -rf build
+	cmake -S . -B build -DCMAKE_C_COMPILER=$(PERFCC) -DCMAKE_BUILD_TYPE=Release
+	cmake --build build
+	perf record -g --call-graph dwarf -F 999 ./$(CMAKE_OUTPUT)
+	perf script -F +pid > pankti.perf
+	
 
 
 .PHONY: infer
