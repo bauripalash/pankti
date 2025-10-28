@@ -28,7 +28,6 @@ PanktiCore *NewCore(const char *path) {
 }
 
 void FreeCore(PanktiCore *core) {
-	return;
     if (core == NULL) {
         return;
     }
