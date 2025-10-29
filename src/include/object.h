@@ -71,6 +71,48 @@ typedef struct PObj {
 
 } PObj;
 
+typedef enum PValueType{
+	VT_NUM,
+	VT_OBJ,
+	VT_BOOL,
+	VT_NIL
+}PValueType;
+
+typedef struct PValue{
+	PValueType type;
+	union{
+		double num;
+		bool bl;
+		PObj * obj;
+	}v;
+}PValue;
+
+
+#define IsValueNum(val) (val.type == VT_NUM)
+#define IsValueBool(val) (val.type == VT_BOOL)
+#define IsValueNum(val) (val.type == VT_NUM)
+#define IsValueObj(val) (val.type == VT_OBJ)
+
+#define ValueAsNum(val) ((double)val.v.num)
+#define ValueAsBool(val) ((bool)val.v.bl)
+#define ValueAsObj(val) ((PObj*)val.v.obj)
+
+static inline PValue MakeNumber(double value){
+	PValue val; val.type = VT_NUM; val.v.num = value; return val;
+}
+static inline PValue MakeBool(bool bl){
+	PValue val; val.type = VT_BOOL; val.v.bl = bl; return val;
+}
+static inline PValue MakeNil(){
+	PValue val; val.type = VT_NIL; return val;
+}
+static inline PValue MakeObject(PObj * obj){
+	PValue val; val.type = VT_OBJ; val.v.obj = obj; return val;
+}
+
+bool IsValueEqual(const PValue * a, const PValue * b);
+void PrintValue(const PValue * val);
+
 // Print Object
 void PrintObject(const PObj *o);
 
@@ -86,7 +128,7 @@ bool IsObjTruthy(const PObj *obj);
 // Check if two objects `a` and `b` are equal
 // `a` = first object
 // `b` = second object
-bool isObjEqual(const PObj *a, const PObj *b);
+bool IsObjEqual(const PObj *a, const PObj *b);
 
 #ifdef __cplusplus
 }

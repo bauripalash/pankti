@@ -116,11 +116,11 @@ static PObj *vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
             break;
         }
         case T_EQEQ: {
-            result = NewBoolObj(it->gc, isObjEqual(l, r));
+            result = NewBoolObj(it->gc, IsObjEqual(l, r));
             break;
         }
         case T_BANG_EQ: {
-            result = NewBoolObj(it->gc, !isObjEqual(l, r));
+            result = NewBoolObj(it->gc, !IsObjEqual(l, r));
             break;
         }
         case T_GT: {
