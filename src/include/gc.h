@@ -18,10 +18,6 @@ typedef struct Pgc {
     PObj *objects;
     PStmt *stmts;
     size_t nextGc;
-
-    PObj *onlyNilObj;
-    PObj *onlyTrueObj;
-    PObj *onlyFalseObj;
 } Pgc;
 
 Pgc *NewGc();
@@ -35,26 +31,16 @@ PObj *NewObject(Pgc *gc, PObjType type);
 // Handle all underlying values according to function type.
 void FreeObject(Pgc *gc, PObj *o);
 
-// Create New Number Object
-// `value` = Numerical floating point value of the object
-PObj *NewNumberObj(Pgc *gc, double value);
-
-// Create New Bool Object
-// `value` = Bool value
-PObj *NewBoolObj(Pgc *gc, bool value);
 
 // Create New String Object
 // `value` = String value
 PObj *NewStrObject(Pgc *gc, char *value);
 
-// New Nil Object
-PObj *NewNilObject(Pgc *gc);
-
 // New Return Statement Object
 // `value` = The actual value of the return statement.
 // Value will be Nil Object if it is empty return statement
 // Only used in functions
-PObj *NewReturnObject(Pgc *gc, PObj *value);
+PObj *NewReturnObject(Pgc *gc, PValue value);
 
 // New Break Statement Object
 // Only used in while loops

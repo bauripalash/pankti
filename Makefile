@@ -42,6 +42,12 @@ cmake_clang:
 cmake_clean:
 	cd build
 
+.PHONY: build_release
+build_release:
+	rm -rf build
+	cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+	cmake --build build
+
 .PHONY: run_perf
 run_perf:
 	rm -rf build

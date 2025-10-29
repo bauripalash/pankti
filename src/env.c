@@ -16,27 +16,15 @@ PEnv *NewEnv(PEnv *enclosing) {
     return e;
 }
 
-EnvPair *NewPair(uint32_t key, PObj *value) {
-    EnvPair *p = PCreate(EnvPair);
-    p->key = key;
-    p->value = value;
-    return p;
-}
 
 void FreeEnv(PEnv *e) {
     if (e == NULL) {
         return;
     }
 
-    if (e->table != NULL) {
-        for (int i = 0; i < e->count; i++) {
-            EnvPair *pair = arrpop(e->table);
-            free(pair);
-        }
-
-        arrfree(e->table);
-    }
-
+	if (e->table != NULL) {
+		hmfree(e->table);
+	}
     free(e);
 }
 
@@ -47,10 +35,9 @@ void DebugEnv(PEnv *e) {
     if (e->table == NULL) {
         return;
     }
-    for (int i = 0; i < arrlen(e->table); i++) {
-        EnvPair *p = e->table[i];
-        printf("\n%d < %d '", i, p->key);
-        PrintObject(p->value);
+    for (int i = 0; i < hmlen(e->table); i++) {
+        printf("\n%d < %d '", i, e->table[i].key);
+		PrintValue(&e->table[i].value);
         printf("' >\n");
     }
 
@@ -59,13 +46,15 @@ void DebugEnv(PEnv *e) {
     }
 }
 
-void EnvPutValue(PEnv *e, uint32_t hash, PObj *value) {
-    EnvPair *newPair = NewPair(hash, value);
-    arrput(e->table, newPair);
-    e->count++;
+void EnvPutValue(PEnv *e, uint32_t hash, PValue value) {
+	if (e == NULL) {
+		return;
+	}
+	hmput(e->table, hash, value);
+    e->count = hmlen(e->table);
 }
 
-bool EnvSetValue(PEnv *e, uint32_t hash, PObj *value) {
+bool EnvSetValue(PEnv *e, uint32_t hash, PValue value) {
     if (e == NULL) {
         return false;
     }
@@ -77,13 +66,12 @@ bool EnvSetValue(PEnv *e, uint32_t hash, PObj *value) {
         }
     }
 
-    for (int i = 0; i < arrlen(e->table); i++) {
-        EnvPair *p = e->table[i];
-        if (p->key == hash) {
-            p->value = value;
-            return true;
-        }
-    }
+ 
+
+	if (hmgeti(e->table, hash) > -1) {
+		hmput(e->table, hash, value);
+		return true;
+	}
 
     if (e->enclosing != NULL) {
         return EnvSetValue(e->enclosing, hash, value);
@@ -92,20 +80,21 @@ bool EnvSetValue(PEnv *e, uint32_t hash, PObj *value) {
     return false;
 }
 
-PObj *EnvGetValue(PEnv *e, uint32_t hash) {
+PValue EnvGetValue(PEnv *e, uint32_t hash, bool * found) {
     if (e == NULL) {
-        return NULL;
+		*found = false;
+		return MakeNil();
     }
 
-    for (int i = 0; i < e->count; i++) {
-        if (e->table[i]->key == hash) {
-            return e->table[i]->value;
-        }
-    }
+	if (hmgeti(e->table, hash) > -1) {
+		*found = true;
+		return hmget(e->table, hash);
+	}
 
     if (e->enclosing != NULL) {
-        return EnvGetValue(e->enclosing, hash);
+        return EnvGetValue(e->enclosing, hash, found);
     }
 
-    return NULL;
+	*found = false;
+    return MakeNil();
 }

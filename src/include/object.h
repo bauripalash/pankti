@@ -9,16 +9,28 @@ extern "C" {
 #include "token.h"
 #include <stdbool.h>
 
+typedef struct PObj PObj;
+
+typedef enum PValueType{
+	VT_NUM,
+	VT_OBJ,
+	VT_BOOL,
+	VT_NIL
+}PValueType;
+
+typedef struct PValue{
+	PValueType type;
+	union{
+		double num;
+		bool bl;
+		PObj * obj;
+	}v;
+}PValue;
+
 // Pankti Object Types
 typedef enum PObjType {
-    // Number Object
-    OT_NUM,
     // String Object
     OT_STR,
-    // Bool Object
-    OT_BOOL,
-    // Nil Object
-    OT_NIL,
     // Return Object. Used by `OReturn`
     OT_RET,
     // Break Object. Used by `OBreak`
@@ -35,16 +47,13 @@ typedef struct PObj {
 
     // Union of All Pankti Objects
     union v {
-        // Number Object. Type : `OT_NUM`
-        double num;
         // String Object. Type : `OT_STR`
         char *str;
-        // Bool Object. Type : `OT_BOOL`
-        bool bl;
         // Return Object. Type : `OT_RET`
         struct OReturn {
             // The Actual Value
-            struct PObj *rvalue;
+			PValue rvalue;
+        
         } OReturn;
 
         // Break Object. Type : `OT_BRK`
@@ -71,21 +80,7 @@ typedef struct PObj {
 
 } PObj;
 
-typedef enum PValueType{
-	VT_NUM,
-	VT_OBJ,
-	VT_BOOL,
-	VT_NIL
-}PValueType;
 
-typedef struct PValue{
-	PValueType type;
-	union{
-		double num;
-		bool bl;
-		PObj * obj;
-	}v;
-}PValue;
 
 
 #define IsValueNum(val) (val.type == VT_NUM)
@@ -110,6 +105,8 @@ static inline PValue MakeObject(PObj * obj){
 	PValue val; val.type = VT_OBJ; val.v.obj = obj; return val;
 }
 
+
+bool IsValueTruthy(const PValue * val);
 bool IsValueEqual(const PValue * a, const PValue * b);
 void PrintValue(const PValue * val);
 
@@ -118,12 +115,6 @@ void PrintObject(const PObj *o);
 
 // Get Object type as String
 char *ObjTypeToString(PObjType type);
-// Check if the object is Truthy
-// `obj` = Object to check
-// Will only return True if the object is Truthy.
-// In Pankti, only Bool object with value True will result to True return
-// Otherwise the return will be False
-bool IsObjTruthy(const PObj *obj);
 
 // Check if two objects `a` and `b` are equal
 // `a` = first object

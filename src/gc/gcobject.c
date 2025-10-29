@@ -18,19 +18,7 @@ PObj *NewObject(Pgc *gc, PObjType type) {
 #endif
     return o;
 }
-PObj *NewNumberObj(Pgc *gc, double value) {
-    PObj *o = NewObject(gc, OT_NUM);
-    o->v.num = value;
-    return o;
-}
 
-PObj *NewBoolObj(Pgc *gc, bool value) {
-    if (value) {
-        return gc->onlyTrueObj;
-    } else {
-        return gc->onlyFalseObj;
-    }
-}
 
 PObj *NewStrObject(Pgc *gc, char *value) {
     PObj *o = NewObject(gc, OT_STR);
@@ -38,9 +26,8 @@ PObj *NewStrObject(Pgc *gc, char *value) {
     return o;
 }
 
-PObj *NewNilObject(Pgc *gc) { return gc->onlyNilObj; }
 
-PObj *NewReturnObject(Pgc *gc, PObj *value) {
+PObj *NewReturnObject(Pgc *gc, PValue value) {
     PObj *o = NewObject(gc, OT_RET);
     o->v.OReturn.rvalue = value;
     return o;
@@ -104,10 +91,7 @@ void FreeObject(Pgc *gc, PObj *o) {
             freeBaseObj(o);
             break;
         }
-        case OT_BRK:
-        case OT_NIL:
-        case OT_BOOL:
-        case OT_NUM: {
+        case OT_BRK:{
             freeBaseObj(o);
             break;
         }

@@ -7,7 +7,7 @@
 
 void PrintValue(const PValue * val){
 	switch (val->type) {
-		case VT_NUM: printf("%g", val->v.num);break;
+		case VT_NUM: printf("%f", val->v.num);break;
 		case VT_BOOL: printf("%s" , val->v.bl ? "true" : "false");break;
 		case VT_NIL: printf("nil");break;
 		case VT_OBJ: PrintObject(val->v.obj);break;
@@ -50,13 +50,10 @@ void PrintObject(const PObj *o) {
     }
 
     switch (o->type) {
-        case OT_NUM: printf("%f", o->v.num); break;
         case OT_STR: printf("%s", o->v.str); break;
-        case OT_BOOL: printf("%s", o->v.bl ? "true" : "false"); break;
-        case OT_NIL: printf("nil"); break;
         case OT_RET: {
             printf("<ret ");
-            PrintObject(o->v.OReturn.rvalue);
+            PrintValue(&o->v.OReturn.rvalue);
             printf(">");
             break;
         }
@@ -73,10 +70,7 @@ void PrintObject(const PObj *o) {
 
 char *ObjTypeToString(PObjType type) {
     switch (type) {
-        case OT_NUM: return "Number"; break;
         case OT_STR: return "String"; break;
-        case OT_BOOL: return "Bool"; break;
-        case OT_NIL: return "Nil"; break;
         case OT_RET: return "Return"; break;
         case OT_BRK: return "Break"; break;
         case OT_FNC: return "Function"; break;
@@ -85,13 +79,6 @@ char *ObjTypeToString(PObjType type) {
     return "";
 }
 
-bool IsObjTruthy(const PObj *o) {
-    if (o != NULL && o->type == OT_BOOL) {
-        return o->v.bl;
-    }
-
-    return false;
-}
 
 bool IsObjEqual(const PObj *a, const PObj *b) {
     if (a->type != b->type) {
@@ -99,26 +86,12 @@ bool IsObjEqual(const PObj *a, const PObj *b) {
     }
     bool result = false;
     switch (a->type) {
-        case OT_NUM: {
-            result = (a->v.num == b->v.num);
-            break;
-        }
-        case OT_BOOL: {
-            result = (a->v.bl == b->v.bl);
-            break;
-        }
-
-        case OT_NIL: {
-            result = true;
-            break;
-        }
-
         case OT_STR: {
             result = StrEqual(a->v.str, b->v.str);
             break;
         }
         case OT_RET: {
-            result = IsObjEqual(a->v.OReturn.rvalue, a->v.OReturn.rvalue);
+            result = IsValueEqual(&a->v.OReturn.rvalue, &a->v.OReturn.rvalue);
             break;
         }
 

@@ -41,3 +41,36 @@ I got the following results:
 
 No GC has not been yet implemented, just plain malloc calls and free everything 
 after finishing execution.
+
+-------
+> Wednesday, October 29, 2025 7:51 PM (IST)
+
+I implemented a simple mark-sweep garbage collector, which tries to collect 
+disconnected objects from memory, after each statement in main script is
+finished.
+
+I made it to use simple stack allocated *PValue* for evaluating statements
+returns. Numbers, Bools, and Nil now stays in PValue, and PObj* Objects stay
+as heap objects and only the pointer is kept in PValue. 
+
+The Environment now uses hash tables from `stb_ds.h` instead of arrays.
+
+This time instead of `-O3` flag, I am using `-O2`.
+
+I got the following results after running fib(35) script: 
+* *Lexer* finished within **0.000020 seconds**.
+* *Parser* finished within **0.000009 seconds**.
+* *Interpreter/Evaluator* finished within **11.863574 seconds**.
+
+(Don't take the numbers too seriously, it can fluctuate according to system 
+load)
+
+I am using a ASUS Laptop with following specs:
+
+```
+CPU: AMD Ryzen 5 5600H with Integrated Radeon Graphics
+RAM: 16GB
+OS: Manjaro Linux
+Kernel: 6.16.12
+Desktop Environment: KDE Plasma 6.4.5
+```
