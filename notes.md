@@ -74,3 +74,37 @@ OS: Manjaro Linux
 Kernel: 6.16.12
 Desktop Environment: KDE Plasma 6.4.5
 ```
+
+> Thursday, October 30, 2025 7:31 PM (IST)
+
+I am using `mimalloc` library for memory allocation. 
+
+Now function call arguments are passed as stack array if the number arguments 
+are 16 or less, otherwise fallback to heap allocation. I am using plain dynamic 
+array instead of stb_ds array.
+
+For statement execution instead of returning values directly, I wrap them inside
+an `ExResult` struct.
+
+```c
+typedef enum ExType{
+	ET_SIMPLE,
+	ET_BREAK,
+	ET_RETURN,
+}ExType;
+
+typedef struct ExResult{
+	PValue value;
+	ExType type;
+}ExResult;
+```
+
+All statement execution functions now return ExResult. With this we no longer 
+need Return Object and Break Objects. With this most of the memory usage for 
+fib(35) is gone. Before this most of the objects for that program was Return 
+objects. 
+
+Before this the Interpreter consume around <> of RAM, now according to massif
+the peak usage is 26.4KiB (around 27KB) with system libc memory allocation
+functions, I removed mimalloc usage for this test to get the actual impact of
+this ExResult method.

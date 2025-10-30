@@ -9,7 +9,7 @@ extern "C" {
 #endif
 
 #include <stdbool.h>
-// #define DEBUG_GC
+//#define DEBUG_GC
 
 // Pankti Garbage Collector
 typedef struct Pgc {
@@ -35,16 +35,6 @@ void FreeObject(Pgc *gc, PObj *o);
 // Create New String Object
 // `value` = String value
 PObj *NewStrObject(Pgc *gc, char *value);
-
-// New Return Statement Object
-// `value` = The actual value of the return statement.
-// Value will be Nil Object if it is empty return statement
-// Only used in functions
-PObj *NewReturnObject(Pgc *gc, PValue value);
-
-// New Break Statement Object
-// Only used in while loops
-PObj *NewBreakObject(Pgc *gc);
 
 // Create Function Statement Object
 // `name` = Name of the function

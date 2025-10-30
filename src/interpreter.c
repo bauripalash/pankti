@@ -13,9 +13,49 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static PValue execute(PInterpreter *it, PStmt *stmt, PEnv *env);
+typedef enum ExType{
+	ET_SIMPLE,
+	ET_BREAK,
+	ET_RETURN,
+}ExType;
+
+typedef struct ExResult{
+	PValue value;
+	ExType type;
+}ExResult;
+
+static char * ExResultToStr(ExType t){
+	switch (t) {
+		case ET_SIMPLE: return "Simple";
+		case ET_BREAK: return "Break";
+		case ET_RETURN: return "return";
+	}
+}
+
+static inline ExResult ExSimple(PValue v){
+	ExResult er;
+	er.type = ET_SIMPLE;
+	er.value = v;
+	return er;
+}
+
+static inline ExResult ExBreak(){
+	ExResult er;
+	er.type = ET_BREAK;
+	er.value = MakeNil();
+	return er;
+}
+
+static inline ExResult ExReturn(PValue v){
+	ExResult er;
+	er.type = ET_RETURN;
+	er.value = v;
+	return er;
+}
+
+static ExResult execute(PInterpreter *it, PStmt *stmt, PEnv *env);
 static PValue evaluate(PInterpreter *it, PExpr *expr, PEnv *env);
-static PValue execBlock(PInterpreter *it, PStmt *stmt, PEnv *env, bool ret);
+static ExResult execBlock(PInterpreter *it, PStmt *stmt, PEnv *env, bool ret);
 
 PInterpreter *NewInterpreter(Pgc *gc, PStmt **prog) {
     PInterpreter *it = PCreate(PInterpreter);
@@ -239,20 +279,16 @@ static PValue handleCall(PInterpreter *it, PObj *func, PValue *args, int count) 
         EnvPutValue(fnEnv, f->params[i]->hash, args[i]);
     }
 
-    PValue evalOut = execBlock(it, f->body, fnEnv, true);
+    ExResult evalOut = execBlock(it, f->body, fnEnv, true);
 
-	if (evalOut.type == VT_OBJ) {
-		PObj * objValue = evalOut.v.obj;
-		if (objValue->type == OT_RET) {
-			FreeEnv(fnEnv);
-			return objValue->v.OReturn.rvalue;
-			//MakeObject(objValue->v.OReturn.rvalue);
-		}
+	if (evalOut.type == ET_RETURN) {
+		FreeEnv(fnEnv);
+		return evalOut.value;
 	}
 
     FreeEnv(fnEnv);
 
-    return evalOut;
+    return evalOut.value;
 }
 
 static PValue vCall(PInterpreter *it, PExpr *expr, PEnv *env) {
@@ -317,26 +353,24 @@ static PValue evaluate(PInterpreter *it, PExpr *expr, PEnv *env) {
     return MakeNil();
 }
 
-static PValue execBlock(PInterpreter *it, PStmt *stmt, PEnv *env, bool ret) {
+static ExResult execBlock(PInterpreter *it, PStmt *stmt, PEnv *env, bool ret) {
     PStmt **stmtList = stmt->stmt.SBlock.stmts;
     if (stmtList == NULL) {
-        return MakeNil();
+        return ExSimple(MakeNil());
     }
-    PValue temp;
+    ExResult temp;
     // PEnv * ogEnv = it->env;
     // it->env = env;
 
     PEnv *blockEnv = NewEnv(env);
     for (int i = 0; i < arrlen(stmtList); i++) {
         temp = execute(it, stmtList[i], blockEnv);
-        if (ret && temp.type == VT_OBJ && temp.v.obj->type == OT_RET) {
-
+		//printf("Exec result -> %s\n", ExResultToStr(temp.type));
+        if (ret && temp.type == ET_RETURN) {
             FreeEnv(blockEnv);
             return temp;
         }
-
-        if (temp.type == VT_OBJ && temp.v.obj->type == OT_RET) {
-
+        if (temp.type == ET_BREAK) {
             FreeEnv(blockEnv);
             return temp;
         }
@@ -347,29 +381,30 @@ static PValue execBlock(PInterpreter *it, PStmt *stmt, PEnv *env, bool ret) {
     return temp;
 }
 
-static PValue vsBlock(PInterpreter *it, PStmt *stmt, PEnv *env) {
-    PValue value = execBlock(it, stmt, env, true);
-    return value;
+static ExResult vsBlock(PInterpreter *it, PStmt *stmt, PEnv *env) {
+    //PValue value = 
+	return execBlock(it, stmt, env, true);
+    //return value;
 }
 
-static PValue vsLet(PInterpreter *it, PStmt *stmt, PEnv *env) {
+static ExResult vsLet(PInterpreter *it, PStmt *stmt, PEnv *env) {
 	PValue value = evaluate(it, stmt->stmt.SLet.expr, env);
     EnvPutValue(env, stmt->stmt.SLet.name->hash, value);
-    return value;
+    return ExSimple(value);
 }
 
-static PValue vsPrint(PInterpreter *it, PStmt *stmt, PEnv *env) {
+static ExResult vsPrint(PInterpreter *it, PStmt *stmt, PEnv *env) {
     PValue value = evaluate(it, stmt->stmt.SPrint.value, env);
     PrintValue(&value);
     printf("\n");
-    return MakeNil();
+    return ExSimple(MakeNil());
 }
 
-static PValue vsExprStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
-    return evaluate(it, stmt->stmt.SExpr.expr, env);
+static ExResult vsExprStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
+    return ExSimple(evaluate(it, stmt->stmt.SExpr.expr, env));
 }
 
-static PValue vsIfStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
+static ExResult vsIfStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     PValue cond = evaluate(it, stmt->stmt.SIf.cond, env);
     if (IsValueTruthy(&cond)) {
         return execute(it, stmt->stmt.SIf.thenBranch, env);
@@ -379,46 +414,48 @@ static PValue vsIfStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
         }
     }
 
-    return MakeNil();
+    return ExSimple(MakeNil());
 }
 
-static PValue vsWhileStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
+static ExResult vsWhileStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
 	PValue cond = evaluate(it,stmt->stmt.SWhile.cond, env);
     while (IsValueTruthy(&cond)) {
-        PValue temp = execute(it, stmt->stmt.SWhile.body, env);
-        if (temp.type == VT_OBJ && temp.v.obj->type == OT_BRK) {
+        ExResult res = execute(it, stmt->stmt.SWhile.body, env);
+        if (res.type == ET_BREAK) {
             break;
         }
 
 		cond = evaluate(it,stmt->stmt.SWhile.cond, env);
     }
 
-    return MakeNil();
+    return ExSimple(MakeNil());
 }
 
-static PValue vsReturnStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
+static ExResult vsReturnStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     struct SReturn *ret = &stmt->stmt.SReturn;
     PValue value = evaluate(it, ret->value, env);
-
-	PObj * retValue = NewReturnObject(it->gc, value);
-    return MakeObject(retValue);
+	return ExReturn(value);
+	//PObj * retValue = NewReturnObject(it->gc, value);
+    //return MakeObject(retValue);
 }
 
-static PValue vsBreakStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
-    return MakeObject(NewBreakObject(it->gc));
+static ExResult vsBreakStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
+    return ExBreak();
+	//MakeObject(NewBreakObject(it->gc));
 }
 
-static PValue vsFuncStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
+static ExResult vsFuncStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
+
     struct SFunc *fs = &stmt->stmt.SFunc;
     PObj *f = NewFuncObject(
         it->gc, fs->name, fs->params, fs->body, NewEnv(env), fs->paramCount
     );
 
     EnvPutValue(env, fs->name->hash, MakeObject(f));
-    return MakeNil();
+    return ExSimple(MakeNil());
 }
 
-static PValue execute(PInterpreter *it, PStmt *stmt, PEnv *env) {
+static ExResult execute(PInterpreter *it, PStmt *stmt, PEnv *env) {
     switch (stmt->type) {
         case STMT_PRINT: return vsPrint(it, stmt, env); break;
         case STMT_EXPR: return vsExprStmt(it, stmt, env); break;
@@ -432,5 +469,5 @@ static PValue execute(PInterpreter *it, PStmt *stmt, PEnv *env) {
         default: error(it, NULL, "Unknown statement found!");
     }
 
-    return MakeNil();
+    return ExSimple(MakeNil());
 }

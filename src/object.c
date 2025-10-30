@@ -51,16 +51,6 @@ void PrintObject(const PObj *o) {
 
     switch (o->type) {
         case OT_STR: printf("%s", o->v.str); break;
-        case OT_RET: {
-            printf("<ret ");
-            PrintValue(&o->v.OReturn.rvalue);
-            printf(">");
-            break;
-        }
-        case OT_BRK: {
-            printf("<break>\n");
-            break;
-        }
         case OT_FNC: {
             printf("<fn %s>", o->v.OFunction.name->lexeme);
             break;
@@ -71,8 +61,6 @@ void PrintObject(const PObj *o) {
 char *ObjTypeToString(PObjType type) {
     switch (type) {
         case OT_STR: return "String"; break;
-        case OT_RET: return "Return"; break;
-        case OT_BRK: return "Break"; break;
         case OT_FNC: return "Function"; break;
     }
 
@@ -90,16 +78,6 @@ bool IsObjEqual(const PObj *a, const PObj *b) {
             result = StrEqual(a->v.str, b->v.str);
             break;
         }
-        case OT_RET: {
-            result = IsValueEqual(&a->v.OReturn.rvalue, &a->v.OReturn.rvalue);
-            break;
-        }
-
-        case OT_BRK: {
-            result = true;
-            break;
-        }
-
         case OT_FNC: result = false; break;
     }
 

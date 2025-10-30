@@ -27,17 +27,6 @@ PObj *NewStrObject(Pgc *gc, char *value) {
 }
 
 
-PObj *NewReturnObject(Pgc *gc, PValue value) {
-    PObj *o = NewObject(gc, OT_RET);
-    o->v.OReturn.rvalue = value;
-    return o;
-}
-
-PObj *NewBreakObject(Pgc *gc) {
-    PObj *o = NewObject(gc, OT_BRK);
-    return o;
-}
-
 PObj *NewFuncObject(
     Pgc *gc, Token *name, Token **params, PStmt *body, void *env, int count
 ) {
@@ -81,17 +70,9 @@ void FreeObject(Pgc *gc, PObj *o) {
             freeBaseObj(o);
             break;
         }
-        case OT_RET: {
-            // FreeObject(gc, o->v.OReturn.rvalue);
-            freeBaseObj(o);
-            break;
-        }
+
         case OT_STR: {
             // where does the string come from?
-            freeBaseObj(o);
-            break;
-        }
-        case OT_BRK:{
             freeBaseObj(o);
             break;
         }

@@ -452,16 +452,20 @@ CREDITS
 #define strreset    stbds_strreset
 #endif
 
-/*#if defined(STBDS_REALLOC) && !defined(STBDS_FREE) || !defined(STBDS_REALLOC) && defined(STBDS_FREE)
+/*
+#if defined(STBDS_REALLOC) && !defined(STBDS_FREE) || !defined(STBDS_REALLOC) && defined(STBDS_FREE)
 #error "You must define both STBDS_REALLOC and STBDS_FREE, or neither."
 #endif
 #if !defined(STBDS_REALLOC) && !defined(STBDS_FREE)
 #include <stdlib.h>
+#define STBDS_REALLOC(c,p,s) realloc(p,s)
+#define STBDS_FREE(c,p)      free(p)
+#endif
 */
 #include "../mimalloc/include/mimalloc.h"
 #define STBDS_REALLOC(c,p,s) mi_realloc(p,s)
 #define STBDS_FREE(c,p)      mi_free(p)
-//#endif
+
 
 #ifdef _MSC_VER
 #define STBDS_NOTUSED(v)  (void)(v)

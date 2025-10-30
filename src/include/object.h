@@ -31,10 +31,6 @@ typedef struct PValue{
 typedef enum PObjType {
     // String Object
     OT_STR,
-    // Return Object. Used by `OReturn`
-    OT_RET,
-    // Break Object. Used by `OBreak`
-    OT_BRK,
     // Function Object. Used by `OFunction`
     OT_FNC,
 } PObjType;
@@ -49,18 +45,6 @@ typedef struct PObj {
     union v {
         // String Object. Type : `OT_STR`
         char *str;
-        // Return Object. Type : `OT_RET`
-        struct OReturn {
-            // The Actual Value
-			PValue rvalue;
-        
-        } OReturn;
-
-        // Break Object. Type : `OT_BRK`
-        struct OBreak {
-
-        } OBreak;
-
         // Function Object. Type : `OT_FNC`
         // Gets directly translated from Function Statement : `STMT_FUNC`
         struct OFunction {

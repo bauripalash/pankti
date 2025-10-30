@@ -17,9 +17,11 @@
 #include "external/mimalloc/include/mimalloc.h"
 
 //#define STBDS_MALLOC(sz)    mi_malloc(sz)
-//#define STBDS_REALLOC(context,ptr,size) mi_realloc(ptr, size)
-//#define STBDS_FREE(context,ptr)         mi_free(ptr)
+
 #define STB_DS_IMPLEMENTATION
+
+//#define STBDS_FREE(context,ptr)         mi_free(ptr)
+//#define STBDS_REALLOC(context,ptr,size) mi_realloc(ptr, size)
 #include "external/stb/stb_ds.h"
 
 Lexer *NewLexer(char *src) {
