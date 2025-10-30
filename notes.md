@@ -104,7 +104,7 @@ need Return Object and Break Objects. With this most of the memory usage for
 fib(35) is gone. Before this most of the objects for that program was Return 
 objects. 
 
-Before this the Interpreter consume around <> of RAM, now according to massif
+Before this the Interpreter consume around 4-5 GB of RAM, now according to massif
 the peak usage is 26.4KiB (around 27KB) with system libc memory allocation
 functions, I removed mimalloc usage for this test to get the actual impact of
 this ExResult method.
