@@ -108,3 +108,6 @@ Before this the Interpreter consume around 4-5 GB of RAM, now according to massi
 the peak usage is 26.4KiB (around 27KB) with system libc memory allocation
 functions, I removed mimalloc usage for this test to get the actual impact of
 this ExResult method.
+
+With all these changes, Interpreter execution time for fib(35) is reduced to
+around 8-9 seconds.
