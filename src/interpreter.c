@@ -276,14 +276,26 @@ static PValue vCall(PInterpreter *it, PExpr *expr, PEnv *env) {
         return MakeNil();
     }
 
+	PValue argStack[16];
     PValue *args = NULL;
 
+	if (ec->argCount > 16) {
+		//printf("Using Heap for Args\n");
+		args = PCalloc(16, sizeof(*args));
+	}else{
+		//printf("Using Stack for Args\n");
+		args = argStack;
+	}
+
     for (int i = 0; i < ec->argCount; i++) {
-        arrput(args, evaluate(it, ec->args[i], env));
+        //arrput(args, evaluate(it, ec->args[i], env));
+		args[i] = evaluate(it, ec->args[i], env);
     }
 
     PValue value = handleCall(it, callObj, args, ec->argCount);
-    arrfree(args);
+	if (ec->argCount > 16) {
+		PFree(args);
+	}
     return value;
 }
 
