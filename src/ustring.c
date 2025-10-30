@@ -1,4 +1,6 @@
+#include "include/alloc.h"
 #include "include/ustring.h"
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -99,7 +101,7 @@ UIter *NewUIterator(const char *text) {
         return NULL;
     }
 
-    UIter *it = (UIter *)malloc(sizeof(UIter));
+    UIter *it = (UIter *)PMalloc(sizeof(UIter));
     if (it == NULL) {
         return NULL;
     }
@@ -114,7 +116,7 @@ void FreeUIterator(UIter *iter) {
     if (iter == NULL) {
         return;
     }
-    free(iter);
+    PFree(iter);
 }
 bool UIterIsEnd(const UIter *iter) { return iter->peekCount == 0; }
 uint32_t UIterPeek(const UIter *iter, int offset) {

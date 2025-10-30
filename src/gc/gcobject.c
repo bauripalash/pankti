@@ -52,7 +52,7 @@ PObj *NewFuncObject(
 
 static inline void freeBaseObj(PObj *o) {
     if (o != NULL) {
-        free(o);
+        PFree(o);
         o = NULL;
     }
 }

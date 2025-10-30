@@ -6,6 +6,7 @@
 #include <string.h>
 #include <uchar.h>
 
+#include "include/alloc.h"
 #include "include/bengali.h"
 #include "include/core.h"
 #include "include/keywords.h"
@@ -13,19 +14,23 @@
 #include "include/token.h"
 #include "include/ustring.h"
 #include "include/utils.h"
+#include "external/mimalloc/include/mimalloc.h"
 
+//#define STBDS_MALLOC(sz)    mi_malloc(sz)
+//#define STBDS_REALLOC(context,ptr,size) mi_realloc(ptr, size)
+//#define STBDS_FREE(context,ptr)         mi_free(ptr)
 #define STB_DS_IMPLEMENTATION
 #include "external/stb/stb_ds.h"
 
 Lexer *NewLexer(char *src) {
-    Lexer *lx = malloc(sizeof(Lexer));
+    Lexer *lx = PMalloc(sizeof(Lexer));
     if (lx == NULL) {
         return NULL;
     }
 
     UIter *iter = NewUIterator(src);
     if (iter == NULL) {
-        free(lx);
+        PFree(lx);
         return NULL;
     }
 
@@ -48,7 +53,7 @@ void FreeLexer(Lexer *lexer) {
     }
 
     if (lexer->source != NULL) {
-        free(lexer->source);
+        PFree(lexer->source);
     }
 
     if (lexer->tokens != NULL) {
@@ -63,7 +68,7 @@ void FreeLexer(Lexer *lexer) {
         FreeUIterator(lexer->iter);
     }
 
-    free(lexer);
+    PFree(lexer);
 }
 
 static inline bool isAnyNumber(char32_t c) {

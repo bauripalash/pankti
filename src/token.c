@@ -1,5 +1,6 @@
 #include "include/token.h"
 #include "include/ansicolors.h"
+#include "include/alloc.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,7 +68,7 @@ bool IsDoubleTok(TokenType type) {
 }
 
 Token *NewToken(TokenType type) {
-    Token *tok = malloc(sizeof(Token));
+    Token *tok = PMalloc(sizeof(Token));
     if (tok == NULL) {
         return NULL;
     }
@@ -86,10 +87,10 @@ void FreeToken(Token *token) {
     }
 
     if (token->lexeme != NULL) {
-        free(token->lexeme);
+        PFree(token->lexeme);
     }
 
-    free(token);
+    PFree(token);
 }
 
 bool SetTokenLexeme(Token *token, char *str) {

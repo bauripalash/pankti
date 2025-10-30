@@ -50,7 +50,7 @@ void FreeParser(Parser *parser) {
         return;
     }
     arrfree(parser->stmts);
-    free(parser);
+    PFree(parser);
 }
 
 PStmt **ParseParser(Parser *parser) {

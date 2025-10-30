@@ -131,7 +131,7 @@ NewFuncStmt(Pgc *gc, Token *name, Token **params, PStmt *body, int count) {
 
 static inline void freeBaseStmt(Pgc *gc, PStmt *stmt) {
     if (stmt != NULL) {
-        free(stmt);
+        PFree(stmt);
     }
 }
 

@@ -25,7 +25,7 @@ void FreeEnv(PEnv *e) {
 	if (e->table != NULL) {
 		hmfree(e->table);
 	}
-    free(e);
+    PFree(e);
 }
 
 void DebugEnv(PEnv *e) {

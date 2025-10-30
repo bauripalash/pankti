@@ -109,7 +109,7 @@ PExpr *NewCallExpr(Pgc *gc, Token *op, PExpr *callee, PExpr **args, int count) {
 // Free the base Expr Struct with NULL check
 static inline void freeBaseExpr(Pgc *gc, PExpr *expr) {
     if (expr != NULL) {
-        free(expr);
+        PFree(expr);
         expr = NULL;
     }
 }

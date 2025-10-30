@@ -46,7 +46,7 @@ void FreeCore(PanktiCore *core) {
         FreeInterpreter(core->it);
     }
 
-    free(core);
+    PFree(core);
 }
 
 // Print All the Scanned Tokens

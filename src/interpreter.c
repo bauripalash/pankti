@@ -34,7 +34,7 @@ void FreeInterpreter(PInterpreter *it) {
     FreeEnv(it->env);
     //}
 
-    free(it);
+    PFree(it);
 }
 void Interpret(PInterpreter *it) {
     for (int i = 0; i < arrlen(it->program); i++) {

@@ -1,4 +1,5 @@
 #include "include/utils.h"
+#include "include/alloc.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -18,7 +19,7 @@ char *ReadFile(const char *path) {
             fseek(file, 0, SEEK_SET);
 
             if (size > 0) {
-                text = (char *)calloc(size + 1, sizeof(char));
+                text = (char *)PCalloc(size + 1, sizeof(char));
                 if (text == NULL) {
                     return NULL;
                 }
@@ -44,7 +45,7 @@ char *SubString(const char *str, int start, int end) {
     }
 
     size_t sublen = end - start;
-    char *result = malloc((sublen + 1) * sizeof(char));
+    char *result = PMalloc((sublen + 1) * sizeof(char));
     if (result == NULL) {
         return NULL;
     }
