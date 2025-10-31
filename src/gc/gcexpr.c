@@ -112,6 +112,19 @@ PExpr *NewArrayExpr(Pgc *gc, Token *op, PExpr **items, int count) {
     e->exp.EArray.count = count;
     return e;
 }
+
+
+PExpr * NewSubscriptExpr(Pgc * gc, Token *op, PExpr * value, PExpr * index){
+	PExpr * e = NewExpr(gc, EXPR_SUBSCRIPT);
+	if (e == NULL) {
+		return NULL;
+	}
+
+	e->exp.ESubscript.op = op;
+	e->exp.ESubscript.value = value;
+	e->exp.ESubscript.index = index;
+	return e;
+}
 // ===================
 // Freeing Functions
 // ===================
@@ -190,5 +203,11 @@ void FreeExpr(Pgc *gc, PExpr *e) {
             freeBaseExpr(gc, e);
             break;
         }
+		case EXPR_SUBSCRIPT:{
+			FreeExpr(gc, e->exp.ESubscript.value);
+			FreeExpr(gc, e->exp.ESubscript.index);
+			freeBaseExpr(gc, e);
+			break;
+		}
     }
 }

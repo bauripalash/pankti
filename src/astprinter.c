@@ -135,6 +135,24 @@ void AstPrint(PExpr *expr, int indent) {
             printf("}\n");
             break;
         }
+		case EXPR_SUBSCRIPT:{
+			struct ESubscript * sub = &expr->exp.ESubscript;
+			printf(TERMC_YELLOW "Subscript " TERMC_RESET);
+			printf("{\n");
+			printIndent(indent + 1);
+			printf("Value {\n");
+			AstPrint(sub->value, indent + 2);
+			printIndent(indent+1);
+			printf("}\n");
+			printIndent(indent+1);
+			printf("Index {\n");
+			AstPrint(sub->index, indent + 2);
+			printIndent(indent+1);
+			printf("}\n");
+			printIndent(indent);
+			printf("}\n");
+			break;
+		}
     }
 }
 

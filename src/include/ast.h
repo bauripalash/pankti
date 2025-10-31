@@ -30,7 +30,10 @@ typedef enum PExprType {
     // call a variable which would be resolved to a function.
     // `myfunc(a,b,c)` <--
     EXPR_CALL,
+	// Array Expression
     EXPR_ARRAY,
+	// Array, Hash table subscripting
+	EXPR_SUBSCRIPT,
 } PExprType;
 
 // Literal Types for Literal Expressions : `EXPR_LITERAL`
@@ -90,6 +93,12 @@ typedef struct PExpr {
             int count;
             Token *op;
         } EArray;
+
+		struct ESubscript{
+			struct PExpr * value;
+			struct PExpr * index;
+			Token * op;
+		} ESubscript;
 
         // Grouping Expression
         // Type: `EXPR_GROUPING`

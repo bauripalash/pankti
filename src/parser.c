@@ -25,6 +25,7 @@ static PExpr *rComparison(Parser *p);
 static PExpr *rTerm(Parser *p);
 static PExpr *rFactor(Parser *p);
 static PExpr *rUnary(Parser *p);
+static PExpr *rSubscript(Parser * p);
 static PExpr *rCall(Parser *p);
 static PExpr *rPrimary(Parser *p);
 static PExpr *rExpression(Parser *p);
@@ -208,7 +209,7 @@ static PExpr *rUnary(Parser *p) {
         return NewUnary(p->gc, op, right);
     }
 
-    return rCall(p);
+    return rSubscript(p);
 }
 
 static PExpr *finishCallExpr(Parser *p, PExpr *expr) {
@@ -228,6 +229,19 @@ static PExpr *finishCallExpr(Parser *p, PExpr *expr) {
     return NewCallExpr(p->gc, rparen, expr, args, count);
 }
 
+static PExpr *rSubscript(Parser * p){
+	PExpr * expr = rCall(p);
+	if (matchOne(p, T_LS_BRACKET)) {
+		Token * op = previous(p);
+		PExpr * indexExpr = rExpression(p);
+		eat(p,T_RS_BRACKET, "Expected ']' after subscript expression");
+		return NewSubscriptExpr(p->gc, op, expr, indexExpr);
+	}
+
+	return expr;
+
+}
+
 static PExpr *rCall(Parser *p) {
     PExpr *expr = rPrimary(p);
     while (true) {
@@ -244,14 +258,14 @@ static PExpr *rCall(Parser *p) {
 static PExpr *rArrayExpr(Parser *p) {
     PExpr **items = NULL;
 
-    while (!check(p, T_RIGHT_BRACE)) {
+    while (!check(p, T_RS_BRACKET)) {
         arrput(items, rExpression(p));
-        if (peek(p)->type == T_RIGHT_BRACE) {
+        if (check(p, T_RS_BRACKET)) {
             break;
         }
         eat(p, T_COMMA, "Expected ',' comma after array item");
     }
-    Token *rbrace = eat(p, T_RIGHT_BRACE, "Expected '}' after array items");
+    Token *rbrace = eat(p, T_RS_BRACKET, "Expected '}' after array items");
     return NewArrayExpr(p->gc, rbrace, items, arrlen(items));
 }
 
@@ -291,7 +305,7 @@ static PExpr *rPrimary(Parser *p) {
         return NewGrouping(p->gc, e);
     }
 
-    if (matchOne(p, T_LEFT_BRACE)) {
+    if (matchOne(p, T_LS_BRACKET)) {
         return rArrayExpr(p);
     }
 

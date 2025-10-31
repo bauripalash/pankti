@@ -103,6 +103,8 @@ PExpr *NewCallExpr(Pgc *gc, Token *op, PExpr *callee, PExpr **args, int count);
 // New Array Expression
 PExpr *NewArrayExpr(Pgc *gc, Token *op, PExpr **items, int count);
 
+PExpr * NewSubscriptExpr(Pgc * gc, Token *op, PExpr * value, PExpr * index);
+
 // Create New (Empty) Statement
 // Return => New Expression with type `type` or NULL in case of failure
 PStmt *NewStmt(Pgc *gc, PStmtType type);
