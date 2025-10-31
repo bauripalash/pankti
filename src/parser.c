@@ -9,7 +9,6 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 // Create New Let Statement;
 // Returns PStmt with type `STMT_LET`
@@ -242,6 +241,21 @@ static PExpr *rCall(Parser *p) {
     return expr;
 }
 
+static PExpr * rArrayExpr(Parser * p){
+	PExpr ** items = NULL;
+
+	while (!check(p, T_RIGHT_BRACE)) {
+		arrput(items, rExpression(p));
+		if (peek(p)->type == T_RIGHT_BRACE) {
+			break;
+		}
+		eat(p, T_COMMA, "Expected ',' comma after array item");
+		
+	}
+	Token *rbrace = eat(p, T_RIGHT_BRACE, "Expected '}' after array items");
+	return NewArrayExpr(p->gc, rbrace, items, arrlen(items));
+}
+
 static PExpr *rPrimary(Parser *p) {
     if (matchOne(p, T_TRUE)) {
         PExpr *e = NewLiteral(p->gc, previous(p), EXP_LIT_BOOL);
@@ -276,7 +290,11 @@ static PExpr *rPrimary(Parser *p) {
         PExpr *e = rExpression(p);
         eat(p, T_RIGHT_PAREN, "Expected ')'");
         return NewGrouping(p->gc, e);
-    }
+    } 
+
+	if (matchOne(p, T_LEFT_BRACE)) {
+		return rArrayExpr(p);
+	}
 
     error(p, previous(p), "Expected expression");
     return NULL;

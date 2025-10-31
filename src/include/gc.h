@@ -99,6 +99,9 @@ PExpr *NewLogical(Pgc *gc, PExpr *left, Token *op, PExpr *right);
 // Return => New Call Expression as Expression pointer or NULL
 PExpr *NewCallExpr(Pgc *gc, Token *op, PExpr *callee, PExpr **args, int count);
 
+// New Array Expression
+PExpr *NewArrayExpr(Pgc * gc, Token * op, PExpr ** items, int count);
+
 // Create New (Empty) Statement
 // Return => New Expression with type `type` or NULL in case of failure
 PStmt *NewStmt(Pgc *gc, PStmtType type);
