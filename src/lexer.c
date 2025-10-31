@@ -15,7 +15,6 @@
 #include "include/ustring.h"
 #include "include/utils.h"
 
-
 #define STB_DS_IMPLEMENTATION
 #include "external/stb/stb_ds.h"
 

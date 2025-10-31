@@ -3,8 +3,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-
-
 Pgc *NewGc() {
     Pgc *gc = PCreate(Pgc);
     gc->disable = false;

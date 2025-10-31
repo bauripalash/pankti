@@ -1,6 +1,6 @@
 #include "include/token.h"
-#include "include/ansicolors.h"
 #include "include/alloc.h"
+#include "include/ansicolors.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>

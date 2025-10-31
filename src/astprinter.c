@@ -121,17 +121,20 @@ void AstPrint(PExpr *expr, int indent) {
             printf("}\n");
             break;
         }
-		case EXPR_ARRAY:{
-			struct EArray * arr = &expr->exp.EArray;
-			printf(TERMC_RED "Array (" TERMC_GREEN "%d" TERMC_RED ") " TERMC_RESET, arr->count);
-			printf("{\n");
-			for (int i = 0; i < arr->count; i++) {
-				AstPrint(arr->items[i], indent + 2);
-			}
-			printIndent(indent);
-			printf("}\n");
-			break;
-		}
+        case EXPR_ARRAY: {
+            struct EArray *arr = &expr->exp.EArray;
+            printf(
+                TERMC_RED "Array (" TERMC_GREEN "%d" TERMC_RED ") " TERMC_RESET,
+                arr->count
+            );
+            printf("{\n");
+            for (int i = 0; i < arr->count; i++) {
+                AstPrint(arr->items[i], indent + 2);
+            }
+            printIndent(indent);
+            printf("}\n");
+            break;
+        }
     }
 }
 

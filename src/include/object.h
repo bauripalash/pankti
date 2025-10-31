@@ -13,22 +13,17 @@ extern "C" {
 typedef struct PObj PObj;
 
 // Value Type
-typedef enum PValueType{
-	VT_NUM,
-	VT_OBJ,
-	VT_BOOL,
-	VT_NIL
-}PValueType;
+typedef enum PValueType { VT_NUM, VT_OBJ, VT_BOOL, VT_NIL } PValueType;
 
 // Stack Allocated PValue
-typedef struct PValue{
-	PValueType type;
-	union{
-		double num;
-		bool bl;
-		PObj * obj;
-	}v;
-}PValue;
+typedef struct PValue {
+    PValueType type;
+    union {
+        double num;
+        bool bl;
+        PObj *obj;
+    } v;
+} PValue;
 
 // Pankti Object Types
 typedef enum PObjType {
@@ -36,6 +31,7 @@ typedef enum PObjType {
     OT_STR,
     // Function Object. Used by `OFunction`
     OT_FNC,
+    OT_ARR,
 } PObjType;
 
 // Pankti Object
@@ -63,12 +59,15 @@ typedef struct PObj {
             // Will always be a Block Statement
             PStmt *body;
         } OFunction;
+
+        struct OArray {
+            Token *op;
+            int count;
+            PValue *items;
+        } OArray;
     } v;
 
 } PObj;
-
-
-
 
 // Check if value is a number
 #define IsValueNum(val) (val.type == VT_NUM)
@@ -84,33 +83,44 @@ typedef struct PObj {
 // Typecast value to bool value
 #define ValueAsBool(val) ((bool)val.v.bl)
 // Typecast value to object. Returns PObj pointer to the heap allocated object
-#define ValueAsObj(val) ((PObj*)val.v.obj)
+#define ValueAsObj(val) ((PObj *)val.v.obj)
 
 // Make a number value
-static inline PValue MakeNumber(double value){
-	PValue val; val.type = VT_NUM; val.v.num = value; return val;
+static inline PValue MakeNumber(double value) {
+    PValue val;
+    val.type = VT_NUM;
+    val.v.num = value;
+    return val;
 }
 
 // Make a bool value
-static inline PValue MakeBool(bool bl){
-	PValue val; val.type = VT_BOOL; val.v.bl = bl; return val;
+static inline PValue MakeBool(bool bl) {
+    PValue val;
+    val.type = VT_BOOL;
+    val.v.bl = bl;
+    return val;
 }
 // Make a nil value
-static inline PValue MakeNil(){
-	PValue val; val.type = VT_NIL; return val;
+static inline PValue MakeNil() {
+    PValue val;
+    val.type = VT_NIL;
+    return val;
 }
 
 // Make Object value. Wraps the object pointer as Value
-static inline PValue MakeObject(PObj * obj){
-	PValue val; val.type = VT_OBJ; val.v.obj = obj; return val;
+static inline PValue MakeObject(PObj *obj) {
+    PValue val;
+    val.type = VT_OBJ;
+    val.v.obj = obj;
+    return val;
 }
 
 // Check if value is truthy. Only bools are considered
-bool IsValueTruthy(const PValue * val);
+bool IsValueTruthy(const PValue *val);
 // Check if two values `a` and `b` are equal
-bool IsValueEqual(const PValue * a, const PValue * b);
+bool IsValueEqual(const PValue *a, const PValue *b);
 // Print value to stdout
-void PrintValue(const PValue * val);
+void PrintValue(const PValue *val);
 
 // Print Object
 void PrintObject(const PObj *o);

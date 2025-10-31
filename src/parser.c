@@ -241,19 +241,18 @@ static PExpr *rCall(Parser *p) {
     return expr;
 }
 
-static PExpr * rArrayExpr(Parser * p){
-	PExpr ** items = NULL;
+static PExpr *rArrayExpr(Parser *p) {
+    PExpr **items = NULL;
 
-	while (!check(p, T_RIGHT_BRACE)) {
-		arrput(items, rExpression(p));
-		if (peek(p)->type == T_RIGHT_BRACE) {
-			break;
-		}
-		eat(p, T_COMMA, "Expected ',' comma after array item");
-		
-	}
-	Token *rbrace = eat(p, T_RIGHT_BRACE, "Expected '}' after array items");
-	return NewArrayExpr(p->gc, rbrace, items, arrlen(items));
+    while (!check(p, T_RIGHT_BRACE)) {
+        arrput(items, rExpression(p));
+        if (peek(p)->type == T_RIGHT_BRACE) {
+            break;
+        }
+        eat(p, T_COMMA, "Expected ',' comma after array item");
+    }
+    Token *rbrace = eat(p, T_RIGHT_BRACE, "Expected '}' after array items");
+    return NewArrayExpr(p->gc, rbrace, items, arrlen(items));
 }
 
 static PExpr *rPrimary(Parser *p) {
@@ -290,11 +289,11 @@ static PExpr *rPrimary(Parser *p) {
         PExpr *e = rExpression(p);
         eat(p, T_RIGHT_PAREN, "Expected ')'");
         return NewGrouping(p->gc, e);
-    } 
+    }
 
-	if (matchOne(p, T_LEFT_BRACE)) {
-		return rArrayExpr(p);
-	}
+    if (matchOne(p, T_LEFT_BRACE)) {
+        return rArrayExpr(p);
+    }
 
     error(p, previous(p), "Expected expression");
     return NULL;

@@ -3,9 +3,9 @@
 
 #include "stdlib.h"
 
-#define PMalloc(size) (malloc(size))
+#define PMalloc(size)        (malloc(size))
 #define PCalloc(count, size) (calloc(count, size))
-#define PCreate(type) ((type *)(malloc(sizeof(type))))
-#define PFree(ptr)    (free(ptr))
+#define PCreate(type)        ((type *)(malloc(sizeof(type))))
+#define PFree(ptr)           (free(ptr))
 
 #endif

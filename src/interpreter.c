@@ -12,44 +12,44 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef enum ExType{
-	ET_SIMPLE,
-	ET_BREAK,
-	ET_RETURN,
-}ExType;
+typedef enum ExType {
+    ET_SIMPLE,
+    ET_BREAK,
+    ET_RETURN,
+} ExType;
 
-typedef struct ExResult{
-	PValue value;
-	ExType type;
-}ExResult;
+typedef struct ExResult {
+    PValue value;
+    ExType type;
+} ExResult;
 
-static char * ExResultToStr(ExType t){
-	switch (t) {
-		case ET_SIMPLE: return "Simple";
-		case ET_BREAK: return "Break";
-		case ET_RETURN: return "return";
-	}
+static char *ExResultToStr(ExType t) {
+    switch (t) {
+        case ET_SIMPLE: return "Simple";
+        case ET_BREAK: return "Break";
+        case ET_RETURN: return "return";
+    }
 }
 
-static inline ExResult ExSimple(PValue v){
-	ExResult er;
-	er.type = ET_SIMPLE;
-	er.value = v;
-	return er;
+static inline ExResult ExSimple(PValue v) {
+    ExResult er;
+    er.type = ET_SIMPLE;
+    er.value = v;
+    return er;
 }
 
-static inline ExResult ExBreak(){
-	ExResult er;
-	er.type = ET_BREAK;
-	er.value = MakeNil();
-	return er;
+static inline ExResult ExBreak() {
+    ExResult er;
+    er.type = ET_BREAK;
+    er.value = MakeNil();
+    return er;
 }
 
-static inline ExResult ExReturn(PValue v){
-	ExResult er;
-	er.type = ET_RETURN;
-	er.value = v;
-	return er;
+static inline ExResult ExReturn(PValue v) {
+    ExResult er;
+    er.type = ET_RETURN;
+    er.value = v;
+    return er;
 }
 
 static ExResult execute(PInterpreter *it, PStmt *stmt, PEnv *env);
@@ -92,37 +92,37 @@ static PValue vLiteral(PInterpreter *it, PExpr *expr, PEnv *env) {
             return MakeNumber(value);
         }
         case EXP_LIT_STR: {
-            PObj * litObj = NewStrObject(it->gc, expr->exp.ELiteral.op->lexeme);
-			return MakeObject(litObj);
+            PObj *litObj = NewStrObject(it->gc, expr->exp.ELiteral.op->lexeme);
+            return MakeObject(litObj);
         }
         case EXP_LIT_BOOL: {
             bool bvalue = false;
             if (expr->exp.ELiteral.op->type == T_TRUE) {
                 bvalue = true;
             }
-			return MakeBool(bvalue);
+            return MakeBool(bvalue);
         }
         case EXP_LIT_NIL: {
-			return MakeNil();
+            return MakeNil();
         }
-		default: return MakeNil();
+        default: return MakeNil();
     }
 
-    //return litObj;
+    // return litObj;
 }
 
 static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
     PValue l = evaluate(it, expr->exp.EBinary.left, env);
     PValue r = evaluate(it, expr->exp.EBinary.right, env);
-    //if (l == NULL) {
-    //    error(it, NULL, "Left hand side expression is invalid");
-    //    return NULL;
-    //}
+    // if (l == NULL) {
+    //     error(it, NULL, "Left hand side expression is invalid");
+    //     return NULL;
+    // }
 
-    //if (r == NULL) {
-    //    error(it, NULL, "Right hand side expression is invalid");
-    //    return NULL;
-    //}
+    // if (r == NULL) {
+    //     error(it, NULL, "Right hand side expression is invalid");
+    //     return NULL;
+    // }
     switch (expr->exp.EBinary.opr->type) {
         case T_PLUS: {
             if (l.type != VT_NUM || r.type != VT_NUM) {
@@ -132,42 +132,42 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
                 break;
             }
             double value = l.v.num + r.v.num;
-            //result = NewNumberObj(it->gc, value);
-			return MakeNumber(value);
+            // result = NewNumberObj(it->gc, value);
+            return MakeNumber(value);
             break;
         }
         case T_ASTR: {
             double value = l.v.num * r.v.num;
-            //result = NewNumberObj(it->gc, value);
-			return MakeNumber(value);
+            // result = NewNumberObj(it->gc, value);
+            return MakeNumber(value);
             break;
         }
         case T_MINUS: {
             double value = l.v.num - r.v.num;
-            //result = NewNumberObj(it->gc, value);
-			return MakeNumber(value);
+            // result = NewNumberObj(it->gc, value);
+            return MakeNumber(value);
             break;
         }
         case T_SLASH: {
             double value = l.v.num / r.v.num;
-            //result = NewNumberObj(it->gc, value);
-			return MakeNumber(value);
+            // result = NewNumberObj(it->gc, value);
+            return MakeNumber(value);
             break;
         }
         case T_EQEQ: {
-            //result = NewBoolObj(it->gc, IsValueEqual(&l, &r));
-			return MakeBool(IsValueEqual(&l, &r));
+            // result = NewBoolObj(it->gc, IsValueEqual(&l, &r));
+            return MakeBool(IsValueEqual(&l, &r));
             break;
         }
         case T_BANG_EQ: {
-			//result = NewBoolObj(it->gc, !IsValueEqual(&l, &r));
-			return MakeBool(!IsValueEqual(&l, &r));
+            // result = NewBoolObj(it->gc, !IsValueEqual(&l, &r));
+            return MakeBool(!IsValueEqual(&l, &r));
 
             break;
         }
         case T_GT: {
-            //result = NewBoolObj(it->gc, l.v.num > r.v.num);
-			return MakeBool(l.v.num > r.v.num);
+            // result = NewBoolObj(it->gc, l.v.num > r.v.num);
+            return MakeBool(l.v.num > r.v.num);
             break;
         }
         case T_GTE: return MakeBool(l.v.num >= r.v.num);
@@ -176,12 +176,11 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
         default: return MakeBool(-1);
     }
 
-	return MakeNil();
-
+    return MakeNil();
 }
 
 static PValue vVariable(PInterpreter *it, PExpr *expr, PEnv *env) {
-	bool found = false;
+    bool found = false;
     PValue v = EnvGetValue(env, expr->exp.EVariable.name->hash, &found);
     if (!found) {
         char errmsg[512];
@@ -211,27 +210,26 @@ static PValue vAssignment(PInterpreter *it, PExpr *expr, PEnv *env) {
 }
 
 static PValue vUnary(PInterpreter *it, PExpr *expr, PEnv *env) {
-	PValue r = evaluate(it, expr->exp.EUnary.right, env);
+    PValue r = evaluate(it, expr->exp.EUnary.right, env);
 
     switch (expr->exp.EUnary.opr->type) {
         case T_MINUS: {
             double value = -r.v.num;
-            //result = NewNumberObj(it->gc, value);
-			return MakeNumber(value);
+            // result = NewNumberObj(it->gc, value);
+            return MakeNumber(value);
             break;
         }
         case T_BANG: {
-            //result = NewBoolObj(it->gc, !IsObjTruthy(r));
-			return MakeBool(!IsValueTruthy(&r));
+            // result = NewBoolObj(it->gc, !IsObjTruthy(r));
+            return MakeBool(!IsValueTruthy(&r));
             break;
         }
         default: {
-            //result = NewNilObject(it->gc);
-			return MakeNil();
+            // result = NewNilObject(it->gc);
+            return MakeNil();
             break;
         }
     }
-
 }
 
 static PValue vLogical(PInterpreter *it, PExpr *expr, PEnv *env) {
@@ -240,22 +238,21 @@ static PValue vLogical(PInterpreter *it, PExpr *expr, PEnv *env) {
 
     if (op->type == T_OR) {
         if (IsValueTruthy(&left)) {
-            //return NewBoolObj(it->gc, true);
-			return MakeBool(true);
+            // return NewBoolObj(it->gc, true);
+            return MakeBool(true);
         } else {
             PValue right = evaluate(it, expr->exp.ELogical.right, env);
             if (IsValueTruthy(&right)) {
                 return MakeBool(true);
             } else {
                 return MakeBool(false);
-
             }
         }
     } else if (op->type == T_AND) {
         if (!IsValueTruthy(&left)) {
             return MakeBool(false);
         } else {
-        	PValue right = evaluate(it, expr->exp.ELogical.right, env);
+            PValue right = evaluate(it, expr->exp.ELogical.right, env);
             if (IsValueTruthy(&right)) {
                 return MakeBool(true);
             } else {
@@ -269,7 +266,8 @@ static PValue vLogical(PInterpreter *it, PExpr *expr, PEnv *env) {
     return MakeNil();
 }
 
-static PValue handleCall(PInterpreter *it, PObj *func, PValue *args, int count) {
+static PValue
+handleCall(PInterpreter *it, PObj *func, PValue *args, int count) {
     struct OFunction *f = &func->v.OFunction;
     PEnv *fnEnv = NewEnv((PEnv *)f->env);
     for (int i = 0; i < count; i++) {
@@ -278,10 +276,10 @@ static PValue handleCall(PInterpreter *it, PObj *func, PValue *args, int count) 
 
     ExResult evalOut = execBlock(it, f->body, fnEnv, true);
 
-	if (evalOut.type == ET_RETURN) {
-		FreeEnv(fnEnv);
-		return evalOut.value;
-	}
+    if (evalOut.type == ET_RETURN) {
+        FreeEnv(fnEnv);
+        return evalOut.value;
+    }
 
     FreeEnv(fnEnv);
 
@@ -296,40 +294,52 @@ static PValue vCall(PInterpreter *it, PExpr *expr, PEnv *env) {
         return MakeNil();
     }
 
-	if (co.type == VT_OBJ) {
-		if (co.v.obj->type != OT_FNC) {
-			error(it, NULL, "Can only call functions");
-	        return MakeNil();
-		}
-	}
+    if (co.type == VT_OBJ) {
+        if (co.v.obj->type != OT_FNC) {
+            error(it, NULL, "Can only call functions");
+            return MakeNil();
+        }
+    }
 
-	PObj * callObj = ValueAsObj(co);
+    PObj *callObj = ValueAsObj(co);
     if (callObj->v.OFunction.paramCount != ec->argCount) {
         error(it, NULL, "Func param count != call arg count");
         return MakeNil();
     }
 
-	PValue argStack[16];
+    PValue argStack[16];
     PValue *args = NULL;
 
-	if (ec->argCount > 16) {
-		//printf("Using Heap for Args\n");
-		args = PCalloc(16, sizeof(*args));
-	}else{
-		//printf("Using Stack for Args\n");
-		args = argStack;
-	}
+    if (ec->argCount > 16) {
+        // printf("Using Heap for Args\n");
+        args = PCalloc(16, sizeof(*args));
+    } else {
+        // printf("Using Stack for Args\n");
+        args = argStack;
+    }
 
     for (int i = 0; i < ec->argCount; i++) {
-        //arrput(args, evaluate(it, ec->args[i], env));
-		args[i] = evaluate(it, ec->args[i], env);
+        // arrput(args, evaluate(it, ec->args[i], env));
+        args[i] = evaluate(it, ec->args[i], env);
     }
 
     PValue value = handleCall(it, callObj, args, ec->argCount);
-	if (ec->argCount > 16) {
-		PFree(args);
-	}
+    if (ec->argCount > 16) {
+        PFree(args);
+    }
     return value;
+}
+
+static PValue vArray(PInterpreter *it, PExpr *expr, PEnv *env) {
+    struct EArray *arr = &expr->exp.EArray;
+    PValue *vitems = NULL;
+
+    for (int i = 0; i < arr->count; i++) {
+        arrput(vitems, evaluate(it, arr->items[i], env));
+    }
+
+    PObj *arrObj = NewArrayObject(it->gc, arr->op, vitems, arr->count);
+    return MakeObject(arrObj);
 }
 
 static PValue evaluate(PInterpreter *it, PExpr *expr, PEnv *env) {
@@ -345,6 +355,7 @@ static PValue evaluate(PInterpreter *it, PExpr *expr, PEnv *env) {
         case EXPR_LOGICAL: return vLogical(it, expr, env);
         case EXPR_CALL: return vCall(it, expr, env);
         case EXPR_GROUPING: return evaluate(it, expr->exp.EGrouping.expr, env);
+        case EXPR_ARRAY: return vArray(it, expr, env);
     }
 
     return MakeNil();
@@ -362,7 +373,7 @@ static ExResult execBlock(PInterpreter *it, PStmt *stmt, PEnv *env, bool ret) {
     PEnv *blockEnv = NewEnv(env);
     for (int i = 0; i < arrlen(stmtList); i++) {
         temp = execute(it, stmtList[i], blockEnv);
-		//printf("Exec result -> %s\n", ExResultToStr(temp.type));
+        // printf("Exec result -> %s\n", ExResultToStr(temp.type));
         if (ret && temp.type == ET_RETURN) {
             FreeEnv(blockEnv);
             return temp;
@@ -379,13 +390,13 @@ static ExResult execBlock(PInterpreter *it, PStmt *stmt, PEnv *env, bool ret) {
 }
 
 static ExResult vsBlock(PInterpreter *it, PStmt *stmt, PEnv *env) {
-    //PValue value = 
-	return execBlock(it, stmt, env, true);
-    //return value;
+    // PValue value =
+    return execBlock(it, stmt, env, true);
+    // return value;
 }
 
 static ExResult vsLet(PInterpreter *it, PStmt *stmt, PEnv *env) {
-	PValue value = evaluate(it, stmt->stmt.SLet.expr, env);
+    PValue value = evaluate(it, stmt->stmt.SLet.expr, env);
     EnvPutValue(env, stmt->stmt.SLet.name->hash, value);
     return ExSimple(value);
 }
@@ -415,14 +426,14 @@ static ExResult vsIfStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
 }
 
 static ExResult vsWhileStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
-	PValue cond = evaluate(it,stmt->stmt.SWhile.cond, env);
+    PValue cond = evaluate(it, stmt->stmt.SWhile.cond, env);
     while (IsValueTruthy(&cond)) {
         ExResult res = execute(it, stmt->stmt.SWhile.body, env);
         if (res.type == ET_BREAK) {
             break;
         }
 
-		cond = evaluate(it,stmt->stmt.SWhile.cond, env);
+        cond = evaluate(it, stmt->stmt.SWhile.cond, env);
     }
 
     return ExSimple(MakeNil());
@@ -431,14 +442,14 @@ static ExResult vsWhileStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
 static ExResult vsReturnStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     struct SReturn *ret = &stmt->stmt.SReturn;
     PValue value = evaluate(it, ret->value, env);
-	return ExReturn(value);
-	//PObj * retValue = NewReturnObject(it->gc, value);
-    //return MakeObject(retValue);
+    return ExReturn(value);
+    // PObj * retValue = NewReturnObject(it->gc, value);
+    // return MakeObject(retValue);
 }
 
 static ExResult vsBreakStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     return ExBreak();
-	//MakeObject(NewBreakObject(it->gc));
+    // MakeObject(NewBreakObject(it->gc));
 }
 
 static ExResult vsFuncStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {

@@ -16,15 +16,14 @@ PEnv *NewEnv(PEnv *enclosing) {
     return e;
 }
 
-
 void FreeEnv(PEnv *e) {
     if (e == NULL) {
         return;
     }
 
-	if (e->table != NULL) {
-		hmfree(e->table);
-	}
+    if (e->table != NULL) {
+        hmfree(e->table);
+    }
     PFree(e);
 }
 
@@ -37,7 +36,7 @@ void DebugEnv(PEnv *e) {
     }
     for (int i = 0; i < hmlen(e->table); i++) {
         printf("\n%d < %d '", i, e->table[i].key);
-		PrintValue(&e->table[i].value);
+        PrintValue(&e->table[i].value);
         printf("' >\n");
     }
 
@@ -47,10 +46,10 @@ void DebugEnv(PEnv *e) {
 }
 
 void EnvPutValue(PEnv *e, uint32_t hash, PValue value) {
-	if (e == NULL) {
-		return;
-	}
-	hmput(e->table, hash, value);
+    if (e == NULL) {
+        return;
+    }
+    hmput(e->table, hash, value);
     e->count = hmlen(e->table);
 }
 
@@ -66,12 +65,10 @@ bool EnvSetValue(PEnv *e, uint32_t hash, PValue value) {
         }
     }
 
- 
-
-	if (hmgeti(e->table, hash) > -1) {
-		hmput(e->table, hash, value);
-		return true;
-	}
+    if (hmgeti(e->table, hash) > -1) {
+        hmput(e->table, hash, value);
+        return true;
+    }
 
     if (e->enclosing != NULL) {
         return EnvSetValue(e->enclosing, hash, value);
@@ -80,21 +77,21 @@ bool EnvSetValue(PEnv *e, uint32_t hash, PValue value) {
     return false;
 }
 
-PValue EnvGetValue(PEnv *e, uint32_t hash, bool * found) {
+PValue EnvGetValue(PEnv *e, uint32_t hash, bool *found) {
     if (e == NULL) {
-		*found = false;
-		return MakeNil();
+        *found = false;
+        return MakeNil();
     }
 
-	if (hmgeti(e->table, hash) > -1) {
-		*found = true;
-		return hmget(e->table, hash);
-	}
+    if (hmgeti(e->table, hash) > -1) {
+        *found = true;
+        return hmget(e->table, hash);
+    }
 
     if (e->enclosing != NULL) {
         return EnvGetValue(e->enclosing, hash, found);
     }
 
-	*found = false;
+    *found = false;
     return MakeNil();
 }

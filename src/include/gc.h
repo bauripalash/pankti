@@ -9,7 +9,7 @@ extern "C" {
 #endif
 
 #include <stdbool.h>
-//#define DEBUG_GC
+// #define DEBUG_GC
 
 // Pankti Garbage Collector
 typedef struct Pgc {
@@ -31,7 +31,6 @@ PObj *NewObject(Pgc *gc, PObjType type);
 // Handle all underlying values according to function type.
 void FreeObject(Pgc *gc, PObj *o);
 
-
 // Create New String Object
 // `value` = String value
 PObj *NewStrObject(Pgc *gc, char *value);
@@ -46,6 +45,8 @@ PObj *NewFuncObject(
     Pgc *gc, Token *name, Token **params, PStmt *body, void *env, int count
 );
 
+// Create New Array Object
+PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, int count);
 // Create New (Empty) Expression
 // Return => New Expression with type `type` or NULL in case of failure
 PExpr *NewExpr(Pgc *gc, PExprType type);
@@ -100,7 +101,7 @@ PExpr *NewLogical(Pgc *gc, PExpr *left, Token *op, PExpr *right);
 PExpr *NewCallExpr(Pgc *gc, Token *op, PExpr *callee, PExpr **args, int count);
 
 // New Array Expression
-PExpr *NewArrayExpr(Pgc * gc, Token * op, PExpr ** items, int count);
+PExpr *NewArrayExpr(Pgc *gc, Token *op, PExpr **items, int count);
 
 // Create New (Empty) Statement
 // Return => New Expression with type `type` or NULL in case of failure

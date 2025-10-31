@@ -8,12 +8,14 @@ extern "C" {
 #include "object.h"
 #include <stdint.h>
 
-
 // Environment Structure
 typedef struct PEnv {
     // Variable Table
     // We are using Array for `now`. Note: Switch to Hash table
-    struct{uint32_t key; PValue value;} *table;
+    struct {
+        uint32_t key;
+        PValue value;
+    } *table;
     // Count of pairs in table
     int count;
     // Parent Environment
@@ -39,7 +41,7 @@ void EnvPutValue(PEnv *e, uint32_t hash, PValue value);
 
 // Fetch value from table corresponding the provided hash
 // Returns `NULL` if not found.
-PValue EnvGetValue(PEnv *e, uint32_t hash, bool * found);
+PValue EnvGetValue(PEnv *e, uint32_t hash, bool *found);
 
 // Set value to existing variable in table;
 // Returns true if exists and was successful in updating value;

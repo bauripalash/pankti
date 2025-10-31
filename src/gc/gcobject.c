@@ -1,3 +1,4 @@
+#include "../external/stb/stb_ds.h"
 #include "../include/alloc.h"
 #include "../include/ansicolors.h"
 #include "../include/env.h"
@@ -19,13 +20,11 @@ PObj *NewObject(Pgc *gc, PObjType type) {
     return o;
 }
 
-
 PObj *NewStrObject(Pgc *gc, char *value) {
     PObj *o = NewObject(gc, OT_STR);
     o->v.str = value;
     return o;
 }
-
 
 PObj *NewFuncObject(
     Pgc *gc, Token *name, Token **params, PStmt *body, void *env, int count
@@ -36,6 +35,15 @@ PObj *NewFuncObject(
     o->v.OFunction.body = body;
     o->v.OFunction.env = env;
     o->v.OFunction.paramCount = count;
+    return o;
+}
+
+PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, int count) {
+    PObj *o = NewObject(gc, OT_ARR);
+
+    o->v.OArray.items = items;
+    o->v.OArray.count = count;
+    o->v.OArray.op = op;
     return o;
 }
 
@@ -73,6 +81,13 @@ void FreeObject(Pgc *gc, PObj *o) {
 
         case OT_STR: {
             // where does the string come from?
+            freeBaseObj(o);
+            break;
+        }
+
+        case OT_ARR: {
+            struct OArray *arr = &o->v.OArray;
+            arrfree(arr->items);
             freeBaseObj(o);
             break;
         }

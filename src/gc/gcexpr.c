@@ -102,15 +102,15 @@ PExpr *NewCallExpr(Pgc *gc, Token *op, PExpr *callee, PExpr **args, int count) {
     return e;
 }
 
-PExpr *NewArrayExpr(Pgc * gc, Token * op, PExpr ** items, int count){
-	PExpr * e = NewExpr(gc, EXPR_ARRAY);
-	if (e == NULL) {
-		return NULL;
-	}
-	e->exp.EArray.op = op;
-	e->exp.EArray.items = items;
-	e->exp.EArray.count = count;
-	return e;
+PExpr *NewArrayExpr(Pgc *gc, Token *op, PExpr **items, int count) {
+    PExpr *e = NewExpr(gc, EXPR_ARRAY);
+    if (e == NULL) {
+        return NULL;
+    }
+    e->exp.EArray.op = op;
+    e->exp.EArray.items = items;
+    e->exp.EArray.count = count;
+    return e;
 }
 // ===================
 // Freeing Functions
@@ -180,15 +180,15 @@ void FreeExpr(Pgc *gc, PExpr *e) {
             freeBaseExpr(gc, e);
             break;
         }
-		case EXPR_ARRAY:{
-			int count = e->exp.EArray.count;
-			for (int i = 0; i < count; i++) {
-				FreeExpr(gc, arrpop(e->exp.EArray.items));
-			}
-			arrfree(e->exp.EArray.items);
+        case EXPR_ARRAY: {
+            int count = e->exp.EArray.count;
+            for (int i = 0; i < count; i++) {
+                FreeExpr(gc, arrpop(e->exp.EArray.items));
+            }
+            arrfree(e->exp.EArray.items);
 
-			freeBaseExpr(gc, e);
-			break;
-		}
+            freeBaseExpr(gc, e);
+            break;
+        }
     }
 }
