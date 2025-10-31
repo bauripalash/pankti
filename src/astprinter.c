@@ -44,9 +44,7 @@ void AstPrint(PExpr *expr, int indent) {
         printf("Invalid Expression!\n");
         return;
     }
-
     printIndent(indent);
-
     switch (expr->type) {
         case EXPR_BINARY: {
             printf(

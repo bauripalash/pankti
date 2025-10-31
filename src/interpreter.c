@@ -7,7 +7,6 @@
 #include "include/gc.h"
 #include "include/object.h"
 #include "include/token.h"
-#include "include/utils.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -101,11 +100,9 @@ static PValue vLiteral(PInterpreter *it, PExpr *expr, PEnv *env) {
             if (expr->exp.ELiteral.op->type == T_TRUE) {
                 bvalue = true;
             }
-            //litObj = NewBoolObj(it->gc, bvalue);
 			return MakeBool(bvalue);
         }
         case EXP_LIT_NIL: {
-            //litObj = NewObject(it->gc, OT_NIL);
 			return MakeNil();
         }
 		default: return MakeNil();

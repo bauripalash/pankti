@@ -9,8 +9,10 @@ extern "C" {
 #include "token.h"
 #include <stdbool.h>
 
+// Forward declration for PObj
 typedef struct PObj PObj;
 
+// Value Type
 typedef enum PValueType{
 	VT_NUM,
 	VT_OBJ,
@@ -18,6 +20,7 @@ typedef enum PValueType{
 	VT_NIL
 }PValueType;
 
+// Stack Allocated PValue
 typedef struct PValue{
 	PValueType type;
 	union{
@@ -67,31 +70,46 @@ typedef struct PObj {
 
 
 
+// Check if value is a number
 #define IsValueNum(val) (val.type == VT_NUM)
+// Check if value is a bool
 #define IsValueBool(val) (val.type == VT_BOOL)
-#define IsValueNum(val) (val.type == VT_NUM)
+// Check if value is a nil
+#define IsValueNil(val) (val.type == VT_NIL)
+// Check if Value is Object. holds the pointer to the heap allocated object
 #define IsValueObj(val) (val.type == VT_OBJ)
 
+// Typecast value to number (double)
 #define ValueAsNum(val) ((double)val.v.num)
+// Typecast value to bool value
 #define ValueAsBool(val) ((bool)val.v.bl)
+// Typecast value to object. Returns PObj pointer to the heap allocated object
 #define ValueAsObj(val) ((PObj*)val.v.obj)
 
+// Make a number value
 static inline PValue MakeNumber(double value){
 	PValue val; val.type = VT_NUM; val.v.num = value; return val;
 }
+
+// Make a bool value
 static inline PValue MakeBool(bool bl){
 	PValue val; val.type = VT_BOOL; val.v.bl = bl; return val;
 }
+// Make a nil value
 static inline PValue MakeNil(){
 	PValue val; val.type = VT_NIL; return val;
 }
+
+// Make Object value. Wraps the object pointer as Value
 static inline PValue MakeObject(PObj * obj){
 	PValue val; val.type = VT_OBJ; val.v.obj = obj; return val;
 }
 
-
+// Check if value is truthy. Only bools are considered
 bool IsValueTruthy(const PValue * val);
+// Check if two values `a` and `b` are equal
 bool IsValueEqual(const PValue * a, const PValue * b);
+// Print value to stdout
 void PrintValue(const PValue * val);
 
 // Print Object
