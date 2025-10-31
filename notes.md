@@ -111,3 +111,8 @@ this ExResult method.
 
 With all these changes, Interpreter execution time for fib(35) is reduced to
 around 8-9 seconds.
+
+> Friday, October 31, 2025 9:19 AM (IST)
+
+I removed mimalloc. The benchmark doesn't show any significant improvement with
+or without mimalloc for fib(35).

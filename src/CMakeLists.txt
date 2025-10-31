@@ -38,8 +38,6 @@ set(PANKTI_HEADER_FILES
 
   # External
   "${CMAKE_CURRENT_SOURCE_DIR}/external/stb/stb_ds.h"
-  "${CMAKE_CURRENT_SOURCE_DIR}/external/mimalloc/src/static.c"
 )
 
 target_sources(${PROJECT_NAME} PRIVATE ${PANKTI_SRC_FILES} ${PANKTI_HEADER_FILES})
-target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/external/mimalloc/include")
