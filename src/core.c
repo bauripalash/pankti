@@ -1,6 +1,7 @@
 #include "include/core.h"
 #include "external/stb/stb_ds.h"
 #include "include/alloc.h"
+#include "include/ansicolors.h"
 #include "include/ast.h"
 #include "include/gc.h"
 #include "include/interpreter.h"
@@ -143,6 +144,34 @@ static void reportError(PanktiCore *core, int line, const char *msg) {
     core->caughtError = true;
 }
 
-void CoreError(PanktiCore *core, int line, const char *msg) {
-    reportError(core, line, msg);
+static void reportRuntimeError(PanktiCore * core, Token * tok){
+
+}
+
+static void printErrMsg(PanktiCore * core, int line, int col, const char *msg){
+	printf("[");
+	if (line >= 1) {
+		printf("line: %d", line);
+	}
+	if (col >= 1) {
+		printf(" : column: %d", col);
+	}
+	printf("] ");
+	printf(TERMC_RED "Error: %s" TERMC_RESET "\n", msg);
+}
+
+void CoreError(PanktiCore *core, Token * token, const char *msg) {
+    //reportError(core, token == NULL ? -1 : token->line, msg);
+	int line = -1;
+	int col = -1;
+	if (token != NULL) {
+		line = token->line;
+		col = token->col;
+	}
+	printErrMsg(core, line, col, msg);
+	
+}
+
+void CoreLexerError(PanktiCore * core, long line, long col, const char * msg){
+	reportError(core, line, msg);
 }

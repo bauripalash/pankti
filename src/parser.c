@@ -105,7 +105,7 @@ static bool matchOne(Parser *p, TokenType type) {
 
 static void error(Parser *p, Token *tok, char *msg) {
     p->hasError = true;
-    CoreError(p->core, -1, msg);
+    CoreError(p->core, tok, msg);
 }
 
 static Token *eat(Parser *p, TokenType t, char *msg) {
@@ -142,10 +142,11 @@ static PExpr *rOr(Parser *p) {
 static PExpr *rAssignment(Parser *p) {
     PExpr *expr = rOr(p);
     if (matchOne(p, T_EQ)) {
+		Token * op = previous(p);
         PExpr *value = rAssignment(p);
 
         if (expr->type == EXPR_VARIABLE) {
-            return NewAssignment(p->gc, expr, value);
+            return NewAssignment(p->gc,op, expr, value);
         }
 
         error(p, NULL, "Invalid assignment");
@@ -299,9 +300,10 @@ static PExpr *rPrimary(Parser *p) {
     }
 
     if (matchOne(p, T_LEFT_PAREN)) {
+		Token * op = previous(p);
         PExpr *e = rExpression(p);
         eat(p, T_RIGHT_PAREN, "Expected ')'");
-        return NewGrouping(p->gc, e);
+        return NewGrouping(p->gc,op, e);
     }
 
     if (matchOne(p, T_LS_BRACKET)) {

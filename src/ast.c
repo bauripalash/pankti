@@ -4,12 +4,10 @@
 #include "include/token.h"
 #include <stdio.h>
 
-static void printIndent(int indent) {
-    for (int i = 0; i < indent; i++) {
-        printf("  ");
-    }
-}
 
+Token * GetExprToken(const PExpr * expr){
+
+}
 static char *LiteralTypeToStr(ExpLitType type) {
     switch (type) {
         case EXP_LIT_NUM: return "Number";
@@ -39,6 +37,12 @@ void AstPrintLiteral(PExpr *expr) {
     printf("\n");
 }
 
+static void printIndent(int indent) {
+    for (int i = 0; i < indent; i++) {
+        printf("  ");
+    }
+}
+
 void AstPrint(PExpr *expr, int indent) {
     if (expr == NULL) {
         printf("Invalid Expression!\n");
@@ -50,7 +54,7 @@ void AstPrint(PExpr *expr, int indent) {
             printf(
                 TERMC_PURPLE "BinaryExpr(" TERMC_RESET "%s" TERMC_PURPLE
                              ")\n" TERMC_RESET,
-                TokTypeToStr(expr->exp.EBinary.opr->type)
+                TokTypeToStr(expr->exp.EBinary.op->type)
             );
 
             AstPrint(expr->exp.EBinary.left, indent + 1);
@@ -61,7 +65,7 @@ void AstPrint(PExpr *expr, int indent) {
             printf(
                 TERMC_GREEN "Unary(" TERMC_RESET "%s" TERMC_GREEN
                             ")\n" TERMC_RESET,
-                TokTypeToStr(expr->exp.EBinary.opr->type)
+                TokTypeToStr(expr->exp.EBinary.op->type)
             );
 
             AstPrint(expr->exp.EUnary.right, indent + 1);

@@ -76,7 +76,7 @@ PExpr *NewLiteral(Pgc *gc, Token *op, ExpLitType type);
 // New Grouping Expression. Type : `EXPR_GROUPING`
 // `(<expr>)`
 // Return => New Grouping Expression as Expression pointer or NULL
-PExpr *NewGrouping(Pgc *gc, PExpr *expr);
+PExpr *NewGrouping(Pgc *gc, Token * op, PExpr *expr);
 
 // New Variable Expression. Type : `EXPR_VARIABLE`
 // `name` = Variable name
@@ -86,7 +86,7 @@ PExpr *NewVarExpr(Pgc *gc, Token *name);
 // New Assignment Expression. Type : `EXPR_ASSIGN`
 // Set `value` to a preexisting variable with name being `name`
 // Return => New Assignment Expression as Expression pointer or NULL
-PExpr *NewAssignment(Pgc *gc, PExpr *name, PExpr *value);
+PExpr *NewAssignment(Pgc *gc, Token * op, PExpr *name, PExpr *value);
 
 // New Logical Expression (ie. And, Or). Type : `EXPR_LOGICAL`
 // Return => New Logical Expression as Expression pointer or NULL

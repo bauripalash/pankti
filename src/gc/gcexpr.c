@@ -25,7 +25,7 @@ PExpr *NewBinaryExpr(Pgc *gc, PExpr *left, Token *op, PExpr *right) {
         return NULL;
     }
     e->exp.EBinary.left = left;
-    e->exp.EBinary.opr = op;
+    e->exp.EBinary.op = op;
     e->exp.EBinary.right = right;
 
     return e;
@@ -36,7 +36,7 @@ PExpr *NewUnary(Pgc *gc, Token *op, PExpr *right) {
     if (e == NULL) {
         return NULL;
     }
-    e->exp.EUnary.opr = op;
+    e->exp.EUnary.op = op;
     e->exp.EUnary.right = right;
     return e;
 }
@@ -51,11 +51,12 @@ PExpr *NewLiteral(Pgc *gc, Token *op, ExpLitType type) {
     return e;
 }
 
-PExpr *NewGrouping(Pgc *gc, PExpr *expr) {
+PExpr *NewGrouping(Pgc *gc, Token * op, PExpr *expr) {
     PExpr *e = NewExpr(gc, EXPR_GROUPING);
     if (e == NULL) {
         return NULL;
     }
+	e->exp.EGrouping.op = op;
     e->exp.EGrouping.expr = expr;
     return e;
 }
@@ -69,11 +70,12 @@ PExpr *NewVarExpr(Pgc *gc, Token *name) {
     return e;
 }
 
-PExpr *NewAssignment(Pgc *gc, PExpr *name, PExpr *value) {
+PExpr *NewAssignment(Pgc *gc, Token * op, PExpr *name, PExpr *value) {
     PExpr *e = NewExpr(gc, EXPR_ASSIGN);
     if (e == NULL) {
         return NULL;
     }
+	e->exp.EAssign.op = op;
     e->exp.EAssign.name = name;
     e->exp.EAssign.value = value;
     return e;

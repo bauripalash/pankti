@@ -84,11 +84,7 @@ void Interpret(PInterpreter *it) {
     // FreeObject(it->gc, obj);
 }
 static void error(PInterpreter *it, Token *tok, const char *msg) {
-	long lineNo = -1;
-	if (tok != NULL) {
-		lineNo = tok->line;
-	}
-    CoreError(it->core, lineNo, msg);
+    CoreError(it->core, tok, msg);
 }
 static PValue vLiteral(PInterpreter *it, PExpr *expr, PEnv *env) {
     switch (expr->exp.ELiteral.type) {
@@ -128,7 +124,7 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
     //     error(it, NULL, "Right hand side expression is invalid");
     //     return NULL;
     // }
-    switch (expr->exp.EBinary.opr->type) {
+    switch (expr->exp.EBinary.op->type) {
         case T_PLUS: {
             if (l.type != VT_NUM || r.type != VT_NUM) {
                 error(
@@ -223,7 +219,7 @@ static PValue vAssignment(PInterpreter *it, PExpr *expr, PEnv *env) {
 static PValue vUnary(PInterpreter *it, PExpr *expr, PEnv *env) {
     PValue r = evaluate(it, expr->exp.EUnary.right, env);
 
-    switch (expr->exp.EUnary.opr->type) {
+    switch (expr->exp.EUnary.op->type) {
         case T_MINUS: {
             double value = -r.v.num;
             // result = NewNumberObj(it->gc, value);

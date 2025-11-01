@@ -305,7 +305,7 @@ static void scanToken(Lexer *lx) {
                 readIdent(lx);
                 break;
             } else {
-                CoreError(lx->core, lx->line, "Unknown character found");
+				CoreLexerError(lx->core, lx->line, lx->column, "Invalid character found");
                 break;
             }
             break;

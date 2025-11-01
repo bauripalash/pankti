@@ -1,6 +1,7 @@
 #ifndef AST_H
 #define AST_H
 
+#include <stdbool.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -60,7 +61,7 @@ typedef struct PExpr {
             // Left hand side expression
             struct PExpr *left;
             // Operator
-            Token *opr;
+            Token *op;
             // Right  hand side expression
             struct PExpr *right;
         } EBinary;
@@ -71,7 +72,7 @@ typedef struct PExpr {
             // Original expression
             struct PExpr *right;
             // Operator
-            Token *opr;
+            Token *op;
         } EUnary;
 
         // Literal Expression; Bool, Number, String, Nil etc.
@@ -105,6 +106,8 @@ typedef struct PExpr {
         struct EGrouping {
             // Original expression
             struct PExpr *expr;
+			// Opening '('
+			Token * op;
         } EGrouping;
 
         // Variable Expression
@@ -119,8 +122,12 @@ typedef struct PExpr {
         // Type: `EXPR_ASSIGN`
         // Set a value to preexisting value
         struct EAssign {
+			// Expression to assign the value to
             struct PExpr *name;
+			// The value
             struct PExpr *value;
+			// The `=` token
+			Token * op;
         } EAssign;
 
         // Logical Expression
@@ -279,6 +286,9 @@ typedef struct PStmt {
 
 // Typecast `void *` to `PExpr *`
 #define ToExpr(e) (PExpr *)e
+
+bool ExprHasToken(const PExpr * expr);
+Token * GetExprToken(const PExpr * expr);
 
 // Print Expression AST
 void AstPrint(PExpr *expr, int indent);
