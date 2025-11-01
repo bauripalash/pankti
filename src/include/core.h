@@ -38,7 +38,7 @@ void FreeCore(PanktiCore *core);
 // Run the script
 void RunCore(PanktiCore *core);
 // Show error
-void CoreError(PanktiCore *core, int line, char *msg);
+void CoreError(PanktiCore *core, int line, const char *msg);
 #ifdef __cplusplus
 }
 #endif

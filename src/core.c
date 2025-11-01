@@ -129,11 +129,20 @@ void RunCore(PanktiCore *core) {
     }
 }
 
-static void reportError(PanktiCore *core, int line, char *msg) {
+static void reportError(PanktiCore *core, int line, const char *msg) {
+	if (line > 0) {
+		int lineIndex = line - 1;
+		int lineCount = 0;
+		char ** lines = StrSplit(core->lexer->source, '\n', &lineCount);
+		if (line < lineCount) {
+			printf("%d | %s",line ,lines[lineIndex]);
+			printf("<--\n");
+		}
+	}
     printf("[%d] Error : %s\n", line, msg);
     core->caughtError = true;
 }
 
-void CoreError(PanktiCore *core, int line, char *msg) {
+void CoreError(PanktiCore *core, int line, const char *msg) {
     reportError(core, line, msg);
 }

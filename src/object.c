@@ -14,6 +14,21 @@ void PrintValue(const PValue *val) {
     }
 }
 
+const char *ValueTypeToStr(const PValue *val) {
+    if (val == NULL) {
+        return "Unknown";
+    }
+
+    switch (val->type) {
+        case VT_NUM: return "Number";
+        case VT_BOOL: return "Bool";
+        case VT_NIL: return "Nil";
+        case VT_OBJ: return ObjTypeToString(val->v.obj->type);
+    }
+
+    return "Unknown";
+}
+
 bool IsValueTruthy(const PValue *val) {
     if (val->type == VT_BOOL && val->v.bl) {
         return true;

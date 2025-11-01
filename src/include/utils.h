@@ -8,6 +8,9 @@
 extern "C" {
 #endif
 
+#define MAX_STRFORMAT_BUF 4
+#define MAX_STRSPLIT_COUNT 128
+#define MAX_STRBUF_LENGTH 1024
 // Return item count of array
 #define ArrCount(arr) (sizeof(arr) / sizeof(arr[0]))
 
@@ -27,6 +30,12 @@ bool StrEqual(const char *str1, const char *str2);
 
 // Get the length of a string. Return how many bytes, not actual codepoints
 long StrLength(const char *str);
+
+// Format String; same as Raylib's TextFormat
+const char *StrFormat(const char *text, ...);
+
+// Split String; same as Raylib's TextSplit
+char ** StrSplit(const char * text, char delimiter, int * count);
 
 // Helper function for lexer to match English, Bengali and Phonetic version of
 // keywords

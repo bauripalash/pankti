@@ -7,6 +7,7 @@
 #include "include/gc.h"
 #include "include/object.h"
 #include "include/token.h"
+#include "include/utils.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -82,8 +83,12 @@ void Interpret(PInterpreter *it) {
 
     // FreeObject(it->gc, obj);
 }
-static void error(PInterpreter *it, void *tok, char *msg) {
-    CoreError(it->core, -1, msg);
+static void error(PInterpreter *it, Token *tok, const char *msg) {
+	long lineNo = -1;
+	if (tok != NULL) {
+		lineNo = tok->line;
+	}
+    CoreError(it->core, lineNo, msg);
 }
 static PValue vLiteral(PInterpreter *it, PExpr *expr, PEnv *env) {
     switch (expr->exp.ELiteral.type) {
@@ -127,7 +132,12 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
         case T_PLUS: {
             if (l.type != VT_NUM || r.type != VT_NUM) {
                 error(
-                    it, NULL, "Plus operation can only be done with numbers;"
+                    it, NULL,
+                    StrFormat(
+                        "Plus operation can only be done with numbers but got "
+                        "%s + %s",
+                        ValueTypeToStr(&l), ValueTypeToStr(&r)
+                    )
                 );
                 break;
             }
@@ -183,12 +193,13 @@ static PValue vVariable(PInterpreter *it, PExpr *expr, PEnv *env) {
     bool found = false;
     PValue v = EnvGetValue(env, expr->exp.EVariable.name->hash, &found);
     if (!found) {
-        char errmsg[512];
-        snprintf(
-            errmsg, 512, "Found Undefined variable '%s' at line %ld",
-            expr->exp.EVariable.name->lexeme, expr->exp.EVariable.name->line
+        error(
+            it, expr->exp.EVariable.name,
+            StrFormat(
+                "Found Undefined variable '%s' at line %ld",
+                expr->exp.EVariable.name->lexeme, expr->exp.EVariable.name->line
+            )
         );
-        error(it, NULL, errmsg);
         return MakeNil();
     }
     return v;
@@ -342,35 +353,33 @@ static PValue vArray(PInterpreter *it, PExpr *expr, PEnv *env) {
     return MakeObject(arrObj);
 }
 
-static PValue vSubscript(PInterpreter *it, PExpr * expr, PEnv * env){
-	struct ESubscript * sub = &expr->exp.ESubscript;
-	PValue subValue = evaluate(it, sub->value, env);
+static PValue vSubscript(PInterpreter *it, PExpr *expr, PEnv *env) {
+    struct ESubscript *sub = &expr->exp.ESubscript;
+    PValue subValue = evaluate(it, sub->value, env);
 
-	if (subValue.type == VT_OBJ) {
-		PObj * subObj = ValueAsObj(subValue);
-		if (subObj->type == OT_ARR) {
-			PValue indexValue = evaluate(it, sub->index, env);
-			if (indexValue.type == VT_NUM) {
-				double index = ValueAsNum(indexValue);
-				struct OArray * arr = &subObj->v.OArray;
-				if (index >= arr->count) {
-					error(it, NULL, "Index out of range");
-					return MakeNil();
-				}
+    if (subValue.type == VT_OBJ) {
+        PObj *subObj = ValueAsObj(subValue);
+        if (subObj->type == OT_ARR) {
+            PValue indexValue = evaluate(it, sub->index, env);
+            if (indexValue.type == VT_NUM) {
+                double index = ValueAsNum(indexValue);
+                struct OArray *arr = &subObj->v.OArray;
+                if (index >= arr->count) {
+                    error(it, NULL, "Index out of range");
+                    return MakeNil();
+                }
 
-				return arr->items[(int)index];
-				
-			}else{
-				error(it, NULL, "Array Subscript index must be a number");
-				return MakeNil();
-			}
-			
-		}
+                return arr->items[(int)index];
 
-	}
+            } else {
+                error(it, NULL, "Array Subscript index must be a number");
+                return MakeNil();
+            }
+        }
+    }
 
-	error(it, NULL, "Invalid Subscript. Subscript only works on array and ..");
-	return MakeNil();
+    error(it, NULL, "Invalid Subscript. Subscript only works on array and ..");
+    return MakeNil();
 }
 
 static PValue evaluate(PInterpreter *it, PExpr *expr, PEnv *env) {
@@ -387,7 +396,7 @@ static PValue evaluate(PInterpreter *it, PExpr *expr, PEnv *env) {
         case EXPR_CALL: return vCall(it, expr, env);
         case EXPR_GROUPING: return evaluate(it, expr->exp.EGrouping.expr, env);
         case EXPR_ARRAY: return vArray(it, expr, env);
-		case EXPR_SUBSCRIPT: return vSubscript(it, expr, env);
+        case EXPR_SUBSCRIPT: return vSubscript(it, expr, env);
     }
 
     return MakeNil();

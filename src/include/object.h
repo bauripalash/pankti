@@ -122,6 +122,10 @@ bool IsValueEqual(const PValue *a, const PValue *b);
 // Print value to stdout
 void PrintValue(const PValue *val);
 
+// Get Value Type as String;
+// If Value is a object, returns Object Type
+const char *ValueTypeToStr(const PValue *val);
+
 // Print Object
 void PrintObject(const PObj *o);
 
