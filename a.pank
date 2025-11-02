@@ -1,2 +1,8 @@
-let x = [1,2, "palash"]
-print y + x[0]
+let a = 100
+
+print c
+a
+=
+100
+print a
+

@@ -3,6 +3,7 @@
 
 #include "ast.h"
 #include "object.h"
+#include "token.h"
 #include <stddef.h>
 #ifdef __cplusplus
 extern "C" {
@@ -48,8 +49,9 @@ PObj *NewFuncObject(
 // Create New Array Object
 PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, int count);
 // Create New (Empty) Expression
+// `type` = Expression Type
 // Return => New Expression with type `type` or NULL in case of failure
-PExpr *NewExpr(Pgc *gc, PExprType type);
+PExpr *NewExpr(Pgc *gc, PExprType type, Token * op);
 
 // Free Expression
 void FreeExpr(Pgc *gc, PExpr *expr);

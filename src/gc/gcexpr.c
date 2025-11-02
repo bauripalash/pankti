@@ -10,17 +10,18 @@
 // Creation Functions
 // ===================
 
-PExpr *NewExpr(Pgc *gc, PExprType type) {
+PExpr *NewExpr(Pgc *gc, PExprType type, Token * op) {
     PExpr *e = PCreate(PExpr);
     if (e == NULL) {
         return NULL;
     }
     e->type = type;
+	e->op = op;
     return e;
 }
 
 PExpr *NewBinaryExpr(Pgc *gc, PExpr *left, Token *op, PExpr *right) {
-    PExpr *e = NewExpr(gc, EXPR_BINARY);
+    PExpr *e = NewExpr(gc, EXPR_BINARY, op);
     if (e == NULL) {
         return NULL;
     }
@@ -32,7 +33,7 @@ PExpr *NewBinaryExpr(Pgc *gc, PExpr *left, Token *op, PExpr *right) {
 }
 
 PExpr *NewUnary(Pgc *gc, Token *op, PExpr *right) {
-    PExpr *e = NewExpr(gc, EXPR_UNARY);
+    PExpr *e = NewExpr(gc, EXPR_UNARY, op);
     if (e == NULL) {
         return NULL;
     }
@@ -42,7 +43,7 @@ PExpr *NewUnary(Pgc *gc, Token *op, PExpr *right) {
 }
 
 PExpr *NewLiteral(Pgc *gc, Token *op, ExpLitType type) {
-    PExpr *e = NewExpr(gc, EXPR_LITERAL);
+    PExpr *e = NewExpr(gc, EXPR_LITERAL, op);
     if (e == NULL) {
         return NULL;
     }
@@ -52,7 +53,7 @@ PExpr *NewLiteral(Pgc *gc, Token *op, ExpLitType type) {
 }
 
 PExpr *NewGrouping(Pgc *gc, Token * op, PExpr *expr) {
-    PExpr *e = NewExpr(gc, EXPR_GROUPING);
+    PExpr *e = NewExpr(gc, EXPR_GROUPING, op);
     if (e == NULL) {
         return NULL;
     }
@@ -62,7 +63,7 @@ PExpr *NewGrouping(Pgc *gc, Token * op, PExpr *expr) {
 }
 
 PExpr *NewVarExpr(Pgc *gc, Token *name) {
-    PExpr *e = NewExpr(gc, EXPR_VARIABLE);
+    PExpr *e = NewExpr(gc, EXPR_VARIABLE, name);
     if (e == NULL) {
         return NULL;
     }
@@ -71,7 +72,7 @@ PExpr *NewVarExpr(Pgc *gc, Token *name) {
 }
 
 PExpr *NewAssignment(Pgc *gc, Token * op, PExpr *name, PExpr *value) {
-    PExpr *e = NewExpr(gc, EXPR_ASSIGN);
+    PExpr *e = NewExpr(gc, EXPR_ASSIGN, op);
     if (e == NULL) {
         return NULL;
     }
@@ -82,7 +83,7 @@ PExpr *NewAssignment(Pgc *gc, Token * op, PExpr *name, PExpr *value) {
 }
 
 PExpr *NewLogical(Pgc *gc, PExpr *left, Token *op, PExpr *right) {
-    PExpr *e = NewExpr(gc, EXPR_LOGICAL);
+    PExpr *e = NewExpr(gc, EXPR_LOGICAL, op);
     if (e == NULL) {
         return NULL;
     }
@@ -93,7 +94,7 @@ PExpr *NewLogical(Pgc *gc, PExpr *left, Token *op, PExpr *right) {
 }
 
 PExpr *NewCallExpr(Pgc *gc, Token *op, PExpr *callee, PExpr **args, int count) {
-    PExpr *e = NewExpr(gc, EXPR_CALL);
+    PExpr *e = NewExpr(gc, EXPR_CALL, op);
     if (e == NULL) {
         return NULL;
     }
@@ -105,7 +106,7 @@ PExpr *NewCallExpr(Pgc *gc, Token *op, PExpr *callee, PExpr **args, int count) {
 }
 
 PExpr *NewArrayExpr(Pgc *gc, Token *op, PExpr **items, int count) {
-    PExpr *e = NewExpr(gc, EXPR_ARRAY);
+    PExpr *e = NewExpr(gc, EXPR_ARRAY, op);
     if (e == NULL) {
         return NULL;
     }
@@ -116,7 +117,7 @@ PExpr *NewArrayExpr(Pgc *gc, Token *op, PExpr **items, int count) {
 }
 
 PExpr *NewSubscriptExpr(Pgc *gc, Token *op, PExpr *value, PExpr *index) {
-    PExpr *e = NewExpr(gc, EXPR_SUBSCRIPT);
+    PExpr *e = NewExpr(gc, EXPR_SUBSCRIPT, op);
     if (e == NULL) {
         return NULL;
     }

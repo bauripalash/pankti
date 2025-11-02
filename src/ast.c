@@ -5,9 +5,6 @@
 #include <stdio.h>
 
 
-Token * GetExprToken(const PExpr * expr){
-
-}
 static char *LiteralTypeToStr(ExpLitType type) {
     switch (type) {
         case EXP_LIT_NUM: return "Number";

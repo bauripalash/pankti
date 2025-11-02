@@ -126,6 +126,7 @@ void RunCore(PanktiCore *core) {
 
     if (core->caughtError) {
         printf("Runtime Error found!\n");
+		FreeCore(core);
         exit(1);
     }
 }

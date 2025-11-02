@@ -53,6 +53,7 @@ typedef enum PLitType {
 typedef struct PExpr {
     // Expression type
     PExprType type;
+	Token * op;
     // Expression union of all type of expressions
     union exp {
         // Binary Operation Expression.
@@ -88,13 +89,17 @@ typedef struct PExpr {
                 double nvalue;
             } value;
         } ELiteral;
-
+	
+		// Array Expression
+		// Type: `EXPR_ARRAY`
         struct EArray {
             struct PExpr **items;
             int count;
             Token *op;
         } EArray;
 
+		// Subscript Expression
+		// Type: `EXPR_SUBSCRIPT`
         struct ESubscript {
             struct PExpr *value;
             struct PExpr *index;
@@ -286,9 +291,6 @@ typedef struct PStmt {
 
 // Typecast `void *` to `PExpr *`
 #define ToExpr(e) (PExpr *)e
-
-bool ExprHasToken(const PExpr * expr);
-Token * GetExprToken(const PExpr * expr);
 
 // Print Expression AST
 void AstPrint(PExpr *expr, int indent);

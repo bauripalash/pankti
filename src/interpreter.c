@@ -128,7 +128,7 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
         case T_PLUS: {
             if (l.type != VT_NUM || r.type != VT_NUM) {
                 error(
-                    it, NULL,
+                    it, expr->exp.EBinary.op,
                     StrFormat(
                         "Plus operation can only be done with numbers but got "
                         "%s + %s",
@@ -192,8 +192,8 @@ static PValue vVariable(PInterpreter *it, PExpr *expr, PEnv *env) {
         error(
             it, expr->exp.EVariable.name,
             StrFormat(
-                "Found Undefined variable '%s' at line %ld",
-                expr->exp.EVariable.name->lexeme, expr->exp.EVariable.name->line
+                "Found Undefined variable '%s'",
+                expr->exp.EVariable.name->lexeme
             )
         );
         return MakeNil();
@@ -208,10 +208,7 @@ static PValue vAssignment(PInterpreter *it, PExpr *expr, PEnv *env) {
         )) {
         return value;
     } else {
-        error(it, NULL, "Undefined variable assignment");
-        printf(
-            "at line %ld\n", expr->exp.EAssign.name->exp.EVariable.name->line
-        );
+        error(it, expr->exp.EAssign.name->op, "Undefined variable assignment");
         return MakeNil();
     }
 }
