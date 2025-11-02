@@ -39,8 +39,8 @@ void FreeCore(PanktiCore *core);
 // Run the script
 void RunCore(PanktiCore *core);
 // Show error
-void CoreError(PanktiCore *core, Token * token, const char *msg);
-void CoreLexerError(PanktiCore * core, long line, long col, const char * msg);
+void CoreError(PanktiCore *core, Token *token, const char *msg);
+void CoreLexerError(PanktiCore *core, long line, long col, const char *msg);
 #ifdef __cplusplus
 }
 #endif

@@ -1,9 +1,8 @@
+#include "include/ast.h"
 #include "external/stb/stb_ds.h"
 #include "include/ansicolors.h"
-#include "include/ast.h"
 #include "include/token.h"
 #include <stdio.h>
-
 
 static char *LiteralTypeToStr(ExpLitType type) {
     switch (type) {

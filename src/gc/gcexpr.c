@@ -4,19 +4,18 @@
 #include "../include/gc.h"
 #include "../include/token.h"
 #include <stdio.h>
-#include <stdlib.h>
 
 // ===================
 // Creation Functions
 // ===================
 
-PExpr *NewExpr(Pgc *gc, PExprType type, Token * op) {
+PExpr *NewExpr(Pgc *gc, PExprType type, Token *op) {
     PExpr *e = PCreate(PExpr);
     if (e == NULL) {
         return NULL;
     }
     e->type = type;
-	e->op = op;
+    e->op = op;
     return e;
 }
 
@@ -52,12 +51,12 @@ PExpr *NewLiteral(Pgc *gc, Token *op, ExpLitType type) {
     return e;
 }
 
-PExpr *NewGrouping(Pgc *gc, Token * op, PExpr *expr) {
+PExpr *NewGrouping(Pgc *gc, Token *op, PExpr *expr) {
     PExpr *e = NewExpr(gc, EXPR_GROUPING, op);
     if (e == NULL) {
         return NULL;
     }
-	e->exp.EGrouping.op = op;
+    e->exp.EGrouping.op = op;
     e->exp.EGrouping.expr = expr;
     return e;
 }
@@ -71,12 +70,12 @@ PExpr *NewVarExpr(Pgc *gc, Token *name) {
     return e;
 }
 
-PExpr *NewAssignment(Pgc *gc, Token * op, PExpr *name, PExpr *value) {
+PExpr *NewAssignment(Pgc *gc, Token *op, PExpr *name, PExpr *value) {
     PExpr *e = NewExpr(gc, EXPR_ASSIGN, op);
     if (e == NULL) {
         return NULL;
     }
-	e->exp.EAssign.op = op;
+    e->exp.EAssign.op = op;
     e->exp.EAssign.name = name;
     e->exp.EAssign.value = value;
     return e;

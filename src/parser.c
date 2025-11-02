@@ -142,11 +142,11 @@ static PExpr *rOr(Parser *p) {
 static PExpr *rAssignment(Parser *p) {
     PExpr *expr = rOr(p);
     if (matchOne(p, T_EQ)) {
-		Token * op = previous(p);
+        Token *op = previous(p);
         PExpr *value = rAssignment(p);
 
         if (expr->type == EXPR_VARIABLE) {
-            return NewAssignment(p->gc,op, expr, value);
+            return NewAssignment(p->gc, op, expr, value);
         }
 
         error(p, NULL, "Invalid assignment");
@@ -300,10 +300,10 @@ static PExpr *rPrimary(Parser *p) {
     }
 
     if (matchOne(p, T_LEFT_PAREN)) {
-		Token * op = previous(p);
+        Token *op = previous(p);
         PExpr *e = rExpression(p);
         eat(p, T_RIGHT_PAREN, "Expected ')'");
-        return NewGrouping(p->gc,op, e);
+        return NewGrouping(p->gc, op, e);
     }
 
     if (matchOne(p, T_LS_BRACKET)) {

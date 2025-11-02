@@ -11,12 +11,13 @@
 // Creation Functions
 // ===================
 
-PStmt *NewStmt(Pgc *gc, PStmtType type) {
+PStmt *NewStmt(Pgc *gc, PStmtType type, Token *op) {
     PStmt *s = PCreate(PStmt);
     if (s == NULL) {
         return NULL;
     }
     s->type = type;
+    s->op = op;
     s->next = gc->stmts;
     gc->stmts = s;
 #if defined DEBUG_GC
@@ -29,7 +30,7 @@ PStmt *NewStmt(Pgc *gc, PStmtType type) {
 }
 
 PStmt *NewPrintStmt(Pgc *gc, Token *op, PExpr *value) {
-    PStmt *s = NewStmt(gc, STMT_PRINT);
+    PStmt *s = NewStmt(gc, STMT_PRINT, op);
 
     if (s == NULL) {
         return NULL;
@@ -39,7 +40,7 @@ PStmt *NewPrintStmt(Pgc *gc, Token *op, PExpr *value) {
     return s;
 }
 PStmt *NewExprStmt(Pgc *gc, Token *op, PExpr *value) {
-    PStmt *s = NewStmt(gc, STMT_EXPR);
+    PStmt *s = NewStmt(gc, STMT_EXPR, op);
     if (s == NULL) {
         return NULL;
     }
@@ -50,7 +51,7 @@ PStmt *NewExprStmt(Pgc *gc, Token *op, PExpr *value) {
 }
 
 PStmt *NewLetStmt(Pgc *gc, Token *name, PExpr *value) {
-    PStmt *s = NewStmt(gc, STMT_LET);
+    PStmt *s = NewStmt(gc, STMT_LET, name);
     if (s == NULL) {
         return NULL;
     }
@@ -61,7 +62,7 @@ PStmt *NewLetStmt(Pgc *gc, Token *name, PExpr *value) {
 }
 
 PStmt *NewBlockStmt(Pgc *gc, Token *op, PStmt **stmts) {
-    PStmt *s = NewStmt(gc, STMT_BLOCK);
+    PStmt *s = NewStmt(gc, STMT_BLOCK, op);
     if (s == NULL) {
         return NULL;
     }
@@ -71,7 +72,7 @@ PStmt *NewBlockStmt(Pgc *gc, Token *op, PStmt **stmts) {
 }
 
 PStmt *NewIfStmt(Pgc *gc, Token *op, PExpr *cond, PStmt *then, PStmt *elseB) {
-    PStmt *s = NewStmt(gc, STMT_IF);
+    PStmt *s = NewStmt(gc, STMT_IF, op);
     if (s == NULL) {
         return NULL;
     }
@@ -83,7 +84,7 @@ PStmt *NewIfStmt(Pgc *gc, Token *op, PExpr *cond, PStmt *then, PStmt *elseB) {
 }
 
 PStmt *NewWhileStmt(Pgc *gc, Token *op, PExpr *cond, PStmt *body) {
-    PStmt *s = NewStmt(gc, STMT_WHILE);
+    PStmt *s = NewStmt(gc, STMT_WHILE, op);
     if (s == NULL) {
         return NULL;
     }
@@ -94,7 +95,7 @@ PStmt *NewWhileStmt(Pgc *gc, Token *op, PExpr *cond, PStmt *body) {
 }
 
 PStmt *NewReturnStmt(Pgc *gc, Token *op, PExpr *value) {
-    PStmt *s = NewStmt(gc, STMT_RETURN);
+    PStmt *s = NewStmt(gc, STMT_RETURN, op);
     if (s == NULL) {
         return NULL;
     }
@@ -104,7 +105,7 @@ PStmt *NewReturnStmt(Pgc *gc, Token *op, PExpr *value) {
 }
 
 PStmt *NewBreakStmt(Pgc *gc, Token *op) {
-    PStmt *s = NewStmt(gc, STMT_BREAK);
+    PStmt *s = NewStmt(gc, STMT_BREAK, op);
     if (s == NULL) {
         return NULL;
     }
@@ -114,7 +115,7 @@ PStmt *NewBreakStmt(Pgc *gc, Token *op) {
 
 PStmt *
 NewFuncStmt(Pgc *gc, Token *name, Token **params, PStmt *body, int count) {
-    PStmt *s = NewStmt(gc, STMT_FUNC);
+    PStmt *s = NewStmt(gc, STMT_FUNC, name);
     if (s == NULL) {
         return NULL;
     }

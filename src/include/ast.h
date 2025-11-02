@@ -53,7 +53,8 @@ typedef enum PLitType {
 typedef struct PExpr {
     // Expression type
     PExprType type;
-	Token * op;
+    // Common operator
+    Token *op;
     // Expression union of all type of expressions
     union exp {
         // Binary Operation Expression.
@@ -89,17 +90,17 @@ typedef struct PExpr {
                 double nvalue;
             } value;
         } ELiteral;
-	
-		// Array Expression
-		// Type: `EXPR_ARRAY`
+
+        // Array Expression
+        // Type: `EXPR_ARRAY`
         struct EArray {
             struct PExpr **items;
             int count;
             Token *op;
         } EArray;
 
-		// Subscript Expression
-		// Type: `EXPR_SUBSCRIPT`
+        // Subscript Expression
+        // Type: `EXPR_SUBSCRIPT`
         struct ESubscript {
             struct PExpr *value;
             struct PExpr *index;
@@ -111,8 +112,8 @@ typedef struct PExpr {
         struct EGrouping {
             // Original expression
             struct PExpr *expr;
-			// Opening '('
-			Token * op;
+            // Opening '('
+            Token *op;
         } EGrouping;
 
         // Variable Expression
@@ -127,12 +128,12 @@ typedef struct PExpr {
         // Type: `EXPR_ASSIGN`
         // Set a value to preexisting value
         struct EAssign {
-			// Expression to assign the value to
+            // Expression to assign the value to
             struct PExpr *name;
-			// The value
+            // The value
             struct PExpr *value;
-			// The `=` token
-			Token * op;
+            // The `=` token
+            Token *op;
         } EAssign;
 
         // Logical Expression
@@ -189,6 +190,8 @@ typedef enum PStmtType {
 typedef struct PStmt {
     // Statement Type
     PStmtType type;
+    // Common operator
+    Token *op;
     struct PStmt *next;
     // `Temporary` Print Statement (for Debugging only)
     // Type: `STMT_PRINT`
