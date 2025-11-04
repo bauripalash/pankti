@@ -81,6 +81,13 @@ void PrintObject(const PObj *o) {
             printf("]");
             break;
         }
+        case OT_NATIVE: {
+            printf(
+                "<native %s>",
+                o->v.ONative.name != NULL ? o->v.ONative.name->lexeme : "'Null'"
+            );
+            break;
+        }
     }
 }
 
@@ -89,6 +96,7 @@ char *ObjTypeToString(PObjType type) {
         case OT_STR: return "String"; break;
         case OT_FNC: return "Function"; break;
         case OT_ARR: return "Array"; break;
+        case OT_NATIVE: return "Native Func"; break;
     }
 
     return "";
@@ -106,6 +114,7 @@ bool IsObjEqual(const PObj *a, const PObj *b) {
         }
         case OT_FNC: result = false; break;
         case OT_ARR: result = false; break; // TODO: fix
+        case OT_NATIVE: result = (a->v.ONative.fn == b->v.ONative.fn); break;
     }
 
     return result;

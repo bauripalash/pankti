@@ -11,6 +11,7 @@ extern "C" {
 
 // Forward declration for PObj
 typedef struct PObj PObj;
+typedef struct PInterpreter PInterpreter;
 
 // Value Type
 typedef enum PValueType { VT_NUM, VT_OBJ, VT_BOOL, VT_NIL } PValueType;
@@ -25,13 +26,17 @@ typedef struct PValue {
     } v;
 } PValue;
 
+typedef PValue (*NativeFn)(PInterpreter *it, PValue *args, int argc);
+
 // Pankti Object Types
 typedef enum PObjType {
     // String Object
     OT_STR,
     // Function Object. Used by `OFunction`
     OT_FNC,
+    // Array Object. Used by `OArray`
     OT_ARR,
+    OT_NATIVE,
 } PObjType;
 
 // Pankti Object
@@ -65,6 +70,16 @@ typedef struct PObj {
             int count;
             PValue *items;
         } OArray;
+
+        // Native Function Object. Type : `OT_NATIVE`
+        struct ONative {
+            // Native `C` Function
+            NativeFn fn;
+            // How many args the function needs
+            int arity;
+            // Function name (Raw Token)
+            Token *name;
+        } ONative;
     } v;
 
 } PObj;

@@ -6,6 +6,7 @@ set(PANKTI_SRC_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/interpreter.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/lexer.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/main.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/native.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/object.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/parser.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/token.c"

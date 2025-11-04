@@ -48,6 +48,10 @@ PObj *NewFuncObject(
 
 // Create New Array Object
 PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, int count);
+
+// Create New Native Function Object
+PObj *NewNativeFnObject(Pgc *gc, Token *name, NativeFn fn, int arity);
+
 // Create New (Empty) Expression
 // `type` = Expression Type
 // Return => New Expression with type `type` or NULL in case of failure

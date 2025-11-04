@@ -5,6 +5,7 @@
 #include "include/core.h"
 #include "include/env.h"
 #include "include/gc.h"
+#include "include/native.h"
 #include "include/object.h"
 #include "include/token.h"
 #include "include/utils.h"
@@ -63,6 +64,7 @@ PInterpreter *NewInterpreter(Pgc *gc, PStmt **prog) {
     it->core = NULL;
     it->env = NewEnv(NULL);
     it->gc = gc;
+    RegisterNatives(it, it->env);
     return it;
 }
 void FreeInterpreter(PInterpreter *it) {
@@ -299,39 +301,67 @@ static PValue vCall(PInterpreter *it, PExpr *expr, PEnv *env) {
     }
 
     if (co.type == VT_OBJ) {
-        if (co.v.obj->type != OT_FNC) {
-            error(it, NULL, "Can only call functions");
-            return MakeNil();
+        if (co.v.obj->type == OT_FNC) {
+
+            PObj *callObj = ValueAsObj(co);
+            if (callObj->v.OFunction.paramCount != ec->argCount) {
+                error(it, NULL, "Func param count != call arg count");
+                return MakeNil();
+            }
+
+            PValue argStack[16];
+            PValue *args = NULL;
+
+            if (ec->argCount > 16) {
+                // printf("Using Heap for Args\n");
+                args = PCalloc(16, sizeof(*args));
+            } else {
+                // printf("Using Stack for Args\n");
+                args = argStack;
+            }
+
+            for (int i = 0; i < ec->argCount; i++) {
+                // arrput(args, evaluate(it, ec->args[i], env));
+                args[i] = evaluate(it, ec->args[i], env);
+            }
+
+            PValue value = handleCall(it, callObj, args, ec->argCount);
+            if (ec->argCount > 16) {
+                PFree(args);
+            }
+            return value;
+        } else if (co.v.obj->type == OT_NATIVE) {
+            struct ONative *nfn = &co.v.obj->v.ONative;
+            if (nfn->arity >= 0 && ec->argCount != nfn->arity) {
+                error(it, ec->callee->op, "Native Arg Count != Calling Count");
+                return MakeNil();
+            }
+            PValue argStack[16];
+            PValue *args = NULL;
+
+            if (ec->argCount > 16) {
+                // printf("Using Heap for Args\n");
+                args = PCalloc(16, sizeof(*args));
+            } else {
+                // printf("Using Stack for Args\n");
+                args = argStack;
+            }
+
+            for (int i = 0; i < ec->argCount; i++) {
+                // arrput(args, evaluate(it, ec->args[i], env));
+                args[i] = evaluate(it, ec->args[i], env);
+            }
+            PValue fnValue = nfn->fn(it, args, ec->argCount);
+            if (ec->argCount > 16) {
+                PFree(args);
+            }
+
+            return fnValue;
         }
     }
 
-    PObj *callObj = ValueAsObj(co);
-    if (callObj->v.OFunction.paramCount != ec->argCount) {
-        error(it, NULL, "Func param count != call arg count");
-        return MakeNil();
-    }
-
-    PValue argStack[16];
-    PValue *args = NULL;
-
-    if (ec->argCount > 16) {
-        // printf("Using Heap for Args\n");
-        args = PCalloc(16, sizeof(*args));
-    } else {
-        // printf("Using Stack for Args\n");
-        args = argStack;
-    }
-
-    for (int i = 0; i < ec->argCount; i++) {
-        // arrput(args, evaluate(it, ec->args[i], env));
-        args[i] = evaluate(it, ec->args[i], env);
-    }
-
-    PValue value = handleCall(it, callObj, args, ec->argCount);
-    if (ec->argCount > 16) {
-        PFree(args);
-    }
-    return value;
+    error(it, ec->callee->op, "Can only call functions. Invalid Call");
+    return MakeNil();
 }
 
 static PValue vArray(PInterpreter *it, PExpr *expr, PEnv *env) {

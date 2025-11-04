@@ -47,6 +47,14 @@ PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, int count) {
     return o;
 }
 
+PObj *NewNativeFnObject(Pgc *gc, Token *name, NativeFn fn, int arity) {
+    PObj *o = NewObject(gc, OT_NATIVE);
+    o->v.ONative.name = name;
+    o->v.ONative.fn = fn;
+    o->v.ONative.arity = arity;
+    return o;
+}
+
 static inline void freeBaseObj(PObj *o) {
     if (o != NULL) {
         PFree(o);
@@ -90,6 +98,9 @@ void FreeObject(Pgc *gc, PObj *o) {
             arrfree(arr->items);
             freeBaseObj(o);
             break;
+        }
+        case OT_NATIVE: {
+            freeBaseObj(o);
         }
     }
 }
