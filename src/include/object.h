@@ -36,6 +36,7 @@ typedef enum PObjType {
     OT_FNC,
     // Array Object. Used by `OArray`
     OT_ARR,
+	OT_MAP,
     OT_NATIVE,
 } PObjType;
 
@@ -70,6 +71,12 @@ typedef struct PObj {
             int count;
             PValue *items;
         } OArray;
+
+		struct OMap{
+			Token * op;
+			int count;
+			struct {PValue key; PValue value;} *table;
+		}OMap;
 
         // Native Function Object. Type : `OT_NATIVE`
         struct ONative {

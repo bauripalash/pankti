@@ -49,6 +49,9 @@ PObj *NewFuncObject(
 // Create New Array Object
 PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, int count);
 
+// Create New Map Object
+PObj * NewMapObject(Pgc * gc, Token * op);
+
 // Create New Native Function Object
 PObj *NewNativeFnObject(Pgc *gc, Token *name, NativeFn fn, int arity);
 

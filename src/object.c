@@ -104,6 +104,11 @@ void PrintObject(const PObj *o) {
             );
             break;
         }
+		case OT_MAP:{
+			printf("{");
+			printf("}");
+			break;
+		}
     }
 }
 
@@ -112,6 +117,7 @@ char *ObjTypeToString(PObjType type) {
         case OT_STR: return "String"; break;
         case OT_FNC: return "Function"; break;
         case OT_ARR: return "Array"; break;
+		case OT_MAP: return "HashMap";break;
         case OT_NATIVE: return "Native Func"; break;
     }
 
@@ -131,6 +137,7 @@ bool IsObjEqual(const PObj *a, const PObj *b) {
         case OT_FNC: result = false; break;
         case OT_ARR: result = false; break; // TODO: fix
         case OT_NATIVE: result = (a->v.ONative.fn == b->v.ONative.fn); break;
+		case OT_MAP: result = false;break;
     }
 
     return result;
