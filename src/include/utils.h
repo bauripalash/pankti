@@ -54,6 +54,9 @@ char32_t U8ToU32(const unsigned char *str);
 // Convert Bool to String; `"true"` or `"false"`
 char *BoolToString(bool v);
 
+
+double NumberFromStr(const char * lexeme, int len, bool * ok);
+
 // Calculated Fnv-1a Hash of string
 // `str` = UTF-8 encoded string
 // `len` = Length of string. Not codepoints length only bytes.

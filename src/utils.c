@@ -1,5 +1,7 @@
 #include "include/utils.h"
 #include "include/alloc.h"
+#include "include/bengali.h"
+#include "include/ustring.h"
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -144,4 +146,32 @@ char **StrSplit(const char *text, char delimiter, int *count) {
 
     *count = counter;
     return buffers;
+}
+
+double NumberFromStr(const char * lexeme, int len, bool * ok){
+
+	char * buf = PCalloc((len + 1),sizeof(char));
+	char * ptr = buf;
+	if (buf == NULL) {
+		*ok = false;
+		return -1;
+	}
+
+	UIter * iter = NewUIterator(lexeme);
+	int index = 0;
+
+	while (!UIterIsEnd(iter)) {
+		char32_t ch = UIterNext(iter);
+		if (ch == '.') {
+			buf[index++] = '.';
+			continue;
+		}
+		buf[index++] = GetEnFromBnNum(ch);
+	}
+
+	double value = atof(buf);
+	*ok = true;
+	FreeUIterator(iter);
+	PFree(buf);
+	return value;
 }

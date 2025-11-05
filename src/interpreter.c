@@ -91,7 +91,7 @@ static void error(PInterpreter *it, Token *tok, const char *msg) {
 static PValue vLiteral(PInterpreter *it, PExpr *expr, PEnv *env) {
     switch (expr->exp.ELiteral.type) {
         case EXP_LIT_NUM: {
-            double value = atof(expr->exp.ELiteral.op->lexeme);
+            double value = expr->exp.ELiteral.value.nvalue;
             return MakeNumber(value);
         }
         case EXP_LIT_STR: {

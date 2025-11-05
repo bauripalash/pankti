@@ -3,6 +3,8 @@
 #include "../include/ast.h"
 #include "../include/gc.h"
 #include "../include/token.h"
+#include "../include/utils.h"
+#include <stdbool.h>
 #include <stdio.h>
 
 // ===================
@@ -48,6 +50,11 @@ PExpr *NewLiteral(Pgc *gc, Token *op, ExpLitType type) {
     }
     e->exp.ELiteral.op = op;
     e->exp.ELiteral.type = type;
+	if (type == EXP_LIT_NUM) {
+		bool ok = true;
+		double value = NumberFromStr(op->lexeme, op->len, &ok);
+		e->exp.ELiteral.value.nvalue = value;
+	}
     return e;
 }
 
