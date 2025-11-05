@@ -137,6 +137,10 @@ bool IsValueEqual(const PValue *a, const PValue *b);
 // Print value to stdout
 void PrintValue(const PValue *val);
 
+// Can value be used as key for hash map
+bool CanValueBeKey(const PValue * val);
+// Can Object be used as key for hash map
+bool CanObjectBeKey(PObjType type);
 // Get Value Type as String;
 // If Value is a object, returns Object Type
 const char *ValueTypeToStr(const PValue *val);

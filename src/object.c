@@ -29,6 +29,22 @@ const char *ValueTypeToStr(const PValue *val) {
     return "Unknown";
 }
 
+bool CanObjectBeKey(PObjType type){
+	if (type == OT_STR) {
+		return true;
+	}
+
+	return false;
+}
+
+bool CanValueBeKey(const PValue * val){
+	if (val->type == VT_OBJ) {
+		return CanObjectBeKey(val->v.obj->type);
+	}
+
+	return true;
+}
+
 bool IsValueTruthy(const PValue *val) {
     if (val->type == VT_BOOL && val->v.bl) {
         return true;
