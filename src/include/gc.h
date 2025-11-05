@@ -5,6 +5,7 @@
 #include "object.h"
 #include "token.h"
 #include <stddef.h>
+#include <time.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,6 +20,7 @@ typedef struct Pgc {
     PObj *objects;
     PStmt *stmts;
     size_t nextGc;
+	time_t timestamp;
 } Pgc;
 
 Pgc *NewGc();
@@ -111,6 +113,9 @@ PExpr *NewCallExpr(Pgc *gc, Token *op, PExpr *callee, PExpr **args, int count);
 
 // New Array Expression
 PExpr *NewArrayExpr(Pgc *gc, Token *op, PExpr **items, int count);
+
+// Create New HashMap Expression
+PExpr *NewMapExpr(Pgc * gc, Token * op, PExpr ** items, int count);
 
 PExpr *NewSubscriptExpr(Pgc *gc, Token *op, PExpr *value, PExpr *index);
 

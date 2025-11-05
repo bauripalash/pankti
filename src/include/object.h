@@ -40,6 +40,13 @@ typedef enum PObjType {
     OT_NATIVE,
 } PObjType;
 
+// Entry of HashMaps
+typedef struct MapEntry{
+	uint32_t key;
+	PValue vkey; 
+	PValue value;
+}MapEntry;
+
 // Pankti Object
 typedef struct PObj {
     // Pankti Object Type
@@ -75,7 +82,7 @@ typedef struct PObj {
 		struct OMap{
 			Token * op;
 			int count;
-			struct {PValue key; PValue value;} *table;
+			MapEntry *table;
 		}OMap;
 
         // Native Function Object. Type : `OT_NATIVE`
@@ -144,6 +151,7 @@ bool IsValueEqual(const PValue *a, const PValue *b);
 // Print value to stdout
 void PrintValue(const PValue *val);
 
+uint64_t GetValueHash(const PValue * val, uint64_t seed);
 // Can value be used as key for hash map
 bool CanValueBeKey(const PValue * val);
 // Can Object be used as key for hash map

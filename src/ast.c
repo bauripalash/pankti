@@ -135,6 +135,25 @@ void AstPrint(PExpr *expr, int indent) {
             printf("}\n");
             break;
         }
+		case EXPR_MAP:{
+			struct EMap *map = &expr->exp.EMap;
+			printf(TERMC_RED "Map (" TERMC_GREEN "%d" TERMC_RED ") " TERMC_RESET,
+		           map->count / 2
+		  	);
+			printf("{\n");
+			for (int i = 0; i < map->count; i+=2) {
+				printIndent(indent + 1);
+				printf("{\n");
+				AstPrint(map->etable[i], indent + 2);
+
+				AstPrint(map->etable[i+1], indent + 2);
+				printIndent(indent+1);
+				printf("}\n");
+			}
+			printIndent(indent);
+			printf("}\n");
+			break;
+		}
         case EXPR_SUBSCRIPT: {
             struct ESubscript *sub = &expr->exp.ESubscript;
             printf(TERMC_YELLOW "Subscript " TERMC_RESET);

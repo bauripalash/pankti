@@ -17,6 +17,9 @@ set(PANKTI_SRC_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/gc/gcexpr.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/gc/gcobject.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/gc/gcstmt.c"
+
+  # External
+  "${CMAKE_CURRENT_SOURCE_DIR}/external/xxhash.c"
 )
 
 set(PANKTI_HEADER_FILES

@@ -9,10 +9,13 @@
 #include "include/object.h"
 #include "include/token.h"
 #include "include/utils.h"
+
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 
 typedef enum ExType {
     ET_SIMPLE,
@@ -376,6 +379,34 @@ static PValue vArray(PInterpreter *it, PExpr *expr, PEnv *env) {
     return MakeObject(arrObj);
 }
 
+static PValue vMap(PInterpreter * it, PExpr * expr, PEnv * env){
+	struct EMap * map = &expr->exp.EMap;
+
+	MapEntry *table = NULL;
+	MapEntry s;
+
+	for (int i = 0; i < map->count; i += 2) {
+		PValue k = evaluate(it, map->etable[i], env);
+		uint64_t keyHash = GetValueHash(&k, (uint64_t)it->gc->timestamp);
+		if (!CanValueBeKey(&k)) {
+			if (table != NULL) {
+				hmfree(table);
+			}
+			error(it, map->etable[i]->op, "Invalid key for map");
+			return MakeNil();
+		}
+		PValue v = evaluate(it, map->etable[i+1], env);
+		s = (MapEntry){keyHash, k,v};
+		hmputs(table, s);
+	}
+
+	PObj * mapObj = NewMapObject(it->gc, map->op);
+	mapObj->v.OMap.table = table;
+	mapObj->v.OMap.count = hmlen(table);
+	return MakeObject(mapObj);
+	
+}
+
 static PValue vSubscript(PInterpreter *it, PExpr *expr, PEnv *env) {
     struct ESubscript *sub = &expr->exp.ESubscript;
     PValue subValue = evaluate(it, sub->value, env);
@@ -398,10 +429,25 @@ static PValue vSubscript(PInterpreter *it, PExpr *expr, PEnv *env) {
                 error(it, NULL, "Array Subscript index must be a number");
                 return MakeNil();
             }
-        }
+        }else if (subObj->type == OT_MAP){
+			PValue indexValue = evaluate(it, sub->index, env);
+			if (!CanValueBeKey(&indexValue)) {
+				error(it, sub->index->op, "Invalid map key");
+				return MakeNil();
+			}
+			struct OMap * map = &subObj->v.OMap;
+			uint64_t indexHash = GetValueHash(&indexValue, it->gc->timestamp);
+
+			if (hmgeti(map->table, indexHash) != -1) {
+				return hmgets(map->table, indexHash).value;
+			}else{
+				error(it, sub->index->op, "Key doesnot exist");
+				return MakeNil();
+			}
+		}
     }
 
-    error(it, NULL, "Invalid Subscript. Subscript only works on array and ..");
+    error(it, NULL, "Invalid Subscript. Subscript only works on array and maps");
     return MakeNil();
 }
 
@@ -419,6 +465,7 @@ static PValue evaluate(PInterpreter *it, PExpr *expr, PEnv *env) {
         case EXPR_CALL: return vCall(it, expr, env);
         case EXPR_GROUPING: return evaluate(it, expr->exp.EGrouping.expr, env);
         case EXPR_ARRAY: return vArray(it, expr, env);
+		case EXPR_MAP: return vMap(it, expr, env);
         case EXPR_SUBSCRIPT: return vSubscript(it, expr, env);
     }
 

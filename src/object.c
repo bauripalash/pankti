@@ -1,9 +1,22 @@
 #include "include/object.h"
 #include "include/utils.h"
+#include "external/xxhash.h"
+#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+
+// Golden ratio?
+#define CONST_NAN_HASH 0x9e3779b97f4a7c15ULL
+//MurmurHash3 
+#define CONST_ZERO_HASH 0xff51afd7ed558ccdULL
+
+#define CONST_BOOL_TRUE_HASH 0x1
+#define CONST_BOOL_FALSE_HASH 0x0
+#define CONST_NIL_HASH 0x2
 
 void PrintValue(const PValue *val) {
     switch (val->type) {
@@ -43,6 +56,41 @@ bool CanValueBeKey(const PValue * val){
 	}
 
 	return true;
+}
+
+uint64_t GetObjectHash(const PObj * obj, uint64_t seed){
+	if (obj->type == OT_STR) {
+		XXH64_hash_t hash = XXH64(obj->v.str, strlen(obj->v.str), seed);
+		return (uint64_t)hash;
+	}
+
+	return -1;
+}
+
+uint64_t GetValueHash(const PValue * val, uint64_t seed){
+	switch (val->type) {
+		case VT_NUM:{
+			double value = val->v.num;
+			if (value == 0.0) {
+				return CONST_ZERO_HASH;
+			}
+			if (isnan(value)) {
+				return CONST_ZERO_HASH;
+			}
+			uint64_t bits;
+			memcpy(&bits, &value , sizeof(bits));
+			return (uint64_t)XXH64(&bits, sizeof(bits), seed);
+
+		}
+		case VT_NIL: {
+			return CONST_NIL_HASH;
+		}
+		case VT_BOOL: {
+			uint8_t value = val->v.bl ? 1 : 0;
+			return (uint64_t)XXH64(&value, 1, seed);
+		};
+		case VT_OBJ	: return GetObjectHash(val->v.obj, seed);
+	}
 }
 
 bool IsValueTruthy(const PValue *val) {
@@ -106,6 +154,17 @@ void PrintObject(const PObj *o) {
         }
 		case OT_MAP:{
 			printf("{");
+			const struct OMap * map = &o->v.OMap;
+			for (int i = 0; i < map->count; i++) {
+				PValue * k = &map->table[i].vkey;
+				PValue * v = &map->table[i].value;
+				PrintValue(k);
+				printf(" : ");
+				PrintValue(v);
+				if (i + 1 != map->count) {
+					printf(", ");
+				}
+			}
 			printf("}");
 			break;
 		}

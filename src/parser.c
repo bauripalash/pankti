@@ -265,8 +265,24 @@ static PExpr *rArrayExpr(Parser *p) {
         }
         eat(p, T_COMMA, "Expected ',' comma after array item");
     }
-    Token *rbrace = eat(p, T_RS_BRACKET, "Expected '}' after array items");
+    Token *rbrace = eat(p, T_RS_BRACKET, "Expected ']' after array items");
     return NewArrayExpr(p->gc, rbrace, items, arrlen(items));
+}
+
+static PExpr *rMapExpr(Parser * p){
+	PExpr ** etable = NULL;
+	Token * lbrace = previous(p);
+	while (!check(p, T_RIGHT_BRACE)) {
+		arrput(etable, rExpression(p));
+		eat(p, T_COLON, "Expected ':' after map key");
+		arrput(etable, rExpression(p));
+        if (check(p, T_RIGHT_BRACE)) {
+            break;
+        }
+		eat(p, T_COMMA, "Expected ',' after map pair");
+	}
+	eat(p, T_RIGHT_BRACE, "Expected '}' after map");
+	return NewMapExpr(p->gc, lbrace, etable, arrlen(etable));
 }
 
 static PExpr *rPrimary(Parser *p) {
@@ -309,6 +325,10 @@ static PExpr *rPrimary(Parser *p) {
     if (matchOne(p, T_LS_BRACKET)) {
         return rArrayExpr(p);
     }
+
+	if (matchOne(p, T_LEFT_BRACE)) {
+		return rMapExpr(p);
+	}
 
     error(p, previous(p), "Expected expression");
     return NULL;

@@ -12,6 +12,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 PanktiCore *NewCore(const char *path) {
@@ -58,6 +59,7 @@ static bool DebugParser = true;
 #define DEBUG_TIMES
 
 void RunCore(PanktiCore *core) {
+	stbds_rand_seed(time(NULL));
     core->lexer->core = core;
 #if defined DEBUG_TIMES
     clock_t lxTic = clock();

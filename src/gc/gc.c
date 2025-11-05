@@ -2,6 +2,7 @@
 #include "../include/alloc.h"
 #include <stdbool.h>
 #include <stdio.h>
+#include <time.h>
 
 Pgc *NewGc() {
     Pgc *gc = PCreate(Pgc);
@@ -10,6 +11,7 @@ Pgc *NewGc() {
     gc->nextGc = 1024 * 1024;
     gc->objects = NULL;
     gc->stmts = NULL;
+	gc->timestamp = time(NULL);
 
     return gc;
 }

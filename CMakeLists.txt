@@ -8,7 +8,7 @@ add_executable(${PROJECT_NAME})
 add_subdirectory(src)
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
 #target_link_options(${PROJECT_NAME} PRIVATE "-static")
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g3 -Wall -fsanitize=address -fsanitize=undefined -fsanitize=float-cast-overflow" )
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g3 -Wall -Wconversion -fsanitize=address -fsanitize=undefined -fsanitize=float-cast-overflow" )
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Wall -O2 -flto -funroll-loops" )
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
