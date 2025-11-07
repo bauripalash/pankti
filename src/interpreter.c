@@ -9,22 +9,35 @@
 #include "include/object.h"
 #include "include/token.h"
 #include "include/utils.h"
+
+#ifdef PANKTI_BUILD_DEBUG
+	#undef NDDEBUG
+#endif
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 
+// Execution Result Type
 typedef enum ExType {
+	// Simple Result with value
     ET_SIMPLE,
+	// Break statements
     ET_BREAK,
+	// Return Statement with value
     ET_RETURN,
 } ExType;
 
+// Execution Result
 typedef struct ExResult {
+	// Execution Result Value (only for Simple and Return)
     PValue value;
+	// Execution Result Type
     ExType type;
 } ExResult;
 
+// For Debug: Get ExResult Type as String
 static char *ExResultToStr(ExType t) {
     switch (t) {
         case ET_SIMPLE: return "Simple";
@@ -33,6 +46,7 @@ static char *ExResultToStr(ExType t) {
     }
 }
 
+// Create a Simple Execution Result
 static inline ExResult ExSimple(PValue v) {
     ExResult er;
     er.type = ET_SIMPLE;
@@ -40,6 +54,7 @@ static inline ExResult ExSimple(PValue v) {
     return er;
 }
 
+// Create a Break Execution Result
 static inline ExResult ExBreak() {
     ExResult er;
     er.type = ET_BREAK;
@@ -47,6 +62,7 @@ static inline ExResult ExBreak() {
     return er;
 }
 
+// Create a Return Execution Result
 static inline ExResult ExReturn(PValue v) {
     ExResult er;
     er.type = ET_RETURN;
@@ -54,8 +70,11 @@ static inline ExResult ExReturn(PValue v) {
     return er;
 }
 
+// Execute Statement
 static ExResult execute(PInterpreter *it, PStmt *stmt, PEnv *env);
+// Evaluate expression
 static PValue evaluate(PInterpreter *it, PExpr *expr, PEnv *env);
+// Execute a Block
 static ExResult execBlock(PInterpreter *it, PStmt *stmt, PEnv *env, bool ret);
 
 PInterpreter *NewInterpreter(Pgc *gc, PStmt **prog) {
@@ -72,9 +91,9 @@ void FreeInterpreter(PInterpreter *it) {
         return;
     }
 
-    // if (it->env != NULL) {
-    FreeEnv(it->env);
-    //}
+    if (it->env != NULL) {
+        FreeEnv(it->env);
+    }
 
     PFree(it);
 }
@@ -85,10 +104,17 @@ void Interpret(PInterpreter *it) {
 
     // FreeObject(it->gc, obj);
 }
+
+// Report a Error
 static void error(PInterpreter *it, Token *tok, const char *msg) {
     CoreError(it->core, tok, msg);
 }
+
+// Evaluate Literal Expression
+// Numbers, Strings, Bools, Nil
 static PValue vLiteral(PInterpreter *it, PExpr *expr, PEnv *env) {
+	assert(expr->type == EXPR_LITERAL);
+
     switch (expr->exp.ELiteral.type) {
         case EXP_LIT_NUM: {
             double value = expr->exp.ELiteral.value.nvalue;
@@ -110,22 +136,18 @@ static PValue vLiteral(PInterpreter *it, PExpr *expr, PEnv *env) {
         }
         default: return MakeNil();
     }
-
-    // return litObj;
 }
 
+// Evaluate Binary Expression
+// Basic Math: Addition, Substraction, Multiplication, Division
+// Comparison: Equality Check, Not Equal,
+// Greater Than, Greater than or Equal, Less Than, Less Than or Equal
 static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
+	assert(expr->type == EXPR_BINARY);
+
     PValue l = evaluate(it, expr->exp.EBinary.left, env);
     PValue r = evaluate(it, expr->exp.EBinary.right, env);
-    // if (l == NULL) {
-    //     error(it, NULL, "Left hand side expression is invalid");
-    //     return NULL;
-    // }
 
-    // if (r == NULL) {
-    //     error(it, NULL, "Right hand side expression is invalid");
-    //     return NULL;
-    // }
     switch (expr->exp.EBinary.op->type) {
         case T_PLUS: {
             if (l.type != VT_NUM || r.type != VT_NUM) {
@@ -140,73 +162,66 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
                 break;
             }
             double value = l.v.num + r.v.num;
-            // result = NewNumberObj(it->gc, value);
             return MakeNumber(value);
             break;
         }
+		// Multiplication
         case T_ASTR: {
             double value = l.v.num * r.v.num;
-            // result = NewNumberObj(it->gc, value);
             return MakeNumber(value);
             break;
         }
         case T_MINUS: {
             double value = l.v.num - r.v.num;
-            // result = NewNumberObj(it->gc, value);
             return MakeNumber(value);
             break;
         }
+		// Division
         case T_SLASH: {
             double value = l.v.num / r.v.num;
-            // result = NewNumberObj(it->gc, value);
             return MakeNumber(value);
             break;
         }
-        case T_EQEQ: {
-            // result = NewBoolObj(it->gc, IsValueEqual(&l, &r));
-            return MakeBool(IsValueEqual(&l, &r));
-            break;
-        }
-        case T_BANG_EQ: {
-            // result = NewBoolObj(it->gc, !IsValueEqual(&l, &r));
-            return MakeBool(!IsValueEqual(&l, &r));
-
-            break;
-        }
-        case T_GT: {
-            // result = NewBoolObj(it->gc, l.v.num > r.v.num);
-            return MakeBool(l.v.num > r.v.num);
-            break;
-        }
+        case T_EQEQ: return MakeBool(IsValueEqual(&l, &r));
+        case T_BANG_EQ: return MakeBool(!IsValueEqual(&l, &r));
+        case T_GT: return MakeBool(l.v.num > r.v.num);
         case T_GTE: return MakeBool(l.v.num >= r.v.num);
         case T_LT: return MakeBool(l.v.num < r.v.num);
         case T_LTE: return MakeBool(l.v.num <= r.v.num);
-        default: return MakeBool(-1);
+        default: return MakeNil();
     }
 
     return MakeNil();
 }
 
+// Evaluate a variable
+// Returns the value of the variable from the `env` enviornment
 static PValue vVariable(PInterpreter *it, PExpr *expr, PEnv *env) {
-    bool found = false;
-    PValue v = EnvGetValue(env, expr->exp.EVariable.name->hash, &found);
+    assert(expr->type == EXPR_VARIABLE);
+	bool found = false;
+    struct EVariable *var = &expr->exp.EVariable;
+    PValue v = EnvGetValue(env, var->name->hash, &found);
+
     if (!found) {
         error(
-            it, expr->exp.EVariable.name,
-            StrFormat(
-                "Found Undefined variable '%s'",
-                expr->exp.EVariable.name->lexeme
-            )
+            it, var->name,
+            StrFormat("Found Undefined variable '%s'", var->name->lexeme)
         );
         return MakeNil();
     }
+
     return v;
 }
 
+// Assignment Operation for Variables
+// `name` = The actual target expression which must evaluate to Variable expr
+// `val` = The new value to assign
 static PValue
 varAssignment(PInterpreter *it, PExpr *name, PExpr *val, PEnv *env) {
-    PValue vValue = evaluate(it, name, env);
+	assert(name->type == EXPR_VARIABLE);
     struct EVariable *target = &name->exp.EVariable;
+    PValue vValue = evaluate(it, val, env);
+
     if (EnvSetValue(env, target->name->hash, vValue)) {
         return vValue;
     } else {
@@ -217,6 +232,8 @@ varAssignment(PInterpreter *it, PExpr *name, PExpr *val, PEnv *env) {
     return MakeNil();
 }
 
+// Array Subscript Assignment
+// myarr[0] = "NewValue"
 static void arrAssignment(
     PInterpreter *it, PObj *arrObj, PExpr *index, PExpr *value, PEnv *env
 ) {
@@ -272,7 +289,9 @@ static void mapAssignment(
 static PValue subAssignment(
     PInterpreter *it, PExpr *targetExpr, PExpr *valueExpr, PEnv *env
 ) {
+	assert(targetExpr->type == EXPR_SUBSCRIPT);
     struct ESubscript *sub = &targetExpr->exp.ESubscript;
+
     PValue coreValue = evaluate(it, sub->value, env);
     if (coreValue.type == VT_OBJ) {
         PObj *coreObj = ValueAsObj(coreValue);
@@ -290,10 +309,17 @@ static PValue subAssignment(
     return MakeNil();
 }
 
+// Assignment Operation
+// Setting new value to prexisting variable
+// Replace items inside array
+// Put New Key-Value pair to map or replace prexisting one, if key exists
 static PValue vAssignment(PInterpreter *it, PExpr *expr, PEnv *env) {
+	assert(expr->type == EXPR_ASSIGN);
+
     struct EAssign *assign = &expr->exp.EAssign;
     PValue value = evaluate(it, assign->value, env);
     PExpr *target = assign->name;
+
     if (target->type == EXPR_VARIABLE) {
         return varAssignment(it, target, assign->value, env);
     } else if (target->type == EXPR_SUBSCRIPT) {
@@ -303,36 +329,38 @@ static PValue vAssignment(PInterpreter *it, PExpr *expr, PEnv *env) {
     return MakeNil();
 }
 
+// Unary Operation
+// -100 (Change sign of a number)
+// !true (Logical NOT operation; Flip boolean)
 static PValue vUnary(PInterpreter *it, PExpr *expr, PEnv *env) {
+	assert(expr->type == EXPR_UNARY);
+
     PValue r = evaluate(it, expr->exp.EUnary.right, env);
 
     switch (expr->exp.EUnary.op->type) {
         case T_MINUS: {
             double value = -r.v.num;
-            // result = NewNumberObj(it->gc, value);
             return MakeNumber(value);
-            break;
         }
         case T_BANG: {
-            // result = NewBoolObj(it->gc, !IsObjTruthy(r));
             return MakeBool(!IsValueTruthy(&r));
-            break;
         }
         default: {
-            // result = NewNilObject(it->gc);
+			error(it, expr->op, "Invalid Unary Operation");
             return MakeNil();
-            break;
         }
     }
 }
 
+// Logical Operation : AND , OR
 static PValue vLogical(PInterpreter *it, PExpr *expr, PEnv *env) {
+	assert(expr->type == EXPR_LOGICAL);
+
     PValue left = evaluate(it, expr->exp.ELogical.left, env);
     Token *op = expr->exp.ELogical.op;
 
     if (op->type == T_OR) {
         if (IsValueTruthy(&left)) {
-            // return NewBoolObj(it->gc, true);
             return MakeBool(true);
         } else {
             PValue right = evaluate(it, expr->exp.ELogical.right, env);
@@ -355,13 +383,14 @@ static PValue vLogical(PInterpreter *it, PExpr *expr, PEnv *env) {
         }
     }
 
-    PrintToken(expr->exp.ELogical.op);
-    error(it, NULL, "Invalid logical operation");
+    error(it, expr->op, "Invalid logical operation");
     return MakeNil();
 }
 
+// Evaluate a function call and return result (if any)
 static PValue
 handleCall(PInterpreter *it, PObj *func, PValue *args, int count) {
+	assert(func->type == OT_FNC);
     struct OFunction *f = &func->v.OFunction;
     PEnv *fnEnv = NewEnv((PEnv *)f->env);
     for (int i = 0; i < count; i++) {
@@ -380,7 +409,87 @@ handleCall(PInterpreter *it, PObj *func, PValue *args, int count) {
     return evalOut.value;
 }
 
+// Handle User-Defined Function Calls
+static PValue callFunction(PInterpreter * it, PObj * func, PExpr * callExpr, PEnv * env){
+	assert(func->type == OT_FNC);
+	assert(callExpr->type == EXPR_CALL);
+
+	struct OFunction * funcObj = &func->v.OFunction;
+	struct ECall * call = &callExpr->exp.ECall;
+
+	if (call->argCount != funcObj->paramCount) {
+		error(it, callExpr->op, StrFormat("Function needs %d arguments but %d was given when calling", funcObj->paramCount, call->argCount));
+		return MakeNil();
+	}
+
+	// We are making the arguments stack to hold 8 values
+	// I don't think, There will be many use cases where more than 8 will be needed
+	PValue argStack[8];
+	PValue * argPtr = NULL;
+
+	if (call->argCount > 8) {
+		argPtr = PCalloc(8, sizeof(PValue));
+		if (argPtr == NULL) {
+			error(it, call->op, "Internal Error : Failed to Allocate memory for call arguments");
+			return MakeNil();
+		}
+	}else{
+		argPtr = argStack;
+	}
+
+	for (int i = 0; i < call->argCount; i++) {
+		argPtr[i] = evaluate(it, call->args[i], env);
+	}
+
+	PValue value = handleCall(it, func, argPtr, call->argCount);
+	if (call->argCount > 16) {
+		PFree(argPtr);
+	}
+	return value;
+
+}
+
+// Handle Native Function Calls
+static PValue callNative(PInterpreter * it, PObj * nfunc, PExpr * callExpr, PEnv * env){
+	assert(nfunc->type == OT_NATIVE);
+	assert(callExpr->type == EXPR_CALL);
+
+	struct ONative * nfuncObj = &nfunc->v.ONative;
+	struct ECall * call = &callExpr->exp.ECall;
+
+	if (nfuncObj->arity >= 0 && call->argCount != nfuncObj->arity) {
+		error(it, callExpr->op, StrFormat("Function needs %d arguments but %d was given when calling", nfuncObj->arity, call->argCount));
+		return MakeNil();
+	}
+
+	PValue argStack[8];
+	PValue * argPtr = NULL;
+	if (call->argCount > 8) {
+		argPtr = PCalloc(8, sizeof(PValue));
+		if (argPtr == NULL) {
+			error(it, call->op, "Internal Error : Failed to Allocate memory for call arguments");
+			return MakeNil();
+		}
+	} else{
+		argPtr = argStack;
+	}
+
+	for (int i = 0; i < call->argCount; i++) {
+		argPtr[i] = evaluate(it, call->args[i], env);
+	}
+
+	PValue value = nfuncObj->fn(it, argPtr, call->argCount);
+
+	if (call->argCount > 8) {
+		PFree(argPtr);
+	}
+
+	return value;
+}
+
+// Function Call Operation
 static PValue vCall(PInterpreter *it, PExpr *expr, PEnv *env) {
+	assert(expr->type == EXPR_CALL);
     struct ECall *ec = &expr->exp.ECall;
     PValue co = evaluate(it, ec->callee, env);
     if (co.type != VT_OBJ) {
@@ -389,70 +498,21 @@ static PValue vCall(PInterpreter *it, PExpr *expr, PEnv *env) {
     }
 
     if (co.type == VT_OBJ) {
+        PObj *callObj = ValueAsObj(co);
         if (co.v.obj->type == OT_FNC) {
-
-            PObj *callObj = ValueAsObj(co);
-            if (callObj->v.OFunction.paramCount != ec->argCount) {
-                error(it, NULL, "Func param count != call arg count");
-                return MakeNil();
-            }
-
-            PValue argStack[16];
-            PValue *args = NULL;
-
-            if (ec->argCount > 16) {
-                // printf("Using Heap for Args\n");
-                args = PCalloc(16, sizeof(*args));
-            } else {
-                // printf("Using Stack for Args\n");
-                args = argStack;
-            }
-
-            for (int i = 0; i < ec->argCount; i++) {
-                // arrput(args, evaluate(it, ec->args[i], env));
-                args[i] = evaluate(it, ec->args[i], env);
-            }
-
-            PValue value = handleCall(it, callObj, args, ec->argCount);
-            if (ec->argCount > 16) {
-                PFree(args);
-            }
-            return value;
+			return callFunction(it, callObj, expr, env);
         } else if (co.v.obj->type == OT_NATIVE) {
-            struct ONative *nfn = &co.v.obj->v.ONative;
-            if (nfn->arity >= 0 && ec->argCount != nfn->arity) {
-                error(it, ec->callee->op, "Native Arg Count != Calling Count");
-                return MakeNil();
-            }
-            PValue argStack[16];
-            PValue *args = NULL;
-
-            if (ec->argCount > 16) {
-                // printf("Using Heap for Args\n");
-                args = PCalloc(16, sizeof(*args));
-            } else {
-                // printf("Using Stack for Args\n");
-                args = argStack;
-            }
-
-            for (int i = 0; i < ec->argCount; i++) {
-                // arrput(args, evaluate(it, ec->args[i], env));
-                args[i] = evaluate(it, ec->args[i], env);
-            }
-            PValue fnValue = nfn->fn(it, args, ec->argCount);
-            if (ec->argCount > 16) {
-                PFree(args);
-            }
-
-            return fnValue;
+			return callNative(it, callObj, expr, env);
         }
     }
 
-    error(it, ec->callee->op, "Can only call functions. Invalid Call");
+    error(it, ec->callee->op, "Only functions can be called");
     return MakeNil();
 }
 
+// Create New Array Literal Object
 static PValue vArray(PInterpreter *it, PExpr *expr, PEnv *env) {
+	assert(expr->type == EXPR_ARRAY);
     struct EArray *arr = &expr->exp.EArray;
     PValue *vitems = NULL;
 
@@ -464,7 +524,9 @@ static PValue vArray(PInterpreter *it, PExpr *expr, PEnv *env) {
     return MakeObject(arrObj);
 }
 
+// Create New Map Literal Object
 static PValue vMap(PInterpreter *it, PExpr *expr, PEnv *env) {
+	assert(expr->type == EXPR_MAP);
     struct EMap *map = &expr->exp.EMap;
 
     MapEntry *table = NULL;
@@ -491,49 +553,76 @@ static PValue vMap(PInterpreter *it, PExpr *expr, PEnv *env) {
     return MakeObject(mapObj);
 }
 
+// Subscript for Arrays
+static PValue arraySubscript(PInterpreter * it, PObj * arrObj, PExpr * expr, PEnv * env){
+	assert(arrObj->type == OT_ARR);
+	assert(expr->type == EXPR_SUBSCRIPT);
+
+	struct ESubscript * sub = &expr->exp.ESubscript;
+	PValue indexValue = evaluate(it, sub->index, env);
+	if (indexValue.type != VT_NUM) {
+		error(it, sub->index->op, "Arrays can only indexed with integers");
+		return MakeNil();
+	}
+	
+	double indexDbl = indexValue.v.num;
+
+	if (!IsDoubleInt(indexDbl)) {
+		error(it, sub->index->op, "Arrays can only indexed with integers");
+		return MakeNil();
+	}
+
+	int indexInt = (int)indexDbl;
+	struct OArray * array = &arrObj->v.OArray;
+
+	if (indexInt >= array->count) {
+		error(it, sub->index->op, "Array Index out of range");
+		return MakeNil();
+	}
+	return array->items[indexInt];
+}
+
+// subscripting for Map
+static PValue mapSubscript(PInterpreter * it, PObj * mapObj, PExpr * expr, PEnv * env){
+	assert(mapObj->type == OT_MAP);
+	assert(expr->type == EXPR_SUBSCRIPT);
+
+	struct ESubscript * sub = &expr->exp.ESubscript;
+	PValue keyValue = evaluate(it, sub->index, env);
+
+	if (!CanValueBeKey(&keyValue)) {
+		error(it, sub->index->op, "Invalid key value for map subscripting");
+		return MakeNil();
+	}
+
+	struct OMap * map = &mapObj->v.OMap;
+	uint64_t keyHash = GetValueHash(&keyValue, it->gc->timestamp);
+
+	if (hmgeti(map->table, keyHash) != -1) {
+		return hmgets(map->table, keyHash).value;
+	}else{
+		error(it, sub->index->op, "Key doesn't exist for map");
+		return MakeNil();
+	}
+}
+
+// Evaluate subscripting expression
 static PValue vSubscript(PInterpreter *it, PExpr *expr, PEnv *env) {
+	assert(expr->type == EXPR_SUBSCRIPT);
     struct ESubscript *sub = &expr->exp.ESubscript;
     PValue subValue = evaluate(it, sub->value, env);
 
     if (subValue.type == VT_OBJ) {
         PObj *subObj = ValueAsObj(subValue);
         if (subObj->type == OT_ARR) {
-            PValue indexValue = evaluate(it, sub->index, env);
-            if (indexValue.type == VT_NUM) {
-                double index = ValueAsNum(indexValue);
-                struct OArray *arr = &subObj->v.OArray;
-                if (index >= arr->count) {
-                    error(it, NULL, "Index out of range");
-                    return MakeNil();
-                }
-
-                return arr->items[(int)index];
-
-            } else {
-                error(it, NULL, "Array Subscript index must be a number");
-                return MakeNil();
-            }
+			return arraySubscript(it, subObj, expr, env);
         } else if (subObj->type == OT_MAP) {
-            PValue indexValue = evaluate(it, sub->index, env);
-
-            if (!CanValueBeKey(&indexValue)) {
-                error(it, sub->index->op, "Invalid map key");
-                return MakeNil();
-            }
-            struct OMap *map = &subObj->v.OMap;
-            uint64_t indexHash = GetValueHash(&indexValue, it->gc->timestamp);
-
-            if (hmgeti(map->table, indexHash) != -1) {
-                return hmgets(map->table, indexHash).value;
-            } else {
-                error(it, sub->index->op, "Key doesnot exist");
-                return MakeNil();
-            }
+			return mapSubscript(it, subObj, expr, env);
         }
     }
 
     error(
-        it, NULL, "Invalid Subscript. Subscript only works on array and maps"
+        it, sub->op, "Invalid Subscript. Subscript only works on array and maps"
     );
     return MakeNil();
 }
@@ -542,6 +631,9 @@ static PValue evaluate(PInterpreter *it, PExpr *expr, PEnv *env) {
     if (expr == NULL) {
         return MakeNil();
     }
+	if (env == NULL) {
+		return MakeNil();
+	}
     switch (expr->type) {
         case EXPR_LITERAL: return vLiteral(it, expr, env);
         case EXPR_BINARY: return vBinary(it, expr, env);
@@ -561,17 +653,16 @@ static PValue evaluate(PInterpreter *it, PExpr *expr, PEnv *env) {
 
 static ExResult execBlock(PInterpreter *it, PStmt *stmt, PEnv *env, bool ret) {
     PStmt **stmtList = stmt->stmt.SBlock.stmts;
-    if (stmtList == NULL) {
+    
+	if (stmtList == NULL) {
         return ExSimple(MakeNil());
     }
-    ExResult temp;
-    // PEnv * ogEnv = it->env;
-    // it->env = env;
 
+    ExResult temp;
     PEnv *blockEnv = NewEnv(env);
+
     for (int i = 0; i < arrlen(stmtList); i++) {
         temp = execute(it, stmtList[i], blockEnv);
-        // printf("Exec result -> %s\n", ExResultToStr(temp.type));
         if (ret && temp.type == ET_RETURN) {
             FreeEnv(blockEnv);
             return temp;
@@ -582,35 +673,42 @@ static ExResult execBlock(PInterpreter *it, PStmt *stmt, PEnv *env, bool ret) {
         }
     }
 
-    // it->env = ogEnv;
     FreeEnv(blockEnv);
     return temp;
 }
 
+// Execute block statements
 static ExResult vsBlock(PInterpreter *it, PStmt *stmt, PEnv *env) {
-    // PValue value =
+	assert(stmt->type == STMT_BLOCK);
     return execBlock(it, stmt, env, true);
-    // return value;
 }
 
+// Execute variable declaration statements
 static ExResult vsLet(PInterpreter *it, PStmt *stmt, PEnv *env) {
+	assert(stmt->type == STMT_LET);
     PValue value = evaluate(it, stmt->stmt.SLet.expr, env);
     EnvPutValue(env, stmt->stmt.SLet.name->hash, value);
     return ExSimple(value);
 }
 
+// Temporary print statements
 static ExResult vsPrint(PInterpreter *it, PStmt *stmt, PEnv *env) {
+	assert(stmt->type == STMT_PRINT);
     PValue value = evaluate(it, stmt->stmt.SPrint.value, env);
     PrintValue(&value);
     printf("\n");
     return ExSimple(MakeNil());
 }
 
+// Execute Expression statements
 static ExResult vsExprStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
+	assert(stmt->type == STMT_EXPR);
     return ExSimple(evaluate(it, stmt->stmt.SExpr.expr, env));
 }
 
+// Execute If-Else conditional statements
 static ExResult vsIfStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
+	assert(stmt->type == STMT_IF);
     PValue cond = evaluate(it, stmt->stmt.SIf.cond, env);
     if (IsValueTruthy(&cond)) {
         return execute(it, stmt->stmt.SIf.thenBranch, env);
@@ -623,7 +721,9 @@ static ExResult vsIfStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     return ExSimple(MakeNil());
 }
 
+// Execute While-Do loop statements
 static ExResult vsWhileStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
+	assert(stmt->type == STMT_WHILE);
     PValue cond = evaluate(it, stmt->stmt.SWhile.cond, env);
     while (IsValueTruthy(&cond)) {
         ExResult res = execute(it, stmt->stmt.SWhile.body, env);
@@ -637,21 +737,24 @@ static ExResult vsWhileStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     return ExSimple(MakeNil());
 }
 
+// Execute return statements
 static ExResult vsReturnStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
+	assert(stmt->type == STMT_RETURN);
+
     struct SReturn *ret = &stmt->stmt.SReturn;
     PValue value = evaluate(it, ret->value, env);
     return ExReturn(value);
-    // PObj * retValue = NewReturnObject(it->gc, value);
-    // return MakeObject(retValue);
 }
 
+// Execute break statements
 static ExResult vsBreakStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
+	assert(stmt->type == STMT_BREAK);
     return ExBreak();
-    // MakeObject(NewBreakObject(it->gc));
 }
 
+// Execute function declaration statements
 static ExResult vsFuncStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
-
+	assert(stmt->type == STMT_FUNC);
     struct SFunc *fs = &stmt->stmt.SFunc;
     PObj *f = NewFuncObject(
         it->gc, fs->name, fs->params, fs->body, NewEnv(env), fs->paramCount
@@ -662,6 +765,14 @@ static ExResult vsFuncStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
 }
 
 static ExResult execute(PInterpreter *it, PStmt *stmt, PEnv *env) {
+	if (stmt == NULL) {
+		return ExSimple(MakeNil());
+	}
+	
+	if (env == NULL) {
+		return ExSimple(MakeNil());
+	}
+
     switch (stmt->type) {
         case STMT_PRINT: return vsPrint(it, stmt, env); break;
         case STMT_EXPR: return vsExprStmt(it, stmt, env); break;

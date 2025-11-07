@@ -13,10 +13,12 @@ set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Wall -O2 -flto -funroll-loo
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm -flto -funroll-loops")
+	add_compile_definitions(PANKTI_BUILD_RELEASE)
 else()
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm -fsanitize=address -fsanitize=undefined -fsanitize=float-cast-overflow -flto")
 	add_compile_definitions(MI_TRACK_ASAN=1)
 	target_compile_definitions(${PROJECT_NAME} PRIVATE MI_TRACK_ASAN=1)
+	add_compile_definitions(PANKTI_BUILD_DEBUG)
 endif()
 
 if (WIN32 OR MINGW OR MSYS OR CYGWIN) 
