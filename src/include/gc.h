@@ -20,7 +20,7 @@ typedef struct Pgc {
     PObj *objects;
     PStmt *stmts;
     size_t nextGc;
-	time_t timestamp;
+    time_t timestamp;
 } Pgc;
 
 Pgc *NewGc();
@@ -52,7 +52,7 @@ PObj *NewFuncObject(
 PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, int count);
 
 // Create New Map Object
-PObj * NewMapObject(Pgc * gc, Token * op);
+PObj *NewMapObject(Pgc *gc, Token *op);
 
 // Create New Native Function Object
 PObj *NewNativeFnObject(Pgc *gc, Token *name, NativeFn fn, int arity);
@@ -115,7 +115,7 @@ PExpr *NewCallExpr(Pgc *gc, Token *op, PExpr *callee, PExpr **args, int count);
 PExpr *NewArrayExpr(Pgc *gc, Token *op, PExpr **items, int count);
 
 // Create New HashMap Expression
-PExpr *NewMapExpr(Pgc * gc, Token * op, PExpr ** items, int count);
+PExpr *NewMapExpr(Pgc *gc, Token *op, PExpr **items, int count);
 
 PExpr *NewSubscriptExpr(Pgc *gc, Token *op, PExpr *value, PExpr *index);
 

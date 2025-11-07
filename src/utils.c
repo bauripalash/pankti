@@ -149,34 +149,32 @@ char **StrSplit(const char *text, char delimiter, int *count) {
     return buffers;
 }
 
-double NumberFromStr(const char * lexeme, int len, bool * ok){
+double NumberFromStr(const char *lexeme, int len, bool *ok) {
 
-	char * buf = PCalloc((len + 1),sizeof(char));
-	char * ptr = buf;
-	if (buf == NULL) {
-		*ok = false;
-		return -1;
-	}
+    char *buf = PCalloc((len + 1), sizeof(char));
+    char *ptr = buf;
+    if (buf == NULL) {
+        *ok = false;
+        return -1;
+    }
 
-	UIter * iter = NewUIterator(lexeme);
-	int index = 0;
+    UIter *iter = NewUIterator(lexeme);
+    int index = 0;
 
-	while (!UIterIsEnd(iter)) {
-		char32_t ch = UIterNext(iter);
-		if (ch == '.') {
-			buf[index++] = '.';
-			continue;
-		}
-		buf[index++] = GetEnFromBnNum(ch);
-	}
+    while (!UIterIsEnd(iter)) {
+        char32_t ch = UIterNext(iter);
+        if (ch == '.') {
+            buf[index++] = '.';
+            continue;
+        }
+        buf[index++] = GetEnFromBnNum(ch);
+    }
 
-	double value = atof(buf);
-	*ok = true;
-	FreeUIterator(iter);
-	PFree(buf);
-	return value;
+    double value = atof(buf);
+    *ok = true;
+    FreeUIterator(iter);
+    PFree(buf);
+    return value;
 }
 
-bool IsDoubleInt(double d){
-	return (floor(d) == ceil(d));
-}
+bool IsDoubleInt(double d) { return (floor(d) == ceil(d)); }

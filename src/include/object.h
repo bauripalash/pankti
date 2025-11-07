@@ -36,16 +36,16 @@ typedef enum PObjType {
     OT_FNC,
     // Array Object. Used by `OArray`
     OT_ARR,
-	OT_MAP,
+    OT_MAP,
     OT_NATIVE,
 } PObjType;
 
 // Entry of HashMaps
-typedef struct MapEntry{
-	uint32_t key;
-	PValue vkey; 
-	PValue value;
-}MapEntry;
+typedef struct MapEntry {
+    uint32_t key;
+    PValue vkey;
+    PValue value;
+} MapEntry;
 
 // Pankti Object
 typedef struct PObj {
@@ -79,11 +79,11 @@ typedef struct PObj {
             PValue *items;
         } OArray;
 
-		struct OMap{
-			Token * op;
-			int count;
-			MapEntry *table;
-		}OMap;
+        struct OMap {
+            Token *op;
+            int count;
+            MapEntry *table;
+        } OMap;
 
         // Native Function Object. Type : `OT_NATIVE`
         struct ONative {
@@ -151,17 +151,17 @@ bool IsValueEqual(const PValue *a, const PValue *b);
 // Print value to stdout
 void PrintValue(const PValue *val);
 
-uint64_t GetValueHash(const PValue * val, uint64_t seed);
+uint64_t GetValueHash(const PValue *val, uint64_t seed);
 // Can value be used as key for hash map
-bool CanValueBeKey(const PValue * val);
+bool CanValueBeKey(const PValue *val);
 // Can Object be used as key for hash map
 bool CanObjectBeKey(PObjType type);
 // Get Value Type as String;
 // If Value is a object, returns Object Type
 const char *ValueTypeToStr(const PValue *val);
 
-bool MapObjSetValue(PObj * o, PValue key, uint64_t keyHash, PValue value);
-bool ArrayObjInsValue(PObj * o, int index, PValue value);
+bool MapObjSetValue(PObj *o, PValue key, uint64_t keyHash, PValue value);
+bool ArrayObjInsValue(PObj *o, int index, PValue value);
 // Print Object
 void PrintObject(const PObj *o);
 

@@ -33,8 +33,8 @@ typedef enum PExprType {
     EXPR_CALL,
     // Array Expression
     EXPR_ARRAY,
-	// Map Expression
-	EXPR_MAP,
+    // Map Expression
+    EXPR_MAP,
     // Array, Hash table subscripting
     EXPR_SUBSCRIPT,
 } PExprType;
@@ -101,13 +101,13 @@ typedef struct PExpr {
             Token *op;
         } EArray;
 
-		// Map Expression
-		// Type: `EXPR_MAP`
-		struct EMap{
-			Token * op;
-			struct PExpr ** etable;
-			int count;
-		} EMap;
+        // Map Expression
+        // Type: `EXPR_MAP`
+        struct EMap {
+            Token *op;
+            struct PExpr **etable;
+            int count;
+        } EMap;
 
         // Subscript Expression
         // Type: `EXPR_SUBSCRIPT`

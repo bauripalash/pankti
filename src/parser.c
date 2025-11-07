@@ -230,16 +230,15 @@ static PExpr *finishCallExpr(Parser *p, PExpr *expr) {
     return NewCallExpr(p->gc, rparen, expr, args, count);
 }
 
-static PExpr *rSubscript(Parser *p, PExpr * expr) {
-	Token *op = previous(p);
-	PExpr *indexExpr = rExpression(p);
-	if (indexExpr == NULL) {
-		error(p, op, "Invalid subscript index");
-		return NULL;
-	}
-	eat(p, T_RS_BRACKET, "Expected ']' after subscript expression");
-	return NewSubscriptExpr(p->gc, op, expr, indexExpr);
-
+static PExpr *rSubscript(Parser *p, PExpr *expr) {
+    Token *op = previous(p);
+    PExpr *indexExpr = rExpression(p);
+    if (indexExpr == NULL) {
+        error(p, op, "Invalid subscript index");
+        return NULL;
+    }
+    eat(p, T_RS_BRACKET, "Expected ']' after subscript expression");
+    return NewSubscriptExpr(p->gc, op, expr, indexExpr);
 }
 
 static PExpr *rCall(Parser *p) {
@@ -247,8 +246,8 @@ static PExpr *rCall(Parser *p) {
     while (true) {
         if (matchOne(p, T_LEFT_PAREN)) {
             expr = finishCallExpr(p, expr);
-		} else if (matchOne(p, T_LS_BRACKET)){
-			expr = rSubscript(p, expr);
+        } else if (matchOne(p, T_LS_BRACKET)) {
+            expr = rSubscript(p, expr);
         } else {
             break;
         }
@@ -271,20 +270,20 @@ static PExpr *rArrayExpr(Parser *p) {
     return NewArrayExpr(p->gc, rbrace, items, arrlen(items));
 }
 
-static PExpr *rMapExpr(Parser * p){
-	PExpr ** etable = NULL;
-	Token * lbrace = previous(p);
-	while (!check(p, T_RIGHT_BRACE)) {
-		arrput(etable, rExpression(p));
-		eat(p, T_COLON, "Expected ':' after map key");
-		arrput(etable, rExpression(p));
+static PExpr *rMapExpr(Parser *p) {
+    PExpr **etable = NULL;
+    Token *lbrace = previous(p);
+    while (!check(p, T_RIGHT_BRACE)) {
+        arrput(etable, rExpression(p));
+        eat(p, T_COLON, "Expected ':' after map key");
+        arrput(etable, rExpression(p));
         if (check(p, T_RIGHT_BRACE)) {
             break;
         }
-		eat(p, T_COMMA, "Expected ',' after map pair");
-	}
-	eat(p, T_RIGHT_BRACE, "Expected '}' after map");
-	return NewMapExpr(p->gc, lbrace, etable, arrlen(etable));
+        eat(p, T_COMMA, "Expected ',' after map pair");
+    }
+    eat(p, T_RIGHT_BRACE, "Expected '}' after map");
+    return NewMapExpr(p->gc, lbrace, etable, arrlen(etable));
 }
 
 static PExpr *rPrimary(Parser *p) {
@@ -328,9 +327,9 @@ static PExpr *rPrimary(Parser *p) {
         return rArrayExpr(p);
     }
 
-	if (matchOne(p, T_LEFT_BRACE)) {
-		return rMapExpr(p);
-	}
+    if (matchOne(p, T_LEFT_BRACE)) {
+        return rMapExpr(p);
+    }
 
     error(p, previous(p), "Expected expression");
     return NULL;

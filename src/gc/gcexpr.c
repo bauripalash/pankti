@@ -50,11 +50,11 @@ PExpr *NewLiteral(Pgc *gc, Token *op, ExpLitType type) {
     }
     e->exp.ELiteral.op = op;
     e->exp.ELiteral.type = type;
-	if (type == EXP_LIT_NUM) {
-		bool ok = true;
-		double value = NumberFromStr(op->lexeme, op->len, &ok);
-		e->exp.ELiteral.value.nvalue = value;
-	}
+    if (type == EXP_LIT_NUM) {
+        bool ok = true;
+        double value = NumberFromStr(op->lexeme, op->len, &ok);
+        e->exp.ELiteral.value.nvalue = value;
+    }
     return e;
 }
 
@@ -122,16 +122,15 @@ PExpr *NewArrayExpr(Pgc *gc, Token *op, PExpr **items, int count) {
     return e;
 }
 
-
-PExpr *NewMapExpr(Pgc * gc, Token * op, PExpr ** items, int count){
-	PExpr * e = NewExpr(gc, EXPR_MAP, op);
-	if (e == NULL) {
-		return NULL;
-	}
-	e->exp.EMap.op = op;
-	e->exp.EMap.etable = items;
-	e->exp.EMap.count = count;
-	return e;
+PExpr *NewMapExpr(Pgc *gc, Token *op, PExpr **items, int count) {
+    PExpr *e = NewExpr(gc, EXPR_MAP, op);
+    if (e == NULL) {
+        return NULL;
+    }
+    e->exp.EMap.op = op;
+    e->exp.EMap.etable = items;
+    e->exp.EMap.count = count;
+    return e;
 }
 
 PExpr *NewSubscriptExpr(Pgc *gc, Token *op, PExpr *value, PExpr *index) {
@@ -223,16 +222,16 @@ void FreeExpr(Pgc *gc, PExpr *e) {
             freeBaseExpr(gc, e);
             break;
         }
-		case EXPR_MAP:{
-			struct EMap * map = &e->exp.EMap;
-			for (int i = 0; i < map->count; i++) {
-				FreeExpr(gc, arrpop(map->etable));
-			}
+        case EXPR_MAP: {
+            struct EMap *map = &e->exp.EMap;
+            for (int i = 0; i < map->count; i++) {
+                FreeExpr(gc, arrpop(map->etable));
+            }
 
-			arrfree(map->etable);
-			freeBaseExpr(gc, e);
-			break;
-		}
+            arrfree(map->etable);
+            freeBaseExpr(gc, e);
+            break;
+        }
         case EXPR_SUBSCRIPT: {
             FreeExpr(gc, e->exp.ESubscript.value);
             FreeExpr(gc, e->exp.ESubscript.index);

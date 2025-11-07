@@ -14,7 +14,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-
 typedef enum ExType {
     ET_SIMPLE,
     ET_BREAK,
@@ -204,99 +203,104 @@ static PValue vVariable(PInterpreter *it, PExpr *expr, PEnv *env) {
     return v;
 }
 
-static PValue varAssignment(PInterpreter * it, PExpr * name, PExpr * val, PEnv * env){
-	PValue vValue = evaluate(it, name, env);
-	struct EVariable * target = &name->exp.EVariable;
-	if (EnvSetValue(env, target->name->hash, vValue)) {
-		return vValue;
-	} else {
-		error(it, target->name, "Undefined variable assignment");
-		return MakeNil();
-	}
+static PValue
+varAssignment(PInterpreter *it, PExpr *name, PExpr *val, PEnv *env) {
+    PValue vValue = evaluate(it, name, env);
+    struct EVariable *target = &name->exp.EVariable;
+    if (EnvSetValue(env, target->name->hash, vValue)) {
+        return vValue;
+    } else {
+        error(it, target->name, "Undefined variable assignment");
+        return MakeNil();
+    }
 
-	return MakeNil();
+    return MakeNil();
 }
 
-static void arrAssignment(PInterpreter * it, PObj * arrObj, PExpr * index, PExpr * value, PEnv * env){
-	assert(arrObj->type == OT_ARR);
-	struct OArray * arr = &arrObj->v.OArray;
-	PValue indexValue = evaluate(it, index, env);
-	if (indexValue.type != VT_NUM) {
-		error(it, index->op, "Array Objects can be indexed only with Integers");
-		return;
-	}
+static void arrAssignment(
+    PInterpreter *it, PObj *arrObj, PExpr *index, PExpr *value, PEnv *env
+) {
+    assert(arrObj->type == OT_ARR);
+    struct OArray *arr = &arrObj->v.OArray;
+    PValue indexValue = evaluate(it, index, env);
+    if (indexValue.type != VT_NUM) {
+        error(it, index->op, "Array Objects can be indexed only with Integers");
+        return;
+    }
 
-	double indexDouble = indexValue.v.num;
+    double indexDouble = indexValue.v.num;
 
-	if (!IsDoubleInt(indexDouble)) {
-		error(it, index->op, "Array Objects can be indexed only with Integers");
-		return;
-	}
+    if (!IsDoubleInt(indexDouble)) {
+        error(it, index->op, "Array Objects can be indexed only with Integers");
+        return;
+    }
 
-	int indexInt = (int)indexDouble;
+    int indexInt = (int)indexDouble;
 
-	if (indexInt < 0 || indexInt >= arr->count) {
-		error(it, index->op, "Index out of range");
-		return;
-	}
+    if (indexInt < 0 || indexInt >= arr->count) {
+        error(it, index->op, "Index out of range");
+        return;
+    }
 
-	PValue newValue = evaluate(it, value, env);
-	if (!ArrayObjInsValue(arrObj, indexInt, newValue)){
-		error(it, index->op, "Internal Error : Failed to set value to array");
-		return;
-	}
+    PValue newValue = evaluate(it, value, env);
+    if (!ArrayObjInsValue(arrObj, indexInt, newValue)) {
+        error(it, index->op, "Internal Error : Failed to set value to array");
+        return;
+    }
 }
 
-static void mapAssignment(PInterpreter * it, PObj * mapObj, PExpr * keyExpr, PExpr * valueExpr, PEnv * env){
-	assert(mapObj->type == OT_MAP);
-	struct OMap * map = &mapObj->v.OMap;
-	PValue keyValue = evaluate(it, keyExpr, env);
+static void mapAssignment(
+    PInterpreter *it, PObj *mapObj, PExpr *keyExpr, PExpr *valueExpr, PEnv *env
+) {
+    assert(mapObj->type == OT_MAP);
+    struct OMap *map = &mapObj->v.OMap;
+    PValue keyValue = evaluate(it, keyExpr, env);
 
-	if (!CanValueBeKey(&keyValue)) {
-		error(it, keyExpr->op, "Invalid key for map");
-		return;
-	}
+    if (!CanValueBeKey(&keyValue)) {
+        error(it, keyExpr->op, "Invalid key for map");
+        return;
+    }
 
-	uint64_t keyHash = GetValueHash(&keyValue, (uint64_t)it->gc->timestamp);
-	PValue value = evaluate(it, valueExpr, env);
-	if (!MapObjSetValue(mapObj, keyValue, keyHash, value)) {
-		error(it, keyExpr->op, "Internal Error : Failed to set value to map");
-		return;
-	}
+    uint64_t keyHash = GetValueHash(&keyValue, (uint64_t)it->gc->timestamp);
+    PValue value = evaluate(it, valueExpr, env);
+    if (!MapObjSetValue(mapObj, keyValue, keyHash, value)) {
+        error(it, keyExpr->op, "Internal Error : Failed to set value to map");
+        return;
+    }
 }
 
-static PValue subAssignment(PInterpreter * it, PExpr * targetExpr, PExpr * valueExpr, PEnv * env){
-	struct ESubscript * sub = &targetExpr->exp.ESubscript;
-	PValue coreValue = evaluate(it, sub->value, env);
-	if (coreValue.type == VT_OBJ) {
-		PObj * coreObj = ValueAsObj(coreValue);
-		if (coreObj->type == OT_ARR) {
-			arrAssignment(it, coreObj, sub->index, valueExpr, env);
-			return MakeNil();
-		} else if (coreObj->type == OT_MAP){
-			mapAssignment(it, coreObj, sub->index, valueExpr, env);
-			return MakeNil();
-
-		}
-
-	}
-	error(it, sub->value->op, "Subscript operation only valid for array and maps");
-	return MakeNil();
-
+static PValue subAssignment(
+    PInterpreter *it, PExpr *targetExpr, PExpr *valueExpr, PEnv *env
+) {
+    struct ESubscript *sub = &targetExpr->exp.ESubscript;
+    PValue coreValue = evaluate(it, sub->value, env);
+    if (coreValue.type == VT_OBJ) {
+        PObj *coreObj = ValueAsObj(coreValue);
+        if (coreObj->type == OT_ARR) {
+            arrAssignment(it, coreObj, sub->index, valueExpr, env);
+            return MakeNil();
+        } else if (coreObj->type == OT_MAP) {
+            mapAssignment(it, coreObj, sub->index, valueExpr, env);
+            return MakeNil();
+        }
+    }
+    error(
+        it, sub->value->op, "Subscript operation only valid for array and maps"
+    );
+    return MakeNil();
 }
 
 static PValue vAssignment(PInterpreter *it, PExpr *expr, PEnv *env) {
-	struct EAssign * assign = &expr->exp.EAssign; 
+    struct EAssign *assign = &expr->exp.EAssign;
     PValue value = evaluate(it, assign->value, env);
-	PExpr * target = assign->name;
-	if (target->type == EXPR_VARIABLE) {
-		return varAssignment(it, target, assign->value, env);
-	}else if (target->type == EXPR_SUBSCRIPT){
-		return subAssignment(it, target, assign->value, env);
-	}
-	error(it, target->op, "Invalid assignment target");
-	return MakeNil();
-    
+    PExpr *target = assign->name;
+    if (target->type == EXPR_VARIABLE) {
+        return varAssignment(it, target, assign->value, env);
+    } else if (target->type == EXPR_SUBSCRIPT) {
+        return subAssignment(it, target, assign->value, env);
+    }
+    error(it, target->op, "Invalid assignment target");
+    return MakeNil();
 }
 
 static PValue vUnary(PInterpreter *it, PExpr *expr, PEnv *env) {
@@ -460,32 +464,31 @@ static PValue vArray(PInterpreter *it, PExpr *expr, PEnv *env) {
     return MakeObject(arrObj);
 }
 
-static PValue vMap(PInterpreter * it, PExpr * expr, PEnv * env){
-	struct EMap * map = &expr->exp.EMap;
+static PValue vMap(PInterpreter *it, PExpr *expr, PEnv *env) {
+    struct EMap *map = &expr->exp.EMap;
 
-	MapEntry *table = NULL;
-	MapEntry s;
+    MapEntry *table = NULL;
+    MapEntry s;
 
-	for (int i = 0; i < map->count; i += 2) {
-		PValue k = evaluate(it, map->etable[i], env);
-		uint64_t keyHash = GetValueHash(&k, (uint64_t)it->gc->timestamp);
-		if (!CanValueBeKey(&k)) {
-			if (table != NULL) {
-				hmfree(table);
-			}
-			error(it, map->etable[i]->op, "Invalid key for map");
-			return MakeNil();
-		}
-		PValue v = evaluate(it, map->etable[i+1], env);
-		s = (MapEntry){keyHash, k,v};
-		hmputs(table, s);
-	}
+    for (int i = 0; i < map->count; i += 2) {
+        PValue k = evaluate(it, map->etable[i], env);
+        uint64_t keyHash = GetValueHash(&k, (uint64_t)it->gc->timestamp);
+        if (!CanValueBeKey(&k)) {
+            if (table != NULL) {
+                hmfree(table);
+            }
+            error(it, map->etable[i]->op, "Invalid key for map");
+            return MakeNil();
+        }
+        PValue v = evaluate(it, map->etable[i + 1], env);
+        s = (MapEntry){keyHash, k, v};
+        hmputs(table, s);
+    }
 
-	PObj * mapObj = NewMapObject(it->gc, map->op);
-	mapObj->v.OMap.table = table;
-	mapObj->v.OMap.count = hmlen(table);
-	return MakeObject(mapObj);
-	
+    PObj *mapObj = NewMapObject(it->gc, map->op);
+    mapObj->v.OMap.table = table;
+    mapObj->v.OMap.count = hmlen(table);
+    return MakeObject(mapObj);
 }
 
 static PValue vSubscript(PInterpreter *it, PExpr *expr, PEnv *env) {
@@ -510,26 +513,28 @@ static PValue vSubscript(PInterpreter *it, PExpr *expr, PEnv *env) {
                 error(it, NULL, "Array Subscript index must be a number");
                 return MakeNil();
             }
-        }else if (subObj->type == OT_MAP){
-			PValue indexValue = evaluate(it, sub->index, env);
-			
-			if (!CanValueBeKey(&indexValue)) {
-				error(it, sub->index->op, "Invalid map key");
-				return MakeNil();
-			}
-			struct OMap * map = &subObj->v.OMap;
-			uint64_t indexHash = GetValueHash(&indexValue, it->gc->timestamp);
+        } else if (subObj->type == OT_MAP) {
+            PValue indexValue = evaluate(it, sub->index, env);
 
-			if (hmgeti(map->table, indexHash) != -1) {
-				return hmgets(map->table, indexHash).value;
-			}else{
-				error(it, sub->index->op, "Key doesnot exist");
-				return MakeNil();
-			}
-		}
+            if (!CanValueBeKey(&indexValue)) {
+                error(it, sub->index->op, "Invalid map key");
+                return MakeNil();
+            }
+            struct OMap *map = &subObj->v.OMap;
+            uint64_t indexHash = GetValueHash(&indexValue, it->gc->timestamp);
+
+            if (hmgeti(map->table, indexHash) != -1) {
+                return hmgets(map->table, indexHash).value;
+            } else {
+                error(it, sub->index->op, "Key doesnot exist");
+                return MakeNil();
+            }
+        }
     }
 
-    error(it, NULL, "Invalid Subscript. Subscript only works on array and maps");
+    error(
+        it, NULL, "Invalid Subscript. Subscript only works on array and maps"
+    );
     return MakeNil();
 }
 
@@ -547,7 +552,7 @@ static PValue evaluate(PInterpreter *it, PExpr *expr, PEnv *env) {
         case EXPR_CALL: return vCall(it, expr, env);
         case EXPR_GROUPING: return evaluate(it, expr->exp.EGrouping.expr, env);
         case EXPR_ARRAY: return vArray(it, expr, env);
-		case EXPR_MAP: return vMap(it, expr, env);
+        case EXPR_MAP: return vMap(it, expr, env);
         case EXPR_SUBSCRIPT: return vSubscript(it, expr, env);
     }
 

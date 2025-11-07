@@ -47,12 +47,12 @@ PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, int count) {
     return o;
 }
 
-PObj * NewMapObject(Pgc * gc, Token * op){
-	PObj * o = NewObject(gc, OT_MAP);
-	o->v.OMap.table = NULL;
-	o->v.OMap.op = op;
-	o->v.OMap.count = 0;
-	return o;
+PObj *NewMapObject(Pgc *gc, Token *op) {
+    PObj *o = NewObject(gc, OT_MAP);
+    o->v.OMap.table = NULL;
+    o->v.OMap.op = op;
+    o->v.OMap.count = 0;
+    return o;
 }
 
 PObj *NewNativeFnObject(Pgc *gc, Token *name, NativeFn fn, int arity) {
@@ -107,14 +107,14 @@ void FreeObject(Pgc *gc, PObj *o) {
             freeBaseObj(o);
             break;
         }
-		case OT_MAP:{
-			struct OMap *map = &o->v.OMap;
-			if (map->table != NULL) {
-				hmfree(map->table);
-			}
-			freeBaseObj(o);
-			break;
-		}
+        case OT_MAP: {
+            struct OMap *map = &o->v.OMap;
+            if (map->table != NULL) {
+                hmfree(map->table);
+            }
+            freeBaseObj(o);
+            break;
+        }
         case OT_NATIVE: {
             freeBaseObj(o);
         }
