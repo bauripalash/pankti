@@ -160,6 +160,8 @@ bool CanObjectBeKey(PObjType type);
 // If Value is a object, returns Object Type
 const char *ValueTypeToStr(const PValue *val);
 
+bool MapObjSetValue(PObj * o, PValue key, uint64_t keyHash, PValue value);
+bool ArrayObjInsValue(PObj * o, int index, PValue value);
 // Print Object
 void PrintObject(const PObj *o);
 

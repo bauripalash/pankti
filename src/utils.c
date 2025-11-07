@@ -2,6 +2,7 @@
 #include "include/alloc.h"
 #include "include/bengali.h"
 #include "include/ustring.h"
+#include <math.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -174,4 +175,8 @@ double NumberFromStr(const char * lexeme, int len, bool * ok){
 	FreeUIterator(iter);
 	PFree(buf);
 	return value;
+}
+
+bool IsDoubleInt(double d){
+	return (floor(d) == ceil(d));
 }

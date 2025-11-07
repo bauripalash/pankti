@@ -9,12 +9,10 @@
 #include "include/object.h"
 #include "include/token.h"
 #include "include/utils.h"
-
-
+#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 
 typedef enum ExType {
@@ -206,16 +204,99 @@ static PValue vVariable(PInterpreter *it, PExpr *expr, PEnv *env) {
     return v;
 }
 
+static PValue varAssignment(PInterpreter * it, PExpr * name, PExpr * val, PEnv * env){
+	PValue vValue = evaluate(it, name, env);
+	struct EVariable * target = &name->exp.EVariable;
+	if (EnvSetValue(env, target->name->hash, vValue)) {
+		return vValue;
+	} else {
+		error(it, target->name, "Undefined variable assignment");
+		return MakeNil();
+	}
+
+	return MakeNil();
+}
+
+static void arrAssignment(PInterpreter * it, PObj * arrObj, PExpr * index, PExpr * value, PEnv * env){
+	assert(arrObj->type == OT_ARR);
+	struct OArray * arr = &arrObj->v.OArray;
+	PValue indexValue = evaluate(it, index, env);
+	if (indexValue.type != VT_NUM) {
+		error(it, index->op, "Array Objects can be indexed only with Integers");
+		return;
+	}
+
+	double indexDouble = indexValue.v.num;
+
+	if (!IsDoubleInt(indexDouble)) {
+		error(it, index->op, "Array Objects can be indexed only with Integers");
+		return;
+	}
+
+	int indexInt = (int)indexDouble;
+
+	if (indexInt < 0 || indexInt >= arr->count) {
+		error(it, index->op, "Index out of range");
+		return;
+	}
+
+	PValue newValue = evaluate(it, value, env);
+	if (!ArrayObjInsValue(arrObj, indexInt, newValue)){
+		error(it, index->op, "Internal Error : Failed to set value to array");
+		return;
+	}
+}
+
+static void mapAssignment(PInterpreter * it, PObj * mapObj, PExpr * keyExpr, PExpr * valueExpr, PEnv * env){
+	assert(mapObj->type == OT_MAP);
+	struct OMap * map = &mapObj->v.OMap;
+	PValue keyValue = evaluate(it, keyExpr, env);
+
+	if (!CanValueBeKey(&keyValue)) {
+		error(it, keyExpr->op, "Invalid key for map");
+		return;
+	}
+
+	uint64_t keyHash = GetValueHash(&keyValue, (uint64_t)it->gc->timestamp);
+	PValue value = evaluate(it, valueExpr, env);
+	if (!MapObjSetValue(mapObj, keyValue, keyHash, value)) {
+		error(it, keyExpr->op, "Internal Error : Failed to set value to map");
+		return;
+	}
+}
+
+static PValue subAssignment(PInterpreter * it, PExpr * targetExpr, PExpr * valueExpr, PEnv * env){
+	struct ESubscript * sub = &targetExpr->exp.ESubscript;
+	PValue coreValue = evaluate(it, sub->value, env);
+	if (coreValue.type == VT_OBJ) {
+		PObj * coreObj = ValueAsObj(coreValue);
+		if (coreObj->type == OT_ARR) {
+			arrAssignment(it, coreObj, sub->index, valueExpr, env);
+			return MakeNil();
+		} else if (coreObj->type == OT_MAP){
+			mapAssignment(it, coreObj, sub->index, valueExpr, env);
+			return MakeNil();
+
+		}
+
+	}
+	error(it, sub->value->op, "Subscript operation only valid for array and maps");
+	return MakeNil();
+
+}
+
 static PValue vAssignment(PInterpreter *it, PExpr *expr, PEnv *env) {
-    PValue value = evaluate(it, expr->exp.EAssign.value, env);
-    if (EnvSetValue(
-            env, expr->exp.EAssign.name->exp.EVariable.name->hash, value
-        )) {
-        return value;
-    } else {
-        error(it, expr->exp.EAssign.name->op, "Undefined variable assignment");
-        return MakeNil();
-    }
+	struct EAssign * assign = &expr->exp.EAssign; 
+    PValue value = evaluate(it, assign->value, env);
+	PExpr * target = assign->name;
+	if (target->type == EXPR_VARIABLE) {
+		return varAssignment(it, target, assign->value, env);
+	}else if (target->type == EXPR_SUBSCRIPT){
+		return subAssignment(it, target, assign->value, env);
+	}
+	error(it, target->op, "Invalid assignment target");
+	return MakeNil();
+    
 }
 
 static PValue vUnary(PInterpreter *it, PExpr *expr, PEnv *env) {
@@ -431,6 +512,7 @@ static PValue vSubscript(PInterpreter *it, PExpr *expr, PEnv *env) {
             }
         }else if (subObj->type == OT_MAP){
 			PValue indexValue = evaluate(it, sub->index, env);
+			
 			if (!CanValueBeKey(&indexValue)) {
 				error(it, sub->index->op, "Invalid map key");
 				return MakeNil();

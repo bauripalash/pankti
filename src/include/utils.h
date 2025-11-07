@@ -62,6 +62,9 @@ double NumberFromStr(const char * lexeme, int len, bool * ok);
 // `len` = Length of string. Not codepoints length only bytes.
 uint32_t Fnv1a(const char *str, int len);
 
+// Check if double is integer
+bool IsDoubleInt(double d);
+
 #ifdef __cplusplus
 }
 #endif

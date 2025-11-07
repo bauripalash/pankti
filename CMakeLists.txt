@@ -12,9 +12,9 @@ set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g3 -Wall -Wconversion -fsanitiz
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Wall -O2 -flto -funroll-loops" )
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto -funroll-loops")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm -flto -funroll-loops")
 else()
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address -fsanitize=undefined -fsanitize=float-cast-overflow -flto")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm -fsanitize=address -fsanitize=undefined -fsanitize=float-cast-overflow -flto")
 	add_compile_definitions(MI_TRACK_ASAN=1)
 	target_compile_definitions(${PROJECT_NAME} PRIVATE MI_TRACK_ASAN=1)
 endif()

@@ -40,11 +40,11 @@ static void printIndent(int indent) {
 }
 
 void AstPrint(PExpr *expr, int indent) {
+    printIndent(indent);
     if (expr == NULL) {
-        printf("Invalid Expression!\n");
+        printf("[Invalid Expression!]\n");
         return;
     }
-    printIndent(indent);
     switch (expr->type) {
         case EXPR_BINARY: {
             printf(
@@ -87,12 +87,21 @@ void AstPrint(PExpr *expr, int indent) {
         }
         case EXPR_ASSIGN: {
             printf(
-                TERMC_YELLOW "Assign(" TERMC_GREEN "%s" TERMC_YELLOW
-                             ")\n" TERMC_RESET,
-                expr->exp.EAssign.name->exp.EVariable.name->lexeme
+                TERMC_YELLOW "Assign {\n" TERMC_RESET
             );
+			printIndent(indent + 1);
+			printf("Target {\n");
+			AstPrint(expr->exp.EAssign.name, indent + 2);
+			printIndent(indent + 1);
+			printf("}\n");
 
-            AstPrint(expr->exp.EAssign.value, indent + 1);
+			printIndent(indent + 1);
+			printf("Value {\n");
+            AstPrint(expr->exp.EAssign.value, indent + 2);
+			printIndent(indent + 1);
+			printf("}\n");
+			printIndent(indent);
+			printf("}\n");
             break;
         }
         case EXPR_LOGICAL: {

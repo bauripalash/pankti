@@ -1,11 +1,11 @@
 #include "include/object.h"
 #include "include/utils.h"
 #include "external/xxhash.h"
+#include "external/stb/stb_ds.h"
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 
@@ -120,6 +120,42 @@ bool IsValueEqual(const PValue *a, const PValue *b) {
         return a->v.bl == b->v.bl;
     }
     return false;
+}
+
+bool ArrayObjInsValue(PObj * o, int index, PValue value){
+	if (o == NULL) {
+		return false;
+	}
+
+	if (o->type != OT_ARR) {
+		return false;
+	}
+	
+	struct OArray * arr = &o->v.OArray;
+	if (index < 0 || index >= arr->count) {
+		return false;
+	}
+
+	arrput(arr->items, value);
+	arrdelswap(arr->items, index);
+
+	return true;
+}
+
+bool MapObjSetValue(PObj * o, PValue key, uint64_t keyHash, PValue value){
+	if (o == NULL) {
+		return false;
+	}
+
+	if (o->type != OT_MAP) {
+		return false;
+	}
+
+	struct OMap * map = &o->v.OMap;
+	MapEntry s = (MapEntry){keyHash, key, value};
+	hmputs(map->table, s);
+	map->count = hmlen(map->table);
+	return true;
 }
 
 void PrintObject(const PObj *o) {

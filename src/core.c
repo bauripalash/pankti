@@ -99,11 +99,6 @@ void RunCore(PanktiCore *core) {
         (double)(pToc - pTic) / CLOCKS_PER_SEC
     );
 #endif
-
-    if (core->caughtError) {
-        printf("Parser Error found!\n");
-        // exit(1);
-    }
     if (DebugParser) {
         printf("===== AST =====\n");
         for (int i = 0; i < arrlen(prog); i++) {
@@ -111,6 +106,12 @@ void RunCore(PanktiCore *core) {
         }
         printf("===== END =====\n");
     }
+    if (core->caughtError || core->parser->hasError) {
+        printf("Parser Error found!\n");
+        FreeCore(core);
+		exit(1);
+    }
+
     core->it = NewInterpreter(core->gc, prog);
     core->it->core = core;
 #if defined DEBUG_TIMES

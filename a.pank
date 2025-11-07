@@ -1,12 +1,5 @@
-kaj add(a,b)
-	return a + b
-end
+let a = {}
+let b = []
 
-kaj mango()
-	return  [1,2,3]
-end
-
-let a = {"add" : add, "index":2}
-
-print a["add"](1,2)
-print mango()[a["index"]]
+print a[]
+print b

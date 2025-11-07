@@ -6,6 +6,7 @@
 #include "include/gc.h"
 #include "include/lexer.h"
 #include "include/token.h"
+#include "include/utils.h"
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -144,7 +145,7 @@ static PExpr *rAssignment(Parser *p) {
         Token *op = previous(p);
         PExpr *value = rAssignment(p);
 
-        if (expr->type == EXPR_VARIABLE) {
+        if (expr->type == EXPR_VARIABLE || expr->type == EXPR_SUBSCRIPT) {
             return NewAssignment(p->gc, op, expr, value);
         }
 
@@ -232,6 +233,10 @@ static PExpr *finishCallExpr(Parser *p, PExpr *expr) {
 static PExpr *rSubscript(Parser *p, PExpr * expr) {
 	Token *op = previous(p);
 	PExpr *indexExpr = rExpression(p);
+	if (indexExpr == NULL) {
+		error(p, op, "Invalid subscript index");
+		return NULL;
+	}
 	eat(p, T_RS_BRACKET, "Expected ']' after subscript expression");
 	return NewSubscriptExpr(p->gc, op, expr, indexExpr);
 
