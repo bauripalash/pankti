@@ -1,11 +1,17 @@
 #include "include/core.h"
 #include <stdio.h>
-#define FLPATH "/home/palash/work/cc/pankti/a.pank"
 
 int main(int argc, char **argv) {
-    printf("Pankti Programming Language\n");
-    PanktiCore *core = NewCore(FLPATH);
-    RunCore(core);
-
-    FreeCore(core);
+	
+	if (argc < 2) {
+		printf("Error: Please provide a filename to run.\n");
+		printf("Pankti Programming Language\n");
+		printf("Usage: pankti [Filename]\n");
+		return 1;
+	} else {
+		char * filepath = argv[1];
+		PanktiCore *core = NewCore(filepath);
+		RunCore(core);
+    	FreeCore(core);
+	}
 }

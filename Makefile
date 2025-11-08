@@ -3,6 +3,7 @@ CMAKE_OUTPUT:=build/$(BIN)
 ZIG_OUTPUT:=zig-out/bin/$(BIN)
 TCC:=/usr/bin/tcc
 PERFCC:=clang
+FILE ?= ./a.pank
 
 HEADERS:= $(shell find src/include -path 'src/external' -prune -o -path 'src/include/exported' -prune -o -name '*.h' -print)
 SOURCES:= $(shell find src/ -path 'src/external' -prune -o -name '*.c' -print)
@@ -16,7 +17,7 @@ build:
 
 .PHONY: run
 run: build
-	./$(CMAKE_OUTPUT)
+	./$(CMAKE_OUTPUT) $(FILE)
 
 .PHONY: fmt
 fmt:
