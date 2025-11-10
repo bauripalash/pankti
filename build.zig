@@ -31,7 +31,7 @@ pub fn build(b: *std.Build) void {
 
     var debugFlags = [_][]const u8{
         "-Wall",
-        "-std=gnu99",
+        "-std=c11",
         "-g3",
     };
 
