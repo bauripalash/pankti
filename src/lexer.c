@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <uchar.h>
 
 #include "include/alloc.h"
@@ -14,7 +15,8 @@
 #include "include/token.h"
 #include "include/ustring.h"
 #include "include/utils.h"
-#define STBDS_SIPHASH_2_4
+
+//#define STBDS_SIPHASH_2_4
 #define STB_DS_IMPLEMENTATION
 #include "external/stb/stb_ds.h"
 
@@ -131,7 +133,7 @@ static bool addTokenWithLexeme(Lexer *lx, TokenType type, char *str, int len) {
     tok->line = lx->line;
     if (len != -1) {
         tok->len = len;
-        tok->hash = Fnv1a(str, len);
+        tok->hash = StrHash(str, len, time(NULL));
     } else {
         if (IsDoubleTok(type)) {
             tok->len = 2;

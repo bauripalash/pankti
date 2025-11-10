@@ -1,8 +1,9 @@
 #include "include/utils.h"
 #include "include/alloc.h"
-#include "include/bengali.h"
 #include "include/ustring.h"
-#include <math.h>
+#include "include/bengali.h"
+#include "external/xxhash.h"
+
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -11,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <uchar.h>
+#include <math.h>
 
 char *ReadFile(const char *path) {
     char *text = NULL;
@@ -79,13 +81,9 @@ char *BoolToString(bool v) {
     return "false";
 }
 
-uint32_t Fnv1a(const char *str, int len) {
-    uint32_t hash = 2166136261u;
-    for (int i = 0; i < len; i++) {
-        hash ^= (uint8_t)str[i];
-        hash *= 16777619;
-    }
-    return hash;
+uint64_t StrHash(const char * str, size_t len , uint64_t seed){
+	XXH64_hash_t hash = XXH64(str, len, (XXH64_hash_t)seed);
+	return (uint64_t)hash;
 }
 
 // Source:
@@ -152,7 +150,6 @@ char **StrSplit(const char *text, char delimiter, int *count) {
 double NumberFromStr(const char *lexeme, int len, bool *ok) {
 
     char *buf = PCalloc((len + 1), sizeof(char));
-    char *ptr = buf;
     if (buf == NULL) {
         *ok = false;
         return -1;

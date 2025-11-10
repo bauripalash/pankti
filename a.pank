@@ -1,20 +1,3 @@
-let info = {"name" : "palash", "work" : "sleep"}
-print info["name"]
-print info["work"]
-
-kaj add(a,b)
-	return a + b
-end
-
-print add(1,2)
-
-let x = 100
-while true do
-	show(x)
-	x = x - 1
-	if x < 95 then
-		break
-	end
-end
-
-
+1
+show(100+200)
+show(clock())

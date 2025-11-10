@@ -25,6 +25,9 @@ char *ReadFile(const char *path);
 // `end` = End index
 char *SubString(const char *str, int start, int end);
 
+// String Hash?
+uint64_t StrHash(const char * str, size_t len , uint64_t seed);
+
 // Check if `str1` and `str2` is same
 bool StrEqual(const char *str1, const char *str2);
 
@@ -55,11 +58,6 @@ char32_t U8ToU32(const unsigned char *str);
 char *BoolToString(bool v);
 
 double NumberFromStr(const char *lexeme, int len, bool *ok);
-
-// Calculated Fnv-1a Hash of string
-// `str` = UTF-8 encoded string
-// `len` = Length of string. Not codepoints length only bytes.
-uint32_t Fnv1a(const char *str, int len);
 
 // Check if double is integer
 bool IsDoubleInt(double d);

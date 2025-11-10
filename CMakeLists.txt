@@ -21,14 +21,18 @@ else()
 	add_compile_definitions(PANKTI_BUILD_DEBUG)
 endif()
 
-if (WIN32 OR MINGW OR MSYS OR CYGWIN) 
+if (CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "CYGWIN") 
 	add_compile_definitions(PANTKI_OS_WIN)
 endif()
 
-if (UNIX AND NOT APPLE AND NOT CYGWIN)
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
 	add_compile_definitions(PANKTI_OS_LINUX)
 endif()
 
-if (APPLE) 
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin") 
 	add_compile_definitions(PANKTI_OS_MAC)
+endif()
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+	add_compile_definitions(PANKTI_OS_WEB)
 endif()
