@@ -26,7 +26,7 @@ char *ReadFile(const char *path);
 char *SubString(const char *str, int start, int end);
 
 // String Hash?
-uint64_t StrHash(const char * str, size_t len , uint64_t seed);
+uint64_t StrHash(const char *str, size_t len, uint64_t seed);
 
 // Check if `str1` and `str2` is same
 bool StrEqual(const char *str1, const char *str2);

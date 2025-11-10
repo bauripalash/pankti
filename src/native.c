@@ -1,10 +1,10 @@
 #include "include/native.h"
+#include "external/xxhash.h"
 #include "include/env.h"
 #include "include/gc.h"
 #include "include/interpreter.h"
 #include "include/object.h"
 #include "include/utils.h"
-#include "external/xxhash.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>
@@ -40,7 +40,9 @@ void RegisterNatives(PInterpreter *it, PEnv *env) {
     }
 
     PObj *clockFn = NewNativeFnObject(it->gc, NULL, ntvClock, 0);
-    EnvPutValue(env, StrHash("clock", 5, it->gc->timestamp), MakeObject(clockFn));
+    EnvPutValue(
+        env, StrHash("clock", 5, it->gc->timestamp), MakeObject(clockFn)
+    );
     PObj *showFn = NewNativeFnObject(it->gc, NULL, ntvShow, -1);
     EnvPutValue(env, StrHash("show", 4, it->gc->timestamp), MakeObject(showFn));
 }

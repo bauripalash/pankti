@@ -19,7 +19,14 @@ PanktiCore *NewCore(const char *path) {
     PanktiCore *core = PCreate(PanktiCore);
     core->path = path;
     core->source = ReadFile(core->path);
+    if (core->source == NULL) {
+        printf("Failed to Read Source Code\n");
+        return NULL;
+    }
     core->lexer = NewLexer(core->source);
+    if (core->lexer == NULL) {
+        return NULL;
+    }
     core->lexer->core = core;
     core->parser = NULL;
     core->caughtError = false;
@@ -52,13 +59,21 @@ void FreeCore(PanktiCore *core) {
 }
 
 // Print All the Scanned Tokens
-static bool DebugLexer = true;
+#define DEBUG_LEXER
 // Print the Ast
-static bool DebugParser = true;
-
+#define DEBUG_PARSER
+// Print time it takes to finish each step
 #define DEBUG_TIMES
 
 void RunCore(PanktiCore *core) {
+    if (core == NULL) {
+        printf("Internal Error : Failed to create Pankti Core\n");
+        exit(1);
+    }
+    if (core->lexer == NULL) {
+        printf("Internal Error : Failed to create Pankti Lexer\n");
+        exit(1);
+    }
     stbds_rand_seed(time(NULL));
     core->lexer->core = core;
 #if defined DEBUG_TIMES
@@ -72,15 +87,14 @@ void RunCore(PanktiCore *core) {
         (double)(lxToc - lxTic) / CLOCKS_PER_SEC
     );
 #endif
-    if (DebugLexer) {
-        printf("==== Token ====\n");
-        for (int i = 0; i < arrlen(core->lexer->tokens); i++) {
-            PrintToken(core->lexer->tokens[i]);
-            printf("\n");
-        }
-        printf("===============\n");
+#if defined DEBUG_PARSER
+    printf("==== Token ====\n");
+    for (int i = 0; i < arrlen(core->lexer->tokens); i++) {
+        PrintToken(core->lexer->tokens[i]);
+        printf("\n");
     }
-
+    printf("===============\n");
+#endif
     if (core->caughtError) {
         printf("Lexer Error found!\n");
         exit(1);
@@ -99,13 +113,13 @@ void RunCore(PanktiCore *core) {
         (double)(pToc - pTic) / CLOCKS_PER_SEC
     );
 #endif
-    if (DebugParser) {
-        printf("===== AST =====\n");
-        for (int i = 0; i < arrlen(prog); i++) {
-            AstStmtPrint(prog[i], 0);
-        }
-        printf("===== END =====\n");
+#if defined DEBUG_PARSER
+    printf("===== AST =====\n");
+    for (int i = 0; i < arrlen(prog); i++) {
+        AstStmtPrint(prog[i], 0);
     }
+    printf("===== END =====\n");
+#endif
     if (core->caughtError || core->parser->hasError) {
         printf("Parser Error found!\n");
         FreeCore(core);

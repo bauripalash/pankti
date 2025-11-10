@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 PEnv *NewEnv(PEnv *enclosing) {
     PEnv *e = PCreate(PEnv);

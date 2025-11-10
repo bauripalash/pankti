@@ -1,9 +1,10 @@
 #include "include/utils.h"
-#include "include/alloc.h"
-#include "include/ustring.h"
-#include "include/bengali.h"
 #include "external/xxhash.h"
+#include "include/alloc.h"
+#include "include/bengali.h"
+#include "include/ustring.h"
 
+#include <math.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -12,7 +13,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <uchar.h>
-#include <math.h>
 
 char *ReadFile(const char *path) {
     char *text = NULL;
@@ -24,7 +24,7 @@ char *ReadFile(const char *path) {
             long size = ftell(file);
             fseek(file, 0, SEEK_SET);
 
-            if (size > 0) {
+            if (size >= 0) {
                 text = (char *)PCalloc(size + 1, sizeof(char));
                 if (text == NULL) {
                     return NULL;
@@ -81,9 +81,9 @@ char *BoolToString(bool v) {
     return "false";
 }
 
-uint64_t StrHash(const char * str, size_t len , uint64_t seed){
-	XXH64_hash_t hash = XXH64(str, len, (XXH64_hash_t)seed);
-	return (uint64_t)hash;
+uint64_t StrHash(const char *str, size_t len, uint64_t seed) {
+    XXH64_hash_t hash = XXH64(str, len, (XXH64_hash_t)seed);
+    return (uint64_t)hash;
 }
 
 // Source:
