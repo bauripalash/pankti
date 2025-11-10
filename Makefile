@@ -19,6 +19,15 @@ build:
 run: build
 	./$(CMAKE_OUTPUT) $(FILE)
 
+
+.PHONY: zbuild
+zbuild:
+	zig build
+
+.PHONY: zrun
+zrun: zbuild
+	./$(ZIG_OUTPUT) $(FILE)
+
 .PHONY: fmt
 fmt:
 	@clang-format -i -style=file --verbose $(SOURCES) $(HEADERS)
