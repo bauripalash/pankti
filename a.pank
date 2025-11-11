@@ -1,3 +1,1 @@
-"mango
-tango"
-show(show)
+print "->\x07"

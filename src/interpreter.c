@@ -9,6 +9,7 @@
 #include "include/object.h"
 #include "include/token.h"
 #include "include/utils.h"
+#include <ctype.h>
 
 #ifdef PANKTI_BUILD_DEBUG
 #undef NDDEBUG
@@ -110,6 +111,73 @@ static void error(PInterpreter *it, Token *tok, const char *msg) {
     CoreError(it->core, tok, msg);
 }
 
+static char * readStringEscapes(PInterpreter *it, PExpr * expr){
+	assert(expr->type == EXPR_LITERAL);
+	assert(expr->exp.ELiteral.type == EXP_LIT_STR);
+	char * raw = expr->exp.ELiteral.op->lexeme;
+	size_t slen = strlen(raw);
+	char * str = PCalloc(slen + 1, sizeof(char));
+	if (str == NULL) {
+		return NULL;
+	}
+
+	size_t rdi = 0;
+	for (size_t i = 0; i < slen; i++) {
+		char c = raw[i];
+		if (c == '\\' && i + 1 < slen) {
+			i++;
+			char ec = raw[i];
+			switch (ec) {
+				case '\\': str[rdi++] = '\\';break;
+				case 'a': str[rdi++] = '\a';break;
+				case 'b': str[rdi++] = '\b';break;
+				case 'f': str[rdi++] = '\f';break;
+				case 'n': str[rdi++] = '\n';break;
+				case 'r': str[rdi++] = '\r';break;
+				case 't': str[rdi++] = '\t';break;
+				case 'v': str[rdi++] = '\v';break;
+				case 'x':{
+					if (!(i + 2 < slen)) {
+						str[rdi++] = 'x';
+						break;
+					}
+
+					unsigned int xval = 0;
+
+					if (isxdigit((unsigned char)raw[i+1]) && isxdigit((unsigned char)raw[i+2])) {
+						char xc = raw[++i];
+						char xc2 = raw[++i];
+						xval = ToHex2Bytes(xc, xc2);
+						str[rdi++] = (char)xval;
+						break;
+
+
+					}else{
+						error(it, expr->op, "Invalid Hex digits found in string");
+						PFree(str);
+						return NULL;
+					}
+
+					break;
+				}
+				default: str[rdi++] = ec; break;
+			}
+		
+		}else{
+			str[rdi] = c;
+			rdi++;
+		}
+	}
+
+	if (rdi <= slen) {
+		str[rdi] = '\0';
+	}else{
+		str[slen] = '\0'; // do we need this?
+	}
+
+	return str;
+}
+
 // Evaluate Literal Expression
 // Numbers, Strings, Bools, Nil
 static PValue vLiteral(PInterpreter *it, PExpr *expr, PEnv *env) {
@@ -121,7 +189,12 @@ static PValue vLiteral(PInterpreter *it, PExpr *expr, PEnv *env) {
             return MakeNumber(value);
         }
         case EXP_LIT_STR: {
-            PObj *litObj = NewStrObject(it->gc, expr->exp.ELiteral.op->lexeme);
+			char * lexeme = readStringEscapes(it, expr);
+			if (lexeme == NULL) {
+				error(it, expr->op, "Failed to read string");
+				return MakeNil();
+			}
+            PObj *litObj = NewStrObject(it->gc, lexeme);
             return MakeObject(litObj);
         }
         case EXP_LIT_BOOL: {

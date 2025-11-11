@@ -62,6 +62,10 @@ double NumberFromStr(const char *lexeme, int len, bool *ok);
 // Check if double is integer
 bool IsDoubleInt(double d);
 
+
+unsigned char ToHex2Bytes(char c1, char c2);
+unsigned char HexStrToByte(char * str, int len);
+
 #ifdef __cplusplus
 }
 #endif

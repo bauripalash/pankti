@@ -24,50 +24,7 @@ PObj *NewObject(Pgc *gc, PObjType type) {
 
 PObj *NewStrObject(Pgc *gc, char *value) {
     PObj *o = NewObject(gc, OT_STR);
-    if (value == NULL) {
-    	o->v.str = value;
-		return o;
-    }
-
-	size_t slen = strlen(value);
-	char * str = PCalloc(slen + 1, sizeof(char));
-	if (str == NULL) {
-		o->v.str = NULL;
-		return o;
-	}
-
-	size_t rdi = 0;
-	for (size_t i = 0; i < slen; i++) {
-		char c = value[i];
-		if (c == '\\' && i + 1 < slen) {
-			i++;
-			char ec = value[i];
-			switch (ec) {
-				case '\\': str[rdi++] = '\\';break;
-				case 'a': str[rdi++] = '\a';break;
-				case 'b': str[rdi++] = '\b';break;
-				case 'f': str[rdi++] = '\f';break;
-				case 'n': str[rdi++] = '\n';break;
-				case 'r': str[rdi++] = '\r';break;
-				case 't': str[rdi++] = '\t';break;
-				case 'v': str[rdi++] = '\v';break;
-				default: str[rdi++] = ec; break;
-			}
-		
-		}else{
-			str[rdi] = c;
-			rdi++;
-		}
-	}
-
-	if (rdi <= slen) {
-		str[rdi] = '\0';
-	}else{
-		str[slen] = '\0'; // do we need this?
-	}
-
-	o->v.str = str;
-
+	o->v.str = value;
     return o;
 }
 
