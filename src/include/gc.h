@@ -35,8 +35,10 @@ PObj *NewObject(Pgc *gc, PObjType type);
 void FreeObject(Pgc *gc, PObj *o);
 
 // Create New String Object
+// `name` = Token (optional if virtual, created in runtime)
 // `value` = String value
-PObj *NewStrObject(Pgc *gc, char *value);
+// `virt` = Is the string virtual aka. created on runtime
+PObj *NewStrObject(Pgc *gc, Token * name, char *value, bool virt);
 
 // Create Function Statement Object
 // `name` = Name of the function

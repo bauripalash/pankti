@@ -88,8 +88,12 @@ typedef struct PExpr {
             // Literal Type.
             ExpLitType type;
             union value {
+				// Literal Pre Evaluated Bool
                 bool bvalue;
+				// Literal Pre Evaluated Number value
                 double nvalue;
+				// Literal Pre Evaluated String value
+				char * svalue;
             } value;
         } ELiteral;
 

@@ -9,7 +9,6 @@
 #include "include/object.h"
 #include "include/token.h"
 #include "include/utils.h"
-#include <ctype.h>
 #include <stddef.h>
 
 #ifdef PANKTI_BUILD_DEBUG
@@ -21,7 +20,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define ERROR_UNICODE_CP 0xFFFD
 
 // Execution Result Type
 typedef enum ExType {
@@ -114,207 +112,13 @@ static void error(PInterpreter *it, Token *tok, const char *msg) {
     CoreError(it->core, tok, msg);
 }
 
-// push codepoint `cp` to `str`, starting from read index `rdi`
-static inline size_t pushCodepoint(char * str, size_t rdi, uint32_t cp){
-	char * p = str + rdi;
-	if (cp <= 0x7F) {
-		p[0] = (char)cp;
-		return 1;
-	} else if (cp <= 0x7FF){
-		p[0] = (char)(0xC0 | ((cp >> 6) & 0x1F));
-		p[1] = (char)(0x80 | (cp & 0x3F));
-		return 2;
-	}else if (cp <= 0xFFFF){
-		p[0] = (char)(0xE0 | ((cp >> 12) & 0x0F));
-		p[1] = (char)(0x80 | ((cp >> 6) & 0x3F));
-		p[2] = (char)(0x80 | (cp & 0x3F));
-		return 3;
-	}else{
-		p[0] = (char)(0xF0 | ((cp >> 18) & 0x07));
-		p[1] = (char)(0x80 | ((cp >> 12) & 0x3F));
-		p[2] = (char)(0x80 | ((cp >> 6) & 0x3F));
-		p[3] = (char)(0x80 | (cp & 0x3F));
-		return 4;
-	}
-}
-
-static inline uint32_t hxToInt(char c){
-	if (isalpha(c)) {
-		return (tolower(c) - 'a') + 10;
-	} else if (isdigit(c)){
-		return c - '0';
-	}
-	return 0;
-}
-
-static char * readStringEscapes(PInterpreter *it, PExpr * expr){
-	assert(expr->type == EXPR_LITERAL);
-	assert(expr->exp.ELiteral.type == EXP_LIT_STR);
-	char * raw = expr->exp.ELiteral.op->lexeme;
-	size_t slen = strlen(raw);
-	size_t scap = slen * 4 + 1;
-	char * str = PCalloc(scap, sizeof(char));
-	if (str == NULL) {
-		return NULL;
-	}
-
-	size_t rdi = 0;
-	for (size_t i = 0; i < slen; i++) {
-		char c = raw[i];
-		if (c == '\\' && i + 1 < slen) {
-			i++;
-			char ec = raw[i];
-			switch (ec) {
-				case '\\': str[rdi++] = '\\';break;
-				case 'a': str[rdi++] = '\a';break;
-				case 'b': str[rdi++] = '\b';break;
-				case 'f': str[rdi++] = '\f';break;
-				case 'n': str[rdi++] = '\n';break;
-				case 'r': str[rdi++] = '\r';break;
-				case 't': str[rdi++] = '\t';break;
-				case 'v': str[rdi++] = '\v';break;
-				// \xXX
-				case 'x':{
-					if (!(i + 2 < slen)) {
-						error(it, expr->op, "Incomplete \\xXX escape");
-						rdi += pushCodepoint(str, rdi, ERROR_UNICODE_CP);
-						break;
-					}
-
-					unsigned int xval = 0;
-
-					if (isxdigit((unsigned char)raw[i+1]) && isxdigit((unsigned char)raw[i+2])) {
-						char xc = raw[++i];
-						char xc2 = raw[++i];
-						xval = ToHex2Bytes(xc, xc2);
-						str[rdi++] = (char)xval;
-						break;
-
-
-					}else{
-						error(it, expr->op, "Invalid Hex digits found in string");
-						rdi += pushCodepoint(str, rdi, ERROR_UNICODE_CP);
-						break;
-					}
-
-					break;
-				}
-				// \uXXXX
-				case 'u':{
-					if (i + 4 < slen && 
-						isxdigit((unsigned char)raw[i+1]) && 
-						isxdigit((unsigned char)raw[i+2]) && 
-						isxdigit((unsigned char)raw[i+3]) && 
-						isxdigit((unsigned char)raw[i+4])) {
-
-						// would be codepoint or hight surrogate
-						uint32_t val = 0;
-						for (int k = 1; k <= 4; k++) {
-							char ch = raw[i + k];
-							val = val * 16 + hxToInt(ch);	
-						}
-						i+=4;
-						
-						// If the val is in this range, there should be another
-						// \uXXXX, if not we eat 
-						if (val >= 0xD800 && val <= 0xDBFF) {
-							// check if another \uXXXX sequence is found
-							if (i + 6 < slen && 
-								raw[i + 1] == '\\' &&
-								raw[i + 2] == 'u' &&
-								isxdigit((unsigned char)raw[i+3]) && 
-								isxdigit((unsigned char)raw[i+4]) && 
-								isxdigit((unsigned char)raw[i+5]) && 
-								isxdigit((unsigned char)raw[i+6])) {
-								
-								uint32_t low = 0;
-								for (int k = 3; k<=6; k++) {
-									char ch = raw[i + k];
-									low = low * 16 + hxToInt(ch);
-								}
-
-								// Algorithm seems to be
-								// CP = (H - 0xD800 << 10) + (L - 0xDC00) + 0x10000
-								if (low >= 0xDC00 && low <= 0xDFFF) {
-									i+=6;
-									uint32_t high = val;
-									uint32_t combCp = 0x10000;
-									combCp += (high - 0xD800) << 10;
-									combCp += (low - 0xDC00);
-									rdi += pushCodepoint(str, rdi, combCp);
-								}else{
-									error(it, expr->op, "Invalid low surrogate for \\uXXXX sequence");
-									rdi += pushCodepoint(str, rdi, ERROR_UNICODE_CP);
-								}
-							}else{
-								// another /uXXXX should have been here, but was not found
-								error(it, expr->op, "Expected low surrogate for \\uXXXX sequence");
-								rdi += pushCodepoint(str, rdi, ERROR_UNICODE_CP);
-							}
-						}else{
-							// no surrogate needed
-							rdi += pushCodepoint(str, rdi, val);
-						}
-					
-					}else{
-						error(it, expr->op, "Invalid \\uXXXX sequence");
-						rdi += pushCodepoint(str, rdi, ERROR_UNICODE_CP);
-					}
-
-					break;
-				}
-				case 'U':{
-					if (i + 8 < slen && 
-						isxdigit((unsigned char)raw[i+1]) && 
-						isxdigit((unsigned char)raw[i+2]) && 
-						isxdigit((unsigned char)raw[i+3]) && 
-						isxdigit((unsigned char)raw[i+4]) && 
-						isxdigit((unsigned char)raw[i+5]) && 
-						isxdigit((unsigned char)raw[i+6]) && 
-						isxdigit((unsigned char)raw[i+7]) && 
-						isxdigit((unsigned char)raw[i+8])) {
-						uint32_t val = 0;
-						for (int k = 1; k <= 8; k++) {
-							char ch = raw[i + k];
-							val = val * 16  + hxToInt(ch);
-						}
-
-						i+=8;
-
-						if (val > 0x10FFFF || (val >= 0xD800 && val <= 0xDFFF)) {
-							error(it, expr->op, "\\UXXXXXXXX escape sequence produced invalid codepoint");
-							rdi += pushCodepoint(str, rdi, ERROR_UNICODE_CP);
-						}else{
-							rdi += pushCodepoint(str, rdi, val);
-						}
-
-					}else {
-						error(it, expr->op, "Invalid or Incomplete \\UXXXXXXXX sequence");
-						rdi += pushCodepoint(str, rdi, ERROR_UNICODE_CP);
-					}
-					break;
-				}
-				default: str[rdi++] = ec; break;
-			}
-		
-		}else{
-			str[rdi] = c;
-			rdi++;
-		}
-	}
-
-	if (rdi <= scap) {
-		str[rdi] = '\0';
-	}else{
-		str[scap] = '\0'; // do we need this?
-	}
-
-	return str;
-}
-
 // Evaluate Literal Expression
 // Numbers, Strings, Bools, Nil
 static PValue vLiteral(PInterpreter *it, PExpr *expr, PEnv *env) {
+	if (expr == NULL) {
+		error(it, NULL, "Invalid literal found");
+		return MakeNil();
+	}
     assert(expr->type == EXPR_LITERAL);
 
     switch (expr->exp.ELiteral.type) {
@@ -323,19 +127,14 @@ static PValue vLiteral(PInterpreter *it, PExpr *expr, PEnv *env) {
             return MakeNumber(value);
         }
         case EXP_LIT_STR: {
-			char * lexeme = readStringEscapes(it, expr);
-			if (lexeme == NULL) {
-				error(it, expr->op, "Failed to read string");
-				return MakeNil();
-			}
-            PObj *litObj = NewStrObject(it->gc, lexeme);
+            PObj *litObj = NewStrObject(it->gc, 
+										expr->op, 
+										expr->exp.ELiteral.value.svalue, 
+										false);
             return MakeObject(litObj);
         }
         case EXP_LIT_BOOL: {
-            bool bvalue = false;
-            if (expr->exp.ELiteral.op->type == T_TRUE) {
-                bvalue = true;
-            }
+            bool bvalue = expr->exp.ELiteral.value.bvalue;
             return MakeBool(bvalue);
         }
         case EXP_LIT_NIL: {

@@ -59,7 +59,7 @@ bool CanValueBeKey(const PValue *val) {
 
 uint64_t GetObjectHash(const PObj *obj, uint64_t seed) {
     if (obj->type == OT_STR) {
-        XXH64_hash_t hash = XXH64(obj->v.str, strlen(obj->v.str), seed);
+        XXH64_hash_t hash = XXH64(obj->v.OString.value, strlen(obj->v.OString.value), seed);
         return (uint64_t)hash;
     }
 
@@ -162,7 +162,7 @@ void PrintObject(const PObj *o) {
     }
 
     switch (o->type) {
-        case OT_STR: printf("%s", o->v.str); break;
+        case OT_STR: printf("%s", o->v.OString.value); break;
         case OT_FNC: {
             printf("<fn %s>", o->v.OFunction.name->lexeme);
             break;
@@ -224,7 +224,7 @@ bool IsObjEqual(const PObj *a, const PObj *b) {
     bool result = false;
     switch (a->type) {
         case OT_STR: {
-            result = StrEqual(a->v.str, b->v.str);
+            result = StrEqual(a->v.OString.value, b->v.OString.value);
             break;
         }
         case OT_FNC: result = false; break;
