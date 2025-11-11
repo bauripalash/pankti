@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+#include <time.h>
 #include "token.h"
 #include "ustring.h"
 
@@ -30,6 +31,9 @@ typedef struct Lexer {
 
     // Codepoint iterator. The characters are read as UTF-32 characters
     UIter *iter;
+
+	// Timestamp seed for hashing
+	time_t timestamp;
 
     // Reference to Pankti Core
     void *core;

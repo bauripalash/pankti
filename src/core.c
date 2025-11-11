@@ -33,6 +33,7 @@ PanktiCore *NewCore(const char *path) {
     core->runtimeError = false;
     core->it = NULL;
     core->gc = NewGc();
+	core->lexer->timestamp = core->gc->timestamp;
     return core;
 }
 
