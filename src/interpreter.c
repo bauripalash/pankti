@@ -152,7 +152,8 @@ static char * readStringEscapes(PInterpreter *it, PExpr * expr){
 	assert(expr->exp.ELiteral.type == EXP_LIT_STR);
 	char * raw = expr->exp.ELiteral.op->lexeme;
 	size_t slen = strlen(raw);
-	char * str = PCalloc(slen + 1, sizeof(char));
+	size_t scap = slen * 4 + 1;
+	char * str = PCalloc(scap, sizeof(char));
 	if (str == NULL) {
 		return NULL;
 	}
@@ -232,6 +233,8 @@ static char * readStringEscapes(PInterpreter *it, PExpr * expr){
 									low = low * 16 + hxToInt(ch);
 								}
 
+								// Algorithm seems to be
+								// CP = (H - 0xD800 << 10) + (L - 0xDC00) + 0x10000
 								if (low >= 0xDC00 && low <= 0xDFFF) {
 									i+=6;
 									uint32_t high = val;
@@ -260,7 +263,37 @@ static char * readStringEscapes(PInterpreter *it, PExpr * expr){
 
 					break;
 				}
+				case 'U':{
+					if (i + 8 < slen && 
+						isxdigit((unsigned char)raw[i+1]) && 
+						isxdigit((unsigned char)raw[i+2]) && 
+						isxdigit((unsigned char)raw[i+3]) && 
+						isxdigit((unsigned char)raw[i+4]) && 
+						isxdigit((unsigned char)raw[i+5]) && 
+						isxdigit((unsigned char)raw[i+6]) && 
+						isxdigit((unsigned char)raw[i+7]) && 
+						isxdigit((unsigned char)raw[i+8])) {
+						uint32_t val = 0;
+						for (int k = 1; k <= 8; k++) {
+							char ch = raw[i + k];
+							val = val * 16  + hxToInt(ch);
+						}
 
+						i+=8;
+
+						if (val > 0x10FFFF || (val >= 0xD800 && val <= 0xDFFF)) {
+							error(it, expr->op, "\\UXXXXXXXX escape sequence produced invalid codepoint");
+							rdi += pushCodepoint(str, rdi, ERROR_UNICODE_CP);
+						}else{
+							rdi += pushCodepoint(str, rdi, val);
+						}
+
+					}else {
+						error(it, expr->op, "Invalid or Incomplete \\UXXXXXXXX sequence");
+						rdi += pushCodepoint(str, rdi, ERROR_UNICODE_CP);
+					}
+					break;
+				}
 				default: str[rdi++] = ec; break;
 			}
 		
@@ -270,10 +303,10 @@ static char * readStringEscapes(PInterpreter *it, PExpr * expr){
 		}
 	}
 
-	if (rdi <= slen) {
+	if (rdi <= scap) {
 		str[rdi] = '\0';
 	}else{
-		str[slen] = '\0'; // do we need this?
+		str[scap] = '\0'; // do we need this?
 	}
 
 	return str;

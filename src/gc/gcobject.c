@@ -25,7 +25,7 @@ PObj *NewObject(Pgc *gc, PObjType type) {
 PObj *NewStrObject(Pgc *gc, char *value) {
     PObj *o = NewObject(gc, OT_STR);
 	o->v.str = value;
-    return o;
+	return o;
 }
 
 PObj *NewFuncObject(
