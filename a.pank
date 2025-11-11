@@ -1,1 +1,1 @@
-print "->\x07"
+print "->\u09e7\ud83d\ude80"

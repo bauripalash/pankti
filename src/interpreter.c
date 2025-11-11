@@ -10,6 +10,7 @@
 #include "include/token.h"
 #include "include/utils.h"
 #include <ctype.h>
+#include <stddef.h>
 
 #ifdef PANKTI_BUILD_DEBUG
 #undef NDDEBUG
@@ -19,6 +20,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+
+#define ERROR_UNICODE_CP 0xFFFD
 
 // Execution Result Type
 typedef enum ExType {
@@ -111,6 +114,39 @@ static void error(PInterpreter *it, Token *tok, const char *msg) {
     CoreError(it->core, tok, msg);
 }
 
+// push codepoint `cp` to `str`, starting from read index `rdi`
+static inline size_t pushCodepoint(char * str, size_t rdi, uint32_t cp){
+	char * p = str + rdi;
+	if (cp <= 0x7F) {
+		p[0] = (char)cp;
+		return 1;
+	} else if (cp <= 0x7FF){
+		p[0] = (char)(0xC0 | ((cp >> 6) & 0x1F));
+		p[1] = (char)(0x80 | (cp & 0x3F));
+		return 2;
+	}else if (cp <= 0xFFFF){
+		p[0] = (char)(0xE0 | ((cp >> 12) & 0x0F));
+		p[1] = (char)(0x80 | ((cp >> 6) & 0x3F));
+		p[2] = (char)(0x80 | (cp & 0x3F));
+		return 3;
+	}else{
+		p[0] = (char)(0xF0 | ((cp >> 18) & 0x07));
+		p[1] = (char)(0x80 | ((cp >> 12) & 0x3F));
+		p[2] = (char)(0x80 | ((cp >> 6) & 0x3F));
+		p[3] = (char)(0x80 | (cp & 0x3F));
+		return 4;
+	}
+}
+
+static inline uint32_t hxToInt(char c){
+	if (isalpha(c)) {
+		return (tolower(c) - 'a') + 10;
+	} else if (isdigit(c)){
+		return c - '0';
+	}
+	return 0;
+}
+
 static char * readStringEscapes(PInterpreter *it, PExpr * expr){
 	assert(expr->type == EXPR_LITERAL);
 	assert(expr->exp.ELiteral.type == EXP_LIT_STR);
@@ -136,9 +172,11 @@ static char * readStringEscapes(PInterpreter *it, PExpr * expr){
 				case 'r': str[rdi++] = '\r';break;
 				case 't': str[rdi++] = '\t';break;
 				case 'v': str[rdi++] = '\v';break;
+				// \xXX
 				case 'x':{
 					if (!(i + 2 < slen)) {
-						str[rdi++] = 'x';
+						error(it, expr->op, "Incomplete \\xXX escape");
+						rdi += pushCodepoint(str, rdi, ERROR_UNICODE_CP);
 						break;
 					}
 
@@ -154,12 +192,75 @@ static char * readStringEscapes(PInterpreter *it, PExpr * expr){
 
 					}else{
 						error(it, expr->op, "Invalid Hex digits found in string");
-						PFree(str);
-						return NULL;
+						rdi += pushCodepoint(str, rdi, ERROR_UNICODE_CP);
+						break;
 					}
 
 					break;
 				}
+				// \uXXXX
+				case 'u':{
+					if (i + 4 < slen && 
+						isxdigit((unsigned char)raw[i+1]) && 
+						isxdigit((unsigned char)raw[i+2]) && 
+						isxdigit((unsigned char)raw[i+3]) && 
+						isxdigit((unsigned char)raw[i+4])) {
+
+						// would be codepoint or hight surrogate
+						uint32_t val = 0;
+						for (int k = 1; k <= 4; k++) {
+							char ch = raw[i + k];
+							val = val * 16 + hxToInt(ch);	
+						}
+						i+=4;
+						
+						// If the val is in this range, there should be another
+						// \uXXXX, if not we eat 
+						if (val >= 0xD800 && val <= 0xDBFF) {
+							// check if another \uXXXX sequence is found
+							if (i + 6 < slen && 
+								raw[i + 1] == '\\' &&
+								raw[i + 2] == 'u' &&
+								isxdigit((unsigned char)raw[i+3]) && 
+								isxdigit((unsigned char)raw[i+4]) && 
+								isxdigit((unsigned char)raw[i+5]) && 
+								isxdigit((unsigned char)raw[i+6])) {
+								
+								uint32_t low = 0;
+								for (int k = 3; k<=6; k++) {
+									char ch = raw[i + k];
+									low = low * 16 + hxToInt(ch);
+								}
+
+								if (low >= 0xDC00 && low <= 0xDFFF) {
+									i+=6;
+									uint32_t high = val;
+									uint32_t combCp = 0x10000;
+									combCp += (high - 0xD800) << 10;
+									combCp += (low - 0xDC00);
+									rdi += pushCodepoint(str, rdi, combCp);
+								}else{
+									error(it, expr->op, "Invalid low surrogate for \\uXXXX sequence");
+									rdi += pushCodepoint(str, rdi, ERROR_UNICODE_CP);
+								}
+							}else{
+								// another /uXXXX should have been here, but was not found
+								error(it, expr->op, "Expected low surrogate for \\uXXXX sequence");
+								rdi += pushCodepoint(str, rdi, ERROR_UNICODE_CP);
+							}
+						}else{
+							// no surrogate needed
+							rdi += pushCodepoint(str, rdi, val);
+						}
+					
+					}else{
+						error(it, expr->op, "Invalid \\uXXXX sequence");
+						rdi += pushCodepoint(str, rdi, ERROR_UNICODE_CP);
+					}
+
+					break;
+				}
+
 				default: str[rdi++] = ec; break;
 			}
 		
