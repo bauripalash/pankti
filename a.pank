@@ -1,1 +1,5 @@
 print "gello" == "gell"
+print "world\x20hello"
+print "fox ->"
+print "'\uD83E\uDD8A'"
+print "\U0001F98A"
