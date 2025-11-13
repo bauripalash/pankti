@@ -23,7 +23,7 @@ typedef struct PModule{
 
 typedef struct ModProxyEntry{
 	uint64_t key;
-	Token * name;
+	char * name;
 	PModule * mod;
 }ModProxyEntry;
 

@@ -7,6 +7,7 @@
 #include "include/gc.h"
 #include "include/native.h"
 #include "include/object.h"
+#include "include/pstdlib.h"
 #include "include/token.h"
 #include "include/utils.h"
 #include <stddef.h>
@@ -74,7 +75,7 @@ static inline ExResult ExReturn(PValue v) {
 
 static PModule *NewModule(PInterpreter *it, char * name){
 	PModule * mod = PMalloc(sizeof(PModule));
-	if (mod != NULL) {
+	if (mod == NULL) {
 		//throw error
 		return NULL;
 	}
@@ -89,12 +90,12 @@ static void PushModule(PInterpreter *it, PModule * mod){
 	it->modCount = arrlen(it->mods);
 }
 
-static void PushProxy(PInterpreter *it, Token * name, PModule *mod){
+static void PushProxy(PInterpreter *it, uint64_t key, char * name, PModule *mod){
 	if (mod == NULL) {
 		return;//error check
 	}
 
-	ModProxyEntry s = {.key = name->hash, .name = name, .mod = mod};
+	ModProxyEntry s = {.key = key, .name = name, .mod = mod};
 	hmputs(it->proxyTable, s);
 	it->proxyCount = hmlen(it->proxyTable);
 }
@@ -112,6 +113,10 @@ PInterpreter *NewInterpreter(Pgc *gc, PStmt **prog) {
     it->core = NULL;
     it->env = NewEnv(NULL);
     it->gc = gc;
+	it->proxyTable = NULL;
+	it->proxyCount = 0;
+	it->mods = NULL;
+	it->modCount = 0;
     RegisterNatives(it, it->env);
     return it;
 }
@@ -123,6 +128,21 @@ void FreeInterpreter(PInterpreter *it) {
     if (it->env != NULL) {
         FreeEnv(it->env);
     }
+
+	if (it->proxyCount > 0 && it->proxyTable != NULL) {
+		hmfree(it->proxyTable);
+	}
+
+	if (it->modCount > 0 && it->mods != NULL) {
+		for (int i = 0; i < it->modCount; i++) {
+			PModule * mod = arrpop(it->mods);
+			PFree(mod->pathname);
+			FreeEnv(mod->env);
+			PFree(mod);
+		}
+
+		arrfree(it->mods);
+	}
 
     PFree(it);
 }
@@ -868,6 +888,16 @@ static ExResult vsImportStmt(PInterpreter * it, PStmt *stmt, PEnv * env){
 		return ExSimple(MakeNil());
 	}
 
+	char * pathStr = pathValue.v.obj->v.OString.value;
+	PModule * mod = NewModule(it, pathStr);
+	if (mod == NULL) {
+		error(it, stmt->op, "Failed to create module");
+		return ExSimple(MakeNil());
+	}
+	PushModule(it, mod);
+	uint64_t key = imp->name->hash;
+	PushProxy(it, key, imp->name->lexeme, mod);
+	PushStdlib(it, mod->env, mod->pathname);
 	return ExSimple(MakeNil());
 }
 
