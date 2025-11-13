@@ -120,6 +120,7 @@ PExpr *NewArrayExpr(Pgc *gc, Token *op, PExpr **items, int count);
 PExpr *NewMapExpr(Pgc *gc, Token *op, PExpr **items, int count);
 
 PExpr *NewSubscriptExpr(Pgc *gc, Token *op, PExpr *value, PExpr *index);
+PExpr *NewModgetExpr(Pgc * gc, Token *op, PExpr * module, Token * child);
 
 // Create New (Empty) Statement
 // Return => New Expression with type `type` or NULL in case of failure

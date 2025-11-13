@@ -740,6 +740,35 @@ static PValue vSubscript(PInterpreter *it, PExpr *expr, PEnv *env) {
     return MakeNil();
 }
 
+static PValue vModget(PInterpreter * it, PExpr * expr, PEnv * env){
+	assert(expr->type == EXPR_MODGET);
+	struct EModget * mg = &expr->exp.EModget;
+	
+	if (mg->module->type != EXPR_VARIABLE) {
+		error(it, expr->op, "Module in not a name");
+	}
+
+	// The module token ->math<-.pow(..)
+	Token * modTok = mg->module->exp.EVariable.name;
+	// The child token math.->pow<-(..)
+	Token * childTok = mg->child;
+
+	if (hmgeti(it->proxyTable, modTok->hash) != -1) {
+		PModule * mod = hmgets(it->proxyTable, modTok->hash).mod;
+		bool childFound = true;
+		PValue childValue = EnvGetValue(mod->env, childTok->hash, &childFound);
+		if (!childFound) {
+			error(it, childTok, "Child not found for module");
+			return MakeNil();
+		}
+		return childValue;
+	} else{
+		error(it, modTok, "Module not found");
+		return MakeNil();
+	}
+	return MakeNil();
+}
+
 static PValue evaluate(PInterpreter *it, PExpr *expr, PEnv *env) {
     if (expr == NULL) {
         return MakeNil();
@@ -759,6 +788,7 @@ static PValue evaluate(PInterpreter *it, PExpr *expr, PEnv *env) {
         case EXPR_ARRAY: return vArray(it, expr, env);
         case EXPR_MAP: return vMap(it, expr, env);
         case EXPR_SUBSCRIPT: return vSubscript(it, expr, env);
+		case EXPR_MODGET: return vModget(it, expr, env);
     }
 
     return MakeNil();
@@ -897,6 +927,7 @@ static ExResult vsImportStmt(PInterpreter * it, PStmt *stmt, PEnv * env){
 	PushModule(it, mod);
 	uint64_t key = imp->name->hash;
 	PushProxy(it, key, imp->name->lexeme, mod);
+	printf("Importing module: %s as '%s'\n", mod->pathname, imp->name->lexeme);
 	PushStdlib(it, mod->env, mod->pathname);
 	return ExSimple(MakeNil());
 }

@@ -37,6 +37,10 @@ typedef enum PExprType {
     EXPR_MAP,
     // Array, Hash table subscripting
     EXPR_SUBSCRIPT,
+
+	// Fetching values,variables from module
+	// `math.pow(...)` 
+	EXPR_MODGET,
 } PExprType;
 
 // Literal Types for Literal Expressions : `EXPR_LITERAL`
@@ -120,6 +124,12 @@ typedef struct PExpr {
             struct PExpr *index;
             Token *op;
         } ESubscript;
+
+		struct EModget{
+			struct PExpr *module;
+			Token *child;
+			Token * op;
+		}EModget;
 
         // Grouping Expression
         // Type: `EXPR_GROUPING`

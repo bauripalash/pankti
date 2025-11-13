@@ -246,6 +246,13 @@ static PExpr *rSubscript(Parser *p, PExpr *expr) {
     return NewSubscriptExpr(p->gc, op, expr, indexExpr);
 }
 
+// Module get expression `module.child`
+static PExpr *rModget(Parser *p, PExpr *expr){
+	Token * op = previous(p);
+	Token *childTok = eat(p, T_IDENT, "Expected child token");
+	return NewModgetExpr(p->gc, op, expr, childTok);
+}
+
 static PExpr *rCall(Parser *p) {
     PExpr *expr = rPrimary(p);
     while (true) {
@@ -253,6 +260,8 @@ static PExpr *rCall(Parser *p) {
             expr = finishCallExpr(p, expr);
         } else if (matchOne(p, T_LS_BRACKET)) {
             expr = rSubscript(p, expr);
+		} else if (matchOne(p, T_DOT)) {
+			expr = rModget(p, expr);
         } else {
             break;
         }

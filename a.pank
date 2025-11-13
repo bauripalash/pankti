@@ -1,1 +1,3 @@
-import math "math"
+import m "math"
+
+print m.pow(100, 2)
