@@ -138,7 +138,7 @@ typedef struct Token {
     long len;
     // Hash for the token lexeme, expect for Keywords, identifiers, strings,
     // numbers it will be 0 (zero)
-    uint32_t hash;
+    uint64_t hash;
 } Token;
 
 // Create an empty token.

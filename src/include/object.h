@@ -42,7 +42,7 @@ typedef enum PObjType {
 
 // Entry of HashMaps
 typedef struct MapEntry {
-    uint32_t key;
+    uint64_t key;
     PValue vkey;
     PValue value;
 } MapEntry;
@@ -148,6 +148,18 @@ static inline PValue MakeObject(PObj *obj) {
     return val;
 }
 
+// Check if Value `val` is a object and it is a `otype` object
+static inline bool IsValueObjType(const PValue * val, PObjType otype){
+	if (val->type != VT_OBJ) {
+		return false;
+	}
+
+	if (val->v.obj->type != otype) {
+		return false;
+	}
+
+	return true;
+}
 // Check if value is truthy. Only bools are considered
 bool IsValueTruthy(const PValue *val);
 // Check if two values `a` and `b` are equal

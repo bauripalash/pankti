@@ -72,6 +72,33 @@ static inline ExResult ExReturn(PValue v) {
     return er;
 }
 
+static PModule *NewModule(PInterpreter *it, char * name){
+	PModule * mod = PMalloc(sizeof(PModule));
+	if (mod != NULL) {
+		//throw error
+		return NULL;
+	}
+	mod->pathname = strdup(name);
+	// error check
+	mod->env = NewEnv(NULL);
+	return mod;
+}
+
+static void PushModule(PInterpreter *it, PModule * mod){
+	arrput(it->mods, mod);
+	it->modCount = arrlen(it->mods);
+}
+
+static void PushProxy(PInterpreter *it, Token * name, PModule *mod){
+	if (mod == NULL) {
+		return;//error check
+	}
+
+	ModProxyEntry s = {.key = name->hash, .name = name, .mod = mod};
+	hmputs(it->proxyTable, s);
+	it->proxyCount = hmlen(it->proxyTable);
+}
+
 // Execute Statement
 static ExResult execute(PInterpreter *it, PStmt *stmt, PEnv *env);
 // Evaluate expression
@@ -830,6 +857,20 @@ static ExResult vsFuncStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     return ExSimple(MakeNil());
 }
 
+static ExResult vsImportStmt(PInterpreter * it, PStmt *stmt, PEnv * env){
+	assert(stmt->type == STMT_IMPORT);
+	struct SImport * imp = &stmt->stmt.SImport;
+	
+	PValue pathValue = evaluate(it, imp->path, env);
+
+	if (!IsValueObjType(&pathValue, OT_STR)) {
+		error(it, imp->op, "Import path must be a string");
+		return ExSimple(MakeNil());
+	}
+
+	return ExSimple(MakeNil());
+}
+
 static ExResult execute(PInterpreter *it, PStmt *stmt, PEnv *env) {
     if (stmt == NULL) {
         return ExSimple(MakeNil());
@@ -849,6 +890,7 @@ static ExResult execute(PInterpreter *it, PStmt *stmt, PEnv *env) {
         case STMT_RETURN: return vsReturnStmt(it, stmt, env); break;
         case STMT_BREAK: return vsBreakStmt(it, stmt, env);
         case STMT_FUNC: return vsFuncStmt(it, stmt, env);
+		case STMT_IMPORT: return vsImportStmt(it, stmt, env);
         default: error(it, NULL, "Unknown statement found!");
     }
 

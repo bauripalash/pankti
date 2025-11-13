@@ -295,20 +295,30 @@ void AstStmtPrint(PStmt *stmt, int indent) {
             printf("]\n");
             break;
         }
+		case STMT_IMPORT:{
+			struct SImport * import = &stmt->stmt.SImport;
+			printf("Import(" TERMC_GREEN "%s" TERMC_RESET ") ", import->name->lexeme);
+			printf("{\n");
+			AstPrint(import->path, indent + 2);
+			printIndent(indent);
+			printf("}\n");
+			break;
+		}
     }
 }
 
 char *StmtTypeToStr(PStmtType type) {
     switch (type) {
-        case STMT_RETURN: return "Return Stmt"; break;
-        case STMT_WHILE: return "While Stmt"; break;
-        case STMT_IF: return "If Stmt"; break;
-        case STMT_BLOCK: return "Block Stmt"; break;
-        case STMT_LET: return "Let Stmt"; break;
-        case STMT_EXPR: return "Expr Stmt"; break;
-        case STMT_PRINT: return "Print Stmt"; break;
-        case STMT_BREAK: return "Break Stmt"; break;
-        case STMT_FUNC: return "Func Stmt"; break;
+        case STMT_RETURN: return "Return Stmt";
+        case STMT_WHILE: return "While Stmt";
+        case STMT_IF: return "If Stmt";
+        case STMT_BLOCK: return "Block Stmt";
+        case STMT_LET: return "Let Stmt";
+        case STMT_EXPR: return "Expr Stmt";
+        case STMT_PRINT: return "Print Stmt";
+        case STMT_BREAK: return "Break Stmt";
+        case STMT_FUNC: return "Func Stmt";
+		case STMT_IMPORT: return "Import Stmt";
     }
 
     return "Unknown Statement";

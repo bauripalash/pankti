@@ -2,12 +2,30 @@
 #define INTERPRETER_H
 
 #include "gc.h"
+#include <stddef.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include "ast.h"
 #include "env.h"
+
+typedef enum PModType{
+	PMOD_STDLIB,
+	PMOD_SCRIPT,
+}PModType;
+
+typedef struct PModule{
+	PModType type;
+	PEnv * env;
+	char * pathname;
+}PModule;
+
+typedef struct ModProxyEntry{
+	uint64_t key;
+	Token * name;
+	PModule * mod;
+}ModProxyEntry;
 
 // The Interpreter Object
 typedef struct PInterpreter {
@@ -17,7 +35,10 @@ typedef struct PInterpreter {
     void *core;
     // The Parent Environment used across closures
     PEnv *env;
-
+	ModProxyEntry * proxyTable;
+	size_t proxyCount;
+	PModule ** mods;
+	size_t modCount;
     Pgc *gc;
 } PInterpreter;
 

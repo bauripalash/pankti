@@ -198,6 +198,8 @@ typedef enum PStmtType {
     STMT_BREAK,
     // Function Declaration Statement
     STMT_FUNC,
+	// Import Module Statement
+	STMT_IMPORT,
 } PStmtType;
 
 // Pankti Statement
@@ -302,6 +304,13 @@ typedef struct PStmt {
             // The body. Will always be Block Statement <`STMT_BLOCK`>
             struct PStmt *body;
         } SFunc;
+
+		// Import Statement : Modules and Stdlib
+		struct SImport{
+			Token * op;
+			Token * name;
+			struct PExpr * path;
+		} SImport;
     } stmt;
 
 } PStmt;

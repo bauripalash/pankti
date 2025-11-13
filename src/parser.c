@@ -9,13 +9,11 @@
 #include "include/token.h"
 #include "include/utils.h"
 #include <assert.h>
-#include <ctype.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <threads.h>
 
 #define ERROR_UNICODE_CP 0xFFFD
 // Create New Let Statement;
@@ -575,6 +573,18 @@ static PStmt *rFuncStmt(Parser *p) {
     return NewFuncStmt(p->gc, name, params, body, paramCount);
 }
 
+static PStmt * rImportStmt(Parser *p){
+	Token * op = previous(p);
+	Token * name = eat(p, T_IDENT, "Expected Import Name");
+	PExpr * pathExpr = rExpression(p);
+	if (check(p, T_SEMICOLON)) {
+		eat(p, T_SEMICOLON, "Semicolon"); //Error should never occur
+	}
+
+	return NewImportStmt(p->gc, op, name, pathExpr);
+
+}
+
 static PStmt *rStmt(Parser *p) {
     if (matchOne(p, T_PRINT)) {
         return rPrintStmt(p);
@@ -590,7 +600,9 @@ static PStmt *rStmt(Parser *p) {
         return rBreakStmt(p);
     } else if (matchOne(p, T_FUNC)) {
         return rFuncStmt(p);
-    }
+    } else if (matchOne(p, T_IMPORT)){
+		return rImportStmt(p);
+	}
     return rExprStmt(p);
 }
 

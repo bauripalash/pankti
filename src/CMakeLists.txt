@@ -19,6 +19,9 @@ set(PANKTI_SRC_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/gc/gcobject.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/gc/gcstmt.c"
 
+  # Stdlib
+  "${CMAKE_CURRENT_SOURCE_DIR}/stdlib/pstdlib.c"
+
   # External
   "${CMAKE_CURRENT_SOURCE_DIR}/external/xxhash.c"
 )
@@ -37,6 +40,7 @@ set(PANKTI_HEADER_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/include/lexer.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/object.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/parser.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/pstdlib.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/strescape.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/token.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/ustring.h"

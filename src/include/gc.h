@@ -193,6 +193,14 @@ PStmt *NewFuncStmt(
     Pgc *gc, Token *name, Token **params, PStmt *body, int count
 );
 
+
+// New Import Statement
+// `op` = The `import` token
+// `iname` = The custom name for the import
+// `ipath` = The import path; must evaluate to a string
+// Return = New Import Statement as Statement pointer or NULL
+PStmt *NewImportStmt(Pgc *gc, Token *op, Token *iname, PExpr * ipath);
+
 #ifdef __cplusplus
 }
 #endif
