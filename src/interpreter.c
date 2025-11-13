@@ -21,7 +21,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-
 // Execution Result Type
 typedef enum ExType {
     // Simple Result with value
@@ -116,10 +115,10 @@ static void error(PInterpreter *it, Token *tok, const char *msg) {
 // Evaluate Literal Expression
 // Numbers, Strings, Bools, Nil
 static PValue vLiteral(PInterpreter *it, PExpr *expr, PEnv *env) {
-	if (expr == NULL) {
-		error(it, NULL, "Invalid literal found");
-		return MakeNil();
-	}
+    if (expr == NULL) {
+        error(it, NULL, "Invalid literal found");
+        return MakeNil();
+    }
     assert(expr->type == EXPR_LITERAL);
 
     switch (expr->exp.ELiteral.type) {
@@ -128,10 +127,9 @@ static PValue vLiteral(PInterpreter *it, PExpr *expr, PEnv *env) {
             return MakeNumber(value);
         }
         case EXP_LIT_STR: {
-            PObj *litObj = NewStrObject(it->gc, 
-										expr->op, 
-										expr->exp.ELiteral.value.svalue, 
-										false);
+            PObj *litObj = NewStrObject(
+                it->gc, expr->op, expr->exp.ELiteral.value.svalue, false
+            );
             return MakeObject(litObj);
         }
         case EXP_LIT_BOOL: {
@@ -157,59 +155,64 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
 
     switch (expr->exp.EBinary.op->type) {
         case T_PLUS: {
-			if (l.type == VT_NUM && r.type == VT_NUM) {
-	            double value = l.v.num + r.v.num;
-    	        return MakeNumber(value);
-			}else{
-				if ((l.type == VT_OBJ && ValueAsObj(l)->type == OT_STR) &&
-					(r.type == VT_OBJ && ValueAsObj(r)->type == OT_STR)) {
-					bool ok = true;
-					struct OString * ls = &ValueAsObj(l)->v.OString;
-					size_t lsLen = strlen(ls->value);
-					struct OString * rs = &ValueAsObj(r)->v.OString;
-					size_t rsLen = strlen(rs->value);
-					char * newStr = StrJoin(ls->value, lsLen, rs->value, rsLen, &ok);
-					if (!ok) {
-						error(it, expr->op, "Fail to join string");
-						return MakeNil();
-					}
+            if (l.type == VT_NUM && r.type == VT_NUM) {
+                double value = l.v.num + r.v.num;
+                return MakeNumber(value);
+            } else {
+                if ((l.type == VT_OBJ && ValueAsObj(l)->type == OT_STR) &&
+                    (r.type == VT_OBJ && ValueAsObj(r)->type == OT_STR)) {
+                    bool ok = true;
+                    struct OString *ls = &ValueAsObj(l)->v.OString;
+                    size_t lsLen = strlen(ls->value);
+                    struct OString *rs = &ValueAsObj(r)->v.OString;
+                    size_t rsLen = strlen(rs->value);
+                    char *newStr =
+                        StrJoin(ls->value, lsLen, rs->value, rsLen, &ok);
+                    if (!ok) {
+                        error(it, expr->op, "Fail to join string");
+                        return MakeNil();
+                    }
 
-					PObj * nsObj = NewStrObject(it->gc, expr->op, newStr, true);
-					return MakeObject(nsObj);
-				}
-			}
+                    PObj *nsObj = NewStrObject(it->gc, expr->op, newStr, true);
+                    return MakeObject(nsObj);
+                }
+            }
             break;
         }
             // Multiplication
         case T_ASTR: {
-			if (l.type != VT_NUM || r.type != VT_NUM) {
-				error(it, expr->op, "Multiplication can only be done with numbers");
-				return MakeNil();
-			}
+            if (l.type != VT_NUM || r.type != VT_NUM) {
+                error(
+                    it, expr->op, "Multiplication can only be done with numbers"
+                );
+                return MakeNil();
+            }
             double value = l.v.num * r.v.num;
             return MakeNumber(value);
             break;
         }
         case T_MINUS: {
-			if (l.type != VT_NUM || r.type != VT_NUM) {
-				error(it, expr->op, "Substraction can only be done with numbers");
-				return MakeNil();
-			}
+            if (l.type != VT_NUM || r.type != VT_NUM) {
+                error(
+                    it, expr->op, "Substraction can only be done with numbers"
+                );
+                return MakeNil();
+            }
             double value = l.v.num - r.v.num;
             return MakeNumber(value);
             break;
         }
             // Division
         case T_SLASH: {
-			if (l.type != VT_NUM || r.type != VT_NUM) {
-				error(it, expr->op, "Division can only be done with numbers");
-				return MakeNil();
-			}
-			
-			if (r.v.num == 0) {
-				error(it, expr->op, "Division by zero");
-				return MakeNil();
-			}
+            if (l.type != VT_NUM || r.type != VT_NUM) {
+                error(it, expr->op, "Division can only be done with numbers");
+                return MakeNil();
+            }
+
+            if (r.v.num == 0) {
+                error(it, expr->op, "Division by zero");
+                return MakeNil();
+            }
 
             double value = l.v.num / r.v.num;
             return MakeNumber(value);
@@ -249,8 +252,9 @@ static PValue vVariable(PInterpreter *it, PExpr *expr, PEnv *env) {
 // Assignment Operation for Variables
 // `name` = The actual target expression which must evaluate to Variable expr
 // `val` = The new value to assign
-static PValue
-varAssignment(PInterpreter *it, PExpr *name, PExpr *val, PEnv *env) {
+static PValue varAssignment(
+    PInterpreter *it, PExpr *name, PExpr *val, PEnv *env
+) {
     assert(name->type == EXPR_VARIABLE);
     struct EVariable *target = &name->exp.EVariable;
     PValue vValue = evaluate(it, val, env);
@@ -421,8 +425,9 @@ static PValue vLogical(PInterpreter *it, PExpr *expr, PEnv *env) {
 }
 
 // Evaluate a function call and return result (if any)
-static PValue
-handleCall(PInterpreter *it, PObj *func, PValue *args, int count) {
+static PValue handleCall(
+    PInterpreter *it, PObj *func, PValue *args, int count
+) {
     assert(func->type == OT_FNC);
     struct OFunction *f = &func->v.OFunction;
     PEnv *fnEnv = NewEnv((PEnv *)f->env);
@@ -443,8 +448,9 @@ handleCall(PInterpreter *it, PObj *func, PValue *args, int count) {
 }
 
 // Handle User-Defined Function Calls
-static PValue
-callFunction(PInterpreter *it, PObj *func, PExpr *callExpr, PEnv *env) {
+static PValue callFunction(
+    PInterpreter *it, PObj *func, PExpr *callExpr, PEnv *env
+) {
     assert(func->type == OT_FNC);
     assert(callExpr->type == EXPR_CALL);
 
@@ -473,7 +479,8 @@ callFunction(PInterpreter *it, PObj *func, PExpr *callExpr, PEnv *env) {
         if (argPtr == NULL) {
             error(
                 it, call->op,
-                "Internal Error : Failed to Allocate memory for call arguments"
+                "Internal Error : Failed to Allocate memory for call "
+                "arguments"
             );
             return MakeNil();
         }
@@ -493,8 +500,9 @@ callFunction(PInterpreter *it, PObj *func, PExpr *callExpr, PEnv *env) {
 }
 
 // Handle Native Function Calls
-static PValue
-callNative(PInterpreter *it, PObj *nfunc, PExpr *callExpr, PEnv *env) {
+static PValue callNative(
+    PInterpreter *it, PObj *nfunc, PExpr *callExpr, PEnv *env
+) {
     assert(nfunc->type == OT_NATIVE);
     assert(callExpr->type == EXPR_CALL);
 
@@ -519,7 +527,8 @@ callNative(PInterpreter *it, PObj *nfunc, PExpr *callExpr, PEnv *env) {
         if (argPtr == NULL) {
             error(
                 it, call->op,
-                "Internal Error : Failed to Allocate memory for call arguments"
+                "Internal Error : Failed to Allocate memory for call "
+                "arguments"
             );
             return MakeNil();
         }
@@ -607,8 +616,9 @@ static PValue vMap(PInterpreter *it, PExpr *expr, PEnv *env) {
 }
 
 // Subscript for Arrays
-static PValue
-arraySubscript(PInterpreter *it, PObj *arrObj, PExpr *expr, PEnv *env) {
+static PValue arraySubscript(
+    PInterpreter *it, PObj *arrObj, PExpr *expr, PEnv *env
+) {
     assert(arrObj->type == OT_ARR);
     assert(expr->type == EXPR_SUBSCRIPT);
 
@@ -637,8 +647,9 @@ arraySubscript(PInterpreter *it, PObj *arrObj, PExpr *expr, PEnv *env) {
 }
 
 // subscripting for Map
-static PValue
-mapSubscript(PInterpreter *it, PObj *mapObj, PExpr *expr, PEnv *env) {
+static PValue mapSubscript(
+    PInterpreter *it, PObj *mapObj, PExpr *expr, PEnv *env
+) {
     assert(mapObj->type == OT_MAP);
     assert(expr->type == EXPR_SUBSCRIPT);
 

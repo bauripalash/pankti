@@ -148,19 +148,21 @@ char **StrSplit(const char *text, char delimiter, int *count) {
     return buffers;
 }
 
-char * StrJoin(const char * a, size_t alen, const char *b, size_t blen, bool * ok){
-	size_t outlen = alen + blen + 1;
-	char * output = PCalloc(outlen, sizeof(char));
-	if (output == NULL) {
-		*ok = false;
-		return NULL;
-	}
+char *StrJoin(
+    const char *a, size_t alen, const char *b, size_t blen, bool *ok
+) {
+    size_t outlen = alen + blen + 1;
+    char *output = PCalloc(outlen, sizeof(char));
+    if (output == NULL) {
+        *ok = false;
+        return NULL;
+    }
 
-	strncat(output, a, alen);
-	strncat(output, b, blen);
-	output[outlen] = '\0';
-	*ok = true;
-	return output;
+    strncat(output, a, alen);
+    strncat(output, b, blen);
+    output[outlen] = '\0';
+    *ok = true;
+    return output;
 }
 
 double NumberFromStr(const char *lexeme, int len, bool *ok) {
@@ -192,36 +194,33 @@ double NumberFromStr(const char *lexeme, int len, bool *ok) {
 
 bool IsDoubleInt(double d) { return (floor(d) == ceil(d)); }
 
-unsigned char ToHex2Bytes(char c1, char c2){
-	unsigned char nb1, nb2;
-	
-	if (isalpha(c1)) {
-		nb1 = (tolower(c1) - 'a') + 10;
-	} else if (isdigit(c1)){
-		nb1 = c1 - '0';
-	}else{
-		return 0;
-	}
+unsigned char ToHex2Bytes(char c1, char c2) {
+    unsigned char nb1, nb2;
 
-	if (isalpha(c2)) {
-		nb2 = (tolower(c2) - 'a') + 10;
-	}else if (isdigit(c2)){
-		nb2 = c2 - '0';
-	}else {
-		return 0;
-	}
+    if (isalpha(c1)) {
+        nb1 = (tolower(c1) - 'a') + 10;
+    } else if (isdigit(c1)) {
+        nb1 = c1 - '0';
+    } else {
+        return 0;
+    }
 
-	return (nb1 << 4) | nb2; 
+    if (isalpha(c2)) {
+        nb2 = (tolower(c2) - 'a') + 10;
+    } else if (isdigit(c2)) {
+        nb2 = c2 - '0';
+    } else {
+        return 0;
+    }
+
+    return (nb1 << 4) | nb2;
 }
 
-unsigned char HexStrToByte(char * str, int len){
+unsigned char HexStrToByte(char *str, int len) {
 
-	if (len == 2) {
-		return ToHex2Bytes(str[0], str[1]);
-	}
+    if (len == 2) {
+        return ToHex2Bytes(str[0], str[1]);
+    }
 
-	return 0;
-
+    return 0;
 }
-
-

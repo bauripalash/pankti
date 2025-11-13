@@ -59,7 +59,8 @@ bool CanValueBeKey(const PValue *val) {
 
 uint64_t GetObjectHash(const PObj *obj, uint64_t seed) {
     if (obj->type == OT_STR) {
-        XXH64_hash_t hash = XXH64(obj->v.OString.value, strlen(obj->v.OString.value), seed);
+        XXH64_hash_t hash =
+            XXH64(obj->v.OString.value, strlen(obj->v.OString.value), seed);
         return (uint64_t)hash;
     }
 

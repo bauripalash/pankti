@@ -80,7 +80,7 @@ AlwaysBreakBeforeMultilineStrings: false
 AttributeMacros:
   - __capability
 BinPackArguments: true
-BinPackParameters: true
+BinPackParameters: false
 BitFieldColonSpacing: Both
 BreakBeforeBraces: Attach
 BraceWrapping:
@@ -198,7 +198,7 @@ PenaltyBreakString: 1000
 PenaltyBreakTemplateDeclaration: 10
 PenaltyExcessCharacter: 1000000
 PenaltyIndentedWhitespace: 0
-PenaltyReturnTypeOnItsOwnLine: 60
+PenaltyReturnTypeOnItsOwnLine: 1000000
 PointerAlignment: Right
 PPIndentWidth:   -1
 QualifierAlignment: Leave

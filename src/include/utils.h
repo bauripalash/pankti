@@ -41,7 +41,7 @@ const char *StrFormat(const char *text, ...);
 char **StrSplit(const char *text, char delimiter, int *count);
 
 // Join Two String into one
-char * StrJoin(const char * a, size_t alen, const char *b, size_t blen, bool * ok);
+char *StrJoin(const char *a, size_t alen, const char *b, size_t blen, bool *ok);
 
 // Helper function for lexer to match English, Bengali and Phonetic version of
 // keywords
@@ -65,9 +65,8 @@ double NumberFromStr(const char *lexeme, int len, bool *ok);
 // Check if double is integer
 bool IsDoubleInt(double d);
 
-
 unsigned char ToHex2Bytes(char c1, char c2);
-unsigned char HexStrToByte(char * str, int len);
+unsigned char HexStrToByte(char *str, int len);
 
 #ifdef __cplusplus
 }

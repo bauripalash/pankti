@@ -56,11 +56,11 @@ typedef struct PObj {
     // Union of All Pankti Objects
     union v {
         // String Object. Type : `OT_STR`
-		struct OString{
-			Token * name;
-			char * value;
-			bool isVirtual;
-		}OString;
+        struct OString {
+            Token *name;
+            char *value;
+            bool isVirtual;
+        } OString;
         // Function Object. Type : `OT_FNC`
         // Gets directly translated from Function Statement : `STMT_FUNC`
         struct OFunction {

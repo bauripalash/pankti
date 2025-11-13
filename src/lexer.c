@@ -153,38 +153,40 @@ static bool addToken(Lexer *lx, TokenType type) {
     return addTokenWithLexeme(lx, type, NULL, -1);
 }
 
-static bool addStringToken(Lexer * lx, char * str, long line, long col, long len){
-	Token * tok = NewToken(T_STR);
-	if (tok == NULL) {
-		return false;
-	}
+static bool addStringToken(
+    Lexer *lx, char *str, long line, long col, long len
+) {
+    Token *tok = NewToken(T_STR);
+    if (tok == NULL) {
+        return false;
+    }
 
-	tok->lexeme = str;
-	tok->line = line;
-	tok->col = col;
-	tok->len = len;
-	tok->hash = StrHash(str, len, (uint64_t)lx->timestamp);
-	arrput(lx->tokens, tok);
-	return true;
+    tok->lexeme = str;
+    tok->line = line;
+    tok->col = col;
+    tok->len = len;
+    tok->hash = StrHash(str, len, (uint64_t)lx->timestamp);
+    arrput(lx->tokens, tok);
+    return true;
 }
 
 static void readString(Lexer *lx) {
-	long column = lx->column - 1;
-	long line = lx->line;
+    long column = lx->column - 1;
+    long line = lx->line;
     while (peek(lx) != '"' && !atEnd(lx)) {
         if (peek(lx) == '\n') {
-        	lx->line++;
-			lx->column = 1;
-        } else if (peek(lx) == '\\'){
-			advance(lx);
-		}
+            lx->line++;
+            lx->column = 1;
+        } else if (peek(lx) == '\\') {
+            advance(lx);
+        }
         advance(lx);
     }
 
     advance(lx);
 
     char *lexeme = SubString(lx->source, lx->start + 1, lx->current - 1);
-	addStringToken(lx, lexeme, line, column,lx->current - lx->start);
+    addStringToken(lx, lexeme, line, column, lx->current - lx->start);
 }
 
 static void readNumber(Lexer *lx) {
@@ -256,8 +258,6 @@ static void readIdent(Lexer *lx) {
     addTokenWithLexeme(lx, identType, lexeme, lx->current - lx->start);
 }
 
-
-
 static void scanToken(Lexer *lx) {
     char32_t c = advance(lx);
     switch (c) {
@@ -312,7 +312,7 @@ static void scanToken(Lexer *lx) {
             break;
         }
         case '"': readString(lx); break;
-        case ' ':  break;
+        case ' ': break;
         case '\r': break;
         case '\t': break;
         case '\n': {

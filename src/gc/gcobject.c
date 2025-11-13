@@ -5,9 +5,9 @@
 #include "../include/gc.h"
 #include "../include/object.h"
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
-#include <stddef.h>
 
 PObj *NewObject(Pgc *gc, PObjType type) {
     PObj *o = PCreate(PObj);
@@ -23,12 +23,12 @@ PObj *NewObject(Pgc *gc, PObjType type) {
     return o;
 }
 
-PObj *NewStrObject(Pgc *gc, Token * name, char *value, bool virt) {
+PObj *NewStrObject(Pgc *gc, Token *name, char *value, bool virt) {
     PObj *o = NewObject(gc, OT_STR);
-	o->v.OString.name = name;
-	o->v.OString.value = value;
-	o->v.OString.isVirtual = virt;
-	return o;
+    o->v.OString.name = name;
+    o->v.OString.value = value;
+    o->v.OString.isVirtual = virt;
+    return o;
 }
 
 PObj *NewFuncObject(
@@ -101,10 +101,10 @@ void FreeObject(Pgc *gc, PObj *o) {
         }
 
         case OT_STR: {
-			struct OString * s = &o->v.OString;
-			if (s->isVirtual) {
-				PFree(s->value);
-			}
+            struct OString *s = &o->v.OString;
+            if (s->isVirtual) {
+                PFree(s->value);
+            }
             freeBaseObj(o);
             break;
         }

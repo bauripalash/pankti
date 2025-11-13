@@ -293,60 +293,80 @@ static PExpr *rMapExpr(Parser *p) {
     return NewMapExpr(p->gc, lbrace, etable, arrlen(etable));
 }
 
+static char *readStringEscapes(Parser *p, Token *tok) {
+    char *rawinput = tok->lexeme;
+    size_t inlen = strlen(rawinput);
+    size_t outlen = inlen * 4 + 1;
+    char *output = PCalloc(outlen, sizeof(char));
+    if (output == NULL) {
+        return NULL;
+    }
 
-static char * readStringEscapes(Parser * p, Token * tok){
-	char * rawinput = tok->lexeme;
-	size_t inlen = strlen(rawinput);
-	size_t outlen = inlen * 4 + 1;
-	char * output = PCalloc(outlen, sizeof(char));
-	if (output == NULL) {
-		return NULL;
-	}
+    StrEscapeErr err = ProcessStringEscape(rawinput, inlen, output, outlen);
+    switch (err) {
+        case SESC_OK: break;
+        case SESC_UNKNOWN_ESCAPE: {
+            error(p, tok, "Unknown escape sequence found in string");
+            break;
+        }
+        case SESC_INVALID_HEX_CHAR: {
+            error(
+                p, tok, "Invalid Hex character found in string escape sequence"
+            );
+            break;
+        }
 
-	StrEscapeErr err = ProcessStringEscape(rawinput, inlen, output, outlen);
-	switch (err) {
-		case SESC_OK: break;
-		case SESC_UNKNOWN_ESCAPE:{
-			error(p, tok, "Unknown escape sequence found in string");
-			break;
-		}
-		case SESC_INVALID_HEX_CHAR:{
-			error(p, tok, "Invalid Hex character found in string escape sequence");
-			break;
-		}
+        case SESC_BUFFER_NOT_ENOUGH: {
+            error(p, tok, "Internal Error: Failed to process string escape");
+            break;
+        }
+        case SESC_INPUT_FINISHED_EARLY: {
+            error(
+                p, tok,
+                "Incomplete escape sequence found at the end of the string"
+            );
+            break;
+        }
 
-		case SESC_BUFFER_NOT_ENOUGH:{
-			error(p, tok, "Internal Error: Failed to process string escape");
-			break;
-		}
-		case SESC_INPUT_FINISHED_EARLY:{
-			error(p, tok, "Incomplete escape sequence found at the end of the string");
-			break;
-		}
+        case SESC_NO_LOW_SURROGATE: {
+            error(
+                p, tok,
+                "While reading \\uHHHH sequence another low surrogate \\uHHHH "
+                "sequence was expected but not found"
+            );
+            break;
+        }
+        case SESC_LONE_LOW_SURROGATE: {
+            error(
+                p, tok,
+                "While reading \\uHHHH sequence only a lone low surrogate was "
+                "found"
+            );
+            break;
+        }
 
-		case SESC_NO_LOW_SURROGATE:{
-			error(p, tok, "While reading \\uHHHH sequence another low surrogate \\uHHHH sequence was expected but not found");
-			break;
-		}
-		case SESC_LONE_LOW_SURROGATE:{
-			error(p, tok, "While reading \\uHHHH sequence only a lone low surrogate was found");
-			break;
-		}
-
-		case SESC_INVALID_LOW_SURROGATE:{
-			error(p, tok, "While reading \\uHHHH a invalid low surrogate was found after a high surrogate");
-			break;
-		}
-		case SESC_8_INVALID_CP:{
-			error(p, tok, "Found invalid codepoint in \\uHHHHHHHH sequence");
-			break;
-		}
-		case SESC_NULL_PTR:{
-			error(p, tok, "Internal Error: Invalid Memory allocation for output in reading escape sequences");
-			break;
-		}
-	}
-	return output;
+        case SESC_INVALID_LOW_SURROGATE: {
+            error(
+                p, tok,
+                "While reading \\uHHHH a invalid low surrogate was found after "
+                "a high surrogate"
+            );
+            break;
+        }
+        case SESC_8_INVALID_CP: {
+            error(p, tok, "Found invalid codepoint in \\uHHHHHHHH sequence");
+            break;
+        }
+        case SESC_NULL_PTR: {
+            error(
+                p, tok,
+                "Internal Error: Invalid Memory allocation for output in "
+                "reading escape sequences"
+            );
+            break;
+        }
+    }
+    return output;
 }
 
 static PExpr *rPrimary(Parser *p) {
@@ -367,28 +387,28 @@ static PExpr *rPrimary(Parser *p) {
     }
 
     if (matchOne(p, T_NUM)) {
-		Token * opTok = previous(p);
+        Token *opTok = previous(p);
 
         bool ok = true;
         double value = NumberFromStr(opTok->lexeme, opTok->len, &ok);
-		if (!ok) {
-			error(p, opTok, "Invalid or malformed number found");
-			return NULL;
-		}
+        if (!ok) {
+            error(p, opTok, "Invalid or malformed number found");
+            return NULL;
+        }
 
-        PExpr * e = NewLiteral(p->gc, opTok, EXP_LIT_NUM);
+        PExpr *e = NewLiteral(p->gc, opTok, EXP_LIT_NUM);
         e->exp.ELiteral.value.nvalue = value;
-		return e;
+        return e;
     }
 
     if (matchOne(p, T_STR)) {
-		Token * opTok = previous(p);
-		char * escapedStr = readStringEscapes(p, opTok);
-        PExpr * e = NewLiteral(p->gc, previous(p), EXP_LIT_STR);
-		
-		e->exp.ELiteral.value.svalue = escapedStr;
+        Token *opTok = previous(p);
+        char *escapedStr = readStringEscapes(p, opTok);
+        PExpr *e = NewLiteral(p->gc, previous(p), EXP_LIT_STR);
 
-		return e;
+        e->exp.ELiteral.value.svalue = escapedStr;
+
+        return e;
     }
 
     if (matchOne(p, T_IDENT)) {
