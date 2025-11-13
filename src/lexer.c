@@ -320,6 +320,12 @@ static void scanToken(Lexer *lx) {
             lx->column = 1;
             break;
         }
+		case '#':{
+			while (peek(lx) != '\n' && !atEnd(lx)) {
+				advance(lx);
+			}
+			break;
+		}
         default: {
             if (isAnyNumber(c)) {
                 readNumber(lx);
