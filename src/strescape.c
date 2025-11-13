@@ -166,7 +166,6 @@ StrEscapeErr ProcessStringEscape(const char * input, size_t inlen, char * output
 
 				// Either Val is valid codepoint without needing a low surrogate
 				// or We have combined high surrogate and low surrogate
-				printf("cp -> 0x%X\n", val);
 				err = pushCodepoint(output, &wi, val, outlen);
 				if (err != SESC_OK) {
 					return err;

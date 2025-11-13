@@ -3,3 +3,8 @@ print "world\x20hello"
 print "fox ->"
 print "'\uD83E\uDD8A'"
 print "\U0001F98A"
+print "\xF0\x9F\xA6\x8A"
+let h = "name" + " is" + " nothing"
+print h * 2
+
+print 19 / -0.14

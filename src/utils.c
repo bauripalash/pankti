@@ -148,6 +148,21 @@ char **StrSplit(const char *text, char delimiter, int *count) {
     return buffers;
 }
 
+char * StrJoin(const char * a, size_t alen, const char *b, size_t blen, bool * ok){
+	size_t outlen = alen + blen + 1;
+	char * output = PCalloc(outlen, sizeof(char));
+	if (output == NULL) {
+		*ok = false;
+		return NULL;
+	}
+
+	strncat(output, a, alen);
+	strncat(output, b, blen);
+	output[outlen] = '\0';
+	*ok = true;
+	return output;
+}
+
 double NumberFromStr(const char *lexeme, int len, bool *ok) {
 
     char *buf = PCalloc((len + 1), sizeof(char));
@@ -208,4 +223,5 @@ unsigned char HexStrToByte(char * str, int len){
 	return 0;
 
 }
+
 

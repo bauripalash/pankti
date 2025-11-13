@@ -40,6 +40,9 @@ const char *StrFormat(const char *text, ...);
 // Split String; same as Raylib's TextSplit
 char **StrSplit(const char *text, char delimiter, int *count);
 
+// Join Two String into one
+char * StrJoin(const char * a, size_t alen, const char *b, size_t blen, bool * ok);
+
 // Helper function for lexer to match English, Bengali and Phonetic version of
 // keywords
 // Return true if any of them matches

@@ -14,6 +14,7 @@ pub fn build(b: *std.Build) void {
         "src/native.c",
         "src/object.c",
         "src/parser.c",
+        "src/strescape.c",
         "src/token.c",
         "src/ustring.c",
         "src/utils.c",

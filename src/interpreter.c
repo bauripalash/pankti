@@ -10,6 +10,7 @@
 #include "include/token.h"
 #include "include/utils.h"
 #include <stddef.h>
+#include <string.h>
 
 #ifdef PANKTI_BUILD_DEBUG
 #undef NDDEBUG
@@ -156,34 +157,60 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
 
     switch (expr->exp.EBinary.op->type) {
         case T_PLUS: {
-            if (l.type != VT_NUM || r.type != VT_NUM) {
-                error(
-                    it, expr->exp.EBinary.op,
-                    StrFormat(
-                        "Plus operation can only be done with numbers but got "
-                        "%s + %s",
-                        ValueTypeToStr(&l), ValueTypeToStr(&r)
-                    )
-                );
-                break;
-            }
-            double value = l.v.num + r.v.num;
-            return MakeNumber(value);
+			if (l.type == VT_NUM && r.type == VT_NUM) {
+	            double value = l.v.num + r.v.num;
+    	        return MakeNumber(value);
+			}else{
+				if ((l.type == VT_OBJ && ValueAsObj(l)->type == OT_STR) &&
+					(r.type == VT_OBJ && ValueAsObj(r)->type == OT_STR)) {
+					bool ok = true;
+					struct OString * ls = &ValueAsObj(l)->v.OString;
+					size_t lsLen = strlen(ls->value);
+					struct OString * rs = &ValueAsObj(r)->v.OString;
+					size_t rsLen = strlen(rs->value);
+					char * newStr = StrJoin(ls->value, lsLen, rs->value, rsLen, &ok);
+					if (!ok) {
+						error(it, expr->op, "Fail to join string");
+						return MakeNil();
+					}
+
+					PObj * nsObj = NewStrObject(it->gc, expr->op, newStr, true);
+					return MakeObject(nsObj);
+				}
+			}
             break;
         }
             // Multiplication
         case T_ASTR: {
+			if (l.type != VT_NUM || r.type != VT_NUM) {
+				error(it, expr->op, "Multiplication can only be done with numbers");
+				return MakeNil();
+			}
             double value = l.v.num * r.v.num;
             return MakeNumber(value);
             break;
         }
         case T_MINUS: {
+			if (l.type != VT_NUM || r.type != VT_NUM) {
+				error(it, expr->op, "Substraction can only be done with numbers");
+				return MakeNil();
+			}
             double value = l.v.num - r.v.num;
             return MakeNumber(value);
             break;
         }
             // Division
         case T_SLASH: {
+			if (l.type != VT_NUM || r.type != VT_NUM) {
+				error(it, expr->op, "Division can only be done with numbers");
+				return MakeNil();
+			}
+			
+			if (r.v.num == 0) {
+				error(it, expr->op, "Division by zero");
+				return MakeNil();
+			}
+
             double value = l.v.num / r.v.num;
             return MakeNumber(value);
             break;
