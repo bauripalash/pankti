@@ -10,6 +10,7 @@
 #include "include/pstdlib.h"
 #include "include/token.h"
 #include "include/utils.h"
+#include <math.h>
 #include <stddef.h>
 #include <string.h>
 
@@ -236,8 +237,18 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
             }
             double value = l.v.num * r.v.num;
             return MakeNumber(value);
-            break;
         }
+		case T_EXPONENT:{
+            if (l.type != VT_NUM || r.type != VT_NUM) {
+                error(
+                    it, expr->op, "Multiplication can only be done with numbers"
+                );
+                return MakeNil();
+            }
+
+			double value = pow(l.v.num, r.v.num);
+			return MakeNumber(value);
+		}
         case T_MINUS: {
             if (l.type != VT_NUM || r.type != VT_NUM) {
                 error(

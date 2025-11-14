@@ -1,5 +1,10 @@
-import m "math"
+let a = 2
+func b()
+	return 3
+end
 
-print m.pow(100, 2)
-print m.pi
-print m.e
+print 2 ** 3
+print 2 ** 3 ** 2
+print -2 ** 2
+print (-2) ** 2
+print a * 2 ** -b() 

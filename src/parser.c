@@ -31,6 +31,7 @@ static PExpr *rComparison(Parser *p);
 static PExpr *rTerm(Parser *p);
 static PExpr *rFactor(Parser *p);
 static PExpr *rUnary(Parser *p);
+static PExpr *rExponent(Parser *p);
 static PExpr *rCall(Parser *p);
 static PExpr *rPrimary(Parser *p);
 static PExpr *rExpression(Parser *p);
@@ -215,7 +216,25 @@ static PExpr *rUnary(Parser *p) {
         return NewUnary(p->gc, op, right);
     }
 
-    return rCall(p);
+    return rExponent(p);
+}
+
+
+static PExpr *rExponent(Parser *p){
+	PExpr * expr = rCall(p);
+	if (matchOne(p, T_EXPONENT)) {
+		Token * op = previous(p);
+		PExpr *right = rUnary(p); // <-- This might seem confusing
+		// why are we going up?
+		// but without it `a ** -b()` throws error, cause the unary getting
+		// skipped as the parser directly going to the call
+		if (right == NULL) {
+			error(p, NULL, "Invalid expression found in exponent expression");
+		}
+		expr = NewBinaryExpr(p->gc, expr, op, right);
+
+	}
+	return expr;
 }
 
 static PExpr *finishCallExpr(Parser *p, PExpr *expr) {

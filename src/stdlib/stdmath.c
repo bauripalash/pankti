@@ -3,6 +3,7 @@
 #include "../include/interpreter.h"
 #include <math.h>
 
+
 static inline double getGcd(double a, double b){
 	double x = (a > 0) ? a : -a;
 	double y = (b > 0) ? b : -b;

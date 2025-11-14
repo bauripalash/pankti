@@ -274,8 +274,16 @@ static void scanToken(Lexer *lx) {
         case '/': addToken(lx, T_SLASH); break;
         case ':': addToken(lx, T_COLON); break;
         case '%': addToken(lx, T_MOD); break;
-        case '*': addToken(lx, T_ASTR); break;
         case ';': addToken(lx, T_SEMICOLON); break;
+        case '*': {
+			if (match(lx, '*')){
+				addToken(lx, T_EXPONENT);
+			}else{
+				addToken(lx, T_ASTR); 
+			}
+
+			break;
+		}
         case '!': {
             if (match(lx, '=')) {
                 addToken(lx, T_BANG_EQ);
