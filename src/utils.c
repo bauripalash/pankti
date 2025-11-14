@@ -28,13 +28,16 @@ char *ReadFile(const char *path) {
             if (size >= 0) {
                 text = (char *)PCalloc(size + 1, sizeof(char));
                 if (text == NULL) {
+					fclose(file);
                     return NULL;
                 }
 
                 fread(text, size, 1, file);
-                fclose(file);
                 text[size] = '\0';
             }
+
+            fclose(file);
+
         }
     }
 
