@@ -79,7 +79,7 @@ static PModule *NewModule(PInterpreter *it, char * name){
 		//throw error
 		return NULL;
 	}
-	mod->pathname = strdup(name);
+	mod->pathname = StrDuplicate(name, strlen(name));
 	// error check
 	mod->env = NewEnv(NULL);
 	return mod;
@@ -354,7 +354,6 @@ static void mapAssignment(
     PInterpreter *it, PObj *mapObj, PExpr *keyExpr, PExpr *valueExpr, PEnv *env
 ) {
     assert(mapObj->type == OT_MAP);
-    struct OMap *map = &mapObj->v.OMap;
     PValue keyValue = evaluate(it, keyExpr, env);
 
     if (!CanValueBeKey(&keyValue)) {
@@ -401,7 +400,6 @@ static PValue vAssignment(PInterpreter *it, PExpr *expr, PEnv *env) {
     assert(expr->type == EXPR_ASSIGN);
 
     struct EAssign *assign = &expr->exp.EAssign;
-    PValue value = evaluate(it, assign->value, env);
     PExpr *target = assign->name;
 
     if (target->type == EXPR_VARIABLE) {

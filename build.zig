@@ -19,6 +19,13 @@ pub fn build(b: *std.Build) void {
         "src/ustring.c",
         "src/utils.c",
 
+        // Stdlib
+        "src/stdlib/pstdlib.c",
+        "src/stdlib/stdmap.c",
+        "src/stdlib//stdmath.c",
+        "src/stdlib/stdos.c",
+        "src/stdlib/stdstring.c",
+
         // GC Related
         "src/gc/gc.c",
         "src/gc/gcexpr.c",

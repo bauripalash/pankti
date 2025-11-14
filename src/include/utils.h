@@ -1,6 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <uchar.h>
 
@@ -24,6 +25,9 @@ char *ReadFile(const char *path);
 // `start` = Start index
 // `end` = End index
 char *SubString(const char *str, int start, int end);
+
+// Return a malloc'd Duplicate string
+char *StrDuplicate(const char * str, size_t len);
 
 // String Hash?
 uint64_t StrHash(const char *str, size_t len, uint64_t seed);

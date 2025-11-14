@@ -65,6 +65,21 @@ bool StrEqual(const char *str1, const char *str2) {
     return strcmp(str1, str2) == 0;
 }
 
+
+char *StrDuplicate(const char * str, size_t len){
+	if (str == NULL) {
+		return NULL;
+	}
+
+	char *dup = PCalloc(len + 1, sizeof(char));
+	if (dup == NULL) {
+		return NULL;
+	}
+	strncpy(dup, str, len);
+	return dup;
+
+}
+
 long StrLength(const char *str) { return strlen(str); }
 
 bool MatchKW(const char *s, const char *en, const char *pn, const char *bn) {
