@@ -1,3 +1,5 @@
 import m "math"
 
 print m.pow(100, 2)
+print m.pi
+print m.e
