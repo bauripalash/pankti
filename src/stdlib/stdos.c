@@ -1,7 +1,5 @@
-#include "../include/pstdlib.h"
 #include "../include/env.h"
 #include "../include/interpreter.h"
+#include "../include/pstdlib.h"
 
-void PushStdlibOs(PInterpreter *it, PEnv * env){
-	return;
-}
+void PushStdlibOs(PInterpreter *it, PEnv *env) { return; }

@@ -276,14 +276,14 @@ static void scanToken(Lexer *lx) {
         case '%': addToken(lx, T_MOD); break;
         case ';': addToken(lx, T_SEMICOLON); break;
         case '*': {
-			if (match(lx, '*')){
-				addToken(lx, T_EXPONENT);
-			}else{
-				addToken(lx, T_ASTR); 
-			}
+            if (match(lx, '*')) {
+                addToken(lx, T_EXPONENT);
+            } else {
+                addToken(lx, T_ASTR);
+            }
 
-			break;
-		}
+            break;
+        }
         case '!': {
             if (match(lx, '=')) {
                 addToken(lx, T_BANG_EQ);
@@ -328,12 +328,12 @@ static void scanToken(Lexer *lx) {
             lx->column = 1;
             break;
         }
-		case '#':{
-			while (peek(lx) != '\n' && !atEnd(lx)) {
-				advance(lx);
-			}
-			break;
-		}
+        case '#': {
+            while (peek(lx) != '\n' && !atEnd(lx)) {
+                advance(lx);
+            }
+            break;
+        }
         default: {
             if (isAnyNumber(c)) {
                 readNumber(lx);

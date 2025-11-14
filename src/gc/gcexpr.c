@@ -140,17 +140,16 @@ PExpr *NewSubscriptExpr(Pgc *gc, Token *op, PExpr *value, PExpr *index) {
     return e;
 }
 
+PExpr *NewModgetExpr(Pgc *gc, Token *op, PExpr *module, Token *child) {
+    PExpr *e = NewExpr(gc, EXPR_MODGET, op);
+    if (e == NULL) {
+        return NULL;
+    }
 
-PExpr *NewModgetExpr(Pgc * gc, Token *op, PExpr * module, Token * child){
-	PExpr * e = NewExpr(gc, EXPR_MODGET, op);
-	if (e == NULL) {
-		return NULL;
-	}
-
-	e->exp.EModget.op = op;
-	e->exp.EModget.module = module;
-	e->exp.EModget.child = child;
-	return e;
+    e->exp.EModget.op = op;
+    e->exp.EModget.module = module;
+    e->exp.EModget.child = child;
+    return e;
 }
 // ===================
 // Freeing Functions
@@ -189,11 +188,11 @@ void FreeExpr(Pgc *gc, PExpr *e) {
             freeBaseExpr(gc, e);
             break;
         }
-		case EXPR_MODGET:{
-			FreeExpr(gc, e->exp.EModget.module);
-			freeBaseExpr(gc, e);
-			break;
-		}
+        case EXPR_MODGET: {
+            FreeExpr(gc, e->exp.EModget.module);
+            freeBaseExpr(gc, e);
+            break;
+        }
         case EXPR_ASSIGN: {
             FreeExpr(gc, e->exp.EAssign.name);
             FreeExpr(gc, e->exp.EAssign.value);

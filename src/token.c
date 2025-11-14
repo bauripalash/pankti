@@ -23,7 +23,7 @@ char *TokTypeToStr(TokenType type) {
         case T_SEMICOLON: return "Semicolon";
         case T_SLASH: return "Slash";
         case T_ASTR: return "Astr";
-		case T_EXPONENT: return "Exponent";
+        case T_EXPONENT: return "Exponent";
         case T_BANG: return "Bang";
         case T_BANG_EQ: return "BangEq";
         case T_EQ: return "Eq";
@@ -123,7 +123,7 @@ static const char *getLexeme(const Token *t) {
         case T_SEMICOLON: return ";";
         case T_SLASH: return "/";
         case T_ASTR: return "*";
-		case T_EXPONENT: return "**";
+        case T_EXPONENT: return "**";
         case T_BANG: return "!";
         case T_BANG_EQ: return "!=";
         case T_EQ: return "=";

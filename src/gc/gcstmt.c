@@ -127,12 +127,12 @@ PStmt *NewFuncStmt(
     return s;
 }
 
-PStmt *NewImportStmt(Pgc *gc, Token *op, Token *iname, PExpr * ipath){
-	PStmt * s = NewStmt(gc, STMT_IMPORT, op);
-	s->stmt.SImport.op = op;
-	s->stmt.SImport.name = iname;
-	s->stmt.SImport.path = ipath;
-	return s;
+PStmt *NewImportStmt(Pgc *gc, Token *op, Token *iname, PExpr *ipath) {
+    PStmt *s = NewStmt(gc, STMT_IMPORT, op);
+    s->stmt.SImport.op = op;
+    s->stmt.SImport.name = iname;
+    s->stmt.SImport.path = ipath;
+    return s;
 }
 
 // ===================
@@ -184,12 +184,12 @@ void FreeStmt(Pgc *gc, PStmt *s) {
             freeBaseStmt(gc, s);
             break;
         }
-		case STMT_IMPORT:{
-			struct SImport * imp = &s->stmt.SImport;
-			FreeExpr(gc, imp->path);
-			freeBaseStmt(gc, s);
-			break;
-		}
+        case STMT_IMPORT: {
+            struct SImport *imp = &s->stmt.SImport;
+            FreeExpr(gc, imp->path);
+            freeBaseStmt(gc, s);
+            break;
+        }
         case STMT_BLOCK: {
             struct SBlock *blk = &s->stmt.SBlock;
             arrfree(blk->stmts);

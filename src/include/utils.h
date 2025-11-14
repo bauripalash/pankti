@@ -12,7 +12,7 @@ extern "C" {
 // Constant value of Pi used across the codebase
 #define CONST_PI 3.14159265358979323846f
 // Constant value of e used across the codebase
-#define CONST_E 2.71828182845904523536f
+#define CONST_E            2.71828182845904523536f
 
 #define MAX_STRFORMAT_BUF  4
 #define MAX_STRSPLIT_COUNT 128
@@ -32,7 +32,7 @@ char *ReadFile(const char *path);
 char *SubString(const char *str, int start, int end);
 
 // Return a malloc'd Duplicate string
-char *StrDuplicate(const char * str, size_t len);
+char *StrDuplicate(const char *str, size_t len);
 
 // String Hash?
 uint64_t StrHash(const char *str, size_t len, uint64_t seed);

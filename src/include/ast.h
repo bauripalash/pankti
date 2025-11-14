@@ -38,9 +38,9 @@ typedef enum PExprType {
     // Array, Hash table subscripting
     EXPR_SUBSCRIPT,
 
-	// Fetching values,variables from module
-	// `math.pow(...)` 
-	EXPR_MODGET,
+    // Fetching values,variables from module
+    // `math.pow(...)`
+    EXPR_MODGET,
 } PExprType;
 
 // Literal Types for Literal Expressions : `EXPR_LITERAL`
@@ -125,11 +125,11 @@ typedef struct PExpr {
             Token *op;
         } ESubscript;
 
-		struct EModget{
-			struct PExpr *module;
-			Token *child;
-			Token * op;
-		}EModget;
+        struct EModget {
+            struct PExpr *module;
+            Token *child;
+            Token *op;
+        } EModget;
 
         // Grouping Expression
         // Type: `EXPR_GROUPING`
@@ -208,8 +208,8 @@ typedef enum PStmtType {
     STMT_BREAK,
     // Function Declaration Statement
     STMT_FUNC,
-	// Import Module Statement
-	STMT_IMPORT,
+    // Import Module Statement
+    STMT_IMPORT,
 } PStmtType;
 
 // Pankti Statement
@@ -315,12 +315,12 @@ typedef struct PStmt {
             struct PStmt *body;
         } SFunc;
 
-		// Import Statement : Modules and Stdlib
-		struct SImport{
-			Token * op;
-			Token * name;
-			struct PExpr * path;
-		} SImport;
+        // Import Statement : Modules and Stdlib
+        struct SImport {
+            Token *op;
+            Token *name;
+            struct PExpr *path;
+        } SImport;
     } stmt;
 
 } PStmt;

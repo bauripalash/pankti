@@ -10,22 +10,22 @@ extern "C" {
 #include "ast.h"
 #include "env.h"
 
-typedef enum PModType{
-	PMOD_STDLIB,
-	PMOD_SCRIPT,
-}PModType;
+typedef enum PModType {
+    PMOD_STDLIB,
+    PMOD_SCRIPT,
+} PModType;
 
-typedef struct PModule{
-	PModType type;
-	PEnv * env;
-	char * pathname;
-}PModule;
+typedef struct PModule {
+    PModType type;
+    PEnv *env;
+    char *pathname;
+} PModule;
 
-typedef struct ModProxyEntry{
-	uint64_t key;
-	char * name;
-	PModule * mod;
-}ModProxyEntry;
+typedef struct ModProxyEntry {
+    uint64_t key;
+    char *name;
+    PModule *mod;
+} ModProxyEntry;
 
 // The Interpreter Object
 typedef struct PInterpreter {
@@ -35,10 +35,10 @@ typedef struct PInterpreter {
     void *core;
     // The Parent Environment used across closures
     PEnv *env;
-	ModProxyEntry * proxyTable;
-	size_t proxyCount;
-	PModule ** mods;
-	size_t modCount;
+    ModProxyEntry *proxyTable;
+    size_t proxyCount;
+    PModule **mods;
+    size_t modCount;
     Pgc *gc;
 } PInterpreter;
 

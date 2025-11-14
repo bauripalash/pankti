@@ -74,31 +74,33 @@ static inline ExResult ExReturn(PValue v) {
     return er;
 }
 
-static PModule *NewModule(PInterpreter *it, char * name){
-	PModule * mod = PMalloc(sizeof(PModule));
-	if (mod == NULL) {
-		//throw error
-		return NULL;
-	}
-	mod->pathname = StrDuplicate(name, strlen(name));
-	// error check
-	mod->env = NewEnv(NULL);
-	return mod;
+static PModule *NewModule(PInterpreter *it, char *name) {
+    PModule *mod = PMalloc(sizeof(PModule));
+    if (mod == NULL) {
+        // throw error
+        return NULL;
+    }
+    mod->pathname = StrDuplicate(name, strlen(name));
+    // error check
+    mod->env = NewEnv(NULL);
+    return mod;
 }
 
-static void PushModule(PInterpreter *it, PModule * mod){
-	arrput(it->mods, mod);
-	it->modCount = arrlen(it->mods);
+static void PushModule(PInterpreter *it, PModule *mod) {
+    arrput(it->mods, mod);
+    it->modCount = arrlen(it->mods);
 }
 
-static void PushProxy(PInterpreter *it, uint64_t key, char * name, PModule *mod){
-	if (mod == NULL) {
-		return;//error check
-	}
+static void PushProxy(
+    PInterpreter *it, uint64_t key, char *name, PModule *mod
+) {
+    if (mod == NULL) {
+        return; // error check
+    }
 
-	ModProxyEntry s = {.key = key, .name = name, .mod = mod};
-	hmputs(it->proxyTable, s);
-	it->proxyCount = hmlen(it->proxyTable);
+    ModProxyEntry s = {.key = key, .name = name, .mod = mod};
+    hmputs(it->proxyTable, s);
+    it->proxyCount = hmlen(it->proxyTable);
 }
 
 // Execute Statement
@@ -114,10 +116,10 @@ PInterpreter *NewInterpreter(Pgc *gc, PStmt **prog) {
     it->core = NULL;
     it->env = NewEnv(NULL);
     it->gc = gc;
-	it->proxyTable = NULL;
-	it->proxyCount = 0;
-	it->mods = NULL;
-	it->modCount = 0;
+    it->proxyTable = NULL;
+    it->proxyCount = 0;
+    it->mods = NULL;
+    it->modCount = 0;
     RegisterNatives(it, it->env);
     return it;
 }
@@ -130,20 +132,20 @@ void FreeInterpreter(PInterpreter *it) {
         FreeEnv(it->env);
     }
 
-	if (it->proxyCount > 0 && it->proxyTable != NULL) {
-		hmfree(it->proxyTable);
-	}
+    if (it->proxyCount > 0 && it->proxyTable != NULL) {
+        hmfree(it->proxyTable);
+    }
 
-	if (it->modCount > 0 && it->mods != NULL) {
-		for (int i = 0; i < it->modCount; i++) {
-			PModule * mod = arrpop(it->mods);
-			PFree(mod->pathname);
-			FreeEnv(mod->env);
-			PFree(mod);
-		}
+    if (it->modCount > 0 && it->mods != NULL) {
+        for (int i = 0; i < it->modCount; i++) {
+            PModule *mod = arrpop(it->mods);
+            PFree(mod->pathname);
+            FreeEnv(mod->env);
+            PFree(mod);
+        }
 
-		arrfree(it->mods);
-	}
+        arrfree(it->mods);
+    }
 
     PFree(it);
 }
@@ -238,7 +240,7 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
             double value = l.v.num * r.v.num;
             return MakeNumber(value);
         }
-		case T_EXPONENT:{
+        case T_EXPONENT: {
             if (l.type != VT_NUM || r.type != VT_NUM) {
                 error(
                     it, expr->op, "Multiplication can only be done with numbers"
@@ -246,9 +248,9 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
                 return MakeNil();
             }
 
-			double value = pow(l.v.num, r.v.num);
-			return MakeNumber(value);
-		}
+            double value = pow(l.v.num, r.v.num);
+            return MakeNumber(value);
+        }
         case T_MINUS: {
             if (l.type != VT_NUM || r.type != VT_NUM) {
                 error(
@@ -749,33 +751,33 @@ static PValue vSubscript(PInterpreter *it, PExpr *expr, PEnv *env) {
     return MakeNil();
 }
 
-static PValue vModget(PInterpreter * it, PExpr * expr, PEnv * env){
-	assert(expr->type == EXPR_MODGET);
-	struct EModget * mg = &expr->exp.EModget;
-	
-	if (mg->module->type != EXPR_VARIABLE) {
-		error(it, expr->op, "Module in not a name");
-	}
+static PValue vModget(PInterpreter *it, PExpr *expr, PEnv *env) {
+    assert(expr->type == EXPR_MODGET);
+    struct EModget *mg = &expr->exp.EModget;
 
-	// The module token ->math<-.pow(..)
-	Token * modTok = mg->module->exp.EVariable.name;
-	// The child token math.->pow<-(..)
-	Token * childTok = mg->child;
+    if (mg->module->type != EXPR_VARIABLE) {
+        error(it, expr->op, "Module in not a name");
+    }
 
-	if (hmgeti(it->proxyTable, modTok->hash) != -1) {
-		PModule * mod = hmgets(it->proxyTable, modTok->hash).mod;
-		bool childFound = true;
-		PValue childValue = EnvGetValue(mod->env, childTok->hash, &childFound);
-		if (!childFound) {
-			error(it, childTok, "Child not found for module");
-			return MakeNil();
-		}
-		return childValue;
-	} else{
-		error(it, modTok, "Module not found");
-		return MakeNil();
-	}
-	return MakeNil();
+    // The module token ->math<-.pow(..)
+    Token *modTok = mg->module->exp.EVariable.name;
+    // The child token math.->pow<-(..)
+    Token *childTok = mg->child;
+
+    if (hmgeti(it->proxyTable, modTok->hash) != -1) {
+        PModule *mod = hmgets(it->proxyTable, modTok->hash).mod;
+        bool childFound = true;
+        PValue childValue = EnvGetValue(mod->env, childTok->hash, &childFound);
+        if (!childFound) {
+            error(it, childTok, "Child not found for module");
+            return MakeNil();
+        }
+        return childValue;
+    } else {
+        error(it, modTok, "Module not found");
+        return MakeNil();
+    }
+    return MakeNil();
 }
 
 static PValue evaluate(PInterpreter *it, PExpr *expr, PEnv *env) {
@@ -797,7 +799,7 @@ static PValue evaluate(PInterpreter *it, PExpr *expr, PEnv *env) {
         case EXPR_ARRAY: return vArray(it, expr, env);
         case EXPR_MAP: return vMap(it, expr, env);
         case EXPR_SUBSCRIPT: return vSubscript(it, expr, env);
-		case EXPR_MODGET: return vModget(it, expr, env);
+        case EXPR_MODGET: return vModget(it, expr, env);
     }
 
     return MakeNil();
@@ -916,33 +918,37 @@ static ExResult vsFuncStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     return ExSimple(MakeNil());
 }
 
-static ExResult vsImportStmt(PInterpreter * it, PStmt *stmt, PEnv * env){
-	assert(stmt->type == STMT_IMPORT);
-	struct SImport * imp = &stmt->stmt.SImport;
-	
-	PValue pathValue = evaluate(it, imp->path, env);
+static ExResult vsImportStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
+    assert(stmt->type == STMT_IMPORT);
+    struct SImport *imp = &stmt->stmt.SImport;
 
-	if (!IsValueObjType(&pathValue, OT_STR)) {
-		error(it, imp->op, "Import path must be a string");
-		return ExSimple(MakeNil());
-	}
+    PValue pathValue = evaluate(it, imp->path, env);
 
-	char * pathStr = pathValue.v.obj->v.OString.value;
-	PModule * mod = NewModule(it, pathStr);
-	if (mod == NULL) {
-		error(it, stmt->op, "Failed to create module");
-		return ExSimple(MakeNil());
-	}
-	PushModule(it, mod);
-	uint64_t key = imp->name->hash;
-	PushProxy(it, key, imp->name->lexeme, mod);
-	StdlibMod stdmod = GetStdlibMod(mod->pathname);
-	if (stdmod != STDLIB_NONE) {
-		PushStdlib(it, mod->env, mod->pathname, stdmod);
-	} else{
-		error(it, imp->op, "Stdlib module not found. Currently stdlib modules are supported only");
-	}
-	return ExSimple(MakeNil());
+    if (!IsValueObjType(&pathValue, OT_STR)) {
+        error(it, imp->op, "Import path must be a string");
+        return ExSimple(MakeNil());
+    }
+
+    char *pathStr = pathValue.v.obj->v.OString.value;
+    PModule *mod = NewModule(it, pathStr);
+    if (mod == NULL) {
+        error(it, stmt->op, "Failed to create module");
+        return ExSimple(MakeNil());
+    }
+    PushModule(it, mod);
+    uint64_t key = imp->name->hash;
+    PushProxy(it, key, imp->name->lexeme, mod);
+    StdlibMod stdmod = GetStdlibMod(mod->pathname);
+    if (stdmod != STDLIB_NONE) {
+        PushStdlib(it, mod->env, mod->pathname, stdmod);
+    } else {
+        error(
+            it, imp->op,
+            "Stdlib module not found. Currently stdlib modules are supported "
+            "only"
+        );
+    }
+    return ExSimple(MakeNil());
 }
 
 static ExResult execute(PInterpreter *it, PStmt *stmt, PEnv *env) {
@@ -964,7 +970,7 @@ static ExResult execute(PInterpreter *it, PStmt *stmt, PEnv *env) {
         case STMT_RETURN: return vsReturnStmt(it, stmt, env); break;
         case STMT_BREAK: return vsBreakStmt(it, stmt, env);
         case STMT_FUNC: return vsFuncStmt(it, stmt, env);
-		case STMT_IMPORT: return vsImportStmt(it, stmt, env);
+        case STMT_IMPORT: return vsImportStmt(it, stmt, env);
         default: error(it, NULL, "Unknown statement found!");
     }
 

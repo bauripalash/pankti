@@ -46,8 +46,8 @@ typedef enum TokenType {
     T_SLASH,
     // Token `*`
     T_ASTR,
-	// Token `**`
-	T_EXPONENT,
+    // Token `**`
+    T_EXPONENT,
 
     // Token `!`
     T_BANG,

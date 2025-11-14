@@ -181,21 +181,23 @@ void AstPrint(PExpr *expr, int indent) {
             break;
         }
 
-		case EXPR_MODGET:{
-			struct EModget * mg = &expr->exp.EModget;
-			printf(TERMC_YELLOW "ModuleGet" TERMC_RESET);
-			printf("{\n");
-			printIndent(indent + 1);
-			printf("Module {\n");
-			AstPrint(mg->module, indent + 2);
-			printIndent(indent + 1);
-			printf("}\n");
-			printIndent(indent + 1);
-			printf("Child(" TERMC_GREEN "%s" TERMC_RESET ")\n", mg->child->lexeme);
-			printIndent(indent);
-			printf("}\n");
-			break;
-		}
+        case EXPR_MODGET: {
+            struct EModget *mg = &expr->exp.EModget;
+            printf(TERMC_YELLOW "ModuleGet" TERMC_RESET);
+            printf("{\n");
+            printIndent(indent + 1);
+            printf("Module {\n");
+            AstPrint(mg->module, indent + 2);
+            printIndent(indent + 1);
+            printf("}\n");
+            printIndent(indent + 1);
+            printf(
+                "Child(" TERMC_GREEN "%s" TERMC_RESET ")\n", mg->child->lexeme
+            );
+            printIndent(indent);
+            printf("}\n");
+            break;
+        }
     }
 }
 
@@ -311,15 +313,18 @@ void AstStmtPrint(PStmt *stmt, int indent) {
             printf("]\n");
             break;
         }
-		case STMT_IMPORT:{
-			struct SImport * import = &stmt->stmt.SImport;
-			printf("Import(" TERMC_GREEN "%s" TERMC_RESET ") ", import->name->lexeme);
-			printf("{\n");
-			AstPrint(import->path, indent + 2);
-			printIndent(indent);
-			printf("}\n");
-			break;
-		}
+        case STMT_IMPORT: {
+            struct SImport *import = &stmt->stmt.SImport;
+            printf(
+                "Import(" TERMC_GREEN "%s" TERMC_RESET ") ",
+                import->name->lexeme
+            );
+            printf("{\n");
+            AstPrint(import->path, indent + 2);
+            printIndent(indent);
+            printf("}\n");
+            break;
+        }
     }
 }
 
@@ -334,7 +339,7 @@ char *StmtTypeToStr(PStmtType type) {
         case STMT_PRINT: return "Print Stmt";
         case STMT_BREAK: return "Break Stmt";
         case STMT_FUNC: return "Func Stmt";
-		case STMT_IMPORT: return "Import Stmt";
+        case STMT_IMPORT: return "Import Stmt";
     }
 
     return "Unknown Statement";

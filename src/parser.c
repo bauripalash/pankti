@@ -219,22 +219,20 @@ static PExpr *rUnary(Parser *p) {
     return rExponent(p);
 }
 
-
-static PExpr *rExponent(Parser *p){
-	PExpr * expr = rCall(p);
-	if (matchOne(p, T_EXPONENT)) {
-		Token * op = previous(p);
-		PExpr *right = rUnary(p); // <-- This might seem confusing
-		// why are we going up?
-		// but without it `a ** -b()` throws error, cause the unary getting
-		// skipped as the parser directly going to the call
-		if (right == NULL) {
-			error(p, NULL, "Invalid expression found in exponent expression");
-		}
-		expr = NewBinaryExpr(p->gc, expr, op, right);
-
-	}
-	return expr;
+static PExpr *rExponent(Parser *p) {
+    PExpr *expr = rCall(p);
+    if (matchOne(p, T_EXPONENT)) {
+        Token *op = previous(p);
+        PExpr *right = rUnary(p); // <-- This might seem confusing
+        // why are we going up?
+        // but without it `a ** -b()` throws error, cause the unary getting
+        // skipped as the parser directly going to the call
+        if (right == NULL) {
+            error(p, NULL, "Invalid expression found in exponent expression");
+        }
+        expr = NewBinaryExpr(p->gc, expr, op, right);
+    }
+    return expr;
 }
 
 static PExpr *finishCallExpr(Parser *p, PExpr *expr) {
@@ -266,10 +264,10 @@ static PExpr *rSubscript(Parser *p, PExpr *expr) {
 }
 
 // Module get expression `module.child`
-static PExpr *rModget(Parser *p, PExpr *expr){
-	Token * op = previous(p);
-	Token *childTok = eat(p, T_IDENT, "Expected child token");
-	return NewModgetExpr(p->gc, op, expr, childTok);
+static PExpr *rModget(Parser *p, PExpr *expr) {
+    Token *op = previous(p);
+    Token *childTok = eat(p, T_IDENT, "Expected child token");
+    return NewModgetExpr(p->gc, op, expr, childTok);
 }
 
 static PExpr *rCall(Parser *p) {
@@ -279,8 +277,8 @@ static PExpr *rCall(Parser *p) {
             expr = finishCallExpr(p, expr);
         } else if (matchOne(p, T_LS_BRACKET)) {
             expr = rSubscript(p, expr);
-		} else if (matchOne(p, T_DOT)) {
-			expr = rModget(p, expr);
+        } else if (matchOne(p, T_DOT)) {
+            expr = rModget(p, expr);
         } else {
             break;
         }
@@ -601,16 +599,15 @@ static PStmt *rFuncStmt(Parser *p) {
     return NewFuncStmt(p->gc, name, params, body, paramCount);
 }
 
-static PStmt * rImportStmt(Parser *p){
-	Token * op = previous(p);
-	Token * name = eat(p, T_IDENT, "Expected Import Name");
-	PExpr * pathExpr = rExpression(p);
-	if (check(p, T_SEMICOLON)) {
-		eat(p, T_SEMICOLON, "Semicolon"); //Error should never occur
-	}
+static PStmt *rImportStmt(Parser *p) {
+    Token *op = previous(p);
+    Token *name = eat(p, T_IDENT, "Expected Import Name");
+    PExpr *pathExpr = rExpression(p);
+    if (check(p, T_SEMICOLON)) {
+        eat(p, T_SEMICOLON, "Semicolon"); // Error should never occur
+    }
 
-	return NewImportStmt(p->gc, op, name, pathExpr);
-
+    return NewImportStmt(p->gc, op, name, pathExpr);
 }
 
 static PStmt *rStmt(Parser *p) {
@@ -628,9 +625,9 @@ static PStmt *rStmt(Parser *p) {
         return rBreakStmt(p);
     } else if (matchOne(p, T_FUNC)) {
         return rFuncStmt(p);
-    } else if (matchOne(p, T_IMPORT)){
-		return rImportStmt(p);
-	}
+    } else if (matchOne(p, T_IMPORT)) {
+        return rImportStmt(p);
+    }
     return rExprStmt(p);
 }
 

@@ -149,16 +149,16 @@ static inline PValue MakeObject(PObj *obj) {
 }
 
 // Check if Value `val` is a object and it is a `otype` object
-static inline bool IsValueObjType(const PValue * val, PObjType otype){
-	if (val->type != VT_OBJ) {
-		return false;
-	}
+static inline bool IsValueObjType(const PValue *val, PObjType otype) {
+    if (val->type != VT_OBJ) {
+        return false;
+    }
 
-	if (val->v.obj->type != otype) {
-		return false;
-	}
+    if (val->v.obj->type != otype) {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 // Check if value is truthy. Only bools are considered
 bool IsValueTruthy(const PValue *val);
