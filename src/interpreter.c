@@ -602,7 +602,7 @@ static PValue vCall(PInterpreter *it, PExpr *expr, PEnv *env) {
     struct ECall *ec = &expr->exp.ECall;
     PValue co = evaluate(it, ec->callee, env);
     if (co.type != VT_OBJ) {
-        error(it, NULL, "Can only call functions");
+        error(it, ec->callee->op, "Can only call functions");
         return MakeNil();
     }
 
@@ -927,8 +927,12 @@ static ExResult vsImportStmt(PInterpreter * it, PStmt *stmt, PEnv * env){
 	PushModule(it, mod);
 	uint64_t key = imp->name->hash;
 	PushProxy(it, key, imp->name->lexeme, mod);
-	printf("Importing module: %s as '%s'\n", mod->pathname, imp->name->lexeme);
-	PushStdlib(it, mod->env, mod->pathname);
+	StdlibMod stdmod = GetStdlibMod(mod->pathname);
+	if (stdmod != STDLIB_NONE) {
+		PushStdlib(it, mod->env, mod->pathname, stdmod);
+	} else{
+		error(it, imp->op, "Stdlib module not found. Currently stdlib modules are supported only");
+	}
 	return ExSimple(MakeNil());
 }
 

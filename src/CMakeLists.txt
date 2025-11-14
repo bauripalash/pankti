@@ -9,7 +9,7 @@ set(PANKTI_SRC_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/native.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/object.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/parser.c"
-	"${CMAKE_CURRENT_SOURCE_DIR}/strescape.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/strescape.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/token.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/ustring.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/utils.c"
@@ -21,6 +21,10 @@ set(PANKTI_SRC_FILES
 
   # Stdlib
   "${CMAKE_CURRENT_SOURCE_DIR}/stdlib/pstdlib.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/stdlib/stdmap.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/stdlib/stdmath.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/stdlib/stdos.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/stdlib/stdstring.c"
 
   # External
   "${CMAKE_CURRENT_SOURCE_DIR}/external/xxhash.c"
