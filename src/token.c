@@ -139,7 +139,7 @@ static const char *getLexeme(const Token *t) {
 
 void PrintToken(const Token *token) {
     printf(
-        "Token[" TERMC_BLUE "%zu:%zu \t| " TERMC_PURPLE "%s" TERMC_BLUE
+        "Token[" TERMC_BLUE "%zu:%zu | " TERMC_PURPLE "%s" TERMC_BLUE
         ":'" TERMC_GREEN "%s" TERMC_BLUE "' (%ld)" TERMC_RESET "]",
         token->line, token->col, TokTypeToStr(token->type), getLexeme(token),
         token->len
