@@ -9,6 +9,13 @@
 	ResetLexer(utest_fixture->lx);\
 	ScanTokens(utest_fixture->lx);\
 
+#define PrintAllTokens(toks, count)\
+    printf("==== Token ====\n");\
+    for (int i = 0; i < count; i++) {\
+        PrintToken(toks[i]);\
+        printf("\n");\
+    }\
+    printf("===============\n");\
 
 #define CheckTokens(lx, ttypes)\
 	int count = ArrCount(types);\
@@ -20,6 +27,7 @@
 		TokenType got = tokens[i]->type;\
 		ASSERT_EQ(expected, got);\
 	}\
+
 
 
 struct LexerTest{
@@ -51,6 +59,124 @@ UTEST_F(LexerTest, Operator){
 		T_EXPONENT,
 		T_NUM,
 		T_EOF
+	};
+
+	CheckTokens(utest_fixture->lx, types);
+}
+
+UTEST_F(LexerTest, EnglishKeywords){
+	char * src = "let and or end if then else while nil true false" 
+		" return func import panic do break len";
+
+	SetupLexer(src);
+	TokenType types[] = {
+		T_LET,
+		T_AND,
+		T_OR,
+		T_END,
+		T_IF,
+		T_THEN,
+		T_ELSE,
+		T_WHILE,
+		T_NIL,
+		T_TRUE,
+		T_FALSE,
+		T_RETURN,
+		T_FUNC,
+		T_IMPORT,
+		T_PANIC,
+		T_DO,
+		T_BREAK,
+		T_LEN,
+		T_EOF,
+	};
+
+	CheckTokens(utest_fixture->lx, types);
+}
+
+UTEST_F(LexerTest, PhoneticKeywords){
+	char * src = "dhori ebong ba sesh jodi tahole nahole jotokhon"
+	" nil sotti mittha ferao kaj anoyon golmal koro bhango ayoton";
+
+	SetupLexer(src);
+	TokenType types[] = {
+		T_LET,
+		T_AND,
+		T_OR,
+		T_END,
+		T_IF,
+		T_THEN,
+		T_ELSE,
+		T_WHILE,
+		T_NIL,
+		T_TRUE,
+		T_FALSE,
+		T_RETURN,
+		T_FUNC,
+		T_IMPORT,
+		T_PANIC,
+		T_DO,
+		T_BREAK,
+		T_LEN,
+		T_EOF,
+	};
+
+	CheckTokens(utest_fixture->lx, types);
+}
+
+UTEST_F(LexerTest, BengaliKeywords){
+	char * src = "ধরি এবং বা শেষ যদি তাহলে নাহলে যতক্ষণ নিল সত্যি মিথ্যা ফেরাও"
+                            " কাজ আনয়ন গোলমাল করো ভাঙো আয়তন";
+	SetupLexer(src);
+	TokenType types[] = {
+		T_LET,
+		T_AND,
+		T_OR,
+		T_END,
+		T_IF,
+		T_THEN,
+		T_ELSE,
+		T_WHILE,
+		T_NIL,
+		T_TRUE,
+		T_FALSE,
+		T_RETURN,
+		T_FUNC,
+		T_IMPORT,
+		T_PANIC,
+		T_DO,
+		T_BREAK,
+		T_LEN,
+		T_EOF,
+	};
+
+	CheckTokens(utest_fixture->lx, types);
+}
+
+UTEST_F(LexerTest, MixedKeywords){
+	char * src = "dhori and বা শেষ jodi তাহলে else jotokhon নিল সত্যি মিথ্যা"
+            " ferao func আনয়ন panic koro ভাঙো len";
+	SetupLexer(src);
+	TokenType types[] = {
+		T_LET,
+		T_AND,
+		T_OR,
+		T_END,
+		T_IF,
+		T_THEN,
+		T_ELSE,
+		T_WHILE,
+		T_NIL,
+		T_TRUE,
+		T_FALSE,
+		T_RETURN,
+		T_FUNC,
+		T_IMPORT,
+		T_PANIC,
+		T_DO,
+		T_BREAK,
+		T_LEN,
+		T_EOF,
 	};
 
 	CheckTokens(utest_fixture->lx, types);

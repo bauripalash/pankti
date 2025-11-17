@@ -42,6 +42,7 @@ Lexer *NewLexer(char *src) {
     lx->length = strlen(src);
     lx->tokens = NULL;
     lx->core = NULL;
+	lx->raw = false;
 
     return lx;
 }

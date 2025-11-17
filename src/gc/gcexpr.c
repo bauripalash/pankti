@@ -210,12 +210,12 @@ void FreeExpr(Pgc *gc, PExpr *e) {
         }
 
         case EXPR_LITERAL: {
-            freeBaseExpr(gc, e);
             if (e->exp.ELiteral.type == EXP_LIT_STR) {
                 if (e->exp.ELiteral.value.svalue != NULL) {
                     PFree(e->exp.ELiteral.value.svalue);
                 }
             }
+            freeBaseExpr(gc, e);
             break;
         }
         case EXPR_UNARY: {

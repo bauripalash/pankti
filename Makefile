@@ -7,14 +7,20 @@ CMAKE_BUILD_DIR ?= build
 # Zig Out Directory
 ZIG_BUILD_DIR ?= zig-out
 
+# CMake built binary
 CMAKE_OUTPUT ?= $(CMAKE_BUILD_DIR)/$(BIN)
+
+# Zig built binary
 ZIG_OUTPUT ?= $(ZIG_BUILD_DIR)/bin/$(BIN)
 
 # TCC Path (for future use)
 TCC ?= /usr/bin/tcc
 
 # Performance Test Compiler
-PERFCC:=clang
+PERFCC ?=clang
+
+# Release Mode Compiler
+RELEASE_CC ?= clang
 
 # File to Run on `run` step
 FILE ?= ./a.pank
@@ -75,7 +81,7 @@ valgrind: build
 
 .PHONY: cmake_tcc
 cmake_tcc:
-	cmake -S . -B build -G Ninja -DCMAKE_C_COMPILER=$(TCC)
+	cmake -S . -B build -DCMAKE_C_COMPILER=$(TCC)
 
 .PHONY: cmake_setup
 cmake_setup:
@@ -87,12 +93,12 @@ cmake_clang:
 
 .PHONY: cmake_clean
 cmake_clean:
-	cd build
+	cd build && make clean
 
-.PHONY: build_release
-build_release:
+.PHONY: build_rls
+build_rls:
 	rm -rf build
-	cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang
+	cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=$(RELEASE_CC)
 	cmake --build build
 
 .PHONY: run_perf
