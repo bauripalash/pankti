@@ -10,7 +10,6 @@ pub fn build(b: *std.Build) void {
         "src/env.c",
         "src/interpreter.c",
         "src/lexer.c",
-        "src/main.c",
         "src/native.c",
         "src/object.c",
         "src/parser.c",
@@ -37,6 +36,18 @@ pub fn build(b: *std.Build) void {
         "src/external/xxhash.c",
     };
 
+    var srcMain = [_][]const u8{
+        "src/main.c",
+    };
+
+    var testsMain = [_][]const u8{
+        "tests/test_main.c",
+    };
+
+    var testsSrcs = [_][]const u8{
+        "tests/test_lexer.c",
+    };
+
     var debugFlags = [_][]const u8{
         "-Wall",
         "-std=c11",
@@ -50,16 +61,35 @@ pub fn build(b: *std.Build) void {
     });
 
     mod.addCSourceFiles(.{ .files = &srcCore, .flags = &debugFlags });
+    mod.addCSourceFiles(.{ .files = &srcMain, .flags = &debugFlags });
     mod.addCSourceFiles(.{ .files = &srcExternal, .flags = &debugFlags });
+
+    const testsMod = b.createModule(.{
+        .root_source_file = b.path("tests/test_main.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    testsMod.addCSourceFiles(.{ .files = &srcCore, .flags = &debugFlags });
+    testsMod.addCSourceFiles(.{ .files = &srcExternal, .flags = &debugFlags });
+    testsMod.addCSourceFiles(.{ .files = &testsMain, .flags = &debugFlags });
+    testsMod.addCSourceFiles(.{ .files = &testsSrcs, .flags = &debugFlags });
 
     const exe = b.addExecutable(.{
         .name = "pankti",
         .root_module = mod,
     });
 
+    const testsExe = b.addExecutable(.{
+        .name = "pankti_tests",
+        .root_module = testsMod,
+    });
+
     exe.linkLibC();
+    testsExe.linkLibC();
 
     b.installArtifact(exe);
+
     const run_step = b.step("run", "Run the app");
 
     const run_cmd = b.addRunArtifact(exe);
@@ -69,5 +99,17 @@ pub fn build(b: *std.Build) void {
 
     if (b.args) |args| {
         run_cmd.addArgs(args);
+    }
+
+    const tests_build_step = b.step("ntests", "Build Native Tests");
+    const tests_build_cmd = b.addInstallArtifact(testsExe, .{});
+    tests_build_step.dependOn(&tests_build_cmd.step);
+
+    const tests_run_step = b.step("runtests", "Run Tests");
+    const tests_run_cmd = b.addRunArtifact(testsExe);
+    tests_run_step.dependOn(&tests_run_cmd.step);
+
+    if (b.args) |args| {
+        tests_run_cmd.addArgs(args);
     }
 }

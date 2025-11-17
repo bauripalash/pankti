@@ -1,9 +1,36 @@
-BIN:=pankti
-CMAKE_OUTPUT:=build/$(BIN)
-ZIG_OUTPUT:=zig-out/bin/$(BIN)
-TCC:=/usr/bin/tcc
+# Actual Binary Name
+BIN ?= pankti
+
+# Build Directory of CMake
+CMAKE_BUILD_DIR ?= build
+
+# Zig Out Directory
+ZIG_BUILD_DIR ?= zig-out
+
+CMAKE_OUTPUT ?= $(CMAKE_BUILD_DIR)/$(BIN)
+ZIG_OUTPUT ?= $(ZIG_BUILD_DIR)/bin/$(BIN)
+
+# TCC Path (for future use)
+TCC ?= /usr/bin/tcc
+
+# Performance Test Compiler
 PERFCC:=clang
+
+# File to Run on `run` step
 FILE ?= ./a.pank
+
+# The Native Test Binary
+TEST_BIN ?= pankti_tests
+
+# Test Binary Output path for CMake build
+TEST_OUTPUT ?= $(CMAKE_BUILD_DIR)/tests/$(TEST_BIN)
+
+# Test Binary Output path for Zig build
+ZIG_TEST_OUTPUT ?= $(ZIG_BUILD_DIR)/bin/$(TEST_BIN)
+
+# Arguments to pass to the testing binary
+TEST_ARGS ?= 
+
 
 HEADERS:= $(shell find src/include -path 'src/external' -prune -o -path 'src/include/exported' -prune -o -name '*.h' -print)
 SOURCES:= $(shell find src/ -path 'src/external' -prune -o -name '*.c' -print)
@@ -13,11 +40,16 @@ all: run
 
 .PHONY: build
 build:
-	cmake --build build
+	cmake --build build --target $(BIN)
 
 .PHONY: run
 run: build
 	./$(CMAKE_OUTPUT) $(FILE)
+
+.PHONY: test
+test:
+	cmake --build build --target $(TEST_BIN)
+	./$(TEST_OUTPUT) $(TEST_ARGS)
 
 
 .PHONY: zbuild
@@ -27,6 +59,11 @@ zbuild:
 .PHONY: zrun
 zrun: zbuild
 	./$(ZIG_OUTPUT) $(FILE)
+
+.PHONY: ztest
+ztest:
+	zig build ntests
+	./$(ZIG_TEST_OUTPUT) $(TEST_ARGS)
 
 .PHONY: fmt
 fmt:
@@ -65,7 +102,6 @@ run_perf:
 	cmake --build build
 	perf record -g --call-graph dwarf -F 999 ./$(CMAKE_OUTPUT)
 	perf script -F +pid > pankti.perf
-	
 
 
 .PHONY: infer

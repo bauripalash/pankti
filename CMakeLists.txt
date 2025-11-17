@@ -4,22 +4,83 @@ project(pankti)
 include(FetchContent)
 set(CMAKE_EXPORT_COMPILE_COMMANDS)
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE 
+		"Debug" 
+		CACHE STRING 
+		"Set Build Type (Debug, Release, RelWithDebInfo, MinSizeRel)" 
+		FORCE)
+endif()
+
+set_property(CACHE 
+	CMAKE_BUILD_TYPE 
+	PROPERTY STRINGS 
+	"Debug" "Release" "RelWithDebInfo" "MinSizeRel"
+)
+
 add_executable(${PROJECT_NAME})
 add_subdirectory(src)
-set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
-#target_link_options(${PROJECT_NAME} PRIVATE "-static")
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g3 -pedantic -Wall -Wconversion -fsanitize=address -fsanitize=undefined -fsanitize=float-cast-overflow" )
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -pedantic -Wall -O2 -flto -funroll-loops" )
 
-if (CMAKE_BUILD_TYPE STREQUAL "Release")
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm -flto -funroll-loops")
-	add_compile_definitions(PANKTI_BUILD_RELEASE)
-else()
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm -fsanitize=address -fsanitize=undefined -fsanitize=float-cast-overflow -flto")
-	add_compile_definitions(MI_TRACK_ASAN=1)
+enable_testing()
+add_subdirectory(tests)
+
+set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
+
+#target_link_options(${PROJECT_NAME} PRIVATE "-static")
+
+set(PANKTI_DEBUG_CFLAGS
+	"-g3" 
+	"-pedantic"
+	"-Wall" 
+	"-Wconversion"
+	"-fsanitize=address"
+	"-fsanitize=undefined"
+	"-fsanitize=float-cast-overflow" 
+)
+
+set(PANKTI_RELEASE_CFLAGS
+	"-pedantic" 
+	"-Wall"
+	"-O2"
+	"-flto" 
+	"-funroll-loops" 
+)
+
+set(PANKTI_RELEASE_LINKER_FLAGS
+	"-lm"
+	"-flto"
+	"-funroll-loops"
+)
+
+set(PANKTI_DEBUG_LINKER_FLAGS
+	"-lm"
+	"-fsanitize=address"
+	"-fsanitize=undefined"
+	"-fsanitize=float-cast-overflow"
+	"-flto"
+)
+
+target_compile_options(${PROJECT_NAME} PRIVATE 
+	$<$<CONFIG:Debug>:${PANKTI_DEBUG_CFLAGS}>
+	$<$<CONFIG:Release>:${PANKTI_RELEASE_CFLAGS}>
+	$<$<CONFIG:RelWithDebInfo>:${PANKTI_RELEASE_CFLAGS}>
+	$<$<CONFIG:MinSizeRel>:${PANKTI_RELEASE_CFLAGS}>
+)
+
+target_link_options(${PROJECT_NAME} PRIVATE
+    $<$<CONFIG:Debug>:${PANKTI_DEBUG_LINKER_FLAGS}>
+    $<$<CONFIG:Release>:${PANKTI_RELEASE_LINKER_FLAGS}>
+    $<$<CONFIG:RelWithDebInfo>:${PANKTI_RELEASE_LINKER_FLAGS}>
+    $<$<CONFIG:MinSizeRel>:${PANKTI_RELEASE_LINKER_FLAGS}>
+)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	target_compile_definitions(${PROJECT_NAME} PRIVATE MI_TRACK_ASAN=1)
 	add_compile_definitions(PANKTI_BUILD_DEBUG)
+else()
+	add_compile_definitions(PANKTI_BUILD_RELEASE)
 endif()
+
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "CYGWIN") 
 	add_compile_definitions(PANTKI_OS_WIN)
@@ -36,3 +97,5 @@ endif()
 if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
 	add_compile_definitions(PANKTI_OS_WEB)
 endif()
+
+

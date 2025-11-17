@@ -1,0 +1,4 @@
+set(PANKTI_NATIVE_TEST_FILES
+  "${CMAKE_CURRENT_LIST_DIR}/test_main.c"
+  "${CMAKE_CURRENT_LIST_DIR}/test_lexer.c"
+)

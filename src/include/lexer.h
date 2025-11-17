@@ -13,6 +13,9 @@ extern "C" {
 typedef struct Lexer {
     // Script source code string
     char *source;
+	// Raw Lexer (Lexer is given raw compile time string to work on)
+	// If the lexer is raw, `source` will not be freed
+	bool raw;
     // Length of source code string
     long length;
     // Array of tokens; Filled with ScanTokens(...) function
@@ -42,6 +45,17 @@ typedef struct Lexer {
 // Create new Lexer Object;
 // `src` = source code
 Lexer *NewLexer(char *src);
+
+
+// Turn Lexer into Raw Lexer
+// It means: Lexer is given raw compile time string to work on
+// If the lexer is raw, `source` will not be freed
+void MakeLexerRaw(Lexer * lexer , bool raw);
+
+
+// Reset lexer state
+// Change source before calling this function
+void ResetLexer(Lexer * lexer);
 
 // Free lexer
 void FreeLexer(Lexer *lexer);

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <uchar.h>
 
 #include "include/alloc.h"
@@ -44,14 +45,25 @@ Lexer *NewLexer(char *src) {
 
     return lx;
 }
+
+void MakeLexerRaw(Lexer * lexer , bool raw){
+	if (lexer == NULL) {
+		return;
+	}
+	lexer->raw = raw;
+}
+
 void FreeLexer(Lexer *lexer) {
     if (lexer == NULL) {
         return;
     }
 
-    if (lexer->source != NULL) {
-        PFree(lexer->source);
-    }
+	if (!lexer->raw) {
+		if (lexer->source != NULL) {
+	        PFree(lexer->source);
+	    }
+	}
+    
 
     if (lexer->tokens != NULL) {
         int count = arrlen(lexer->tokens);
@@ -66,6 +78,31 @@ void FreeLexer(Lexer *lexer) {
     }
 
     PFree(lexer);
+}
+
+void ResetLexer(Lexer * lexer){
+	if (lexer->tokens != NULL) {
+	    int count = arrlen(lexer->tokens);
+        for (int i = 0; i < count; i++) {
+            FreeToken(arrpop(lexer->tokens));
+        }
+        arrfree(lexer->tokens);
+	}
+
+    if (lexer->iter != NULL) {
+        FreeUIterator(lexer->iter);
+    }
+
+
+    UIter *iter = NewUIterator(lexer->source);
+    lexer->iter = iter;
+
+    lexer->current = 0;
+    lexer->start = 0;
+    lexer->column = 1;
+    lexer->line = 1;
+    lexer->length = strlen(lexer->source);
+    lexer->tokens = NULL;
 }
 
 static inline bool isAnyNumber(char32_t c) {
@@ -342,9 +379,14 @@ static void scanToken(Lexer *lx) {
                 readIdent(lx);
                 break;
             } else {
-                CoreLexerError(
-                    lx->core, lx->line, lx->column, "Invalid character found"
-                );
+				if (lx->core != NULL) {
+					CoreLexerError(
+						lx->core, lx->line, lx->column, "Invalid character found"
+					);
+				} else {
+					printf("Invalid character found at line %ld column %ld", lx->line, lx->column);
+				}
+               
                 break;
             }
             break;

@@ -1,0 +1,56 @@
+set(PANKTI_SRC_FILES
+  "${CMAKE_CURRENT_LIST_DIR}/ast.c"
+  "${CMAKE_CURRENT_LIST_DIR}/bengali.c"
+  "${CMAKE_CURRENT_LIST_DIR}/core.c"
+  "${CMAKE_CURRENT_LIST_DIR}/env.c"
+  "${CMAKE_CURRENT_LIST_DIR}/interpreter.c"
+  "${CMAKE_CURRENT_LIST_DIR}/lexer.c"
+  "${CMAKE_CURRENT_LIST_DIR}/native.c"
+  "${CMAKE_CURRENT_LIST_DIR}/object.c"
+  "${CMAKE_CURRENT_LIST_DIR}/parser.c"
+  "${CMAKE_CURRENT_LIST_DIR}/strescape.c"
+  "${CMAKE_CURRENT_LIST_DIR}/token.c"
+  "${CMAKE_CURRENT_LIST_DIR}/ustring.c"
+  "${CMAKE_CURRENT_LIST_DIR}/utils.c"
+
+  "${CMAKE_CURRENT_LIST_DIR}/gc/gc.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gc/gcexpr.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gc/gcobject.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gc/gcstmt.c"
+
+  # Stdlib
+  "${CMAKE_CURRENT_LIST_DIR}/stdlib/pstdlib.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdmap.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdmath.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdos.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdstring.c"
+
+  # External
+  "${CMAKE_CURRENT_LIST_DIR}/external/xxhash.c"
+)
+
+set(PANKTI_HEADER_FILES
+  "${CMAKE_CURRENT_LIST_DIR}/include/alloc.h"
+  "${CMAKE_CURRENT_LIST_DIR}/include/ansicolors.h"
+  "${CMAKE_CURRENT_LIST_DIR}/include/ast.h"
+  "${CMAKE_CURRENT_LIST_DIR}/include/bengali.h"
+  "${CMAKE_CURRENT_LIST_DIR}/include/core.h"
+  "${CMAKE_CURRENT_LIST_DIR}/include/defaults.h"
+  "${CMAKE_CURRENT_LIST_DIR}/include/env.h"
+  "${CMAKE_CURRENT_LIST_DIR}/include/gc.h"
+  "${CMAKE_CURRENT_LIST_DIR}/include/interpreter.h"
+  "${CMAKE_CURRENT_LIST_DIR}/include/keywords.h"
+  "${CMAKE_CURRENT_LIST_DIR}/include/lexer.h"
+  "${CMAKE_CURRENT_LIST_DIR}/include/object.h"
+  "${CMAKE_CURRENT_LIST_DIR}/include/parser.h"
+  "${CMAKE_CURRENT_LIST_DIR}/include/pstdlib.h"
+  "${CMAKE_CURRENT_LIST_DIR}/include/strescape.h"
+  "${CMAKE_CURRENT_LIST_DIR}/include/token.h"
+  "${CMAKE_CURRENT_LIST_DIR}/include/ustring.h"
+  "${CMAKE_CURRENT_LIST_DIR}/include/utils.h"
+
+  # External
+  "${CMAKE_CURRENT_LIST_DIR}/external/stb/stb_ds.h"
+)
+
+set(PANKTI_MAIN_FILE "${CMAKE_CURRENT_LIST_DIR}/main.c")
