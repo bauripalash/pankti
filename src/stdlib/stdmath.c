@@ -31,13 +31,33 @@ static PValue math_Sqrt(PInterpreter *it, PValue *args, int argc) {
 }
 
 static PValue math_Log10(PInterpreter *it, PValue *args, int argc) {
-	return MakeNil();
+	PValue * rawVal = &args[0];
+	if (rawVal->type != VT_NUM) {
+		// MakeError
+		return MakeNil();
+	}
+	double result = log10(rawVal->v.num);
+	return MakeNumber(result);
 }
 static PValue math_Log(PInterpreter *it, PValue *args, int argc) {
-	return MakeNil();
+	PValue * rawVal = &args[0];
+	if (rawVal->type != VT_NUM) {
+		// MakeError
+		return MakeNil();
+	}
+	double result = log(rawVal->v.num);
+	return MakeNumber(result);
 }
 static PValue math_LogBase(PInterpreter *it, PValue *args, int argc) {
-	return MakeNil();
+	PValue * rawBase = &args[0];
+	PValue * rawNum = &args[1];
+
+	if (rawBase->type != VT_NUM || rawNum->type != VT_NUM) {
+		// MakeError
+		return MakeNil();
+	}
+	double result = log(rawNum->v.num) / log(rawBase->v.num);
+	return MakeNumber(result);
 }
 static PValue math_GCD(PInterpreter *it, PValue *args, int argc) {
 	return MakeNil();
