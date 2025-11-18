@@ -29,6 +29,9 @@ typedef struct StdlibEntry {
     int arity;
 } StdlibEntry;
 
+
+#define MakeStdlibEntry(sname, nfn, ar) ((StdlibEntry){.name = sname, .nlen = (int)strlen(sname), .fn = nfn, .arity = ar})
+
 typedef struct PInterpreter PInterpreter;
 
 static inline StdlibMod GetStdlibMod(const char *name) {

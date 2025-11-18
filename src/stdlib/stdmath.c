@@ -1,6 +1,7 @@
 #include "../include/env.h"
 #include "../include/interpreter.h"
 #include "../include/pstdlib.h"
+#include <string.h>
 #include <math.h>
 
 static inline double getGcd(double a, double b) {
@@ -18,25 +19,101 @@ static inline double getGcd(double a, double b) {
     return x;
 }
 
-static PValue math_Pow(PInterpreter *it, PValue *args, int argc) {
-    PValue *a = &args[0];
-    PValue *b = &args[1];
 
-    if (a->type == VT_NUM && b->type == VT_NUM) {
-        double av = a->v.num;
-        double bv = b->v.num;
-        double result = pow(av, bv);
-        return MakeNumber(result);
-    }
-
-    return MakeNil();
+static PValue math_Sqrt(PInterpreter *it, PValue *args, int argc) {
+	PValue * rawVal = &args[0];
+	if (rawVal->type != VT_NUM) {
+		// MakeError
+		return MakeNil();
+	}
+	double result = sqrt(rawVal->v.num);
+	return MakeNumber(result);
 }
 
-static const StdlibEntry entries[] = {
-    (StdlibEntry){.name = "pow", .nlen = 3, .fn = math_Pow, .arity = 2}
-};
+static PValue math_Log10(PInterpreter *it, PValue *args, int argc) {
+	return MakeNil();
+}
+static PValue math_Log(PInterpreter *it, PValue *args, int argc) {
+	return MakeNil();
+}
+static PValue math_LogBase(PInterpreter *it, PValue *args, int argc) {
+	return MakeNil();
+}
+static PValue math_GCD(PInterpreter *it, PValue *args, int argc) {
+	return MakeNil();
+}
+static PValue math_LCM(PInterpreter *it, PValue *args, int argc) {
+	return MakeNil();
+}
+static PValue math_Sine(PInterpreter *it, PValue *args, int argc) {
+	return MakeNil();
+}
+static PValue math_Cosine(PInterpreter *it, PValue *args, int argc) {
+	return MakeNil();
+}
+static PValue math_Tangent(PInterpreter *it, PValue *args, int argc) {
+	return MakeNil();
+}
+static PValue math_Degree(PInterpreter *it, PValue *args, int argc) {
+	return MakeNil();
+}
+static PValue math_Radians(PInterpreter *it, PValue *args, int argc) {
+	return MakeNil();
+}
+static PValue math_Number(PInterpreter *it, PValue *args, int argc) {
+	return MakeNil();
+}
+static PValue math_Abs(PInterpreter *it, PValue *args, int argc) {
+	return MakeNil();
+}
+static PValue math_Round(PInterpreter *it, PValue *args, int argc) {
+	return MakeNil();
+}
+static PValue math_Floor(PInterpreter *it, PValue *args, int argc) {
+	return MakeNil();
+}
+static PValue math_Ceil(PInterpreter *it, PValue *args, int argc) {
+	return MakeNil();
+}
+#define MATH_STD_SQRT "বর্গমূল"
+#define MATH_STD_LOGTEN "লগদশ"
+#define MATH_STD_LOG "লগ"
+#define MATH_STD_LOGBASE "লগবেস"
+#define MATH_STD_GCD "গসাগু"
+#define MATH_STD_LCM "লসাগু"
+#define MATH_STD_SINE "সাইন"
+#define MATH_STD_COSINE "কস"
+#define MATH_STD_TANGENT "ট্যান"
+#define MATH_STD_DEGREE "ডিগ্রি"
+#define MATH_STD_RADIANS "রেডিয়ান"
+#define MATH_STD_NUM "সংখ্যা"
+#define MATH_STD_ABS "পরম"
+#define MATH_STD_ROUND "রাউন্ড"
+#define MATH_STD_FLOOR "ফ্লোর"
+#define MATH_STD_CEIL "সিল"
+
+
 
 void PushStdlibMath(PInterpreter *it, PEnv *env) {
+	StdlibEntry entries[] = {
+		MakeStdlibEntry(MATH_STD_SQRT, math_Sqrt, 1),
+		MakeStdlibEntry(MATH_STD_LOGTEN, math_Log10, 1),
+		MakeStdlibEntry(MATH_STD_LOG, math_Log, 1),
+		MakeStdlibEntry(MATH_STD_LOGBASE, math_LogBase, 2),
+		MakeStdlibEntry(MATH_STD_GCD, math_GCD, 2),
+		MakeStdlibEntry(MATH_STD_LCM, math_LCM, 2),
+		MakeStdlibEntry(MATH_STD_SINE, math_Sine, 1),
+		MakeStdlibEntry(MATH_STD_COSINE, math_Cosine, 1),
+		MakeStdlibEntry(MATH_STD_TANGENT, math_Tangent, 1),
+		MakeStdlibEntry(MATH_STD_DEGREE, math_Degree, 1),
+		MakeStdlibEntry(MATH_STD_RADIANS, math_Radians, 1),
+		MakeStdlibEntry(MATH_STD_NUM, math_Number, 1),
+		MakeStdlibEntry(MATH_STD_ABS, math_Abs, 1),
+		MakeStdlibEntry(MATH_STD_ROUND, math_Round, 1),
+		MakeStdlibEntry(MATH_STD_FLOOR, math_Floor, 1),
+		MakeStdlibEntry(MATH_STD_CEIL, math_Ceil, 1)
+
+	};
     int count = ArrCount(entries);
     for (int i = 0; i < count; i++) {
         const StdlibEntry *entry = &entries[i];

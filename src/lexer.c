@@ -202,8 +202,8 @@ static bool addStringToken(
     tok->lexeme = str;
     tok->line = line;
     tok->col = col;
-    tok->len = len;
-    tok->hash = StrHash(str, len, (uint64_t)lx->timestamp);
+    tok->len = len - 2;
+    tok->hash = StrHash(str, tok->len, (uint64_t)lx->timestamp);
     arrput(lx->tokens, tok);
     return true;
 }
