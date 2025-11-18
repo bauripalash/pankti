@@ -1,5 +1,5 @@
 #include "include/utils.h"
-#include "external/xxhash.h"
+#include "external/xxhash/xxhash.h"
 #include "include/alloc.h"
 #include "include/bengali.h"
 #include "include/ustring.h"

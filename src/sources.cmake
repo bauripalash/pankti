@@ -26,7 +26,7 @@ set(PANKTI_SRC_FILES
   "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdstring.c"
 
   # External
-  "${CMAKE_CURRENT_LIST_DIR}/external/xxhash.c"
+  "${CMAKE_CURRENT_LIST_DIR}/external/xxhash/xxhash.c"
 )
 
 set(PANKTI_HEADER_FILES

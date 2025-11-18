@@ -1,6 +1,6 @@
 #include "include/object.h"
 #include "external/stb/stb_ds.h"
-#include "external/xxhash.h"
+#include "external/xxhash/xxhash.h"
 #include "include/utils.h"
 #include <math.h>
 #include <stdbool.h>

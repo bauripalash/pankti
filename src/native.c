@@ -1,5 +1,5 @@
 #include "include/native.h"
-#include "external/xxhash.h"
+#include "external/xxhash/xxhash.h"
 #include "include/env.h"
 #include "include/gc.h"
 #include "include/interpreter.h"
