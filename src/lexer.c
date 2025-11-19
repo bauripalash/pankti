@@ -170,7 +170,7 @@ static bool addTokenWithLexeme(Lexer *lx, TokenType type, char *str, int len) {
     tok->line = lx->line;
     if (len != -1) {
         tok->len = len;
-        tok->hash = StrHash(str, len, (uint64_t)lx->timestamp);
+        tok->hash = StrHash(str, len, lx->timestamp);
     } else {
         if (IsDoubleTok(type)) {
             tok->len = 2;
@@ -203,7 +203,7 @@ static bool addStringToken(
     tok->line = line;
     tok->col = col;
     tok->len = len - 2;
-    tok->hash = StrHash(str, tok->len, (uint64_t)lx->timestamp);
+    tok->hash = StrHash(str, tok->len, lx->timestamp);
     arrput(lx->tokens, tok);
     return true;
 }

@@ -1,6 +1,7 @@
 #ifndef LEXER_H
 #define LEXER_H
 
+#include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -36,7 +37,7 @@ typedef struct Lexer {
     UIter *iter;
 
     // Timestamp seed for hashing
-    time_t timestamp;
+    uint64_t timestamp;
 
     // Reference to Pankti Core
     void *core;

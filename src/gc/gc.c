@@ -1,6 +1,7 @@
 #include "../include/gc.h"
 #include "../include/alloc.h"
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -11,7 +12,7 @@ Pgc *NewGc() {
     gc->nextGc = 1024 * 1024;
     gc->objects = NULL;
     gc->stmts = NULL;
-    gc->timestamp = time(NULL);
+    gc->timestamp = (uint64_t)time(NULL);
 
     return gc;
 }

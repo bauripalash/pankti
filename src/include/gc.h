@@ -5,6 +5,7 @@
 #include "object.h"
 #include "token.h"
 #include <stddef.h>
+#include <stdint.h>
 #include <time.h>
 #ifdef __cplusplus
 extern "C" {
@@ -20,7 +21,7 @@ typedef struct Pgc {
     PObj *objects;
     PStmt *stmts;
     size_t nextGc;
-    time_t timestamp;
+	uint64_t timestamp;
 } Pgc;
 
 Pgc *NewGc();

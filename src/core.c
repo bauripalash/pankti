@@ -10,6 +10,7 @@
 #include "include/token.h"
 #include "include/utils.h"
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -74,7 +75,7 @@ void RunCore(PanktiCore *core) {
         printf("Internal Error : Failed to create Pankti Lexer\n");
         exit(1);
     }
-    stbds_rand_seed(time(NULL));
+    stbds_rand_seed((size_t)time(NULL));
     core->lexer->core = core;
 #if defined DEBUG_TIMES
     clock_t lxTic = clock();
