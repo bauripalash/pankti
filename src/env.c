@@ -3,6 +3,7 @@
 #include "include/alloc.h"
 #include "include/object.h"
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -33,8 +34,9 @@ void DebugEnv(PEnv *e) {
     if (e->table == NULL) {
         return;
     }
-    for (int i = 0; i < hmlen(e->table); i++) {
-        printf("\n%d < %d '", i, e->table[i].key);
+	size_t count = (size_t)hmlen(e->table);
+    for (size_t i = 0; i < count; i++) {
+        printf("\n%zu < %ld '", i, e->table[i].key);
         PrintValue(&e->table[i].value);
         printf("' >\n");
     }
@@ -44,15 +46,15 @@ void DebugEnv(PEnv *e) {
     }
 }
 
-void EnvPutValue(PEnv *e, uint32_t hash, PValue value) {
+void EnvPutValue(PEnv *e, uint64_t hash, PValue value) {
     if (e == NULL) {
         return;
     }
     hmput(e->table, hash, value);
-    e->count = hmlen(e->table);
+    e->count = (size_t)hmlen(e->table);
 }
 
-bool EnvSetValue(PEnv *e, uint32_t hash, PValue value) {
+bool EnvSetValue(PEnv *e, uint64_t hash, PValue value) {
     if (e == NULL) {
         return false;
     }
@@ -76,7 +78,7 @@ bool EnvSetValue(PEnv *e, uint32_t hash, PValue value) {
     return false;
 }
 
-PValue EnvGetValue(PEnv *e, uint32_t hash, bool *found) {
+PValue EnvGetValue(PEnv *e, uint64_t hash, bool *found) {
     if (e == NULL) {
         *found = false;
         return MakeNil();

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.24...3.30)
 project(pankti)
 
 include(FetchContent)
-set(CMAKE_EXPORT_COMPILE_COMMANDS)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE 
