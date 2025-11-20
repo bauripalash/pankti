@@ -3,6 +3,7 @@
 #include "include/alloc.h"
 #include "include/bengali.h"
 #include "include/ustring.h"
+#include "include/numbers.h"
 
 #include <ctype.h>
 #include <math.h>
@@ -26,13 +27,13 @@ char *ReadFile(const char *path) {
             fseek(file, 0, SEEK_SET);
 
             if (size >= 0) {
-                text = (char *)PCalloc(size + 1, sizeof(char));
+                text = (char *)PCalloc((size_t)size + 1, sizeof(char));
                 if (text == NULL) {
 					fclose(file);
                     return NULL;
                 }
 
-                fread(text, size, 1, file);
+                fread(text, (size_t)size, 1, file);
                 text[size] = '\0';
             }
 
@@ -44,7 +45,7 @@ char *ReadFile(const char *path) {
     return text;
 }
 
-char *SubString(const char *str, int start, int end) {
+char *SubString(const char *str, size_t start, size_t end) {
     if (str == NULL) {
         return NULL;
     }
@@ -81,14 +82,14 @@ char *StrDuplicate(const char *str, size_t len) {
     return dup;
 }
 
-long StrLength(const char *str) { return strlen(str); }
+size_t StrLength(const char *str) { return strlen(str); }
 
 bool MatchKW(const char *s, const char *en, const char *pn, const char *bn) {
     return StrEqual(s, en) || StrEqual(s, pn) || StrEqual(s, bn);
 }
 
-char32_t U8ToU32(const unsigned char *str) {
-    return ((str[0] & 0x0F) << 12) | ((str[1] & 0x3F) << 6) | (str[2] & 0x3F);
+char32 U8ToU32(const unsigned char *str) {
+    return ((char32)(str[0] & 0x0F) << 12) | ((char32)(str[1] & 0x3F) << 6) | (char32)(str[2] & 0x3F);
 }
 
 char *BoolToString(bool v) {
@@ -181,7 +182,7 @@ char *StrJoin(
     return output;
 }
 
-double NumberFromStr(const char *lexeme, int len, bool *ok) {
+double NumberFromStr(const char *lexeme, size_t len, bool *ok) {
 
     char *buf = PCalloc((len + 1), sizeof(char));
     if (buf == NULL) {
@@ -214,26 +215,25 @@ unsigned char ToHex2Bytes(char c1, char c2) {
     unsigned char nb1, nb2;
 
     if (isalpha(c1)) {
-        nb1 = (tolower(c1) - 'a') + 10;
+        nb1 = (unsigned char)(tolower(c1) - 'a') + 10;
     } else if (isdigit(c1)) {
-        nb1 = c1 - '0';
+        nb1 = (unsigned char)(c1 - '0');
     } else {
         return 0;
     }
 
     if (isalpha(c2)) {
-        nb2 = (tolower(c2) - 'a') + 10;
+        nb2 = (unsigned char)(tolower(c2) - 'a') + 10;
     } else if (isdigit(c2)) {
-        nb2 = c2 - '0';
+        nb2 = (unsigned char)(c2 - '0');
     } else {
         return 0;
     }
 
-    return (nb1 << 4) | nb2;
+    return (unsigned char)(nb1 << 4) | nb2;
 }
 
 unsigned char HexStrToByte(char *str, int len) {
-
     if (len == 2) {
         return ToHex2Bytes(str[0], str[1]);
     }

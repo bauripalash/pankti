@@ -50,7 +50,7 @@ bool IsBnChar(uint32_t c);
 
 // Convert UTF32 encoded number to english number;
 // Returns => char with number value, return as is if the `c` is English number
-uint8_t GetEnFromBnNum(uint32_t c);
+char GetEnFromBnNum(uint32_t c);
 
 #ifdef __cplusplus
 }

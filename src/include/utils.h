@@ -29,7 +29,7 @@ char *ReadFile(const char *path);
 // `str` = String which the substring will be created from
 // `start` = Start index
 // `end` = End index
-char *SubString(const char *str, int start, int end);
+char *SubString(const char *str, size_t start, size_t end);
 
 // Return a malloc'd Duplicate string
 char *StrDuplicate(const char *str, size_t len);
@@ -41,7 +41,7 @@ uint64_t StrHash(const char *str, size_t len, uint64_t seed);
 bool StrEqual(const char *str1, const char *str2);
 
 // Get the length of a string. Return how many bytes, not actual codepoints
-long StrLength(const char *str);
+size_t StrLength(const char *str);
 
 // Format String; same as Raylib's TextFormat
 const char *StrFormat(const char *text, ...);
@@ -69,7 +69,7 @@ char32_t U8ToU32(const unsigned char *str);
 // Convert Bool to String; `"true"` or `"false"`
 char *BoolToString(bool v);
 
-double NumberFromStr(const char *lexeme, int len, bool *ok);
+double NumberFromStr(const char *lexeme, size_t len, bool *ok);
 
 // Check if double is integer
 bool IsDoubleInt(double d);
