@@ -67,8 +67,8 @@ void FreeLexer(Lexer *lexer) {
     
 
     if (lexer->tokens != NULL) {
-        int count = arrlen(lexer->tokens);
-        for (int i = 0; i < count; i++) {
+        long count = arrlen(lexer->tokens);
+        for (long i = 0; i < count; i++) {
             FreeToken(arrpop(lexer->tokens));
         }
         arrfree(lexer->tokens);
@@ -83,8 +83,8 @@ void FreeLexer(Lexer *lexer) {
 
 void ResetLexer(Lexer * lexer){
 	if (lexer->tokens != NULL) {
-	    int count = arrlen(lexer->tokens);
-        for (int i = 0; i < count; i++) {
+	    long count = arrlen(lexer->tokens);
+        for (long i = 0; i < count; i++) {
             FreeToken(arrpop(lexer->tokens));
         }
         arrfree(lexer->tokens);
@@ -160,7 +160,7 @@ static bool match(Lexer *lx, char32_t target) {
     return true;
 }
 
-static bool addTokenWithLexeme(Lexer *lx, TokenType type, char *str, int len) {
+static bool addTokenWithLexeme(Lexer *lx, TokenType type, char *str, size_t len) {
     Token *tok = NewToken(type);
     if (tok == NULL) {
         return false;
@@ -168,7 +168,7 @@ static bool addTokenWithLexeme(Lexer *lx, TokenType type, char *str, int len) {
 
     tok->lexeme = str;
     tok->line = lx->line;
-    if (len != -1) {
+    if (str != NULL) {
         tok->len = len;
         tok->hash = StrHash(str, len, lx->timestamp);
     } else {
@@ -178,7 +178,7 @@ static bool addTokenWithLexeme(Lexer *lx, TokenType type, char *str, int len) {
             tok->len = 1;
         }
     }
-    long column = lx->column;
+    size_t column = lx->column;
 
     column -= tok->len;
 
@@ -188,11 +188,11 @@ static bool addTokenWithLexeme(Lexer *lx, TokenType type, char *str, int len) {
 }
 
 static bool addToken(Lexer *lx, TokenType type) {
-    return addTokenWithLexeme(lx, type, NULL, -1);
+    return addTokenWithLexeme(lx, type, NULL, 0);
 }
 
 static bool addStringToken(
-    Lexer *lx, char *str, long line, long col, long len
+    Lexer *lx, char *str, size_t line, size_t col, size_t len
 ) {
     Token *tok = NewToken(T_STR);
     if (tok == NULL) {
@@ -209,8 +209,8 @@ static bool addStringToken(
 }
 
 static void readString(Lexer *lx) {
-    long column = lx->column - 1;
-    long line = lx->line;
+    size_t column = lx->column - 1;
+    size_t line = lx->line;
     while (peek(lx) != '"' && !atEnd(lx)) {
         if (peek(lx) == '\n') {
             lx->line++;
