@@ -10,7 +10,7 @@
 
 
 // Golden ratio?
-#define CONST_NAN_HASH 0x9e3779b97f4a7c15ULL
+#define CONST_NAN_HASH 		  0x9e3779b97f4a7c15ULL
 // MurmurHash3
 #define CONST_ZERO_HASH       0xff51afd7ed558ccdULL
 

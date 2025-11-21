@@ -9,6 +9,7 @@
 #include "include/parser.h"
 #include "include/token.h"
 #include "include/utils.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -163,10 +164,9 @@ static void reportError(PanktiCore *core, size_t line, const char *msg) {
     core->caughtError = true;
 }
 
-static void reportRuntimeError(PanktiCore *core, Token *tok) {}
 
 static void printErrMsg(PanktiCore *core, size_t line, size_t col, const char *msg, bool hasPos) {
-    printf("[");
+    printf("[ ");
 	if (hasPos) {
 		if (line >= 1) {
 			printf("line: %zu", line);
