@@ -2,6 +2,10 @@
 #include <locale.h>
 #include <stdio.h>
 
+// #define STBDS_SIPHASH_2_4
+#define STB_DS_IMPLEMENTATION
+#include "external/stb/stb_ds.h"
+
 #ifdef PANKTI_OS_WIN
 void setupWindows() {
 #include <io.h>

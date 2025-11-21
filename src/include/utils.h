@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 // Constant value of Pi used across the codebase
-#define CONST_PI 3.14159265358979323846f
+#define CONST_PI 		   3.14159265358979323846f
 // Constant value of e used across the codebase
 #define CONST_E            2.71828182845904523536f
 

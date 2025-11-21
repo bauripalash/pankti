@@ -15,9 +15,6 @@
 #include "include/token.h"
 #include "include/ustring.h"
 #include "include/utils.h"
-
-// #define STBDS_SIPHASH_2_4
-#define STB_DS_IMPLEMENTATION
 #include "external/stb/stb_ds.h"
 
 Lexer *NewLexer(char *src) {
@@ -385,7 +382,7 @@ static void scanToken(Lexer *lx) {
 						lx->core, lx->line, lx->column, "Invalid character found"
 					);
 				} else {
-					printf("Invalid character found at line %ld column %ld", lx->line, lx->column);
+					printf("Invalid character found at line %zu column %zu", lx->line, lx->column);
 				}
                
                 break;

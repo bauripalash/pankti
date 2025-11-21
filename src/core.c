@@ -149,45 +149,48 @@ void RunCore(PanktiCore *core) {
     }
 }
 
-static void reportError(PanktiCore *core, int line, const char *msg) {
+static void reportError(PanktiCore *core, size_t line, const char *msg) {
     if (line > 0) {
-        int lineIndex = line - 1;
+    	size_t lineIndex = line - 1;
         int lineCount = 0;
         char **lines = StrSplit(core->lexer->source, '\n', &lineCount);
         if (line < lineCount) {
-            printf("%d | %s", line, lines[lineIndex]);
+            printf("%ld | %s", line, lines[lineIndex]);
             printf("<--\n");
         }
     }
-    printf("[%d] Error : %s\n", line, msg);
+    printf("[%zu] Error : %s\n", line, msg);
     core->caughtError = true;
 }
 
 static void reportRuntimeError(PanktiCore *core, Token *tok) {}
 
-static void printErrMsg(PanktiCore *core, int line, int col, const char *msg) {
+static void printErrMsg(PanktiCore *core, size_t line, size_t col, const char *msg, bool hasPos) {
     printf("[");
-    if (line >= 1) {
-        printf("line: %d", line);
-    }
-    if (col >= 1) {
-        printf(" : column: %d", col);
-    }
+	if (hasPos) {
+		if (line >= 1) {
+			printf("line: %zu", line);
+		}
+		if (col >= 1) {
+			printf(" : column: %zu", col);
+		}
+	}
+
     printf("] ");
     printf(TERMC_RED "Error: %s" TERMC_RESET "\n", msg);
 }
 
 void CoreError(PanktiCore *core, Token *token, const char *msg) {
     // reportError(core, token == NULL ? -1 : token->line, msg);
-    int line = -1;
-    int col = -1;
+    size_t line = 0;
+    size_t col = 0;
     if (token != NULL) {
         line = token->line;
         col = token->col;
     }
-    printErrMsg(core, line, col, msg);
+    printErrMsg(core, line, col, msg, token != NULL);
 }
 
-void CoreLexerError(PanktiCore *core, long line, long col, const char *msg) {
+void CoreLexerError(PanktiCore *core, size_t line, size_t col, const char *msg) {
     reportError(core, line, msg);
 }

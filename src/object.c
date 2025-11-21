@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
+
 // Golden ratio?
 #define CONST_NAN_HASH 0x9e3779b97f4a7c15ULL
 // MurmurHash3
@@ -64,7 +65,8 @@ uint64_t GetObjectHash(const PObj *obj, uint64_t seed) {
         return (uint64_t)hash;
     }
 
-    return -1;
+	// Function should never reach here. Runtime checks should check for types
+    return UINT64_MAX;
 }
 
 uint64_t GetValueHash(const PValue *val, uint64_t seed) {
