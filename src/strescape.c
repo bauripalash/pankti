@@ -19,15 +19,15 @@ static int hexToInt(char c) {
 }
 
 static inline StrEscapeErr parseNHex(
-    const char *input, size_t slen, size_t *ri, int n, uint32_t *out
+    const char *input, size_t slen, size_t *ri, size_t n, uint32_t *out
 ) {
     if (*ri + n >= slen) {
         return SESC_INPUT_FINISHED_EARLY;
     }
     uint32_t val = 0;
-    for (int k = 0; k < n; k++) {
+    for (size_t k = 0; k < n; k++) {
         char c = input[*ri + 1 + k];
-        int digit = hexToInt(c);
+        uint32_t digit = (uint32_t)hexToInt(c);
         if (digit == -1) {
             return SESC_INVALID_HEX_CHAR; // Invalid Hex Digits
         }
@@ -166,7 +166,7 @@ StrEscapeErr ProcessStringEscape(
                     combCp += (low - 0xDC00);
                     val = combCp;
 
-                } else if (val >= 0xDC00 && val <= 0xDBFF) {
+                } else if ((val >= 0xDC00) && (val <= 0xDBFF)) {
                     return SESC_LONE_LOW_SURROGATE;
                 } // end low surrogate check
 

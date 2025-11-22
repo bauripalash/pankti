@@ -14,7 +14,7 @@ static uint32_t uiterGetACp(const char *str, size_t len, size_t *ate) {
         return 0;
     }
 
-    unsigned char c1 = str[0];
+    unsigned char c1 = (unsigned char)str[0];
 
     // 1 byte ASCII
     // 0x80 => 1 0 0 0 0 0 0 0
@@ -36,7 +36,7 @@ static uint32_t uiterGetACp(const char *str, size_t len, size_t *ate) {
         }
 
         *ate = 2;
-        return ((c1 & 0x1F) << 6) | (str[1] & 0x3F);
+        return (uint32_t)((c1 & 0x1F) << 6) | (uint32_t)(str[1] & 0x3F);
     }
 
     // 3 byte char
@@ -51,7 +51,7 @@ static uint32_t uiterGetACp(const char *str, size_t len, size_t *ate) {
         }
 
         *ate = 3;
-        return ((c1 & 0x0F) << 12) | ((str[1] & 0x3F) << 6 | (str[2] & 0x3F));
+        return (uint32_t)((c1 & 0x0F) << 12) | (uint32_t)((str[1] & 0x3F) << 6) | (uint32_t)(str[2] & 0x3F);
     }
 
     if ((c1 & 0xF8) == 0xF0) {
@@ -68,8 +68,8 @@ static uint32_t uiterGetACp(const char *str, size_t len, size_t *ate) {
 
         *ate = 4;
         return (
-            (c1 & 0x07) << 18 | (str[1] & 0x3F) << 12 | (str[2] & 0x3F) << 6 |
-            (str[3] & 0x3F)
+            (uint32_t)((c1 & 0x07) << 18) | (uint32_t)((str[1] & 0x3F) << 12) | (uint32_t)((str[2] & 0x3F) << 6) |
+            (uint32_t)(str[3] & 0x3F)
         );
     }
 

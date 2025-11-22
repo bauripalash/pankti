@@ -166,17 +166,19 @@ static void reportError(PanktiCore *core, size_t line, const char *msg) {
 
 
 static void printErrMsg(PanktiCore *core, size_t line, size_t col, const char *msg, bool hasPos) {
-    printf("[ ");
 	if (hasPos) {
+    	printf("[ ");
+		
 		if (line >= 1) {
 			printf("line: %zu", line);
 		}
+
 		if (col >= 1) {
 			printf(" : column: %zu", col);
 		}
+		printf("] ");
 	}
 
-    printf("] ");
     printf(TERMC_RED "Error: %s" TERMC_RESET "\n", msg);
 }
 
