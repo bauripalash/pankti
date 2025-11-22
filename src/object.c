@@ -4,6 +4,7 @@
 #include "include/utils.h"
 #include <math.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -92,6 +93,8 @@ uint64_t GetValueHash(const PValue *val, uint64_t seed) {
         };
         case VT_OBJ: return GetObjectHash(val->v.obj, seed);
     }
+
+	return UINT64_MAX;
 }
 
 bool IsValueTruthy(const PValue *val) {
@@ -155,7 +158,7 @@ bool MapObjSetValue(PObj *o, PValue key, uint64_t keyHash, PValue value) {
     struct OMap *map = &o->v.OMap;
     MapEntry s = (MapEntry){keyHash, key, value};
     hmputs(map->table, s);
-    map->count = hmlen(map->table);
+    map->count = (size_t)hmlen(map->table);
     return true;
 }
 

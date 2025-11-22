@@ -48,11 +48,11 @@ PObj *NewStrObject(Pgc *gc, Token *name, char *value, bool virt);
 // `env` = Environment
 // `count` = Count of parameters
 PObj *NewFuncObject(
-    Pgc *gc, Token *name, Token **params, PStmt *body, void *env, int count
+    Pgc *gc, Token *name, Token **params, PStmt *body, void *env, size_t count
 );
 
 // Create New Array Object
-PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, int count);
+PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, size_t count);
 
 // Create New Map Object
 PObj *NewMapObject(Pgc *gc, Token *op);

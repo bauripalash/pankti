@@ -48,6 +48,8 @@ static char *ExResultToStr(ExType t) {
         case ET_BREAK: return "Break";
         case ET_RETURN: return "return";
     }
+
+	return "Unknown";
 }
 
 // Create a Simple Execution Result
@@ -88,7 +90,7 @@ static PModule *NewModule(PInterpreter *it, char *name) {
 
 static void PushModule(PInterpreter *it, PModule *mod) {
     arrput(it->mods, mod);
-    it->modCount = arrlen(it->mods);
+    it->modCount = (size_t)arrlen(it->mods);
 }
 
 static void PushProxy(
@@ -100,7 +102,7 @@ static void PushProxy(
 
     ModProxyEntry s = {.key = key, .name = name, .mod = mod};
     hmputs(it->proxyTable, s);
-    it->proxyCount = hmlen(it->proxyTable);
+    it->proxyCount = (size_t)hmlen(it->proxyTable);
 }
 
 // Execute Statement
@@ -484,12 +486,12 @@ static PValue vLogical(PInterpreter *it, PExpr *expr, PEnv *env) {
 
 // Evaluate a function call and return result (if any)
 static PValue handleCall(
-    PInterpreter *it, PObj *func, PValue *args, int count
+    PInterpreter *it, PObj *func, PValue *args, size_t count
 ) {
     assert(func->type == OT_FNC);
     struct OFunction *f = &func->v.OFunction;
     PEnv *fnEnv = NewEnv((PEnv *)f->env);
-    for (int i = 0; i < count; i++) {
+    for (size_t i = 0; i < count; i++) {
         EnvPutValue(fnEnv, f->params[i]->hash, args[i]);
     }
 
@@ -546,7 +548,7 @@ static PValue callFunction(
         argPtr = argStack;
     }
 
-    for (int i = 0; i < call->argCount; i++) {
+    for (size_t i = 0; i < call->argCount; i++) {
         argPtr[i] = evaluate(it, call->args[i], env);
     }
 
@@ -652,7 +654,7 @@ static PValue vMap(PInterpreter *it, PExpr *expr, PEnv *env) {
     MapEntry *table = NULL;
     MapEntry s;
 
-    for (int i = 0; i < map->count; i += 2) {
+    for (size_t i = 0; i < map->count; i += 2) {
         PValue k = evaluate(it, map->etable[i], env);
         uint64_t keyHash = GetValueHash(&k, (uint64_t)it->gc->timestamp);
         if (!CanValueBeKey(&k)) {
@@ -669,7 +671,7 @@ static PValue vMap(PInterpreter *it, PExpr *expr, PEnv *env) {
 
     PObj *mapObj = NewMapObject(it->gc, map->op);
     mapObj->v.OMap.table = table;
-    mapObj->v.OMap.count = hmlen(table);
+    mapObj->v.OMap.count = (size_t)hmlen(table);
     return MakeObject(mapObj);
 }
 

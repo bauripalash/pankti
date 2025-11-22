@@ -1,6 +1,5 @@
 #include "../external/stb/stb_ds.h"
 #include "../include/alloc.h"
-#include "../include/ansicolors.h"
 #include "../include/env.h"
 #include "../include/gc.h"
 #include "../include/object.h"
@@ -8,6 +7,10 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
+
+#if defined DEBUG_GC
+#include "../include/ansicolors.h"
+#endif
 
 PObj *NewObject(Pgc *gc, PObjType type) {
     PObj *o = PCreate(PObj);
@@ -32,7 +35,7 @@ PObj *NewStrObject(Pgc *gc, Token *name, char *value, bool virt) {
 }
 
 PObj *NewFuncObject(
-    Pgc *gc, Token *name, Token **params, PStmt *body, void *env, int count
+    Pgc *gc, Token *name, Token **params, PStmt *body, void *env, size_t count
 ) {
     PObj *o = NewObject(gc, OT_FNC);
     o->v.OFunction.name = name;
@@ -43,7 +46,7 @@ PObj *NewFuncObject(
     return o;
 }
 
-PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, int count) {
+PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, size_t count) {
     PObj *o = NewObject(gc, OT_ARR);
 
     o->v.OArray.items = items;

@@ -5,6 +5,7 @@
 #include "object.h"
 #include "utils.h"
 #include <stdbool.h>
+#include <stddef.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -24,7 +25,7 @@ typedef enum StdlibMod {
 
 typedef struct StdlibEntry {
     char *name;
-    int nlen;
+    size_t nlen;
     NativeFn fn;
     int arity;
 } StdlibEntry;

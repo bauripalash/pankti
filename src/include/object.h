@@ -1,6 +1,7 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
+#include <stddef.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -26,7 +27,7 @@ typedef struct PValue {
     } v;
 } PValue;
 
-typedef PValue (*NativeFn)(PInterpreter *it, PValue *args, int argc);
+typedef PValue (*NativeFn)(PInterpreter *it, PValue *args, size_t argc);
 
 // Pankti Object Types
 typedef enum PObjType {
@@ -69,7 +70,7 @@ typedef struct PObj {
             // Token array of parameters
             Token **params;
             // Count of parameters
-            int paramCount;
+            size_t paramCount;
             // Function Environment. Will Always have a parent.
             void *env;
             // Array of Statements to execute on demand.
@@ -79,13 +80,13 @@ typedef struct PObj {
 
         struct OArray {
             Token *op;
-            int count;
+            size_t count;
             PValue *items;
         } OArray;
 
         struct OMap {
             Token *op;
-            int count;
+            size_t count;
             MapEntry *table;
         } OMap;
 
