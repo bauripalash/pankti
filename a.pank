@@ -1,2 +1,10 @@
-print &hello
-print $
+kaj add(a,b)
+	return a + b
+end
+
+kaj sayhello()
+	print "Hello"
+end
+
+print add(1,2)
+sayhello()

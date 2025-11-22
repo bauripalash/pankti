@@ -192,7 +192,7 @@ PStmt *NewBreakStmt(Pgc *gc, Token *op);
 // `count` = Number of parameters
 // Return => New Function Statement as Statement pointer or NULL
 PStmt *NewFuncStmt(
-    Pgc *gc, Token *name, Token **params, PStmt *body, int count
+    Pgc *gc, Token *name, Token **params, PStmt *body, size_t count
 );
 
 // New Import Statement

@@ -4,6 +4,7 @@
 #include "../include/ast.h"
 #include "../include/gc.h"
 #include "../include/token.h"
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -114,7 +115,7 @@ PStmt *NewBreakStmt(Pgc *gc, Token *op) {
 }
 
 PStmt *NewFuncStmt(
-    Pgc *gc, Token *name, Token **params, PStmt *body, int count
+    Pgc *gc, Token *name, Token **params, PStmt *body, size_t count
 ) {
     PStmt *s = NewStmt(gc, STMT_FUNC, name);
     if (s == NULL) {

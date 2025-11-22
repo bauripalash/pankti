@@ -2,6 +2,7 @@
 #include "external/stb/stb_ds.h"
 #include "include/ansicolors.h"
 #include "include/token.h"
+#include <stddef.h>
 #include <stdio.h>
 
 static char *LiteralTypeToStr(ExpLitType type) {
@@ -117,8 +118,8 @@ void AstPrint(PExpr *expr, int indent) {
             printf("}\n");
 
             printIndent(indent + 1);
-            printf("Args (%d) {\n", call->argCount);
-            for (int i = 0; i < call->argCount; i++) {
+            printf("Args (%zu) {\n", call->argCount);
+            for (size_t i = 0; i < call->argCount; i++) {
                 AstPrint(call->args[i], indent + 2);
             }
             printIndent(indent + 1);
@@ -131,11 +132,11 @@ void AstPrint(PExpr *expr, int indent) {
         case EXPR_ARRAY: {
             struct EArray *arr = &expr->exp.EArray;
             printf(
-                TERMC_RED "Array (" TERMC_GREEN "%d" TERMC_RED ") " TERMC_RESET,
+                TERMC_RED "Array (" TERMC_GREEN "%zu" TERMC_RED ") " TERMC_RESET,
                 arr->count
             );
             printf("{\n");
-            for (int i = 0; i < arr->count; i++) {
+            for (size_t i = 0; i < arr->count; i++) {
                 AstPrint(arr->items[i], indent + 2);
             }
             printIndent(indent);
@@ -145,11 +146,11 @@ void AstPrint(PExpr *expr, int indent) {
         case EXPR_MAP: {
             struct EMap *map = &expr->exp.EMap;
             printf(
-                TERMC_RED "Map (" TERMC_GREEN "%d" TERMC_RED ") " TERMC_RESET,
+                TERMC_RED "Map (" TERMC_GREEN "%zu" TERMC_RED ") " TERMC_RESET,
                 map->count / 2
             );
             printf("{\n");
-            for (int i = 0; i < map->count; i += 2) {
+            for (size_t i = 0; i < map->count; i += 2) {
                 printIndent(indent + 1);
                 printf("{\n");
                 AstPrint(map->etable[i], indent + 2);
@@ -234,7 +235,7 @@ void AstStmtPrint(PStmt *stmt, int indent) {
         }
         case STMT_BLOCK: {
             printf("Block [\n");
-            for (int i = 0; i < arrlen(stmt->stmt.SBlock.stmts); i++) {
+            for (long i = 0; i < arrlen(stmt->stmt.SBlock.stmts); i++) {
                 AstStmtPrint(stmt->stmt.SBlock.stmts[i], indent + 1);
             }
             printIndent(indent);
@@ -301,7 +302,7 @@ void AstStmtPrint(PStmt *stmt, int indent) {
                 "Func(" TERMC_GREEN "%s" TERMC_RESET ") <", fn->name->lexeme
             );
             printf(TERMC_GREEN);
-            for (int i = 0; i < fn->paramCount; i++) {
+            for (size_t i = 0; i < fn->paramCount; i++) {
                 printf("%s", fn->params[i]->lexeme);
                 if (i != fn->paramCount - 1) {
                     printf(TERMC_RESET ", " TERMC_GREEN);
