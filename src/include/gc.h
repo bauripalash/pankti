@@ -112,13 +112,13 @@ PExpr *NewLogical(Pgc *gc, PExpr *left, Token *op, PExpr *right);
 // `args` = The argument array
 // `count` = Count of arguments
 // Return => New Call Expression as Expression pointer or NULL
-PExpr *NewCallExpr(Pgc *gc, Token *op, PExpr *callee, PExpr **args, int count);
+PExpr *NewCallExpr(Pgc *gc, Token *op, PExpr *callee, PExpr **args, size_t count);
 
 // New Array Expression
-PExpr *NewArrayExpr(Pgc *gc, Token *op, PExpr **items, int count);
+PExpr *NewArrayExpr(Pgc *gc, Token *op, PExpr **items, size_t count);
 
 // Create New HashMap Expression
-PExpr *NewMapExpr(Pgc *gc, Token *op, PExpr **items, int count);
+PExpr *NewMapExpr(Pgc *gc, Token *op, PExpr **items, size_t count);
 
 PExpr *NewSubscriptExpr(Pgc *gc, Token *op, PExpr *value, PExpr *index);
 PExpr *NewModgetExpr(Pgc *gc, Token *op, PExpr *module, Token *child);

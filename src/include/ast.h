@@ -2,6 +2,7 @@
 #define AST_H
 
 #include <stdbool.h>
+#include <stddef.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -77,10 +78,11 @@ typedef struct PExpr {
         // Unary Operation Expression
         // Type: `EXPR_UNARY`
         struct EUnary {
-            // Original expression
-            struct PExpr *right;
             // Operator
             Token *op;
+			// Original expression
+            struct PExpr *right;
+
         } EUnary;
 
         // Literal Expression; Bool, Number, String, Nil etc.
@@ -104,9 +106,9 @@ typedef struct PExpr {
         // Array Expression
         // Type: `EXPR_ARRAY`
         struct EArray {
-            struct PExpr **items;
-            int count;
             Token *op;
+            struct PExpr **items;
+            size_t count;
         } EArray;
 
         // Map Expression
@@ -114,30 +116,31 @@ typedef struct PExpr {
         struct EMap {
             Token *op;
             struct PExpr **etable;
-            int count;
+            size_t count;
         } EMap;
 
         // Subscript Expression
         // Type: `EXPR_SUBSCRIPT`
         struct ESubscript {
+            Token *op;
             struct PExpr *value;
             struct PExpr *index;
-            Token *op;
         } ESubscript;
 
         struct EModget {
+            Token *op;
             struct PExpr *module;
             Token *child;
-            Token *op;
         } EModget;
 
         // Grouping Expression
         // Type: `EXPR_GROUPING`
         struct EGrouping {
-            // Original expression
-            struct PExpr *expr;
-            // Opening '('
+             // Opening '('
             Token *op;
+			// Original expression
+            struct PExpr *expr;
+
         } EGrouping;
 
         // Variable Expression
@@ -152,21 +155,22 @@ typedef struct PExpr {
         // Type: `EXPR_ASSIGN`
         // Set a value to preexisting value
         struct EAssign {
+            // The `=` token
+            Token *op;
             // Expression to assign the value to
             struct PExpr *name;
             // The value
             struct PExpr *value;
-            // The `=` token
-            Token *op;
+
         } EAssign;
 
         // Logical Expression
         // Type: `EXPR_LOGICAL`
         // Similar to Binary Expression but for logical operations, Or, And etc.
         struct ELogical {
+            Token *op;
             // Left hand side expression
             struct PExpr *left;
-            Token *op;
             // Right hand side expression
             struct PExpr *right;
         } ELogical;
@@ -182,7 +186,7 @@ typedef struct PExpr {
             // Expression list of arguments
             struct PExpr **args;
             // Number of arguments provided
-            int argCount;
+            size_t argCount;
         } ECall;
     } exp;
 } PExpr;
@@ -310,7 +314,7 @@ typedef struct PStmt {
             // Token array of parameters
             Token **params;
             // Number of parameters
-            int paramCount;
+            size_t paramCount;
             // The body. Will always be Block Statement <`STMT_BLOCK`>
             struct PStmt *body;
         } SFunc;
