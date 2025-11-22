@@ -166,7 +166,7 @@ StrEscapeErr ProcessStringEscape(
                     combCp += (low - 0xDC00);
                     val = combCp;
 
-                } else if ((val >= 0xDC00) && (val <= 0xDBFF)) {
+                } else if ((val >= 0xDC00) && (val <= 0xDFFF)) {
                     return SESC_LONE_LOW_SURROGATE;
                 } // end low surrogate check
 
