@@ -1,6 +1,7 @@
 #include "include/core.h"
 #include <locale.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 // #define STBDS_SIPHASH_2_4
 #define STB_DS_IMPLEMENTATION
@@ -35,6 +36,10 @@ int main(int argc, char **argv) {
     } else {
         char *filepath = argv[1];
         PanktiCore *core = NewCore(filepath);
+		if (core == NULL) {
+			printf("Error: Failed to initialize Pankti Runtime\n");
+			return 2;
+		}
         RunCore(core);
         FreeCore(core);
     }
