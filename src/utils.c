@@ -98,9 +98,9 @@ char *BoolToString(bool v) {
     return "false";
 }
 
-uint64_t StrHash(const char *str, pusize len, uint64_t seed) {
+pu64 StrHash(const char *str, pusize len, pu64 seed) {
     XXH64_hash_t hash = XXH64(str, len, (XXH64_hash_t)seed);
-    return (uint64_t)hash;
+    return (pu64)hash;
 }
 
 // Source:

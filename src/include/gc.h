@@ -22,7 +22,7 @@ typedef struct Pgc {
     PObj *objects;
     PStmt *stmts;
     pusize nextGc;
-	uint64_t timestamp;
+	pu64 timestamp;
 } Pgc;
 
 Pgc *NewGc();

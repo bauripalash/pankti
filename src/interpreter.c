@@ -94,7 +94,7 @@ static void PushModule(PInterpreter *it, PModule *mod) {
 }
 
 static void PushProxy(
-    PInterpreter *it, uint64_t key, char *name, PModule *mod
+    PInterpreter *it, pu64 key, char *name, PModule *mod
 ) {
     if (mod == NULL) {
         return; // error check
@@ -376,7 +376,7 @@ static void mapAssignment(
         return;
     }
 
-    uint64_t keyHash = GetValueHash(&keyValue, (uint64_t)it->gc->timestamp);
+    pu64 keyHash = GetValueHash(&keyValue, it->gc->timestamp);
     PValue value = evaluate(it, valueExpr, env);
     if (!MapObjSetValue(mapObj, keyValue, keyHash, value)) {
         error(it, keyExpr->op, "Internal Error : Failed to set value to map");
@@ -656,7 +656,7 @@ static PValue vMap(PInterpreter *it, PExpr *expr, PEnv *env) {
 
     for (pusize i = 0; i < map->count; i += 2) {
         PValue k = evaluate(it, map->etable[i], env);
-        uint64_t keyHash = GetValueHash(&k, (uint64_t)it->gc->timestamp);
+        pu64 keyHash = GetValueHash(&k, (pu64)it->gc->timestamp);
         if (!CanValueBeKey(&k)) {
             if (table != NULL) {
                 hmfree(table);
@@ -722,7 +722,7 @@ static PValue mapSubscript(
     }
 
     struct OMap *map = &mapObj->v.OMap;
-    uint64_t keyHash = GetValueHash(&keyValue, it->gc->timestamp);
+    pu64 keyHash = GetValueHash(&keyValue, it->gc->timestamp);
 
     if (hmgeti(map->table, keyHash) != -1) {
         return hmgets(map->table, keyHash).value;
@@ -938,7 +938,7 @@ static ExResult vsImportStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
         return ExSimple(MakeNil());
     }
     PushModule(it, mod);
-    uint64_t key = imp->name->hash;
+    pu64 key = imp->name->hash;
     PushProxy(it, key, imp->name->lexeme, mod);
     StdlibMod stdmod = GetStdlibMod(mod->pathname);
     if (stdmod != STDLIB_NONE) {

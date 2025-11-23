@@ -36,7 +36,7 @@ char *SubString(const char *str, pusize start, pusize end);
 char *StrDuplicate(const char *str, pusize len);
 
 // String Hash?
-uint64_t StrHash(const char *str, pusize len, uint64_t seed);
+pu64 StrHash(const char *str, pusize len, pu64 seed);
 
 // Check if `str1` and `str2` is same
 bool StrEqual(const char *str1, const char *str2);

@@ -12,7 +12,7 @@ Pgc *NewGc() {
     gc->nextGc = 1024 * 1024;
     gc->objects = NULL;
     gc->stmts = NULL;
-    gc->timestamp = (uint64_t)time(NULL);
+    gc->timestamp = (pu64)time(NULL);
 
     return gc;
 }

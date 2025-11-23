@@ -14,7 +14,7 @@ extern "C" {
 typedef struct PEnv {
     // Variable Table
     struct {
-        uint64_t key;
+        pu64 key;
         PValue value;
     } *table;
     // Count of pairs in table
@@ -38,16 +38,16 @@ void FreeEnv(PEnv *e);
 void DebugEnv(PEnv *e);
 
 // Create a Pair and push to the Environment table
-void EnvPutValue(PEnv *e, uint64_t hash, PValue value);
+void EnvPutValue(PEnv *e, pu64 hash, PValue value);
 
 // Fetch value from table corresponding the provided hash
 // Returns `NULL` if not found.
-PValue EnvGetValue(PEnv *e, uint64_t hash, bool *found);
+PValue EnvGetValue(PEnv *e, pu64 hash, bool *found);
 
 // Set value to existing variable in table;
 // Returns true if exists and was successful in updating value;
 // Returns false if key doesn't exist, or failed to update.
-bool EnvSetValue(PEnv *e, uint64_t hash, PValue value);
+bool EnvSetValue(PEnv *e, pu64 hash, PValue value);
 
 #ifdef __cplusplus
 }

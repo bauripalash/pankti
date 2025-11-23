@@ -46,7 +46,7 @@ void DebugEnv(PEnv *e) {
     }
 }
 
-void EnvPutValue(PEnv *e, uint64_t hash, PValue value) {
+void EnvPutValue(PEnv *e, pu64 hash, PValue value) {
     if (e == NULL) {
         return;
     }
@@ -54,7 +54,7 @@ void EnvPutValue(PEnv *e, uint64_t hash, PValue value) {
     e->count = (pusize)hmlen(e->table);
 }
 
-bool EnvSetValue(PEnv *e, uint64_t hash, PValue value) {
+bool EnvSetValue(PEnv *e, pu64 hash, PValue value) {
     if (e == NULL) {
         return false;
     }
@@ -78,7 +78,7 @@ bool EnvSetValue(PEnv *e, uint64_t hash, PValue value) {
     return false;
 }
 
-PValue EnvGetValue(PEnv *e, uint64_t hash, bool *found) {
+PValue EnvGetValue(PEnv *e, pu64 hash, bool *found) {
     if (e == NULL) {
         *found = false;
         return MakeNil();

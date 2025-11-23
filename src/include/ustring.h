@@ -26,7 +26,7 @@ typedef struct UIter {
 
     // Stack allocated peek buffer.
     // Index 0 is next codepoint.
-    uint32_t peekBuf[UITER_PEEK_BUFFER_SIZE];
+    pu32 peekBuf[UITER_PEEK_BUFFER_SIZE];
 
     // How many peekable codepoint is available
     int peekCount;
@@ -44,18 +44,18 @@ bool UIterIsEnd(const UIter *iter);
 
 // Peek the next codepoint
 // `offset` = returns `current codepoint index + offset`
-uint32_t UIterPeek(const UIter *iter, int offset);
+pu32 UIterPeek(const UIter *iter, int offset);
 
 // Advance the iterator
 void UIterAdvance(UIter *iter);
 
 // Advance the iterator and return the just passed codepoint
-uint32_t UIterNext(UIter *it);
+pu32 UIterNext(UIter *it);
 
 // Convert the UTF-32 encoded codepoint to UTF-8 encoded character array
 // `value` = UTF-32 encoded codepoint
 // `result` = buffer to write the UTF-8 encoded bytes
-void U32ToU8(uint32_t value, uint8_t result[4]);
+void U32ToU8(pu32 value, pu8 result[4]);
 
 // Debug/Print the peek buffer
 void DebugPeekBuffer(const UIter *it);

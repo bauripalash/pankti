@@ -59,18 +59,18 @@ bool CanValueBeKey(const PValue *val) {
     return true;
 }
 
-uint64_t GetObjectHash(const PObj *obj, uint64_t seed) {
+pu64 GetObjectHash(const PObj *obj, pu64 seed) {
     if (obj->type == OT_STR) {
         XXH64_hash_t hash =
             XXH64(obj->v.OString.value, strlen(obj->v.OString.value), seed);
-        return (uint64_t)hash;
+        return (pu64)hash;
     }
 
 	// Function should never reach here. Runtime checks should check for types
-    return UINT64_MAX;
+    return 0;
 }
 
-uint64_t GetValueHash(const PValue *val, uint64_t seed) {
+pu64 GetValueHash(const PValue *val, pu64 seed) {
     switch (val->type) {
         case VT_NUM: {
             double value = val->v.num;
@@ -80,16 +80,16 @@ uint64_t GetValueHash(const PValue *val, uint64_t seed) {
             if (isnan(value)) {
                 return CONST_ZERO_HASH;
             }
-            uint64_t bits;
+            pu64 bits;
             memcpy(&bits, &value, sizeof(bits));
-            return (uint64_t)XXH64(&bits, sizeof(bits), seed);
+            return (pu64)XXH64(&bits, sizeof(bits), seed);
         }
         case VT_NIL: {
             return CONST_NIL_HASH;
         }
         case VT_BOOL: {
-            uint8_t value = val->v.bl ? 1 : 0;
-            return (uint64_t)XXH64(&value, 1, seed);
+            pu8 value = val->v.bl ? 1 : 0;
+            return (pu64)XXH64(&value, 1, seed);
         };
         case VT_OBJ: return GetObjectHash(val->v.obj, seed);
     }
@@ -146,7 +146,7 @@ bool ArrayObjInsValue(PObj *o, int index, PValue value) {
     return true;
 }
 
-bool MapObjSetValue(PObj *o, PValue key, uint64_t keyHash, PValue value) {
+bool MapObjSetValue(PObj *o, PValue key, pu64 keyHash, PValue value) {
     if (o == NULL) {
         return false;
     }

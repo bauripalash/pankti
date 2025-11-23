@@ -19,15 +19,15 @@ static int hexToInt(char c) {
 }
 
 static inline StrEscapeErr parseNHex(
-    const char *input, pusize slen, pusize *ri, pusize n, uint32_t *out
+    const char *input, pusize slen, pusize *ri, pusize n, pu32 *out
 ) {
     if (*ri + n >= slen) {
         return SESC_INPUT_FINISHED_EARLY;
     }
-    uint32_t val = 0;
+    pu32 val = 0;
     for (pusize k = 0; k < n; k++) {
         char c = input[*ri + 1 + k];
-        uint32_t digit = (uint32_t)hexToInt(c);
+        pu32 digit = (pu32)hexToInt(c);
         if (digit == -1) {
             return SESC_INVALID_HEX_CHAR; // Invalid Hex Digits
         }
@@ -44,7 +44,7 @@ static inline StrEscapeErr parseNHex(
 // Buffer `str` should alaways have enough space, but just in case we check here
 // for if something goes wrong with output size
 static inline StrEscapeErr pushCodepoint(
-    char *output, pusize *wi, uint32_t cp, pusize outlen
+    char *output, pusize *wi, pu32 cp, pusize outlen
 ) {
     char *p = output + *wi;
     if (cp <= 0x7F) {
@@ -124,7 +124,7 @@ StrEscapeErr ProcessStringEscape(
             case 't': output[wi++] = '\t'; break;
             case 'v': output[wi++] = '\v'; break;
             case 'x': {
-                uint32_t val = 0;
+                pu32 val = 0;
                 err = parseNHex(input, inlen, &ri, 2, &val);
                 if (err != SESC_OK) {
                     return err;
@@ -135,7 +135,7 @@ StrEscapeErr ProcessStringEscape(
             }
 
             case 'u': {
-                uint32_t val = 0;
+                pu32 val = 0;
                 err = parseNHex(input, inlen, &ri, 4, &val);
                 if (err != SESC_OK) {
                     return err;
@@ -151,7 +151,7 @@ StrEscapeErr ProcessStringEscape(
 
                     ri += 2; // eat '\' and 'u'
 
-                    uint32_t low = 0;
+                    pu32 low = 0;
                     err = parseNHex(input, inlen, &ri, 4, &low);
                     if (err != SESC_OK) {
                         return err;
@@ -160,8 +160,8 @@ StrEscapeErr ProcessStringEscape(
                     if (low < 0xDC00 || low > 0xDFFF) {
                         return SESC_INVALID_LOW_SURROGATE;
                     }
-                    uint32_t high = val;
-                    uint32_t combCp = 0x10000;
+                    pu32 high = val;
+                    pu32 combCp = 0x10000;
                     combCp += (high - 0xD800) << 10;
                     combCp += (low - 0xDC00);
                     val = combCp;
@@ -180,7 +180,7 @@ StrEscapeErr ProcessStringEscape(
 
             } // end \uHHHH check
             case 'U': {
-                uint32_t val = 0;
+                pu32 val = 0;
                 err = parseNHex(input, inlen, &ri, 8, &val);
                 if (err != SESC_OK) {
                     return err;
