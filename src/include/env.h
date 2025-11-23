@@ -8,6 +8,7 @@ extern "C" {
 
 #include "object.h"
 #include <stdint.h>
+#include "ptypes.h"
 
 // Environment Structure
 typedef struct PEnv {
@@ -17,7 +18,7 @@ typedef struct PEnv {
         PValue value;
     } *table;
     // Count of pairs in table
-    size_t count;
+    pusize count;
     // Parent Environment
     struct PEnv *enclosing;
 } PEnv;

@@ -10,14 +10,14 @@
 #include <stdio.h>
 #include <time.h>
 
-static PValue ntvClock(PInterpreter *it, PValue *args, size_t argc) {
+static PValue ntvClock(PInterpreter *it, PValue *args, pusize argc) {
     clock_t c = clock();
     double sec = (double)c / (double)CLOCKS_PER_SEC;
     return MakeNumber(sec);
 }
 
-static PValue ntvShow(PInterpreter *it, PValue *args, size_t argc) {
-    for (size_t i = 0; i < argc; i++) {
+static PValue ntvShow(PInterpreter *it, PValue *args, pusize argc) {
+    for (pusize i = 0; i < argc; i++) {
         PrintValue(&args[i]);
         if (i + 1 < argc) {
             printf(" ");

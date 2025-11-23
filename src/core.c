@@ -150,9 +150,9 @@ void RunCore(PanktiCore *core) {
     }
 }
 
-static void reportError(PanktiCore *core, size_t line, const char *msg) {
+static void reportError(PanktiCore *core, pusize line, const char *msg) {
     if (line > 0) {
-    	size_t lineIndex = line - 1;
+    	pusize lineIndex = line - 1;
         int lineCount = 0;
         char **lines = StrSplit(core->lexer->source, '\n', &lineCount);
         if (line < lineCount) {
@@ -165,7 +165,7 @@ static void reportError(PanktiCore *core, size_t line, const char *msg) {
 }
 
 
-static void printErrMsg(PanktiCore *core, size_t line, size_t col, const char *msg, bool hasPos) {
+static void printErrMsg(PanktiCore *core, pusize line, pusize col, const char *msg, bool hasPos) {
 	if (hasPos) {
     	printf("[ ");
 		
@@ -184,8 +184,8 @@ static void printErrMsg(PanktiCore *core, size_t line, size_t col, const char *m
 
 void CoreError(PanktiCore *core, Token *token, const char *msg) {
     // reportError(core, token == NULL ? -1 : token->line, msg);
-    size_t line = 0;
-    size_t col = 0;
+    pusize line = 0;
+    pusize col = 0;
     if (token != NULL) {
         line = token->line;
         col = token->col;
@@ -193,6 +193,6 @@ void CoreError(PanktiCore *core, Token *token, const char *msg) {
     printErrMsg(core, line, col, msg, token != NULL);
 }
 
-void CoreLexerError(PanktiCore *core, size_t line, size_t col, const char *msg) {
+void CoreLexerError(PanktiCore *core, pusize line, pusize col, const char *msg) {
     reportError(core, line, msg);
 }

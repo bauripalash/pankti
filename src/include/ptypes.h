@@ -8,6 +8,7 @@
 extern "C" {
 #endif
 
+// Unsigned integer
 typedef unsigned int puint;
 
 // Signed integer
@@ -46,8 +47,11 @@ typedef char32_t pchar32;
 // Unsigned character
 typedef unsigned char puchar;
 
-// Platform dependent counting, size_t unsigned integer type
-typedef size_t pucount;
+// Type for counting, unsigned integer type
+typedef uint64_t pusize;
+
+// Signed type for counting, signed integer type
+typedef int64_t pisize;
 
 #ifdef __cplusplus
 }

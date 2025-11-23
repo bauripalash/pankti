@@ -36,7 +36,7 @@ Lexer *NewLexer(char *src) {
     lx->column = 1;
     lx->line = 1;
     lx->source = src;
-    lx->length = strlen(src);
+    lx->length = (pusize)strlen(src);
     lx->tokens = NULL;
     lx->core = NULL;
 	lx->raw = false;
@@ -99,7 +99,7 @@ void ResetLexer(Lexer * lexer){
     lexer->start = 0;
     lexer->column = 1;
     lexer->line = 1;
-    lexer->length = strlen(lexer->source);
+    lexer->length = (pusize)strlen(lexer->source);
     lexer->tokens = NULL;
 }
 
@@ -123,7 +123,7 @@ static inline bool isAnyAlphaNum(char32_t c) {
 static bool atEnd(const Lexer *lexer) { return UIterIsEnd(lexer->iter); }
 
 static char32_t advance(Lexer *lexer) {
-    size_t pos = lexer->iter->pos;
+    pusize pos = lexer->iter->pos;
     char32_t cp = UIterNext(lexer->iter);
     if (cp != 0) {
         lexer->current += (lexer->iter->pos - pos);
@@ -157,7 +157,7 @@ static bool match(Lexer *lx, char32_t target) {
     return true;
 }
 
-static bool addTokenWithLexeme(Lexer *lx, TokenType type, char *str, size_t len) {
+static bool addTokenWithLexeme(Lexer *lx, TokenType type, char *str, pusize len) {
     Token *tok = NewToken(type);
     if (tok == NULL) {
         return false;
@@ -175,7 +175,7 @@ static bool addTokenWithLexeme(Lexer *lx, TokenType type, char *str, size_t len)
             tok->len = 1;
         }
     }
-    size_t column = lx->column;
+    pusize column = lx->column;
 
     column -= tok->len;
 
@@ -189,7 +189,7 @@ static bool addToken(Lexer *lx, TokenType type) {
 }
 
 static bool addStringToken(
-    Lexer *lx, char *str, size_t line, size_t col, size_t len
+    Lexer *lx, char *str, pusize line, pusize col, pusize len
 ) {
     Token *tok = NewToken(T_STR);
     if (tok == NULL) {
@@ -206,8 +206,8 @@ static bool addStringToken(
 }
 
 static void readString(Lexer *lx) {
-    size_t column = lx->column - 1;
-    size_t line = lx->line;
+    pusize column = lx->column - 1;
+    pusize line = lx->line;
     while (peek(lx) != '"' && !atEnd(lx)) {
         if (peek(lx) == '\n') {
             lx->line++;

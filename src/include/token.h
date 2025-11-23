@@ -1,7 +1,7 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
-#include "numbers.h"
+#include "ptypes.h"
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -136,15 +136,15 @@ typedef struct Token {
     // Can be NULL
     char *lexeme;
     // Line number
-    size_t line;
+    pusize line;
     // Column number. Distance from first character of the line
-    size_t col;
+    pusize col;
     // length of the token lexeme, if lexeme is optional depends of how many
     // characters the token contains need. For example, T_EQ is 1, T_EQEQ is 2
-    size_t len;
+    pusize len;
     // Hash for the token lexeme. expect for Keywords, identifiers, strings,
     // numbers it will be 0 (zero)
-    u64 hash;
+    pu64 hash;
 } Token;
 
 // Create an empty token.

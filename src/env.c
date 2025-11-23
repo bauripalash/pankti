@@ -34,8 +34,8 @@ void DebugEnv(PEnv *e) {
     if (e->table == NULL) {
         return;
     }
-	size_t count = (size_t)hmlen(e->table);
-    for (size_t i = 0; i < count; i++) {
+	pusize count = (pusize)hmlen(e->table);
+    for (pusize i = 0; i < count; i++) {
         printf("\n%zu < %ld '", i, e->table[i].key);
         PrintValue(&e->table[i].value);
         printf("' >\n");
@@ -51,7 +51,7 @@ void EnvPutValue(PEnv *e, uint64_t hash, PValue value) {
         return;
     }
     hmput(e->table, hash, value);
-    e->count = (size_t)hmlen(e->table);
+    e->count = (pusize)hmlen(e->table);
 }
 
 bool EnvSetValue(PEnv *e, uint64_t hash, PValue value) {

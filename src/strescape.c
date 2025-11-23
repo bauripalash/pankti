@@ -19,13 +19,13 @@ static int hexToInt(char c) {
 }
 
 static inline StrEscapeErr parseNHex(
-    const char *input, size_t slen, size_t *ri, size_t n, uint32_t *out
+    const char *input, pusize slen, pusize *ri, pusize n, uint32_t *out
 ) {
     if (*ri + n >= slen) {
         return SESC_INPUT_FINISHED_EARLY;
     }
     uint32_t val = 0;
-    for (size_t k = 0; k < n; k++) {
+    for (pusize k = 0; k < n; k++) {
         char c = input[*ri + 1 + k];
         uint32_t digit = (uint32_t)hexToInt(c);
         if (digit == -1) {
@@ -44,7 +44,7 @@ static inline StrEscapeErr parseNHex(
 // Buffer `str` should alaways have enough space, but just in case we check here
 // for if something goes wrong with output size
 static inline StrEscapeErr pushCodepoint(
-    char *output, size_t *wi, uint32_t cp, size_t outlen
+    char *output, pusize *wi, uint32_t cp, pusize outlen
 ) {
     char *p = output + *wi;
     if (cp <= 0x7F) {
@@ -82,16 +82,16 @@ static inline StrEscapeErr pushCodepoint(
 }
 
 StrEscapeErr ProcessStringEscape(
-    const char *input, size_t inlen, char *output, size_t outlen
+    const char *input, pusize inlen, char *output, pusize outlen
 ) {
     if (input == NULL || output == NULL) {
         return SESC_NULL_PTR; // Should Never happen
     }
 
     // Input Read Index
-    size_t ri = 0;
+    pusize ri = 0;
     // Output Write Index
-    size_t wi = 0;
+    pusize wi = 0;
     StrEscapeErr err = SESC_OK;
 
     while (ri < inlen || input[ri] != '\0') {

@@ -4,6 +4,7 @@
 #include "ast.h"
 #include "object.h"
 #include "token.h"
+#include "ptypes.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <time.h>
@@ -20,7 +21,7 @@ typedef struct Pgc {
     bool stress;
     PObj *objects;
     PStmt *stmts;
-    size_t nextGc;
+    pusize nextGc;
 	uint64_t timestamp;
 } Pgc;
 
@@ -48,11 +49,11 @@ PObj *NewStrObject(Pgc *gc, Token *name, char *value, bool virt);
 // `env` = Environment
 // `count` = Count of parameters
 PObj *NewFuncObject(
-    Pgc *gc, Token *name, Token **params, PStmt *body, void *env, size_t count
+    Pgc *gc, Token *name, Token **params, PStmt *body, void *env, pusize count
 );
 
 // Create New Array Object
-PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, size_t count);
+PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, pusize count);
 
 // Create New Map Object
 PObj *NewMapObject(Pgc *gc, Token *op);
@@ -112,13 +113,13 @@ PExpr *NewLogical(Pgc *gc, PExpr *left, Token *op, PExpr *right);
 // `args` = The argument array
 // `count` = Count of arguments
 // Return => New Call Expression as Expression pointer or NULL
-PExpr *NewCallExpr(Pgc *gc, Token *op, PExpr *callee, PExpr **args, size_t count);
+PExpr *NewCallExpr(Pgc *gc, Token *op, PExpr *callee, PExpr **args, pusize count);
 
 // New Array Expression
-PExpr *NewArrayExpr(Pgc *gc, Token *op, PExpr **items, size_t count);
+PExpr *NewArrayExpr(Pgc *gc, Token *op, PExpr **items, pusize count);
 
 // Create New HashMap Expression
-PExpr *NewMapExpr(Pgc *gc, Token *op, PExpr **items, size_t count);
+PExpr *NewMapExpr(Pgc *gc, Token *op, PExpr **items, pusize count);
 
 PExpr *NewSubscriptExpr(Pgc *gc, Token *op, PExpr *value, PExpr *index);
 PExpr *NewModgetExpr(Pgc *gc, Token *op, PExpr *module, Token *child);
@@ -192,7 +193,7 @@ PStmt *NewBreakStmt(Pgc *gc, Token *op);
 // `count` = Number of parameters
 // Return => New Function Statement as Statement pointer or NULL
 PStmt *NewFuncStmt(
-    Pgc *gc, Token *name, Token **params, PStmt *body, size_t count
+    Pgc *gc, Token *name, Token **params, PStmt *body, pusize count
 );
 
 // New Import Statement

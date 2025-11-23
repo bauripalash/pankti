@@ -8,7 +8,7 @@
 #include <string.h>
 #include <uchar.h>
 
-static uint32_t uiterGetACp(const char *str, size_t len, size_t *ate) {
+static uint32_t uiterGetACp(const char *str, pusize len, pusize *ate) {
     if (len == 0) {
         *ate = 0;
         return 0;
@@ -79,12 +79,12 @@ static uint32_t uiterGetACp(const char *str, size_t len, size_t *ate) {
 
 static void uiterFillPeekBuffer(UIter *it) {
     it->peekCount = 0;
-    size_t curpos = it->pos;
+    pusize curpos = it->pos;
     for (int i = 0; i < UITER_PEEK_BUFFER_SIZE; i++) {
         if (curpos >= it->len) {
             break;
         }
-        size_t ate = 0;
+        pusize ate = 0;
         uint32_t cp = uiterGetACp(it->str + curpos, it->len - curpos, &ate);
         if (ate > 0) {
             it->peekBuf[i] = cp;
@@ -106,7 +106,7 @@ UIter *NewUIterator(const char *text) {
         return NULL;
     }
     it->str = text;
-    it->len = strlen(text);
+    it->len = (pusize)strlen(text);
     it->pos = 0;
     it->peekCount = 0;
     uiterFillPeekBuffer(it);
@@ -132,7 +132,7 @@ void UIterAdvance(UIter *iter) {
     }
 
     // how much first item in peek buffer ate?
-    size_t ate = 0;
+    pusize ate = 0;
     uiterGetACp(iter->str + iter->pos, iter->len - iter->pos, &ate);
     if (ate > 0) {
         iter->pos += ate;

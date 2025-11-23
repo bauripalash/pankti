@@ -158,7 +158,7 @@ bool MapObjSetValue(PObj *o, PValue key, uint64_t keyHash, PValue value) {
     struct OMap *map = &o->v.OMap;
     MapEntry s = (MapEntry){keyHash, key, value};
     hmputs(map->table, s);
-    map->count = (size_t)hmlen(map->table);
+    map->count = (pusize)hmlen(map->table);
     return true;
 }
 

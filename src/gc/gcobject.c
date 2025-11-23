@@ -35,7 +35,7 @@ PObj *NewStrObject(Pgc *gc, Token *name, char *value, bool virt) {
 }
 
 PObj *NewFuncObject(
-    Pgc *gc, Token *name, Token **params, PStmt *body, void *env, size_t count
+    Pgc *gc, Token *name, Token **params, PStmt *body, void *env, pusize count
 ) {
     PObj *o = NewObject(gc, OT_FNC);
     o->v.OFunction.name = name;
@@ -46,7 +46,7 @@ PObj *NewFuncObject(
     return o;
 }
 
-PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, size_t count) {
+PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, pusize count) {
     PObj *o = NewObject(gc, OT_ARR);
 
     o->v.OArray.items = items;

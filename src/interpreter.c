@@ -82,7 +82,7 @@ static PModule *NewModule(PInterpreter *it, char *name) {
         // throw error
         return NULL;
     }
-    mod->pathname = StrDuplicate(name, strlen(name));
+    mod->pathname = StrDuplicate(name, (pusize)strlen(name));
     // error check
     mod->env = NewEnv(NULL);
     return mod;
@@ -90,7 +90,7 @@ static PModule *NewModule(PInterpreter *it, char *name) {
 
 static void PushModule(PInterpreter *it, PModule *mod) {
     arrput(it->mods, mod);
-    it->modCount = (size_t)arrlen(it->mods);
+    it->modCount = (pusize)arrlen(it->mods);
 }
 
 static void PushProxy(
@@ -102,7 +102,7 @@ static void PushProxy(
 
     ModProxyEntry s = {.key = key, .name = name, .mod = mod};
     hmputs(it->proxyTable, s);
-    it->proxyCount = (size_t)hmlen(it->proxyTable);
+    it->proxyCount = (pusize)hmlen(it->proxyTable);
 }
 
 // Execute Statement
@@ -215,9 +215,9 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
                     (r.type == VT_OBJ && ValueAsObj(r)->type == OT_STR)) {
                     bool ok = true;
                     struct OString *ls = &ValueAsObj(l)->v.OString;
-                    size_t lsLen = strlen(ls->value);
+                    pusize lsLen = (pusize)strlen(ls->value);
                     struct OString *rs = &ValueAsObj(r)->v.OString;
-                    size_t rsLen = strlen(rs->value);
+                    pusize rsLen = (pusize)strlen(rs->value);
                     char *newStr =
                         StrJoin(ls->value, lsLen, rs->value, rsLen, &ok);
                     if (!ok) {
@@ -486,12 +486,12 @@ static PValue vLogical(PInterpreter *it, PExpr *expr, PEnv *env) {
 
 // Evaluate a function call and return result (if any)
 static PValue handleCall(
-    PInterpreter *it, PObj *func, PValue *args, size_t count
+    PInterpreter *it, PObj *func, PValue *args, pusize count
 ) {
     assert(func->type == OT_FNC);
     struct OFunction *f = &func->v.OFunction;
     PEnv *fnEnv = NewEnv((PEnv *)f->env);
-    for (size_t i = 0; i < count; i++) {
+    for (pusize i = 0; i < count; i++) {
         EnvPutValue(fnEnv, f->params[i]->hash, args[i]);
     }
 
@@ -548,7 +548,7 @@ static PValue callFunction(
         argPtr = argStack;
     }
 
-    for (size_t i = 0; i < call->argCount; i++) {
+    for (pusize i = 0; i < call->argCount; i++) {
         argPtr[i] = evaluate(it, call->args[i], env);
     }
 
@@ -654,7 +654,7 @@ static PValue vMap(PInterpreter *it, PExpr *expr, PEnv *env) {
     MapEntry *table = NULL;
     MapEntry s;
 
-    for (size_t i = 0; i < map->count; i += 2) {
+    for (pusize i = 0; i < map->count; i += 2) {
         PValue k = evaluate(it, map->etable[i], env);
         uint64_t keyHash = GetValueHash(&k, (uint64_t)it->gc->timestamp);
         if (!CanValueBeKey(&k)) {
@@ -671,7 +671,7 @@ static PValue vMap(PInterpreter *it, PExpr *expr, PEnv *env) {
 
     PObj *mapObj = NewMapObject(it->gc, map->op);
     mapObj->v.OMap.table = table;
-    mapObj->v.OMap.count = (size_t)hmlen(table);
+    mapObj->v.OMap.count = (pusize)hmlen(table);
     return MakeObject(mapObj);
 }
 

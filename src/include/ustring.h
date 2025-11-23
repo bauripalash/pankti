@@ -8,6 +8,7 @@ extern "C" {
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include "ptypes.h"
 
 // How many codepoints the Iterator can peek
 #define UITER_PEEK_BUFFER_SIZE 3
@@ -19,9 +20,9 @@ typedef struct UIter {
     // Raw UTF-8 encoded string. Reference to source from Lexer object
     const char *str;
     // How many characters is in `str`.
-    size_t len;
+    pusize len;
     // Current position of iterator
-    size_t pos;
+    pusize pos;
 
     // Stack allocated peek buffer.
     // Index 0 is next codepoint.

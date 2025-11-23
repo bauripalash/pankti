@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include "numbers.h"
+#include "ptypes.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,26 +20,26 @@ typedef struct Lexer {
 	// If the lexer is raw, `source` will not be freed
 	bool raw;
     // Length of source code string
-    size_t length;
+    pusize length;
     // Array of tokens; Filled with ScanTokens(...) function
     Token **tokens;
 
     // Start index of the character for token to be created
     // When creating a new token, this will be the first character index
-    size_t start;
+    pusize start;
     // Current index of the character being read
     // Will be last character of newly created token
-    size_t current;
+    pusize current;
     // Current line number
-    size_t line;
+    pusize line;
     // current column number of the start of the token
-	size_t column;
+	pusize column;
 
     // Codepoint iterator. The characters are read as UTF-32 characters
     UIter *iter;
 
     // Timestamp seed for hashing
-    u64 timestamp;
+    pu64 timestamp;
 
     // Reference to Pankti Core
     void *core;

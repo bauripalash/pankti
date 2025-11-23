@@ -108,7 +108,7 @@ typedef struct PExpr {
         struct EArray {
             Token *op;
             struct PExpr **items;
-            size_t count;
+            pusize count;
         } EArray;
 
         // Map Expression
@@ -116,7 +116,7 @@ typedef struct PExpr {
         struct EMap {
             Token *op;
             struct PExpr **etable;
-            size_t count;
+            pusize count;
         } EMap;
 
         // Subscript Expression
@@ -186,7 +186,7 @@ typedef struct PExpr {
             // Expression list of arguments
             struct PExpr **args;
             // Number of arguments provided
-            size_t argCount;
+            pusize argCount;
         } ECall;
     } exp;
 } PExpr;
@@ -314,7 +314,7 @@ typedef struct PStmt {
             // Token array of parameters
             Token **params;
             // Number of parameters
-            size_t paramCount;
+            pusize paramCount;
             // The body. Will always be Block Statement <`STMT_BLOCK`>
             struct PStmt *body;
         } SFunc;

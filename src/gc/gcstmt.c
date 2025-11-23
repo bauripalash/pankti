@@ -115,7 +115,7 @@ PStmt *NewBreakStmt(Pgc *gc, Token *op) {
 }
 
 PStmt *NewFuncStmt(
-    Pgc *gc, Token *name, Token **params, PStmt *body, size_t count
+    Pgc *gc, Token *name, Token **params, PStmt *body, pusize count
 ) {
     PStmt *s = NewStmt(gc, STMT_FUNC, name);
     if (s == NULL) {
