@@ -15,6 +15,7 @@
 #include <string.h>
 #include <uchar.h>
 
+// Potential bug: handling of non-seekable file
 char *ReadFile(const char *path) {
     char *text = NULL;
 
