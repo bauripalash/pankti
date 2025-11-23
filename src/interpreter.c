@@ -551,7 +551,7 @@ static PValue callFunction(
     }
 
     PValue value = handleCall(it, func, argPtr, call->argCount);
-    if (call->argCount > 16) {
+    if (call->argCount > 8) {
         PFree(argPtr);
     }
     return value;
