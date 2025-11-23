@@ -7,6 +7,7 @@
 #include <time.h>
 #include <uchar.h>
 
+#include "external/stb/stb_ds.h"
 #include "include/alloc.h"
 #include "include/bengali.h"
 #include "include/core.h"
@@ -15,7 +16,6 @@
 #include "include/token.h"
 #include "include/ustring.h"
 #include "include/utils.h"
-#include "external/stb/stb_ds.h"
 
 Lexer *NewLexer(char *src) {
     Lexer *lx = PMalloc(sizeof(Lexer));
@@ -36,19 +36,19 @@ Lexer *NewLexer(char *src) {
     lx->column = 1;
     lx->line = 1;
     lx->source = src;
-    lx->length = (pusize)strlen(src);
+    lx->length = (size_t)strlen(src);
     lx->tokens = NULL;
     lx->core = NULL;
-	lx->raw = false;
+    lx->raw = false;
 
     return lx;
 }
 
-void MakeLexerRaw(Lexer * lexer , bool raw){
-	if (lexer == NULL) {
-		return;
-	}
-	lexer->raw = raw;
+void MakeLexerRaw(Lexer *lexer, bool raw) {
+    if (lexer == NULL) {
+        return;
+    }
+    lexer->raw = raw;
 }
 
 void FreeLexer(Lexer *lexer) {
@@ -56,12 +56,11 @@ void FreeLexer(Lexer *lexer) {
         return;
     }
 
-	if (!lexer->raw) {
-		if (lexer->source != NULL) {
-	        PFree(lexer->source);
-	    }
-	}
-    
+    if (!lexer->raw) {
+        if (lexer->source != NULL) {
+            PFree(lexer->source);
+        }
+    }
 
     if (lexer->tokens != NULL) {
         long count = arrlen(lexer->tokens);
@@ -78,19 +77,18 @@ void FreeLexer(Lexer *lexer) {
     PFree(lexer);
 }
 
-void ResetLexer(Lexer * lexer){
-	if (lexer->tokens != NULL) {
-	    long count = arrlen(lexer->tokens);
+void ResetLexer(Lexer *lexer) {
+    if (lexer->tokens != NULL) {
+        long count = arrlen(lexer->tokens);
         for (long i = 0; i < count; i++) {
             FreeToken(arrpop(lexer->tokens));
         }
         arrfree(lexer->tokens);
-	}
+    }
 
     if (lexer->iter != NULL) {
         FreeUIterator(lexer->iter);
     }
-
 
     UIter *iter = NewUIterator(lexer->source);
     lexer->iter = iter;
@@ -99,7 +97,7 @@ void ResetLexer(Lexer * lexer){
     lexer->start = 0;
     lexer->column = 1;
     lexer->line = 1;
-    lexer->length = (pusize)strlen(lexer->source);
+    lexer->length = (size_t)strlen(lexer->source);
     lexer->tokens = NULL;
 }
 
@@ -123,7 +121,7 @@ static inline bool isAnyAlphaNum(char32_t c) {
 static bool atEnd(const Lexer *lexer) { return UIterIsEnd(lexer->iter); }
 
 static char32_t advance(Lexer *lexer) {
-    pusize pos = lexer->iter->pos;
+    size_t pos = lexer->iter->pos;
     char32_t cp = UIterNext(lexer->iter);
     if (cp != 0) {
         lexer->current += (lexer->iter->pos - pos);
@@ -157,7 +155,9 @@ static bool match(Lexer *lx, char32_t target) {
     return true;
 }
 
-static bool addTokenWithLexeme(Lexer *lx, TokenType type, char *str, pusize len) {
+static bool addTokenWithLexeme(
+    Lexer *lx, TokenType type, char *str, size_t len
+) {
     Token *tok = NewToken(type);
     if (tok == NULL) {
         return false;
@@ -175,7 +175,7 @@ static bool addTokenWithLexeme(Lexer *lx, TokenType type, char *str, pusize len)
             tok->len = 1;
         }
     }
-    pusize column = lx->column;
+    size_t column = lx->column;
 
     column -= tok->len;
 
@@ -189,7 +189,7 @@ static bool addToken(Lexer *lx, TokenType type) {
 }
 
 static bool addStringToken(
-    Lexer *lx, char *str, pusize line, pusize col, pusize len
+    Lexer *lx, char *str, size_t line, size_t col, size_t len
 ) {
     Token *tok = NewToken(T_STR);
     if (tok == NULL) {
@@ -206,8 +206,8 @@ static bool addStringToken(
 }
 
 static void readString(Lexer *lx) {
-    pusize column = lx->column - 1;
-    pusize line = lx->line;
+    size_t column = lx->column - 1;
+    size_t line = lx->line;
     while (peek(lx) != '"' && !atEnd(lx)) {
         if (peek(lx) == '\n') {
             lx->line++;
@@ -377,14 +377,18 @@ static void scanToken(Lexer *lx) {
                 readIdent(lx);
                 break;
             } else {
-				if (lx->core != NULL) {
-					CoreLexerError(
-						lx->core, lx->line, lx->column, "Invalid character found"
-					);
-				} else {
-					printf("Invalid character found at line %zu column %zu", lx->line, lx->column);
-				}
-               
+                if (lx->core != NULL) {
+                    CoreLexerError(
+                        lx->core, lx->line, lx->column,
+                        "Invalid character found"
+                    );
+                } else {
+                    printf(
+                        "Invalid character found at line %zu column %zu",
+                        lx->line, lx->column
+                    );
+                }
+
                 break;
             }
             break;

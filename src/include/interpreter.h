@@ -2,7 +2,6 @@
 #define INTERPRETER_H
 
 #include "gc.h"
-#include "ptypes.h"
 #include <stddef.h>
 #ifdef __cplusplus
 extern "C" {
@@ -23,7 +22,7 @@ typedef struct PModule {
 } PModule;
 
 typedef struct ModProxyEntry {
-    pu64 key;
+    uint64_t key;
     char *name;
     PModule *mod;
 } ModProxyEntry;
@@ -37,9 +36,9 @@ typedef struct PInterpreter {
     // The Parent Environment used across closures
     PEnv *env;
     ModProxyEntry *proxyTable;
-    pusize proxyCount;
+    size_t proxyCount;
     PModule **mods;
-    pusize modCount;
+    size_t modCount;
     Pgc *gc;
 } PInterpreter;
 

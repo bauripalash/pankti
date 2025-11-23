@@ -95,7 +95,9 @@ PExpr *NewLogical(Pgc *gc, PExpr *left, Token *op, PExpr *right) {
     return e;
 }
 
-PExpr *NewCallExpr(Pgc *gc, Token *op, PExpr *callee, PExpr **args, pusize count) {
+PExpr *NewCallExpr(
+    Pgc *gc, Token *op, PExpr *callee, PExpr **args, size_t count
+) {
     PExpr *e = NewExpr(gc, EXPR_CALL, op);
     if (e == NULL) {
         return NULL;
@@ -107,7 +109,7 @@ PExpr *NewCallExpr(Pgc *gc, Token *op, PExpr *callee, PExpr **args, pusize count
     return e;
 }
 
-PExpr *NewArrayExpr(Pgc *gc, Token *op, PExpr **items, pusize count) {
+PExpr *NewArrayExpr(Pgc *gc, Token *op, PExpr **items, size_t count) {
     PExpr *e = NewExpr(gc, EXPR_ARRAY, op);
     if (e == NULL) {
         return NULL;
@@ -118,7 +120,7 @@ PExpr *NewArrayExpr(Pgc *gc, Token *op, PExpr **items, pusize count) {
     return e;
 }
 
-PExpr *NewMapExpr(Pgc *gc, Token *op, PExpr **items, pusize count) {
+PExpr *NewMapExpr(Pgc *gc, Token *op, PExpr **items, size_t count) {
     PExpr *e = NewExpr(gc, EXPR_MAP, op);
     if (e == NULL) {
         return NULL;
@@ -174,8 +176,8 @@ void FreeExpr(Pgc *gc, PExpr *e) {
     switch (e->type) {
         case EXPR_CALL: {
             FreeExpr(gc, e->exp.ECall.callee);
-            pusize count = e->exp.ECall.argCount;
-            for (pusize i = 0; i < count; i++) {
+            size_t count = e->exp.ECall.argCount;
+            for (size_t i = 0; i < count; i++) {
                 PExpr *ex = arrpop(e->exp.ECall.args);
                 FreeExpr(gc, ex);
             }
@@ -231,8 +233,8 @@ void FreeExpr(Pgc *gc, PExpr *e) {
             break;
         }
         case EXPR_ARRAY: {
-            pusize count = e->exp.EArray.count;
-            for (pusize i = 0; i < count; i++) {
+            size_t count = e->exp.EArray.count;
+            for (size_t i = 0; i < count; i++) {
                 FreeExpr(gc, arrpop(e->exp.EArray.items));
             }
             arrfree(e->exp.EArray.items);
@@ -242,7 +244,7 @@ void FreeExpr(Pgc *gc, PExpr *e) {
         }
         case EXPR_MAP: {
             struct EMap *map = &e->exp.EMap;
-            for (pusize i = 0; i < map->count; i++) {
+            for (size_t i = 0; i < map->count; i++) {
                 FreeExpr(gc, arrpop(map->etable));
             }
 

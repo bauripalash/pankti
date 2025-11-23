@@ -28,7 +28,7 @@ char *ReadFile(const char *path) {
             if (size >= 0) {
                 text = (char *)PCalloc((size_t)size + 1, sizeof(char));
                 if (text == NULL) {
-					fclose(file);
+                    fclose(file);
                     return NULL;
                 }
 
@@ -37,24 +37,23 @@ char *ReadFile(const char *path) {
             }
 
             fclose(file);
-
         }
     }
 
     return text;
 }
 
-char *SubString(const char *str, pusize start, pusize end) {
+char *SubString(const char *str, size_t start, size_t end) {
     if (str == NULL) {
         return NULL;
     }
 
-    pusize len = (pusize)strlen(str);
+    size_t len = (size_t)strlen(str);
     if (start > end || end > len) {
         return NULL;
     }
 
-    pusize sublen = end - start;
+    size_t sublen = end - start;
     char *result = PMalloc(((size_t)sublen + 1) * sizeof(char));
     if (result == NULL) {
         return NULL;
@@ -68,7 +67,7 @@ bool StrEqual(const char *str1, const char *str2) {
     return strcmp(str1, str2) == 0;
 }
 
-char *StrDuplicate(const char *str, pusize len) {
+char *StrDuplicate(const char *str, size_t len) {
     if (str == NULL) {
         return NULL;
     }
@@ -81,14 +80,15 @@ char *StrDuplicate(const char *str, pusize len) {
     return dup;
 }
 
-pusize StrLength(const char *str) { return (pusize)strlen(str); }
+size_t StrLength(const char *str) { return (size_t)strlen(str); }
 
 bool MatchKW(const char *s, const char *en, const char *pn, const char *bn) {
     return StrEqual(s, en) || StrEqual(s, pn) || StrEqual(s, bn);
 }
 
-pchar32 U8ToU32(const unsigned char *str) {
-    return ((pchar32)(str[0] & 0x0F) << 12) | ((pchar32)(str[1] & 0x3F) << 6) | (pchar32)(str[2] & 0x3F);
+char32_t U8ToU32(const unsigned char *str) {
+    return ((char32_t)(str[0] & 0x0F) << 12) | ((char32_t)(str[1] & 0x3F) << 6) |
+           (char32_t)(str[2] & 0x3F);
 }
 
 char *BoolToString(bool v) {
@@ -98,9 +98,9 @@ char *BoolToString(bool v) {
     return "false";
 }
 
-pu64 StrHash(const char *str, pusize len, pu64 seed) {
+uint64_t StrHash(const char *str, size_t len, uint64_t seed) {
     XXH64_hash_t hash = XXH64(str, len, (XXH64_hash_t)seed);
-    return (pu64)hash;
+    return (uint64_t)hash;
 }
 
 // Source:
@@ -165,9 +165,9 @@ char **StrSplit(const char *text, char delimiter, int *count) {
 }
 
 char *StrJoin(
-    const char *a, pusize alen, const char *b, pusize blen, bool *ok
+    const char *a, size_t alen, const char *b, size_t blen, bool *ok
 ) {
-    pusize outlen = alen + blen + 1;
+    size_t outlen = alen + blen + 1;
     char *output = PCalloc((size_t)outlen, sizeof(char));
     if (output == NULL) {
         *ok = false;
@@ -181,7 +181,7 @@ char *StrJoin(
     return output;
 }
 
-double NumberFromStr(const char *lexeme, pusize len, bool *ok) {
+double NumberFromStr(const char *lexeme, size_t len, bool *ok) {
 
     char *buf = PCalloc((size_t)(len + 1), sizeof(char));
     if (buf == NULL) {

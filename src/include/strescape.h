@@ -5,7 +5,6 @@
 extern "C" {
 #endif
 #include <stddef.h>
-#include "ptypes.h"
 #define ERROR_UNICODE_CP 0xFFFD
 // String Escape Errors
 typedef enum StrEscapeErr {
@@ -39,7 +38,7 @@ typedef enum StrEscapeErr {
 // `outlen` = Length of Output buffer `output`
 // Returns => SESC_OK if nothing goes wrong or other errors from `StrEscapeErr`
 StrEscapeErr ProcessStringEscape(
-    const char *input, pusize inlen, char *output, pusize outlen
+    const char *input, size_t inlen, char *output, size_t outlen
 );
 #ifdef __cplusplus
 }

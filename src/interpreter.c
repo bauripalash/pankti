@@ -49,7 +49,7 @@ static char *ExResultToStr(ExType t) {
         case ET_RETURN: return "return";
     }
 
-	return "Unknown";
+    return "Unknown";
 }
 
 // Create a Simple Execution Result
@@ -82,7 +82,7 @@ static PModule *NewModule(PInterpreter *it, char *name) {
         // throw error
         return NULL;
     }
-    mod->pathname = StrDuplicate(name, (pusize)strlen(name));
+    mod->pathname = StrDuplicate(name, (size_t)strlen(name));
     // error check
     mod->env = NewEnv(NULL);
     return mod;
@@ -90,19 +90,17 @@ static PModule *NewModule(PInterpreter *it, char *name) {
 
 static void PushModule(PInterpreter *it, PModule *mod) {
     arrput(it->mods, mod);
-    it->modCount = (pusize)arrlen(it->mods);
+    it->modCount = (size_t)arrlen(it->mods);
 }
 
-static void PushProxy(
-    PInterpreter *it, pu64 key, char *name, PModule *mod
-) {
+static void PushProxy(PInterpreter *it, uint64_t key, char *name, PModule *mod) {
     if (mod == NULL) {
         return; // error check
     }
 
     ModProxyEntry s = {.key = key, .name = name, .mod = mod};
     hmputs(it->proxyTable, s);
-    it->proxyCount = (pusize)hmlen(it->proxyTable);
+    it->proxyCount = (size_t)hmlen(it->proxyTable);
 }
 
 // Execute Statement
@@ -215,9 +213,9 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
                     (r.type == VT_OBJ && ValueAsObj(r)->type == OT_STR)) {
                     bool ok = true;
                     struct OString *ls = &ValueAsObj(l)->v.OString;
-                    pusize lsLen = (pusize)strlen(ls->value);
+                    size_t lsLen = (size_t)strlen(ls->value);
                     struct OString *rs = &ValueAsObj(r)->v.OString;
-                    pusize rsLen = (pusize)strlen(rs->value);
+                    size_t rsLen = (size_t)strlen(rs->value);
                     char *newStr =
                         StrJoin(ls->value, lsLen, rs->value, rsLen, &ok);
                     if (!ok) {
@@ -376,7 +374,7 @@ static void mapAssignment(
         return;
     }
 
-    pu64 keyHash = GetValueHash(&keyValue, it->gc->timestamp);
+    uint64_t keyHash = GetValueHash(&keyValue, it->gc->timestamp);
     PValue value = evaluate(it, valueExpr, env);
     if (!MapObjSetValue(mapObj, keyValue, keyHash, value)) {
         error(it, keyExpr->op, "Internal Error : Failed to set value to map");
@@ -486,12 +484,12 @@ static PValue vLogical(PInterpreter *it, PExpr *expr, PEnv *env) {
 
 // Evaluate a function call and return result (if any)
 static PValue handleCall(
-    PInterpreter *it, PObj *func, PValue *args, pusize count
+    PInterpreter *it, PObj *func, PValue *args, size_t count
 ) {
     assert(func->type == OT_FNC);
     struct OFunction *f = &func->v.OFunction;
     PEnv *fnEnv = NewEnv((PEnv *)f->env);
-    for (pusize i = 0; i < count; i++) {
+    for (size_t i = 0; i < count; i++) {
         EnvPutValue(fnEnv, f->params[i]->hash, args[i]);
     }
 
@@ -548,7 +546,7 @@ static PValue callFunction(
         argPtr = argStack;
     }
 
-    for (pusize i = 0; i < call->argCount; i++) {
+    for (size_t i = 0; i < call->argCount; i++) {
         argPtr[i] = evaluate(it, call->args[i], env);
     }
 
@@ -654,9 +652,9 @@ static PValue vMap(PInterpreter *it, PExpr *expr, PEnv *env) {
     MapEntry *table = NULL;
     MapEntry s;
 
-    for (pusize i = 0; i < map->count; i += 2) {
+    for (size_t i = 0; i < map->count; i += 2) {
         PValue k = evaluate(it, map->etable[i], env);
-        pu64 keyHash = GetValueHash(&k, (pu64)it->gc->timestamp);
+        uint64_t keyHash = GetValueHash(&k, (uint64_t)it->gc->timestamp);
         if (!CanValueBeKey(&k)) {
             if (table != NULL) {
                 hmfree(table);
@@ -671,7 +669,7 @@ static PValue vMap(PInterpreter *it, PExpr *expr, PEnv *env) {
 
     PObj *mapObj = NewMapObject(it->gc, map->op);
     mapObj->v.OMap.table = table;
-    mapObj->v.OMap.count = (pusize)hmlen(table);
+    mapObj->v.OMap.count = (size_t)hmlen(table);
     return MakeObject(mapObj);
 }
 
@@ -722,7 +720,7 @@ static PValue mapSubscript(
     }
 
     struct OMap *map = &mapObj->v.OMap;
-    pu64 keyHash = GetValueHash(&keyValue, it->gc->timestamp);
+    uint64_t keyHash = GetValueHash(&keyValue, it->gc->timestamp);
 
     if (hmgeti(map->table, keyHash) != -1) {
         return hmgets(map->table, keyHash).value;
@@ -938,7 +936,7 @@ static ExResult vsImportStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
         return ExSimple(MakeNil());
     }
     PushModule(it, mod);
-    pu64 key = imp->name->hash;
+    uint64_t key = imp->name->hash;
     PushProxy(it, key, imp->name->lexeme, mod);
     StdlibMod stdmod = GetStdlibMod(mod->pathname);
     if (stdmod != STDLIB_NONE) {

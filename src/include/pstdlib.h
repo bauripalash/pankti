@@ -3,7 +3,6 @@
 
 #include "env.h"
 #include "object.h"
-#include "ptypes.h"
 #include "utils.h"
 #include <stdbool.h>
 #include <stddef.h>
@@ -26,13 +25,15 @@ typedef enum StdlibMod {
 
 typedef struct StdlibEntry {
     char *name;
-    pusize nlen;
+    size_t nlen;
     NativeFn fn;
-    pint arity;
+    int arity;
 } StdlibEntry;
 
-
-#define MakeStdlibEntry(sname, nfn, ar) ((StdlibEntry){.name = sname, .nlen = (pusize)strlen(sname), .fn = nfn, .arity = ar})
+#define MakeStdlibEntry(sname, nfn, ar)                                        \
+    ((StdlibEntry){                                                            \
+        .name = sname, .nlen = (size_t)strlen(sname), .fn = nfn, .arity = ar   \
+    })
 
 typedef struct PInterpreter PInterpreter;
 

@@ -2,7 +2,6 @@
 #define OBJECT_H
 
 #include <stddef.h>
-#include "ptypes.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -28,7 +27,7 @@ typedef struct PValue {
     } v;
 } PValue;
 
-typedef PValue (*NativeFn)(PInterpreter *it, PValue *args, pusize argc);
+typedef PValue (*NativeFn)(PInterpreter *it, PValue *args, size_t argc);
 
 // Pankti Object Types
 typedef enum PObjType {
@@ -44,7 +43,7 @@ typedef enum PObjType {
 
 // Entry of HashMaps
 typedef struct MapEntry {
-    pu64 key;
+    uint64_t key;
     PValue vkey;
     PValue value;
 } MapEntry;
@@ -71,7 +70,7 @@ typedef struct PObj {
             // Token array of parameters
             Token **params;
             // Count of parameters
-            pusize paramCount;
+            size_t paramCount;
             // Function Environment. Will Always have a parent.
             void *env;
             // Array of Statements to execute on demand.
@@ -81,13 +80,13 @@ typedef struct PObj {
 
         struct OArray {
             Token *op;
-            pusize count;
+            size_t count;
             PValue *items;
         } OArray;
 
         struct OMap {
             Token *op;
-            pusize count;
+            size_t count;
             MapEntry *table;
         } OMap;
 
@@ -169,7 +168,7 @@ bool IsValueEqual(const PValue *a, const PValue *b);
 // Print value to stdout
 void PrintValue(const PValue *val);
 
-pu64 GetValueHash(const PValue *val, pu64 seed);
+uint64_t GetValueHash(const PValue *val, uint64_t seed);
 // Can value be used as key for hash map
 bool CanValueBeKey(const PValue *val);
 // Can Object be used as key for hash map
@@ -178,7 +177,7 @@ bool CanObjectBeKey(PObjType type);
 // If Value is a object, returns Object Type
 const char *ValueTypeToStr(const PValue *val);
 
-bool MapObjSetValue(PObj *o, PValue key, pu64 keyHash, PValue value);
+bool MapObjSetValue(PObj *o, PValue key, uint64_t keyHash, PValue value);
 bool ArrayObjInsValue(PObj *o, int index, PValue value);
 // Print Object
 void PrintObject(const PObj *o);

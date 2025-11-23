@@ -34,8 +34,8 @@ void DebugEnv(PEnv *e) {
     if (e->table == NULL) {
         return;
     }
-	pusize count = (pusize)hmlen(e->table);
-    for (pusize i = 0; i < count; i++) {
+    size_t count = (size_t)hmlen(e->table);
+    for (size_t i = 0; i < count; i++) {
         printf("\n%zu < %ld '", i, e->table[i].key);
         PrintValue(&e->table[i].value);
         printf("' >\n");
@@ -46,15 +46,15 @@ void DebugEnv(PEnv *e) {
     }
 }
 
-void EnvPutValue(PEnv *e, pu64 hash, PValue value) {
+void EnvPutValue(PEnv *e, uint64_t hash, PValue value) {
     if (e == NULL) {
         return;
     }
     hmput(e->table, hash, value);
-    e->count = (pusize)hmlen(e->table);
+    e->count = (size_t)hmlen(e->table);
 }
 
-bool EnvSetValue(PEnv *e, pu64 hash, PValue value) {
+bool EnvSetValue(PEnv *e, uint64_t hash, PValue value) {
     if (e == NULL) {
         return false;
     }
@@ -78,7 +78,7 @@ bool EnvSetValue(PEnv *e, pu64 hash, PValue value) {
     return false;
 }
 
-PValue EnvGetValue(PEnv *e, pu64 hash, bool *found) {
+PValue EnvGetValue(PEnv *e, uint64_t hash, bool *found) {
     if (e == NULL) {
         *found = false;
         return MakeNil();

@@ -237,7 +237,7 @@ static PExpr *rExponent(Parser *p) {
 
 static PExpr *finishCallExpr(Parser *p, PExpr *expr) {
     PExpr **args = NULL;
-	pusize count = 0;
+    size_t count = 0;
     if (!check(p, T_RIGHT_PAREN)) {
         do {
             if (count >= 255) {
@@ -298,7 +298,7 @@ static PExpr *rArrayExpr(Parser *p) {
         eat(p, T_COMMA, "Expected ',' comma after array item");
     }
     Token *rbrace = eat(p, T_RS_BRACKET, "Expected ']' after array items");
-	pusize itemCount = (pusize)arrlen(items);
+    size_t itemCount = (size_t)arrlen(items);
     return NewArrayExpr(p->gc, rbrace, items, itemCount);
 }
 
@@ -315,14 +315,14 @@ static PExpr *rMapExpr(Parser *p) {
         eat(p, T_COMMA, "Expected ',' after map pair");
     }
     eat(p, T_RIGHT_BRACE, "Expected '}' after map");
-	pusize itemCount = (pusize)(arrlen(etable));
+    size_t itemCount = (size_t)(arrlen(etable));
     return NewMapExpr(p->gc, lbrace, etable, itemCount);
 }
 
 static char *readStringEscapes(Parser *p, Token *tok) {
     char *rawinput = tok->lexeme;
-    pusize inlen = (pusize)strlen(rawinput);
-    pusize outlen = inlen * 4 + 1;
+    size_t inlen = (size_t)strlen(rawinput);
+    size_t outlen = inlen * 4 + 1;
     char *output = PCalloc((size_t)outlen, sizeof(char));
     if (output == NULL) {
         return NULL;
@@ -587,7 +587,7 @@ static PStmt *rFuncStmt(Parser *p) {
     Token *name = eat(p, T_IDENT, "Expected function name");
     eat(p, T_LEFT_PAREN, "Expected '(' after function name");
     Token **params = NULL;
-    pusize paramCount = 0;
+    size_t paramCount = 0;
     if (!check(p, T_RIGHT_PAREN)) {
         do {
             Token *parm = eat(p, T_IDENT, "Expected param");

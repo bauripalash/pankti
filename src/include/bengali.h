@@ -7,7 +7,6 @@ extern "C" {
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "ptypes.h"
 
 // UTF32 Bengali Number `0`
 #define BN_NUM_0 0x09E6
@@ -45,13 +44,13 @@ extern "C" {
 #define BN_RANGE_END 0x09FE
 
 // Check if UTF32 encoded char is a Bengali Number
-bool IsBnNumber(pu32 c);
+bool IsBnNumber(uint32_t c);
 // Check if UTF32 encoded char is in Bengali Unicode Range
-bool IsBnChar(pu32 c);
+bool IsBnChar(uint32_t c);
 
 // Convert UTF32 encoded number to english number;
 // Returns => char with number value, return as is if the `c` is English number
-char GetEnFromBnNum(pu32 c);
+char GetEnFromBnNum(uint32_t c);
 
 #ifdef __cplusplus
 }

@@ -8,7 +8,6 @@ extern "C" {
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include "ptypes.h"
 
 // How many codepoints the Iterator can peek
 #define UITER_PEEK_BUFFER_SIZE 3
@@ -20,13 +19,13 @@ typedef struct UIter {
     // Raw UTF-8 encoded string. Reference to source from Lexer object
     const char *str;
     // How many characters is in `str`.
-    pusize len;
+    size_t len;
     // Current position of iterator
-    pusize pos;
+    size_t pos;
 
     // Stack allocated peek buffer.
     // Index 0 is next codepoint.
-    pu32 peekBuf[UITER_PEEK_BUFFER_SIZE];
+    uint32_t peekBuf[UITER_PEEK_BUFFER_SIZE];
 
     // How many peekable codepoint is available
     int peekCount;
@@ -44,18 +43,18 @@ bool UIterIsEnd(const UIter *iter);
 
 // Peek the next codepoint
 // `offset` = returns `current codepoint index + offset`
-pu32 UIterPeek(const UIter *iter, int offset);
+uint32_t UIterPeek(const UIter *iter, int offset);
 
 // Advance the iterator
 void UIterAdvance(UIter *iter);
 
 // Advance the iterator and return the just passed codepoint
-pu32 UIterNext(UIter *it);
+uint32_t UIterNext(UIter *it);
 
 // Convert the UTF-32 encoded codepoint to UTF-8 encoded character array
 // `value` = UTF-32 encoded codepoint
 // `result` = buffer to write the UTF-8 encoded bytes
-void U32ToU8(pu32 value, pu8 result[4]);
+void U32ToU8(uint32_t value, uint8_t result[4]);
 
 // Debug/Print the peek buffer
 void DebugPeekBuffer(const UIter *it);

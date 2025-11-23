@@ -1,16 +1,13 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
-#include "ptypes.h"
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-
 
 // Token Types
 typedef enum TokenType {
@@ -136,15 +133,15 @@ typedef struct Token {
     // Can be NULL
     char *lexeme;
     // Line number
-    pusize line;
+    size_t line;
     // Column number. Distance from first character of the line
-    pusize col;
+    size_t col;
     // length of the token lexeme, if lexeme is optional depends of how many
     // characters the token contains need. For example, T_EQ is 1, T_EQEQ is 2
-    pusize len;
+    size_t len;
     // Hash for the token lexeme. expect for Keywords, identifiers, strings,
     // numbers it will be 0 (zero)
-    pu64 hash;
+    uint64_t hash;
 } Token;
 
 // Create an empty token.

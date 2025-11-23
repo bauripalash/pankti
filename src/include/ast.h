@@ -80,7 +80,7 @@ typedef struct PExpr {
         struct EUnary {
             // Operator
             Token *op;
-			// Original expression
+            // Original expression
             struct PExpr *right;
 
         } EUnary;
@@ -108,7 +108,7 @@ typedef struct PExpr {
         struct EArray {
             Token *op;
             struct PExpr **items;
-            pusize count;
+            size_t count;
         } EArray;
 
         // Map Expression
@@ -116,7 +116,7 @@ typedef struct PExpr {
         struct EMap {
             Token *op;
             struct PExpr **etable;
-            pusize count;
+            size_t count;
         } EMap;
 
         // Subscript Expression
@@ -136,9 +136,9 @@ typedef struct PExpr {
         // Grouping Expression
         // Type: `EXPR_GROUPING`
         struct EGrouping {
-             // Opening '('
+            // Opening '('
             Token *op;
-			// Original expression
+            // Original expression
             struct PExpr *expr;
 
         } EGrouping;
@@ -186,7 +186,7 @@ typedef struct PExpr {
             // Expression list of arguments
             struct PExpr **args;
             // Number of arguments provided
-            pusize argCount;
+            size_t argCount;
         } ECall;
     } exp;
 } PExpr;
@@ -314,7 +314,7 @@ typedef struct PStmt {
             // Token array of parameters
             Token **params;
             // Number of parameters
-            pusize paramCount;
+            size_t paramCount;
             // The body. Will always be Block Statement <`STMT_BLOCK`>
             struct PStmt *body;
         } SFunc;

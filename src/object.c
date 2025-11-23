@@ -9,9 +9,8 @@
 #include <stdio.h>
 #include <string.h>
 
-
 // Golden ratio?
-#define CONST_NAN_HASH 		  0x9e3779b97f4a7c15ULL
+#define CONST_NAN_HASH 0x9e3779b97f4a7c15ULL
 // MurmurHash3
 #define CONST_ZERO_HASH       0xff51afd7ed558ccdULL
 
@@ -59,18 +58,18 @@ bool CanValueBeKey(const PValue *val) {
     return true;
 }
 
-pu64 GetObjectHash(const PObj *obj, pu64 seed) {
+uint64_t GetObjectHash(const PObj *obj, uint64_t seed) {
     if (obj->type == OT_STR) {
         XXH64_hash_t hash =
             XXH64(obj->v.OString.value, strlen(obj->v.OString.value), seed);
-        return (pu64)hash;
+        return (uint64_t)hash;
     }
 
-	// Function should never reach here. Runtime checks should check for types
+    // Function should never reach here. Runtime checks should check for types
     return 0;
 }
 
-pu64 GetValueHash(const PValue *val, pu64 seed) {
+uint64_t GetValueHash(const PValue *val, uint64_t seed) {
     switch (val->type) {
         case VT_NUM: {
             double value = val->v.num;
@@ -80,21 +79,21 @@ pu64 GetValueHash(const PValue *val, pu64 seed) {
             if (isnan(value)) {
                 return CONST_ZERO_HASH;
             }
-            pu64 bits;
+            uint64_t bits;
             memcpy(&bits, &value, sizeof(bits));
-            return (pu64)XXH64(&bits, sizeof(bits), seed);
+            return (uint64_t)XXH64(&bits, sizeof(bits), seed);
         }
         case VT_NIL: {
             return CONST_NIL_HASH;
         }
         case VT_BOOL: {
-            pu8 value = val->v.bl ? 1 : 0;
-            return (pu64)XXH64(&value, 1, seed);
+            uint8_t value = val->v.bl ? 1 : 0;
+            return (uint64_t)XXH64(&value, 1, seed);
         };
         case VT_OBJ: return GetObjectHash(val->v.obj, seed);
     }
 
-	return UINT64_MAX;
+    return UINT64_MAX;
 }
 
 bool IsValueTruthy(const PValue *val) {
@@ -146,7 +145,7 @@ bool ArrayObjInsValue(PObj *o, int index, PValue value) {
     return true;
 }
 
-bool MapObjSetValue(PObj *o, PValue key, pu64 keyHash, PValue value) {
+bool MapObjSetValue(PObj *o, PValue key, uint64_t keyHash, PValue value) {
     if (o == NULL) {
         return false;
     }
@@ -158,7 +157,7 @@ bool MapObjSetValue(PObj *o, PValue key, pu64 keyHash, PValue value) {
     struct OMap *map = &o->v.OMap;
     MapEntry s = (MapEntry){keyHash, key, value};
     hmputs(map->table, s);
-    map->count = (pusize)hmlen(map->table);
+    map->count = (size_t)hmlen(map->table);
     return true;
 }
 
