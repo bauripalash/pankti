@@ -562,7 +562,7 @@ static PValue callFunction(
     PValue *argPtr = NULL;
 
     if (call->argCount > 8) {
-        argPtr = PCalloc(8, sizeof(PValue));
+        argPtr = PCalloc(call->argCount, sizeof(PValue));
         if (argPtr == NULL) {
             error(
                 it, call->op,
@@ -610,7 +610,7 @@ static PValue callNative(
     PValue argStack[8];
     PValue *argPtr = NULL;
     if (call->argCount > 8) {
-        argPtr = PCalloc(8, sizeof(PValue));
+        argPtr = PCalloc(call->argCount, sizeof(PValue));
         if (argPtr == NULL) {
             error(
                 it, call->op,
