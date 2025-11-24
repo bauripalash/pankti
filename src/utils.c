@@ -177,7 +177,7 @@ char *StrJoin(
 
     strncat(output, a, alen);
     strncat(output, b, blen);
-    output[outlen] = '\0';
+    output[outlen - 1] = '\0';
     *ok = true;
     return output;
 }
