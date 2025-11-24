@@ -3,9 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// #define STBDS_SIPHASH_2_4
-#define STB_DS_IMPLEMENTATION
-#include "external/stb/stb_ds.h"
+
 
 #ifdef PANKTI_OS_WIN
 void setupWindows() {
@@ -15,7 +13,7 @@ void setupWindows() {
 #endif
 
 void setupOs() {
-    setlocale(2, "en_US.UTF-8");
+    setlocale(LC_ALL, "en_US.UTF-8");
 #ifdef PANKTI_OS_WIN
     setupWindows();
 #elif PANKTI_OS_MAC

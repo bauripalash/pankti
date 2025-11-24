@@ -33,6 +33,7 @@ pub fn build(b: *std.Build) void {
     };
 
     var srcExternal = [_][]const u8{
+        "src/external/stb/stb_ds_impl.c",
         "src/external/xxhash/xxhash.c",
     };
 
