@@ -13,6 +13,9 @@ CMAKE_OUTPUT ?= $(CMAKE_BUILD_DIR)/$(BIN)
 # Zig built binary
 ZIG_OUTPUT ?= $(ZIG_BUILD_DIR)/bin/$(BIN)
 
+# CC
+CC:=
+
 # TCC Path (for future use)
 TCC ?= /usr/bin/tcc
 
@@ -85,11 +88,11 @@ cmake_tcc:
 
 .PHONY: cmake_setup
 cmake_setup:
-	cmake -S . -B build
+	cmake -S . -B build -DCMAKE_C_COMPILER=clang
 
 .PHONY: cmake_clang
-cmake_clang:
-	cmake -S . -B build -DCMAKE_C_COMPILER=clang
+cmake_cc:
+	cmake -S . -B build -DCMAKE_C_COMPILER=$(CC)
 
 .PHONY: cmake_clean
 cmake_clean:

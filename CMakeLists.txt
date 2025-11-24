@@ -25,6 +25,8 @@ enable_testing()
 add_subdirectory(tests)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
+set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD_REQUIRED ON)
+set_property(TARGET ${PROJECT_NAME} PROPERTY C_EXTENSIONS OFF)
 
 #target_link_options(${PROJECT_NAME} PRIVATE "-static")
 
