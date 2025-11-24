@@ -88,8 +88,8 @@ bool MatchKW(const char *s, const char *en, const char *pn, const char *bn) {
 }
 
 char32_t U8ToU32(const unsigned char *str) {
-    return ((char32_t)(str[0] & 0x0F) << 12) | ((char32_t)(str[1] & 0x3F) << 6) |
-           (char32_t)(str[2] & 0x3F);
+    return ((char32_t)(str[0] & 0x0F) << 12) |
+           ((char32_t)(str[1] & 0x3F) << 6) | (char32_t)(str[2] & 0x3F);
 }
 
 char *BoolToString(bool v) {

@@ -22,12 +22,12 @@ PanktiCore *NewCore(const char *path) {
     core->source = ReadFile(core->path);
     if (core->source == NULL) {
         printf("Failed to Read Source Code\n");
-		PFree(core);
+        PFree(core);
         return NULL;
     }
     core->lexer = NewLexer(core->source);
     if (core->lexer == NULL) {
-		PFree(core);
+        PFree(core);
         return NULL;
     }
     core->lexer->core = core;
@@ -158,10 +158,10 @@ static void reportError(PanktiCore *core, size_t line, const char *msg) {
         int lineCount = 0;
         char **lines = StrSplit(core->lexer->source, '\n', &lineCount);
         if (line < lineCount) {
-			if (lines[lineIndex] != NULL) {
-	            printf("%ld | %s", line, lines[lineIndex]);
-    	        printf("<--\n");
-			}
+            if (lines[lineIndex] != NULL) {
+                printf("%ld | %s", line, lines[lineIndex]);
+                printf("<--\n");
+            }
         }
     }
     printf("[%zu] Error : %s\n", line, msg);

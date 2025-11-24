@@ -93,7 +93,9 @@ static void PushModule(PInterpreter *it, PModule *mod) {
     it->modCount = (size_t)arrlen(it->mods);
 }
 
-static void PushProxy(PInterpreter *it, uint64_t key, char *name, PModule *mod) {
+static void PushProxy(
+    PInterpreter *it, uint64_t key, char *name, PModule *mod
+) {
     if (mod == NULL) {
         return; // error check
     }
@@ -150,7 +152,7 @@ void FreeInterpreter(PInterpreter *it) {
     PFree(it);
 }
 void Interpret(PInterpreter *it) {
-	size_t progCount = (size_t)arrlen(it->program);
+    size_t progCount = (size_t)arrlen(it->program);
     for (size_t i = 0; i < progCount; i++) {
         execute(it, it->program[i], it->env);
     }
@@ -283,32 +285,43 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
         case T_BANG_EQ: return MakeBool(!IsValueEqual(&l, &r));
         case T_GT: {
             if (l.type != VT_NUM || r.type != VT_NUM) {
-                error(it, expr->op, "Greater than operator can only be used with numbers");
+                error(
+                    it, expr->op,
+                    "Greater than operator can only be used with numbers"
+                );
                 return MakeNil();
             }
-			return MakeBool(l.v.num > r.v.num);
-		}
+            return MakeBool(l.v.num > r.v.num);
+        }
         case T_GTE: {
             if (l.type != VT_NUM || r.type != VT_NUM) {
-                error(it, expr->op, "Greater than or equal to operator can only be used with numbers");
+                error(
+                    it, expr->op,
+                    "Greater than or equal to operator can only be used with "
+                    "numbers"
+                );
                 return MakeNil();
             }
-			return MakeBool(l.v.num >= r.v.num);
-		}
+            return MakeBool(l.v.num >= r.v.num);
+        }
         case T_LT: {
             if (l.type != VT_NUM || r.type != VT_NUM) {
-				error(it, expr->op, "Less than can only be used with numbers");
+                error(it, expr->op, "Less than can only be used with numbers");
                 return MakeNil();
             }
-			return MakeBool(l.v.num < r.v.num);
-		}
+            return MakeBool(l.v.num < r.v.num);
+        }
         case T_LTE: {
             if (l.type != VT_NUM || r.type != VT_NUM) {
-				error(it, expr->op, "Less than or equal to operator can only be used with numbers");
+                error(
+                    it, expr->op,
+                    "Less than or equal to operator can only be used with "
+                    "numbers"
+                );
                 return MakeNil();
             }
-			return MakeBool(l.v.num <= r.v.num);
-		}
+            return MakeBool(l.v.num <= r.v.num);
+        }
         default: return MakeNil();
     }
 
@@ -460,7 +473,10 @@ static PValue vUnary(PInterpreter *it, PExpr *expr, PEnv *env) {
     switch (expr->exp.EUnary.op->type) {
         case T_MINUS: {
             if (r.type != VT_NUM) {
-                error(it, expr->op, "Unary negative operator can only be used with numbers");
+                error(
+                    it, expr->op,
+                    "Unary negative operator can only be used with numbers"
+                );
                 return MakeNil();
             }
             double value = -r.v.num;

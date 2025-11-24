@@ -51,8 +51,8 @@ static uint32_t uiterGetACp(const char *str, size_t len, size_t *ate) {
         }
 
         *ate = 3;
-        return (uint32_t)((c1 & 0x0F) << 12) | (uint32_t)((str[1] & 0x3F) << 6) |
-               (uint32_t)(str[2] & 0x3F);
+        return (uint32_t)((c1 & 0x0F) << 12) |
+               (uint32_t)((str[1] & 0x3F) << 6) | (uint32_t)(str[2] & 0x3F);
     }
 
     if ((c1 & 0xF8) == 0xF0) {

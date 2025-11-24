@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-
 #ifdef PANKTI_OS_WIN
 void setupWindows() {
 #include <io.h>
@@ -34,10 +32,10 @@ int main(int argc, char **argv) {
     } else {
         char *filepath = argv[1];
         PanktiCore *core = NewCore(filepath);
-		if (core == NULL) {
-			printf("Error: Failed to initialize Pankti Runtime\n");
-			return 2;
-		}
+        if (core == NULL) {
+            printf("Error: Failed to initialize Pankti Runtime\n");
+            return 2;
+        }
         RunCore(core);
         FreeCore(core);
     }
