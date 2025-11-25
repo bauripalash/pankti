@@ -288,8 +288,6 @@ static TokenType getIdentType(const char *str) {
         return T_DO;
     } else if (MatchKW(str, KW_EN_BREAK, KW_PN_BREAK, KW_BN_BREAK)) {
         return T_BREAK;
-    } else if (MatchKW(str, KW_EN_LEN, KW_PN_LEN, KW_BN_LEN)) {
-        return T_LEN;
     } else if (MatchKW(str, KW_EN_PRINT, KW_PN_PRINT, KW_BN_PRINT)) {
         return T_PRINT;
     }

@@ -64,9 +64,9 @@ void FreeCore(PanktiCore *core) {
 }
 
 // Print All the Scanned Tokens
-//#define DEBUG_LEXER
+#define DEBUG_LEXER
 // Print the Ast
-//#define DEBUG_PARSER
+#define DEBUG_PARSER
 // Print time it takes to finish each step
 //#define DEBUG_TIMES
 

@@ -39,6 +39,7 @@ typedef enum PObjType {
     OT_ARR,
     OT_MAP,
     OT_NATIVE,
+	OT_ERROR,
 } PObjType;
 
 // Entry of HashMaps
@@ -99,6 +100,12 @@ typedef struct PObj {
             // Function name (Raw Token)
             Token *name;
         } ONative;
+
+		// Error Object. Type : `OT_ERROR`
+		struct OError {
+			// Error message
+			char * msg;
+		} OError;
     } v;
 
 } PObj;
@@ -161,12 +168,26 @@ static inline bool IsValueObjType(const PValue *val, PObjType otype) {
 
     return true;
 }
+
+
+// Return the Message inside the Error Object. Can be NULL
+char * GetErrorObjMsg(PObj * obj);
 // Check if value is truthy. Only bools are considered
 bool IsValueTruthy(const PValue *val);
 // Check if two values `a` and `b` are equal
 bool IsValueEqual(const PValue *a, const PValue *b);
 // Print value to stdout
 void PrintValue(const PValue *val);
+// Check if value is a error object
+bool IsValueError(const PValue * val);
+
+
+// Check if length can be calculated for object
+bool ObjectHasLen(PObj * obj);
+
+// Return the length of the object.
+// If length can not be calculated for this object return -1
+double GetObjectLength(PObj * obj);
 
 uint64_t GetValueHash(const PValue *val, uint64_t seed);
 // Can value be used as key for hash map

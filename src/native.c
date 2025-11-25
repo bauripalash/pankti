@@ -27,6 +27,18 @@ static PValue ntvShow(PInterpreter *it, PValue *args, size_t argc) {
     return MakeNil();
 }
 
+static PValue ntvLen(PInterpreter *it, PValue * args, size_t argc){
+	PValue *target = &args[0];
+	if (target->type != VT_OBJ) {
+		return MakeError(it->gc, "Length can not be calculated for this value");
+	}
+	PObj * targetObj = target->v.obj;
+	if (!ObjectHasLen(targetObj)) {
+		return MakeError(it->gc, "Length can not be calculated for this value");
+	}
+	return MakeNumber(GetObjectLength(targetObj));
+}
+
 void RegisterNatives(PInterpreter *it, PEnv *env) {
     if (it == NULL) {
         return;
@@ -46,4 +58,7 @@ void RegisterNatives(PInterpreter *it, PEnv *env) {
     );
     PObj *showFn = NewNativeFnObject(it->gc, NULL, ntvShow, -1);
     EnvPutValue(env, StrHash("show", 4, it->gc->timestamp), MakeObject(showFn));
+
+	PObj *lenFn = NewNativeFnObject(it->gc, NULL, ntvLen, 1);
+    EnvPutValue(env, StrHash("len", 3, it->gc->timestamp), MakeObject(lenFn));
 }

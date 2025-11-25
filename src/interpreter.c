@@ -600,6 +600,9 @@ static PValue callFunction(
     if (call->argCount > 8) {
         PFree(argPtr);
     }
+	if (IsValueError(&value)) {
+		error(it, callExpr->op , GetErrorObjMsg(value.v.obj));
+	}
     return value;
 }
 
@@ -649,6 +652,10 @@ static PValue callNative(
     if (call->argCount > 8) {
         PFree(argPtr);
     }
+
+	if (IsValueError(&value)) {
+		error(it, callExpr->op , GetErrorObjMsg(value.v.obj));
+	}
 
     return value;
 }

@@ -24,7 +24,7 @@ static PValue math_Sqrt(PInterpreter *it, PValue *args, size_t argc) {
     PValue *rawVal = &args[0];
     if (rawVal->type != VT_NUM) {
         // MakeError
-        return MakeNil();
+        return MakeError(it->gc, "Square root can only calculated for numbers");
     }
     double result = sqrt(rawVal->v.num);
     return MakeNumber(result);

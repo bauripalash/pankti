@@ -3,6 +3,7 @@
 #include "../include/env.h"
 #include "../include/gc.h"
 #include "../include/object.h"
+#include "../include/utils.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -71,6 +72,21 @@ PObj *NewNativeFnObject(Pgc *gc, Token *name, NativeFn fn, int arity) {
     return o;
 }
 
+
+PObj *NewErrorObject(Pgc * gc, char * msg){
+	PObj * o = NewObject(gc, OT_ERROR);
+	if (msg != NULL) {
+		o->v.OError.msg = StrDuplicate(msg, strlen(msg));
+	}
+	return o;
+}
+
+
+PValue MakeError(Pgc * gc, char * msg){
+	PObj * o = NewErrorObject(gc, msg);
+	return MakeObject(o);
+}
+
 static inline void freeBaseObj(PObj *o) {
     if (o != NULL) {
         PFree(o);
@@ -128,6 +144,15 @@ void FreeObject(Pgc *gc, PObj *o) {
         }
         case OT_NATIVE: {
             freeBaseObj(o);
+			break;
         }
+
+		case OT_ERROR:{
+			if (o->v.OError.msg != NULL) {
+				PFree(o->v.OError.msg);
+			}
+			freeBaseObj(o);
+			break;
+		}
     }
 }

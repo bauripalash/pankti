@@ -1,6 +1,7 @@
 #include "include/object.h"
 #include "external/stb/stb_ds.h"
 #include "external/xxhash/xxhash.h"
+#include "include/keywords.h"
 #include "include/utils.h"
 #include <math.h>
 #include <stdbool.h>
@@ -20,9 +21,17 @@
 
 void PrintValue(const PValue *val) {
     switch (val->type) {
-        case VT_NUM: printf("%f", val->v.num); break;
-        case VT_BOOL: printf("%s", val->v.bl ? "true" : "false"); break;
-        case VT_NIL: printf("nil"); break;
+        case VT_NUM: {
+			double num = val->v.num;
+			if (IsDoubleInt(num)) {
+				printf("%0.f", num);
+			}else{
+				printf("%f", val->v.num); 
+			}
+			break;
+		}
+        case VT_BOOL: printf("%s", val->v.bl ? KW_BN_TRUE : KW_BN_FALSE); break;
+        case VT_NIL: printf(KW_BN_NIL); break;
         case VT_OBJ: PrintObject(val->v.obj); break;
     }
 }
@@ -125,6 +134,46 @@ bool IsValueEqual(const PValue *a, const PValue *b) {
     return false;
 }
 
+
+bool IsValueError(const PValue * val){
+	return val->type == VT_OBJ && val->v.obj->type == OT_ERROR;
+}
+
+
+char * GetErrorObjMsg(PObj * obj){
+	if (obj->type == OT_ERROR && obj->v.OError.msg != NULL) {
+		return obj->v.OError.msg;
+	}
+
+	return NULL;
+}
+
+bool ObjectHasLen(PObj * obj){
+	if (obj == NULL) {
+		return false;
+	}
+	PObjType ot = obj->type;
+
+	if (ot == OT_STR || ot == OT_ARR || ot == OT_MAP) {
+		return true;
+	}
+
+	return false;
+}
+
+double GetObjectLength(PObj * obj){
+
+	if (obj->type == OT_ARR) {
+		return (double)obj->v.OArray.count;
+	} else if (obj->type == OT_MAP){
+		return (double)obj->v.OMap.count;
+	} else if (obj->type == OT_STR){
+		return (double)StrLength(obj->v.OString.value);
+	}
+
+	return -1; // Should never reach here
+}
+
 bool ArrayObjInsValue(PObj *o, int index, PValue value) {
     if (o == NULL) {
         return false;
@@ -207,6 +256,12 @@ void PrintObject(const PObj *o) {
             printf("}");
             break;
         }
+		case OT_ERROR: {
+			if (o->v.OError.msg != NULL) {
+				printf("%s", o->v.OError.msg);
+			}
+			break;
+		}
     }
 }
 
@@ -217,6 +272,7 @@ char *ObjTypeToString(PObjType type) {
         case OT_ARR: return "Array"; break;
         case OT_MAP: return "HashMap"; break;
         case OT_NATIVE: return "Native Func"; break;
+		case OT_ERROR: return "Error";
     }
 
     return "";
@@ -236,6 +292,14 @@ bool IsObjEqual(const PObj *a, const PObj *b) {
         case OT_ARR: result = false; break; // TODO: fix
         case OT_NATIVE: result = (a->v.ONative.fn == b->v.ONative.fn); break;
         case OT_MAP: result = false; break;
+		case OT_ERROR: {
+			if (a->v.OError.msg != NULL && b->v.OError.msg != NULL) {
+				result = StrEqual(a->v.OError.msg, b->v.OError.msg);
+			}else{
+				result = false;
+			}
+			break;
+		}
     }
 
     return result;
