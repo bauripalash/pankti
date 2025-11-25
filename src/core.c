@@ -12,6 +12,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -125,7 +126,7 @@ void RunCore(PanktiCore *core) {
     printf("===== END =====\n");
 #endif
     if (core->caughtError || core->parser->hasError) {
-        printf("Parser Error found!\n");
+        printf("Parser Error(s) found!\n");
         FreeCore(core);
         exit(1);
     }
@@ -152,22 +153,8 @@ void RunCore(PanktiCore *core) {
     }
 }
 
-static void reportError(PanktiCore *core, size_t line, const char *msg) {
-    if (line > 0) {
-        size_t lineIndex = line - 1;
-        int lineCount = 0;
-        char **lines = StrSplit(core->lexer->source, '\n', &lineCount);
-        if (line < lineCount) {
-            if (lines[lineIndex] != NULL) {
-                printf("%ld | %s", line, lines[lineIndex]);
-                printf("<--\n");
-            }
-        }
-    }
-    printf("[%zu] Error : %s\n", line, msg);
-    core->caughtError = true;
-}
 
+// Simply print error message with line and column numbers, if present
 static void printErrMsg(
     PanktiCore *core, size_t line, size_t col, const char *msg, bool hasPos
 ) {
@@ -187,17 +174,6 @@ static void printErrMsg(
     printf(TERMC_RED "Error: %s" TERMC_RESET "\n", msg);
 }
 
-void CoreError(PanktiCore *core, Token *token, const char *msg) {
-    // reportError(core, token == NULL ? -1 : token->line, msg);
-    size_t line = 0;
-    size_t col = 0;
-    if (token != NULL) {
-        line = token->line;
-        col = token->col;
-    }
-    printErrMsg(core, line, col, msg, token != NULL);
-}
-
 void CoreRuntimeError(PanktiCore * core, Token * token, const char * msg){
 	size_t line = 0;
 	size_t col = 0;
@@ -212,8 +188,32 @@ void CoreRuntimeError(PanktiCore * core, Token * token, const char * msg){
 	exit(3);
 }
 
+void CoreParserError(PanktiCore * core, Token * token, const char * msg){
+	size_t line = 0;
+	size_t col = 0;
+	if (token != NULL) {
+		line = token->line;
+		col = token->col;
+	}
+
+	printErrMsg(core, line, col, msg, token != NULL);
+}
+
 void CoreLexerError(
     PanktiCore *core, size_t line, size_t col, const char *msg
 ) {
-    reportError(core, line, msg);
+    size_t _line = 0;
+	size_t _col = 0;
+
+	if (line != SIZE_MAX) {
+		_line = line;
+	}
+
+	if (col != SIZE_MAX) {
+		_col = col;
+	}
+
+	bool dontHavePos = line == SIZE_MAX || col == SIZE_MAX;
+
+	printErrMsg(core, _line, _col, msg, !dontHavePos);
 }

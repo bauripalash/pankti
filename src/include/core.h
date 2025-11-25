@@ -39,9 +39,26 @@ PanktiCore *NewCore(const char *path);
 void FreeCore(PanktiCore *core);
 // Run the script
 void RunCore(PanktiCore *core);
-// Show error
-void CoreError(PanktiCore *core, Token *token, const char *msg);
+// Throw Runtime Error and Quit
+// `core` = Interpreter Core
+// `token` = Token where the runtime error occurred; can be NULL if something
+// out of the world or something ambiguous happened.
+// `msg` = Error Message
 void CoreRuntimeError(PanktiCore * core, Token * token, const char * msg);
+
+// Throw Parser/Syntax Error and Continue parsing the code.
+// `core` = Interpreter Core
+// `token` = Token where the runtime error occurred; can be NULL if something
+// out of the world or something ambiguous happened.
+// `msg` = Error Message
+void CoreParserError(PanktiCore * core, Token * token, const char * msg);
+
+// Throw Lexer/Syntax Error and Continue scanning for tokens to catch as many as
+// errors as we can find.
+// `core` = Interpreter Core
+// `line` = Non negative line number. If ambiguous pass SIZE_MAX.
+// `col` = Non negative byte based column number. If ambiguous pass SIZE_MAX.
+// `msg` = Error Message
 void CoreLexerError(PanktiCore *core, size_t line, size_t col, const char *msg);
 #ifdef __cplusplus
 }

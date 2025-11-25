@@ -162,7 +162,6 @@ void Interpret(PInterpreter *it) {
 
 // Report a Error
 static void error(PInterpreter *it, Token *tok, const char *msg) {
-    //CoreError(it->core, tok, msg);
 	CoreRuntimeError(it->core, tok, msg);
 }
 

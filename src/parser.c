@@ -111,7 +111,7 @@ static bool matchOne(Parser *p, TokenType type) {
 
 static void error(Parser *p, Token *tok, char *msg) {
     p->hasError = true;
-    CoreError(p->core, tok, msg);
+    CoreParserError(p->core, tok, msg);
 }
 
 static Token *eat(Parser *p, TokenType t, char *msg) {
