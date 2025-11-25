@@ -109,7 +109,7 @@ static bool matchOne(Parser *p, TokenType type) {
     return false;
 }
 
-static void error(Parser *p, Token *tok, char *msg) {
+static inline void error(Parser *p, Token *tok, char *msg) {
     p->hasError = true;
     CoreParserError(p->core, tok, msg);
 }

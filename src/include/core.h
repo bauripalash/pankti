@@ -32,6 +32,12 @@ typedef struct PanktiCore {
     bool runtimeError;
 } PanktiCore;
 
+typedef enum PCoreErrorType{
+	PCERR_RUNTIME = 0,
+	PCERR_LEXER = 1,
+	PCERR_PARSER = 2,
+}PCoreErrorType;
+
 // Create New Pankti Core
 // `path` = File path of the script
 PanktiCore *NewCore(const char *path);
