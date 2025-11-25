@@ -172,7 +172,7 @@ static void printErrMsg(
     PanktiCore *core, size_t line, size_t col, const char *msg, bool hasPos
 ) {
     if (hasPos) {
-        printf("[ ");
+        printf("[");
 
         if (line >= 1) {
             printf("line: %zu", line);
@@ -196,6 +196,20 @@ void CoreError(PanktiCore *core, Token *token, const char *msg) {
         col = token->col;
     }
     printErrMsg(core, line, col, msg, token != NULL);
+}
+
+void CoreRuntimeError(PanktiCore * core, Token * token, const char * msg){
+	size_t line = 0;
+	size_t col = 0;
+	if (token != NULL) {
+		line = token->line;
+		col = token->col;
+	}
+
+	printErrMsg(core, line, col, msg, token != NULL);
+	printf("Runtime Error Occured!\n");
+	FreeCore(core);
+	exit(3);
 }
 
 void CoreLexerError(

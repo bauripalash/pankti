@@ -135,7 +135,7 @@ static inline PValue MakeBool(bool bl) {
     return val;
 }
 // Make a nil value
-static inline PValue MakeNil() {
+static inline PValue MakeNil(void) {
     PValue val;
     val.type = VT_NIL;
     return val;

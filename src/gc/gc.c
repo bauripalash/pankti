@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <time.h>
 
-Pgc *NewGc() {
+Pgc *NewGc(void) {
     Pgc *gc = PCreate(Pgc);
     gc->disable = false;
     gc->stress = false;

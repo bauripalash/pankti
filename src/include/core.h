@@ -41,6 +41,7 @@ void FreeCore(PanktiCore *core);
 void RunCore(PanktiCore *core);
 // Show error
 void CoreError(PanktiCore *core, Token *token, const char *msg);
+void CoreRuntimeError(PanktiCore * core, Token * token, const char * msg);
 void CoreLexerError(PanktiCore *core, size_t line, size_t col, const char *msg);
 #ifdef __cplusplus
 }

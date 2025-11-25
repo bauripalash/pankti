@@ -10,7 +10,7 @@ void setupWindows() {
 }
 #endif
 
-void setupOs() {
+void setupOs(void) {
     setlocale(LC_ALL, "en_US.UTF-8");
 #ifdef PANKTI_OS_WIN
     setupWindows();

@@ -24,7 +24,7 @@ typedef struct Pgc {
     uint64_t timestamp;
 } Pgc;
 
-Pgc *NewGc();
+Pgc *NewGc(void);
 void FreeGc(Pgc *gc);
 
 // Create a New Empty Object.

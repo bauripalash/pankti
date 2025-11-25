@@ -61,7 +61,7 @@ static inline ExResult ExSimple(PValue v) {
 }
 
 // Create a Break Execution Result
-static inline ExResult ExBreak() {
+static inline ExResult ExBreak(void) {
     ExResult er;
     er.type = ET_BREAK;
     er.value = MakeNil();
@@ -162,7 +162,8 @@ void Interpret(PInterpreter *it) {
 
 // Report a Error
 static void error(PInterpreter *it, Token *tok, const char *msg) {
-    CoreError(it->core, tok, msg);
+    //CoreError(it->core, tok, msg);
+	CoreRuntimeError(it->core, tok, msg);
 }
 
 // Evaluate Literal Expression
@@ -211,8 +212,7 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
             if (l.type == VT_NUM && r.type == VT_NUM) {
                 double value = l.v.num + r.v.num;
                 return MakeNumber(value);
-            } else {
-                if ((l.type == VT_OBJ && ValueAsObj(l)->type == OT_STR) &&
+            } else if ((l.type == VT_OBJ && ValueAsObj(l)->type == OT_STR) &&
                     (r.type == VT_OBJ && ValueAsObj(r)->type == OT_STR)) {
                     bool ok = true;
                     struct OString *ls = &ValueAsObj(l)->v.OString;
@@ -228,8 +228,10 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
 
                     PObj *nsObj = NewStrObject(it->gc, expr->op, newStr, true);
                     return MakeObject(nsObj);
-                }
-            }
+            } else {
+				error(it, expr->op, "Addition operation can only done when both values are either numbers or strings");
+				return MakeNil();
+			}
             break;
         }
             // Multiplication
