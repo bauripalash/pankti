@@ -64,11 +64,11 @@ void FreeCore(PanktiCore *core) {
 }
 
 // Print All the Scanned Tokens
-#define DEBUG_LEXER
+//#define DEBUG_LEXER
 // Print the Ast
-#define DEBUG_PARSER
+//#define DEBUG_PARSER
 // Print time it takes to finish each step
-#define DEBUG_TIMES
+//#define DEBUG_TIMES
 
 void RunCore(PanktiCore *core) {
     if (core == NULL) {
@@ -102,6 +102,8 @@ void RunCore(PanktiCore *core) {
 #endif
     if (core->lexer->hasError) {
         printf("Lexer Error found!\n");
+		FreeCore(core);
+		exit(1);
     }
 
     core->parser = NewParser(core->gc, core->lexer);

@@ -391,7 +391,9 @@ static void scanToken(Lexer *lx) {
                 readIdent(lx);
                 break;
             } else {
-				error(lx, lx->line, lx->column, "Invalid character found");
+				uint8_t rawChar[4];
+				U32ToU8(c, rawChar);
+				error(lx, lx->line, lx->column, StrFormat("Invalid character found '%s'", rawChar));
                 break;
             }
             break;
