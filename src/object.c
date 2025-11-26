@@ -19,33 +19,44 @@
 #define CONST_BOOL_FALSE_HASH 0x0
 #define CONST_NIL_HASH        0x2
 
-void PrintValue(const PValue *val) {
-    switch (val->type) {
-        case VT_NUM: {
-			double num = val->v.num;
-			if (IsDoubleInt(num)) {
-				printf("%0.f", num);
-			}else{
-				printf("%f", val->v.num); 
-			}
-			break;
+void PrintValue(PValue val) {
+	if (IsValueNum(val)) {
+		double num = ValueAsNum(val);
+
+		if (IsDoubleInt(num)) {
+			printf("%0.f", num);
+		}else{
+			printf("%f", num); 
 		}
-        case VT_BOOL: printf("%s", val->v.bl ? KW_BN_TRUE : KW_BN_FALSE); break;
-        case VT_NIL: printf(KW_BN_NIL); break;
-        case VT_OBJ: PrintObject(val->v.obj); break;
-    }
+	} else if (IsValueBool(val)){
+		printf("%s", ValueAsBool(val) ? KW_BN_TRUE : KW_BN_FALSE);
+	} else if (IsValueNil(val)){
+		printf(KW_BN_NIL);
+	} else if (IsValueObj(val)){
+		PrintObject(ValueAsObj(val));
+	} else {
+		printf("Unknown");
+	}
 }
 
-const char *ValueTypeToStr(const PValue *val) {
-    if (val == NULL) {
-        return "Unknown";
-    }
+PValueType GetValueType(PValue value){
+	if (IsValueNum(value)) {
+		return VT_NUM;
+	} else if (IsValueBool(value)) {
+		return VT_BOOL;
+	} else if (IsValueNil(value)){
+		return VT_NIL;
+	} else{
+		return VT_OBJ;
+	}
+}
 
-    switch (val->type) {
+const char *ValueTypeToStr(PValue val) {
+    switch (GetValueType(val)) {
         case VT_NUM: return "Number";
         case VT_BOOL: return "Bool";
         case VT_NIL: return "Nil";
-        case VT_OBJ: return ObjTypeToString(val->v.obj->type);
+        case VT_OBJ: return ObjTypeToString(ValueAsObj(val)->type);
     }
 
     return "Unknown";
@@ -59,9 +70,9 @@ bool CanObjectBeKey(PObjType type) {
     return false;
 }
 
-bool CanValueBeKey(const PValue *val) {
-    if (val->type == VT_OBJ) {
-        return CanObjectBeKey(val->v.obj->type);
+bool CanValueBeKey(PValue val) {
+    if (IsValueObj(val)) {
+        return CanObjectBeKey(ValueAsObj(val)->type);
     }
 
     return true;
@@ -78,65 +89,67 @@ uint64_t GetObjectHash(const PObj *obj, uint64_t seed) {
     return 0;
 }
 
-uint64_t GetValueHash(const PValue *val, uint64_t seed) {
-    switch (val->type) {
-        case VT_NUM: {
-            double value = val->v.num;
-            if (value == 0.0) {
-                return CONST_ZERO_HASH;
-            }
-            if (isnan(value)) {
-                return CONST_ZERO_HASH;
-            }
-            uint64_t bits;
-            memcpy(&bits, &value, sizeof(bits));
-            return (uint64_t)XXH64(&bits, sizeof(bits), seed);
-        }
-        case VT_NIL: {
-            return CONST_NIL_HASH;
-        }
-        case VT_BOOL: {
-            uint8_t value = val->v.bl ? 1 : 0;
-            return (uint64_t)XXH64(&value, 1, seed);
-        };
-        case VT_OBJ: return GetObjectHash(val->v.obj, seed);
-    }
+uint64_t GetValueHash(PValue val, uint64_t seed) {
+	if (IsValueNum(val)) {
+		double value = ValueAsNum(val);
+		if (value == 0.0) {
+			return CONST_ZERO_HASH;
+		}
+		if (isnan(value)) {
+			return CONST_ZERO_HASH;
+		}
+		uint64_t bits;
+		memcpy(&bits, &value, sizeof(bits));
+		return (uint64_t)XXH64(&bits, sizeof(bits), seed);
+	} else if (IsValueNil(val)){
+		return CONST_NIL_HASH;
+	} else if (IsValueBool(val)){
+		uint8_t value = ValueAsBool(val) ? 1 : 0;
+		return (uint64_t)XXH64(&value, 1, seed);
+	} else if (IsValueObj(val)){
+		return GetObjectHash(ValueAsObj(val), seed);
+	}
+    
 
     return UINT64_MAX;
 }
 
-bool IsValueTruthy(const PValue *val) {
-    if (val->type == VT_BOOL && val->v.bl) {
-        return true;
+bool IsValueTruthy(PValue val) {
+    if (IsValueBool(val)) {
+        return ValueAsBool(val);
     } else {
         return false;
     }
 }
 
-bool IsValueEqual(const PValue *a, const PValue *b) {
-    if (a == NULL || b == NULL) {
+bool IsValueEqual(PValue a, PValue b) {
+    if (GetValueType(a) != GetValueType(b)) {
         return false;
     }
 
-    if (a->type != b->type) {
-        return false;
-    }
+    if (IsValueObj(a)) {
+        return IsObjEqual(ValueAsObj(a), ValueAsObj(b));
+    } else {
+#if defined (USE_NAN_BOXING)
+		return a == b;
+#else
+	   if (a.type == VT_NIL) {
+			return true;
+		} else if (a.type == VT_NUM) {
+			return a.v.num == b.v.num;
+		} else if (a.type == VT_BOOL) {
+			return a.v.bl == b.v.bl;
+		}
+#endif
+	}
 
-    if (a->type == VT_OBJ) {
-        return IsObjEqual(a->v.obj, b->v.obj);
-    } else if (a->type == VT_NIL) {
-        return true;
-    } else if (a->type == VT_NUM) {
-        return a->v.num == b->v.num;
-    } else if (a->type == VT_BOOL) {
-        return a->v.bl == b->v.bl;
-    }
-    return false;
+	return false;
+	
 }
 
 
-bool IsValueError(const PValue * val){
-	return val->type == VT_OBJ && val->v.obj->type == OT_ERROR;
+bool IsValueError(PValue val){
+	return IsValueObjType(val, OT_ERROR);
 }
 
 
@@ -225,7 +238,7 @@ void PrintObject(const PObj *o) {
             const struct OArray *arr = &o->v.OArray;
             printf("[");
             for (int i = 0; i < arr->count; i++) {
-                PrintValue(&arr->items[i]);
+                PrintValue(arr->items[i]);
                 if (i != arr->count - 1) {
                     printf(", ");
                 }
@@ -244,8 +257,8 @@ void PrintObject(const PObj *o) {
             printf("{");
             const struct OMap *map = &o->v.OMap;
             for (int i = 0; i < map->count; i++) {
-                PValue *k = &map->table[i].vkey;
-                PValue *v = &map->table[i].value;
+                PValue k = map->table[i].vkey;
+                PValue v = map->table[i].value;
                 PrintValue(k);
                 printf(" : ");
                 PrintValue(v);

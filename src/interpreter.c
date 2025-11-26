@@ -208,11 +208,11 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
 
     switch (expr->exp.EBinary.op->type) {
         case T_PLUS: {
-            if (l.type == VT_NUM && r.type == VT_NUM) {
-                double value = l.v.num + r.v.num;
+            if (IsValueNum(l) && IsValueNum(r)) {
+                double value = ValueAsNum(l) + ValueAsNum(r);
                 return MakeNumber(value);
-            } else if ((l.type == VT_OBJ && ValueAsObj(l)->type == OT_STR) &&
-                    (r.type == VT_OBJ && ValueAsObj(r)->type == OT_STR)) {
+            } else if ((IsValueObj(l) && ValueAsObj(l)->type == OT_STR) &&
+                    (IsValueObj(r) && ValueAsObj(r)->type == OT_STR)) {
                     bool ok = true;
                     struct OString *ls = &ValueAsObj(l)->v.OString;
                     size_t lsLen = (size_t)strlen(ls->value);
@@ -235,67 +235,67 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
         }
             // Multiplication
         case T_ASTR: {
-            if (l.type != VT_NUM || r.type != VT_NUM) {
+            if (!IsValueNum(l) || !IsValueNum(r)) {
                 error(
                     it, expr->op, "Multiplication can only be done with numbers"
                 );
                 return MakeNil();
             }
-            double value = l.v.num * r.v.num;
+            double value = ValueAsNum(l) * ValueAsNum(r);
             return MakeNumber(value);
         }
         case T_EXPONENT: {
-            if (l.type != VT_NUM || r.type != VT_NUM) {
+            if (!IsValueNum(l) || !IsValueNum(r)) {
                 error(
                     it, expr->op, "Multiplication can only be done with numbers"
                 );
                 return MakeNil();
             }
 
-            double value = pow(l.v.num, r.v.num);
+            double value = pow(ValueAsNum(l), ValueAsNum(r));
             return MakeNumber(value);
         }
         case T_MINUS: {
-            if (l.type != VT_NUM || r.type != VT_NUM) {
+            if (!IsValueNum(l) || !IsValueNum(r)) {
                 error(
                     it, expr->op, "Substraction can only be done with numbers"
                 );
                 return MakeNil();
             }
-            double value = l.v.num - r.v.num;
+            double value = ValueAsNum(l) - ValueAsNum(r);
             return MakeNumber(value);
             break;
         }
             // Division
         case T_SLASH: {
-            if (l.type != VT_NUM || r.type != VT_NUM) {
+            if (!IsValueNum(l) || !IsValueNum(r)) {
                 error(it, expr->op, "Division can only be done with numbers");
                 return MakeNil();
             }
 
-            if (r.v.num == 0) {
+            if (ValueAsNum(r) == 0) {
                 error(it, expr->op, "Division by zero");
                 return MakeNil();
             }
 
-            double value = l.v.num / r.v.num;
+            double value = ValueAsNum(l) / ValueAsNum(r);
             return MakeNumber(value);
             break;
         }
-        case T_EQEQ: return MakeBool(IsValueEqual(&l, &r));
-        case T_BANG_EQ: return MakeBool(!IsValueEqual(&l, &r));
+        case T_EQEQ: return MakeBool(IsValueEqual(l, r));
+        case T_BANG_EQ: return MakeBool(!IsValueEqual(l, r));
         case T_GT: {
-            if (l.type != VT_NUM || r.type != VT_NUM) {
+            if (!IsValueNum(l) || !IsValueNum(r)) {
                 error(
                     it, expr->op,
                     "Greater than operator can only be used with numbers"
                 );
                 return MakeNil();
             }
-            return MakeBool(l.v.num > r.v.num);
+            return MakeBool(ValueAsNum(l) > ValueAsNum(r));
         }
         case T_GTE: {
-            if (l.type != VT_NUM || r.type != VT_NUM) {
+            if (!IsValueNum(l) || !IsValueNum(r)) {
                 error(
                     it, expr->op,
                     "Greater than or equal to operator can only be used with "
@@ -303,17 +303,17 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
                 );
                 return MakeNil();
             }
-            return MakeBool(l.v.num >= r.v.num);
+            return MakeBool(ValueAsNum(l) >= ValueAsNum(r));
         }
         case T_LT: {
-            if (l.type != VT_NUM || r.type != VT_NUM) {
+            if (!IsValueNum(l) || !IsValueNum(r)) {
                 error(it, expr->op, "Less than can only be used with numbers");
                 return MakeNil();
             }
-            return MakeBool(l.v.num < r.v.num);
+            return MakeBool(ValueAsNum(l) < ValueAsNum(r));
         }
         case T_LTE: {
-            if (l.type != VT_NUM || r.type != VT_NUM) {
+            if (!IsValueNum(l) || !IsValueNum(r)) {
                 error(
                     it, expr->op,
                     "Less than or equal to operator can only be used with "
@@ -321,7 +321,7 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
                 );
                 return MakeNil();
             }
-            return MakeBool(l.v.num <= r.v.num);
+            return MakeBool(ValueAsNum(l) <= ValueAsNum(r));
         }
         default: return MakeNil();
     }
@@ -376,12 +376,12 @@ static void arrAssignment(
     assert(arrObj->type == OT_ARR);
     struct OArray *arr = &arrObj->v.OArray;
     PValue indexValue = evaluate(it, index, env);
-    if (indexValue.type != VT_NUM) {
+    if (!IsValueNum(indexValue)) {
         error(it, index->op, "Array Objects can be indexed only with Integers");
         return;
     }
 
-    double indexDouble = indexValue.v.num;
+    double indexDouble = ValueAsNum(indexValue);
 
     if (!IsDoubleInt(indexDouble)) {
         error(it, index->op, "Array Objects can be indexed only with Integers");
@@ -408,12 +408,12 @@ static void mapAssignment(
     assert(mapObj->type == OT_MAP);
     PValue keyValue = evaluate(it, keyExpr, env);
 
-    if (!CanValueBeKey(&keyValue)) {
+    if (!CanValueBeKey(keyValue)) {
         error(it, keyExpr->op, "Invalid key for map");
         return;
     }
 
-    uint64_t keyHash = GetValueHash(&keyValue, it->gc->timestamp);
+    uint64_t keyHash = GetValueHash(keyValue, it->gc->timestamp);
     PValue value = evaluate(it, valueExpr, env);
     if (!MapObjSetValue(mapObj, keyValue, keyHash, value)) {
         error(it, keyExpr->op, "Internal Error : Failed to set value to map");
@@ -428,7 +428,7 @@ static PValue subAssignment(
     struct ESubscript *sub = &targetExpr->exp.ESubscript;
 
     PValue coreValue = evaluate(it, sub->value, env);
-    if (coreValue.type == VT_OBJ) {
+    if (IsValueObj(coreValue)) {
         PObj *coreObj = ValueAsObj(coreValue);
         if (coreObj->type == OT_ARR) {
             arrAssignment(it, coreObj, sub->index, valueExpr, env);
@@ -473,18 +473,18 @@ static PValue vUnary(PInterpreter *it, PExpr *expr, PEnv *env) {
 
     switch (expr->exp.EUnary.op->type) {
         case T_MINUS: {
-            if (r.type != VT_NUM) {
+            if (!IsValueNum(r)) {
                 error(
                     it, expr->op,
                     "Unary negative operator can only be used with numbers"
                 );
                 return MakeNil();
             }
-            double value = -r.v.num;
+            double value = -ValueAsNum(r);
             return MakeNumber(value);
         }
         case T_BANG: {
-            return MakeBool(!IsValueTruthy(&r));
+            return MakeBool(!IsValueTruthy(r));
         }
         default: {
             error(it, expr->op, "Invalid Unary Operation");
@@ -501,22 +501,22 @@ static PValue vLogical(PInterpreter *it, PExpr *expr, PEnv *env) {
     Token *op = expr->exp.ELogical.op;
 
     if (op->type == T_OR) {
-        if (IsValueTruthy(&left)) {
+        if (IsValueTruthy(left)) {
             return MakeBool(true);
         } else {
             PValue right = evaluate(it, expr->exp.ELogical.right, env);
-            if (IsValueTruthy(&right)) {
+            if (IsValueTruthy(right)) {
                 return MakeBool(true);
             } else {
                 return MakeBool(false);
             }
         }
     } else if (op->type == T_AND) {
-        if (!IsValueTruthy(&left)) {
+        if (!IsValueTruthy(left)) {
             return MakeBool(false);
         } else {
             PValue right = evaluate(it, expr->exp.ELogical.right, env);
-            if (IsValueTruthy(&right)) {
+            if (IsValueTruthy(right)) {
                 return MakeBool(true);
             } else {
                 return MakeBool(false);
@@ -600,8 +600,8 @@ static PValue callFunction(
     if (call->argCount > 8) {
         PFree(argPtr);
     }
-	if (IsValueError(&value)) {
-		error(it, callExpr->op , GetErrorObjMsg(value.v.obj));
+	if (IsValueError(value)) {
+		error(it, callExpr->op , GetErrorObjMsg(ValueAsObj(value)));
 	}
     return value;
 }
@@ -653,8 +653,8 @@ static PValue callNative(
         PFree(argPtr);
     }
 
-	if (IsValueError(&value)) {
-		error(it, callExpr->op , GetErrorObjMsg(value.v.obj));
+	if (IsValueError(value)) {
+		error(it, callExpr->op , GetErrorObjMsg(ValueAsObj(value)));
 	}
 
     return value;
@@ -665,16 +665,16 @@ static PValue vCall(PInterpreter *it, PExpr *expr, PEnv *env) {
     assert(expr->type == EXPR_CALL);
     struct ECall *ec = &expr->exp.ECall;
     PValue co = evaluate(it, ec->callee, env);
-    if (co.type != VT_OBJ) {
+    if (!IsValueObj(co)) {
         error(it, ec->callee->op, "Can only call functions");
         return MakeNil();
     }
 
-    if (co.type == VT_OBJ) {
+    if (IsValueObj(co)) {
         PObj *callObj = ValueAsObj(co);
-        if (co.v.obj->type == OT_FNC) {
+        if (IsValueObjType(co, OT_FNC)) {
             return callFunction(it, callObj, expr, env);
-        } else if (co.v.obj->type == OT_NATIVE) {
+        } else if (IsValueObjType(co, OT_NATIVE)) {
             return callNative(it, callObj, expr, env);
         }
     }
@@ -707,8 +707,8 @@ static PValue vMap(PInterpreter *it, PExpr *expr, PEnv *env) {
 
     for (size_t i = 0; i < map->count; i += 2) {
         PValue k = evaluate(it, map->etable[i], env);
-        uint64_t keyHash = GetValueHash(&k, (uint64_t)it->gc->timestamp);
-        if (!CanValueBeKey(&k)) {
+        uint64_t keyHash = GetValueHash(k, (uint64_t)it->gc->timestamp);
+        if (!CanValueBeKey(k)) {
             if (table != NULL) {
                 hmfree(table);
             }
@@ -735,12 +735,12 @@ static PValue arraySubscript(
 
     struct ESubscript *sub = &expr->exp.ESubscript;
     PValue indexValue = evaluate(it, sub->index, env);
-    if (indexValue.type != VT_NUM) {
+    if (!IsValueNum(indexValue)) {
         error(it, sub->index->op, "Arrays can only indexed with integers");
         return MakeNil();
     }
 
-    double indexDbl = indexValue.v.num;
+    double indexDbl = ValueAsNum(indexValue);
 
     if (!IsDoubleInt(indexDbl)) {
         error(it, sub->index->op, "Arrays can only indexed with integers");
@@ -767,13 +767,13 @@ static PValue mapSubscript(
     struct ESubscript *sub = &expr->exp.ESubscript;
     PValue keyValue = evaluate(it, sub->index, env);
 
-    if (!CanValueBeKey(&keyValue)) {
+    if (!CanValueBeKey(keyValue)) {
         error(it, sub->index->op, "Invalid key value for map subscripting");
         return MakeNil();
     }
 
     struct OMap *map = &mapObj->v.OMap;
-    uint64_t keyHash = GetValueHash(&keyValue, it->gc->timestamp);
+    uint64_t keyHash = GetValueHash(keyValue, it->gc->timestamp);
 
     if (hmgeti(map->table, keyHash) != -1) {
         return hmgets(map->table, keyHash).value;
@@ -789,7 +789,7 @@ static PValue vSubscript(PInterpreter *it, PExpr *expr, PEnv *env) {
     struct ESubscript *sub = &expr->exp.ESubscript;
     PValue subValue = evaluate(it, sub->value, env);
 
-    if (subValue.type == VT_OBJ) {
+    if (IsValueObj(subValue)) {
         PObj *subObj = ValueAsObj(subValue);
         if (subObj->type == OT_ARR) {
             return arraySubscript(it, subObj, expr, env);
@@ -902,7 +902,7 @@ static ExResult vsLet(PInterpreter *it, PStmt *stmt, PEnv *env) {
 static ExResult vsPrint(PInterpreter *it, PStmt *stmt, PEnv *env) {
     assert(stmt->type == STMT_PRINT);
     PValue value = evaluate(it, stmt->stmt.SPrint.value, env);
-    PrintValue(&value);
+    PrintValue(value);
     printf("\n");
     return ExSimple(MakeNil());
 }
@@ -917,7 +917,7 @@ static ExResult vsExprStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
 static ExResult vsIfStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     assert(stmt->type == STMT_IF);
     PValue cond = evaluate(it, stmt->stmt.SIf.cond, env);
-    if (IsValueTruthy(&cond)) {
+    if (IsValueTruthy(cond)) {
         return execute(it, stmt->stmt.SIf.thenBranch, env);
     } else {
         if (stmt->stmt.SIf.elseBranch != NULL) {
@@ -932,7 +932,7 @@ static ExResult vsIfStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
 static ExResult vsWhileStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     assert(stmt->type == STMT_WHILE);
     PValue cond = evaluate(it, stmt->stmt.SWhile.cond, env);
-    while (IsValueTruthy(&cond)) {
+    while (IsValueTruthy(cond)) {
         ExResult res = execute(it, stmt->stmt.SWhile.body, env);
         if (res.type == ET_BREAK) {
             break;
@@ -977,12 +977,12 @@ static ExResult vsImportStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
 
     PValue pathValue = evaluate(it, imp->path, env);
 
-    if (!IsValueObjType(&pathValue, OT_STR)) {
+    if (!IsValueObjType(pathValue, OT_STR)) {
         error(it, imp->op, "Import path must be a string");
         return ExSimple(MakeNil());
     }
 
-    char *pathStr = pathValue.v.obj->v.OString.value;
+    char *pathStr = ValueAsObj(pathValue)->v.OString.value;
     PModule *mod = NewModule(it, pathStr);
     if (mod == NULL) {
         error(it, stmt->op, "Failed to create module");

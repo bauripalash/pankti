@@ -68,7 +68,7 @@ void FreeCore(PanktiCore *core) {
 // Print the Ast
 #define DEBUG_PARSER
 // Print time it takes to finish each step
-//#define DEBUG_TIMES
+#define DEBUG_TIMES
 
 void RunCore(PanktiCore *core) {
     if (core == NULL) {

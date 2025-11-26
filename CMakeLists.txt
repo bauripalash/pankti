@@ -3,6 +3,7 @@ project(pankti)
 
 include(FetchContent)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+option(USE_NAN_BOXING "Enable NaN-Boxed Values (64bit pointers and IEEE-754 double must be present)" ON)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE 
@@ -61,6 +62,13 @@ set(PANKTI_DEBUG_LINKER_FLAGS
 	"-fsanitize=float-cast-overflow"
 	"-flto"
 )
+
+if(USE_NAN_BOXING)
+	add_compile_definitions(USE_NAN_BOXING=1)
+	message("NaN-Boxing is enabled")
+else()
+	message("NaN-Boxing is disabled")
+endif()
 
 target_compile_options(${PROJECT_NAME} PRIVATE 
 	$<$<CONFIG:Debug>:${PANKTI_DEBUG_CFLAGS}>

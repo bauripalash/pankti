@@ -18,7 +18,7 @@ static PValue ntvClock(PInterpreter *it, PValue *args, size_t argc) {
 
 static PValue ntvShow(PInterpreter *it, PValue *args, size_t argc) {
     for (size_t i = 0; i < argc; i++) {
-        PrintValue(&args[i]);
+        PrintValue(args[i]);
         if (i + 1 < argc) {
             printf(" ");
         }
@@ -28,11 +28,11 @@ static PValue ntvShow(PInterpreter *it, PValue *args, size_t argc) {
 }
 
 static PValue ntvLen(PInterpreter *it, PValue * args, size_t argc){
-	PValue *target = &args[0];
-	if (target->type != VT_OBJ) {
+	PValue target = args[0];
+	if (!IsValueObj(target)) {
 		return MakeError(it->gc, "Length can not be calculated for this value");
 	}
-	PObj * targetObj = target->v.obj;
+	PObj * targetObj = ValueAsObj(target);
 	if (!ObjectHasLen(targetObj)) {
 		return MakeError(it->gc, "Length can not be calculated for this value");
 	}

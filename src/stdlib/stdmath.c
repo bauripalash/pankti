@@ -21,42 +21,42 @@ static inline double getGcd(double a, double b) {
 }
 
 static PValue math_Sqrt(PInterpreter *it, PValue *args, size_t argc) {
-    PValue *rawVal = &args[0];
-    if (rawVal->type != VT_NUM) {
+    PValue rawVal = args[0];
+    if (!IsValueNum(rawVal)) {
         // MakeError
         return MakeError(it->gc, "Square root can only calculated for numbers");
     }
-    double result = sqrt(rawVal->v.num);
+    double result = sqrt(ValueAsNum(rawVal));
     return MakeNumber(result);
 }
 
 static PValue math_Log10(PInterpreter *it, PValue *args, size_t argc) {
-    PValue *rawVal = &args[0];
-    if (rawVal->type != VT_NUM) {
+    PValue rawVal = args[0];
+    if (!IsValueNum(rawVal)) {
         // MakeError
         return MakeNil();
     }
-    double result = log10(rawVal->v.num);
+    double result = log10(ValueAsNum(rawVal));
     return MakeNumber(result);
 }
 static PValue math_Log(PInterpreter *it, PValue *args, size_t argc) {
-    PValue *rawVal = &args[0];
-    if (rawVal->type != VT_NUM) {
+    PValue rawVal = args[0];
+    if (!IsValueNum(rawVal)) {
         // MakeError
         return MakeNil();
     }
-    double result = log(rawVal->v.num);
+    double result = log(ValueAsNum(rawVal));
     return MakeNumber(result);
 }
 static PValue math_LogBase(PInterpreter *it, PValue *args, size_t argc) {
-    PValue *rawBase = &args[0];
-    PValue *rawNum = &args[1];
+    PValue rawBase = args[0];
+    PValue rawNum = args[1];
 
-    if (rawBase->type != VT_NUM || rawNum->type != VT_NUM) {
+    if (!IsValueNum(rawBase) || !IsValueNum(rawNum)) {
         // MakeError
         return MakeNil();
     }
-    double result = log(rawNum->v.num) / log(rawBase->v.num);
+    double result = log(ValueAsNum(rawNum)) / log(ValueAsNum(rawBase));
     return MakeNumber(result);
 }
 static PValue math_GCD(PInterpreter *it, PValue *args, size_t argc) {

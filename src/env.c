@@ -37,7 +37,7 @@ void DebugEnv(PEnv *e) {
     size_t count = (size_t)hmlen(e->table);
     for (size_t i = 0; i < count; i++) {
         printf("\n%zu < %ld '", i, e->table[i].key);
-        PrintValue(&e->table[i].value);
+        PrintValue(e->table[i].value);
         printf("' >\n");
     }
 
