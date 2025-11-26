@@ -1,8 +1,8 @@
 dhori a = 100.99
 dhori b = sotti
 dhori c = nil
-dhori d = "mango"
+dhori d = "mango" + " tango"
 dhori e = b and false
-dhori f = [a,b,c,d, e]
+dhori f = [a,b,c,d, e, "wow" + "tow"]
 
 print f

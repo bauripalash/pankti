@@ -223,20 +223,40 @@ void PrintObject(const PObj *o) {
     }
 
     switch (o->type) {
-        case OT_STR: printf("%s", o->v.OString.value); break;
+        case OT_STR: {
+			const struct OString * str = &o->v.OString;
+			if (str->isVirtual) {
+				if (str->value != NULL) {
+					printf("%s", str->value); 
+				}else{
+					printf("<INVALID STRING>");
+				}	
+			} else {
+				if (str->name != NULL) {
+					printf("%s", str->name->lexeme);
+				}
+			}
+			break;
+		}
         case OT_FNC: {
-            printf("<fn %s>", o->v.OFunction.name->lexeme);
+			const struct OFunction * func = &o->v.OFunction;
+			if (func->name != NULL) {
+				printf("<fn %s>", func->name->lexeme);
+			}
             break;
         }
         case OT_ARR: {
             const struct OArray *arr = &o->v.OArray;
             printf("[");
-            for (int i = 0; i < arr->count; i++) {
-                PrintValue(arr->items[i]);
-                if (i != arr->count - 1) {
-                    printf(", ");
-                }
-            }
+			if (arr->items != NULL) {
+				for (size_t i = 0; i < arrlen(arr->items); i++) {
+					PValue val = arr->items[i];
+					PrintValue(val);
+					if (i != arr->count - 1) {
+						printf(", ");
+					}
+				}
+			}
             printf("]");
             break;
         }
@@ -250,16 +270,19 @@ void PrintObject(const PObj *o) {
         case OT_MAP: {
             printf("{");
             const struct OMap *map = &o->v.OMap;
-            for (int i = 0; i < map->count; i++) {
-                PValue k = map->table[i].vkey;
-                PValue v = map->table[i].value;
-                PrintValue(k);
-                printf(" : ");
-                PrintValue(v);
-                if (i + 1 != map->count) {
-                    printf(", ");
-                }
-            }
+			if (map->table != NULL) {
+			    for (int i = 0; i < map->count; i++) {
+                	PValue k = map->table[i].vkey;
+	                PValue v = map->table[i].value;
+    	            PrintValue(k);
+	                printf(" : ");
+	                PrintValue(v);
+	                if (i + 1 != map->count) {
+    	                printf(", ");
+        	        }
+            	}
+			}
+
             printf("}");
             break;
         }

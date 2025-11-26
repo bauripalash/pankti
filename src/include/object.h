@@ -15,6 +15,7 @@ extern "C" {
 // Forward declration for PObj
 typedef struct PObj PObj;
 typedef struct PInterpreter PInterpreter;
+typedef struct PEnv PEnv;
 
 // Value Type
 typedef enum PValueType { VT_NUM, VT_OBJ, VT_BOOL, VT_NIL } PValueType;
@@ -68,6 +69,7 @@ typedef struct PObj {
     // Pankti Object Type
     PObjType type;
     struct PObj *next;
+	bool marked;
 
     // Union of All Pankti Objects
     union v {
@@ -87,7 +89,7 @@ typedef struct PObj {
             // Count of parameters
             size_t paramCount;
             // Function Environment. Will Always have a parent.
-            void *env;
+            PEnv *env;
             // Array of Statements to execute on demand.
             // Will always be a Block Statement
             PStmt *body;

@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 #include <stdbool.h>
-// #define DEBUG_GC
+#define DEBUG_GC
 
 // Pankti Garbage Collector
 typedef struct Pgc {

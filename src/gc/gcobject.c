@@ -20,7 +20,7 @@ PObj *NewObject(Pgc *gc, PObjType type) {
     gc->objects = o;
 #if defined DEBUG_GC
     printf(
-        TERMC_BLUE "[DEBUG] [GC] %p New Object : %s\n" TERMC_RESET, o,
+        TERMC_BLUE "[DEBUG] [GC] %p New Object : %s\n" TERMC_RESET, (void*)o,
         ObjTypeToString(type)
     );
 #endif
@@ -99,13 +99,11 @@ void FreeObject(Pgc *gc, PObj *o) {
 
 #if defined DEBUG_GC
     printf(
-        TERMC_GREEN "[DEBUG] [GC] Freeing Object : %p : %s : " TERMC_RESET, o,
-        "s"
+        TERMC_GREEN "[DEBUG] [GC] Freeing Object : %p : %s : " TERMC_RESET, 
+		(void*)o, 
+		ObjTypeToString(o->type)
     );
-    if (o != NULL) {
-
-        // PrintObject(o);
-    }
+    PrintObject(o);
     printf("\n");
 #endif
 
@@ -129,6 +127,7 @@ void FreeObject(Pgc *gc, PObj *o) {
         case OT_ARR: {
             struct OArray *arr = &o->v.OArray;
             arrfree(arr->items);
+			arr->items = NULL;
             freeBaseObj(o);
             break;
         }
@@ -137,6 +136,7 @@ void FreeObject(Pgc *gc, PObj *o) {
             if (map->table != NULL) {
                 hmfree(map->table);
             }
+			map->table = NULL;
             freeBaseObj(o);
             break;
         }
