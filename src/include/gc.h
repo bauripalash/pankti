@@ -62,11 +62,10 @@ PObj *NewNativeFnObject(Pgc *gc, Token *name, NativeFn fn, int arity);
 
 // Create New Error Object
 // `msg` = Error message. It will be duplicated.
-PObj *NewErrorObject(Pgc * gc, char * msg);
+PObj *NewErrorObject(Pgc *gc, char *msg);
 
 // Shortcut for NewErrorObject + MakeObject
-PValue MakeError(Pgc * gc, char * msg);
-
+PValue MakeError(Pgc *gc, char *msg);
 
 // Create New (Empty) Expression
 // `type` = Expression Type

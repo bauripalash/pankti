@@ -102,8 +102,8 @@ void RunCore(PanktiCore *core) {
 #endif
     if (core->lexer->hasError) {
         printf("Lexer Error found!\n");
-		FreeCore(core);
-		exit(1);
+        FreeCore(core);
+        exit(1);
     }
 
     core->parser = NewParser(core->gc, core->lexer);
@@ -128,13 +128,12 @@ void RunCore(PanktiCore *core) {
 #endif
     if (core->parser->hasError) {
         printf("Parser Error(s) found!\n");
-
     }
 
-	if (core->lexer->hasError || core->parser->hasError) {
-	    FreeCore(core);
+    if (core->lexer->hasError || core->parser->hasError) {
+        FreeCore(core);
         exit(1);
-	}
+    }
 
     core->it = NewInterpreter(core->gc, prog);
     core->it->core = core;
@@ -158,21 +157,24 @@ void RunCore(PanktiCore *core) {
     }
 }
 
-static inline char * coreErrorToStr(PCoreErrorType errtype){
-	switch (errtype) {
-		case PCERR_LEXER:
-		case PCERR_PARSER:
-			return "Syntax";
-		case PCERR_RUNTIME:
-			return "Runtime";
-	}
+static inline char *coreErrorToStr(PCoreErrorType errtype) {
+    switch (errtype) {
+        case PCERR_LEXER:
+        case PCERR_PARSER: return "Syntax";
+        case PCERR_RUNTIME: return "Runtime";
+    }
 
-	return "Unknown";
+    return "Unknown";
 }
 
 // Simply print error message with line and column numbers, if present
 static void printErrMsg(
-    PanktiCore *core, size_t line, size_t col, const char *msg, bool hasPos, PCoreErrorType errtype
+    PanktiCore *core,
+    size_t line,
+    size_t col,
+    const char *msg,
+    bool hasPos,
+    PCoreErrorType errtype
 ) {
     if (hasPos) {
         printf("[");
@@ -187,49 +189,51 @@ static void printErrMsg(
         printf("] ");
     }
 
-    printf(TERMC_RED "%s Error: %s" TERMC_RESET "\n", coreErrorToStr(errtype), msg);
+    printf(
+        TERMC_RED "%s Error: %s" TERMC_RESET "\n", coreErrorToStr(errtype), msg
+    );
 }
 
-void CoreRuntimeError(PanktiCore * core, Token * token, const char * msg){
-	size_t line = 0;
-	size_t col = 0;
-	if (token != NULL) {
-		line = token->line;
-		col = token->col;
-	}
+void CoreRuntimeError(PanktiCore *core, Token *token, const char *msg) {
+    size_t line = 0;
+    size_t col = 0;
+    if (token != NULL) {
+        line = token->line;
+        col = token->col;
+    }
 
-	printErrMsg(core, line, col, msg, token != NULL, PCERR_RUNTIME);
-	printf("Runtime Error Occured!\n");
-	FreeCore(core);
-	exit(3);
+    printErrMsg(core, line, col, msg, token != NULL, PCERR_RUNTIME);
+    printf("Runtime Error Occured!\n");
+    FreeCore(core);
+    exit(3);
 }
 
-void CoreParserError(PanktiCore * core, Token * token, const char * msg){
-	size_t line = 0;
-	size_t col = 0;
-	if (token != NULL) {
-		line = token->line;
-		col = token->col;
-	}
+void CoreParserError(PanktiCore *core, Token *token, const char *msg) {
+    size_t line = 0;
+    size_t col = 0;
+    if (token != NULL) {
+        line = token->line;
+        col = token->col;
+    }
 
-	printErrMsg(core, line, col, msg, token != NULL, PCERR_PARSER);
+    printErrMsg(core, line, col, msg, token != NULL, PCERR_PARSER);
 }
 
 void CoreLexerError(
     PanktiCore *core, size_t line, size_t col, const char *msg
 ) {
     size_t _line = 0;
-	size_t _col = 0;
+    size_t _col = 0;
 
-	if (line != SIZE_MAX) {
-		_line = line;
-	}
+    if (line != SIZE_MAX) {
+        _line = line;
+    }
 
-	if (col != SIZE_MAX) {
-		_col = col;
-	}
+    if (col != SIZE_MAX) {
+        _col = col;
+    }
 
-	bool dontHavePos = line == SIZE_MAX || col == SIZE_MAX;
+    bool dontHavePos = line == SIZE_MAX || col == SIZE_MAX;
 
-	printErrMsg(core, _line, _col, msg, !dontHavePos, PCERR_LEXER);
+    printErrMsg(core, _line, _col, msg, !dontHavePos, PCERR_LEXER);
 }

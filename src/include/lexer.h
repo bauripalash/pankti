@@ -12,7 +12,6 @@ extern "C" {
 #include "ustring.h"
 #include <time.h>
 
-
 typedef struct PanktiCore PanktiCore;
 
 // The Lexer Object
@@ -44,8 +43,8 @@ typedef struct Lexer {
     // Timestamp seed for hashing
     uint64_t timestamp;
 
-	// Lexer Error occured
-	bool hasError;
+    // Lexer Error occured
+    bool hasError;
 
     // Reference to Pankti Core
     PanktiCore *core;

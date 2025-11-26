@@ -40,7 +40,7 @@ Lexer *NewLexer(char *src) {
     lx->tokens = NULL;
     lx->core = NULL;
     lx->raw = false;
-	lx->hasError = false;
+    lx->hasError = false;
 
     return lx;
 }
@@ -102,17 +102,17 @@ void ResetLexer(Lexer *lexer) {
     lexer->tokens = NULL;
 }
 
-static inline void error(Lexer * lx, size_t line, size_t col, const char * msg){
-	lx->hasError = true;
-	if (lx->core != NULL) {
-		CoreLexerError(lx->core, line, col, msg);
-	} else {
-		// Should never reach here
-		printf(
-			"Invalid character found at line %zu column %zu",
-			lx->line, lx->column
-		);
-	}
+static inline void error(Lexer *lx, size_t line, size_t col, const char *msg) {
+    lx->hasError = true;
+    if (lx->core != NULL) {
+        CoreLexerError(lx->core, line, col, msg);
+    } else {
+        // Should never reach here
+        printf(
+            "Invalid character found at line %zu column %zu", lx->line,
+            lx->column
+        );
+    }
 }
 
 static inline bool isAnyNumber(char32_t c) {
@@ -389,9 +389,12 @@ static void scanToken(Lexer *lx) {
                 readIdent(lx);
                 break;
             } else {
-				uint8_t rawChar[4];
-				U32ToU8(c, rawChar);
-				error(lx, lx->line, lx->column, StrFormat("Invalid character found '%s'", rawChar));
+                uint8_t rawChar[4];
+                U32ToU8(c, rawChar);
+                error(
+                    lx, lx->line, lx->column,
+                    StrFormat("Invalid character found '%s'", rawChar)
+                );
                 break;
             }
             break;

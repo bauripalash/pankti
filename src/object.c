@@ -20,35 +20,35 @@
 #define CONST_NIL_HASH        0x2
 
 void PrintValue(PValue val) {
-	if (IsValueNum(val)) {
-		double num = ValueAsNum(val);
+    if (IsValueNum(val)) {
+        double num = ValueAsNum(val);
 
-		if (IsDoubleInt(num)) {
-			printf("%0.f", num);
-		}else{
-			printf("%f", num); 
-		}
-	} else if (IsValueBool(val)){
-		printf("%s", ValueAsBool(val) ? KW_BN_TRUE : KW_BN_FALSE);
-	} else if (IsValueNil(val)){
-		printf(KW_BN_NIL);
-	} else if (IsValueObj(val)){
-		PrintObject(ValueAsObj(val));
-	} else {
-		printf("Unknown");
-	}
+        if (IsDoubleInt(num)) {
+            printf("%0.f", num);
+        } else {
+            printf("%f", num);
+        }
+    } else if (IsValueBool(val)) {
+        printf("%s", ValueAsBool(val) ? KW_BN_TRUE : KW_BN_FALSE);
+    } else if (IsValueNil(val)) {
+        printf(KW_BN_NIL);
+    } else if (IsValueObj(val)) {
+        PrintObject(ValueAsObj(val));
+    } else {
+        printf("Unknown");
+    }
 }
 
-PValueType GetValueType(PValue value){
-	if (IsValueNum(value)) {
-		return VT_NUM;
-	} else if (IsValueBool(value)) {
-		return VT_BOOL;
-	} else if (IsValueNil(value)){
-		return VT_NIL;
-	} else{
-		return VT_OBJ;
-	}
+PValueType GetValueType(PValue value) {
+    if (IsValueNum(value)) {
+        return VT_NUM;
+    } else if (IsValueBool(value)) {
+        return VT_BOOL;
+    } else if (IsValueNil(value)) {
+        return VT_NIL;
+    } else {
+        return VT_OBJ;
+    }
 }
 
 const char *ValueTypeToStr(PValue val) {
@@ -90,26 +90,25 @@ uint64_t GetObjectHash(const PObj *obj, uint64_t seed) {
 }
 
 uint64_t GetValueHash(PValue val, uint64_t seed) {
-	if (IsValueNum(val)) {
-		double value = ValueAsNum(val);
-		if (value == 0.0) {
-			return CONST_ZERO_HASH;
-		}
-		if (isnan(value)) {
-			return CONST_ZERO_HASH;
-		}
-		uint64_t bits;
-		memcpy(&bits, &value, sizeof(bits));
-		return (uint64_t)XXH64(&bits, sizeof(bits), seed);
-	} else if (IsValueNil(val)){
-		return CONST_NIL_HASH;
-	} else if (IsValueBool(val)){
-		uint8_t value = ValueAsBool(val) ? 1 : 0;
-		return (uint64_t)XXH64(&value, 1, seed);
-	} else if (IsValueObj(val)){
-		return GetObjectHash(ValueAsObj(val), seed);
-	}
-    
+    if (IsValueNum(val)) {
+        double value = ValueAsNum(val);
+        if (value == 0.0) {
+            return CONST_ZERO_HASH;
+        }
+        if (isnan(value)) {
+            return CONST_ZERO_HASH;
+        }
+        uint64_t bits;
+        memcpy(&bits, &value, sizeof(bits));
+        return (uint64_t)XXH64(&bits, sizeof(bits), seed);
+    } else if (IsValueNil(val)) {
+        return CONST_NIL_HASH;
+    } else if (IsValueBool(val)) {
+        uint8_t value = ValueAsBool(val) ? 1 : 0;
+        return (uint64_t)XXH64(&value, 1, seed);
+    } else if (IsValueObj(val)) {
+        return GetObjectHash(ValueAsObj(val), seed);
+    }
 
     return UINT64_MAX;
 }
@@ -130,61 +129,56 @@ bool IsValueEqual(PValue a, PValue b) {
     if (IsValueObj(a)) {
         return IsObjEqual(ValueAsObj(a), ValueAsObj(b));
     } else {
-#if defined (USE_NAN_BOXING)
-		return a == b;
+#if defined(USE_NAN_BOXING)
+        return a == b;
 #else
-	   if (a.type == VT_NIL) {
-			return true;
-		} else if (a.type == VT_NUM) {
-			return a.v.num == b.v.num;
-		} else if (a.type == VT_BOOL) {
-			return a.v.bl == b.v.bl;
-		}
+        if (a.type == VT_NIL) {
+            return true;
+        } else if (a.type == VT_NUM) {
+            return a.v.num == b.v.num;
+        } else if (a.type == VT_BOOL) {
+            return a.v.bl == b.v.bl;
+        }
 #endif
-	}
+    }
 
-	return false;
-	
+    return false;
 }
 
+bool IsValueError(PValue val) { return IsValueObjType(val, OT_ERROR); }
 
-bool IsValueError(PValue val){
-	return IsValueObjType(val, OT_ERROR);
+char *GetErrorObjMsg(PObj *obj) {
+    if (obj->type == OT_ERROR && obj->v.OError.msg != NULL) {
+        return obj->v.OError.msg;
+    }
+
+    return NULL;
 }
 
+bool ObjectHasLen(PObj *obj) {
+    if (obj == NULL) {
+        return false;
+    }
+    PObjType ot = obj->type;
 
-char * GetErrorObjMsg(PObj * obj){
-	if (obj->type == OT_ERROR && obj->v.OError.msg != NULL) {
-		return obj->v.OError.msg;
-	}
+    if (ot == OT_STR || ot == OT_ARR || ot == OT_MAP) {
+        return true;
+    }
 
-	return NULL;
+    return false;
 }
 
-bool ObjectHasLen(PObj * obj){
-	if (obj == NULL) {
-		return false;
-	}
-	PObjType ot = obj->type;
+double GetObjectLength(PObj *obj) {
 
-	if (ot == OT_STR || ot == OT_ARR || ot == OT_MAP) {
-		return true;
-	}
+    if (obj->type == OT_ARR) {
+        return (double)obj->v.OArray.count;
+    } else if (obj->type == OT_MAP) {
+        return (double)obj->v.OMap.count;
+    } else if (obj->type == OT_STR) {
+        return (double)StrLength(obj->v.OString.value);
+    }
 
-	return false;
-}
-
-double GetObjectLength(PObj * obj){
-
-	if (obj->type == OT_ARR) {
-		return (double)obj->v.OArray.count;
-	} else if (obj->type == OT_MAP){
-		return (double)obj->v.OMap.count;
-	} else if (obj->type == OT_STR){
-		return (double)StrLength(obj->v.OString.value);
-	}
-
-	return -1; // Should never reach here
+    return -1; // Should never reach here
 }
 
 bool ArrayObjInsValue(PObj *o, int index, PValue value) {
@@ -269,12 +263,12 @@ void PrintObject(const PObj *o) {
             printf("}");
             break;
         }
-		case OT_ERROR: {
-			if (o->v.OError.msg != NULL) {
-				printf("%s", o->v.OError.msg);
-			}
-			break;
-		}
+        case OT_ERROR: {
+            if (o->v.OError.msg != NULL) {
+                printf("%s", o->v.OError.msg);
+            }
+            break;
+        }
     }
 }
 
@@ -285,7 +279,7 @@ char *ObjTypeToString(PObjType type) {
         case OT_ARR: return "Array"; break;
         case OT_MAP: return "HashMap"; break;
         case OT_NATIVE: return "Native Func"; break;
-		case OT_ERROR: return "Error";
+        case OT_ERROR: return "Error";
     }
 
     return "";
@@ -305,14 +299,14 @@ bool IsObjEqual(const PObj *a, const PObj *b) {
         case OT_ARR: result = false; break; // TODO: fix
         case OT_NATIVE: result = (a->v.ONative.fn == b->v.ONative.fn); break;
         case OT_MAP: result = false; break;
-		case OT_ERROR: {
-			if (a->v.OError.msg != NULL && b->v.OError.msg != NULL) {
-				result = StrEqual(a->v.OError.msg, b->v.OError.msg);
-			}else{
-				result = false;
-			}
-			break;
-		}
+        case OT_ERROR: {
+            if (a->v.OError.msg != NULL && b->v.OError.msg != NULL) {
+                result = StrEqual(a->v.OError.msg, b->v.OError.msg);
+            } else {
+                result = false;
+            }
+            break;
+        }
     }
 
     return result;

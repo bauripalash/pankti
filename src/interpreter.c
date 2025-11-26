@@ -162,7 +162,7 @@ void Interpret(PInterpreter *it) {
 
 // Report a Error
 static void error(PInterpreter *it, Token *tok, const char *msg) {
-	CoreRuntimeError(it->core, tok, msg);
+    CoreRuntimeError(it->core, tok, msg);
 }
 
 // Evaluate Literal Expression
@@ -212,25 +212,28 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
                 double value = ValueAsNum(l) + ValueAsNum(r);
                 return MakeNumber(value);
             } else if ((IsValueObj(l) && ValueAsObj(l)->type == OT_STR) &&
-                    (IsValueObj(r) && ValueAsObj(r)->type == OT_STR)) {
-                    bool ok = true;
-                    struct OString *ls = &ValueAsObj(l)->v.OString;
-                    size_t lsLen = (size_t)strlen(ls->value);
-                    struct OString *rs = &ValueAsObj(r)->v.OString;
-                    size_t rsLen = (size_t)strlen(rs->value);
-                    char *newStr =
-                        StrJoin(ls->value, lsLen, rs->value, rsLen, &ok);
-                    if (!ok) {
-                        error(it, expr->op, "Fail to join string");
-                        return MakeNil();
-                    }
+                       (IsValueObj(r) && ValueAsObj(r)->type == OT_STR)) {
+                bool ok = true;
+                struct OString *ls = &ValueAsObj(l)->v.OString;
+                size_t lsLen = (size_t)strlen(ls->value);
+                struct OString *rs = &ValueAsObj(r)->v.OString;
+                size_t rsLen = (size_t)strlen(rs->value);
+                char *newStr = StrJoin(ls->value, lsLen, rs->value, rsLen, &ok);
+                if (!ok) {
+                    error(it, expr->op, "Fail to join string");
+                    return MakeNil();
+                }
 
-                    PObj *nsObj = NewStrObject(it->gc, expr->op, newStr, true);
-                    return MakeObject(nsObj);
+                PObj *nsObj = NewStrObject(it->gc, expr->op, newStr, true);
+                return MakeObject(nsObj);
             } else {
-				error(it, expr->op, "Addition operation can only done when both values are either numbers or strings");
-				return MakeNil();
-			}
+                error(
+                    it, expr->op,
+                    "Addition operation can only done when both values are "
+                    "either numbers or strings"
+                );
+                return MakeNil();
+            }
             break;
         }
             // Multiplication
@@ -600,9 +603,9 @@ static PValue callFunction(
     if (call->argCount > 8) {
         PFree(argPtr);
     }
-	if (IsValueError(value)) {
-		error(it, callExpr->op , GetErrorObjMsg(ValueAsObj(value)));
-	}
+    if (IsValueError(value)) {
+        error(it, callExpr->op, GetErrorObjMsg(ValueAsObj(value)));
+    }
     return value;
 }
 
@@ -653,9 +656,9 @@ static PValue callNative(
         PFree(argPtr);
     }
 
-	if (IsValueError(value)) {
-		error(it, callExpr->op , GetErrorObjMsg(ValueAsObj(value)));
-	}
+    if (IsValueError(value)) {
+        error(it, callExpr->op, GetErrorObjMsg(ValueAsObj(value)));
+    }
 
     return value;
 }

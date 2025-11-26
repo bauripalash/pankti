@@ -72,19 +72,17 @@ PObj *NewNativeFnObject(Pgc *gc, Token *name, NativeFn fn, int arity) {
     return o;
 }
 
-
-PObj *NewErrorObject(Pgc * gc, char * msg){
-	PObj * o = NewObject(gc, OT_ERROR);
-	if (msg != NULL) {
-		o->v.OError.msg = StrDuplicate(msg, strlen(msg));
-	}
-	return o;
+PObj *NewErrorObject(Pgc *gc, char *msg) {
+    PObj *o = NewObject(gc, OT_ERROR);
+    if (msg != NULL) {
+        o->v.OError.msg = StrDuplicate(msg, strlen(msg));
+    }
+    return o;
 }
 
-
-PValue MakeError(Pgc * gc, char * msg){
-	PObj * o = NewErrorObject(gc, msg);
-	return MakeObject(o);
+PValue MakeError(Pgc *gc, char *msg) {
+    PObj *o = NewErrorObject(gc, msg);
+    return MakeObject(o);
 }
 
 static inline void freeBaseObj(PObj *o) {
@@ -144,15 +142,15 @@ void FreeObject(Pgc *gc, PObj *o) {
         }
         case OT_NATIVE: {
             freeBaseObj(o);
-			break;
+            break;
         }
 
-		case OT_ERROR:{
-			if (o->v.OError.msg != NULL) {
-				PFree(o->v.OError.msg);
-			}
-			freeBaseObj(o);
-			break;
-		}
+        case OT_ERROR: {
+            if (o->v.OError.msg != NULL) {
+                PFree(o->v.OError.msg);
+            }
+            freeBaseObj(o);
+            break;
+        }
     }
 }
