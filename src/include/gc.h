@@ -67,6 +67,7 @@ PObj *NewErrorObject(Pgc * gc, char * msg);
 // Shortcut for NewErrorObject + MakeObject
 PValue MakeError(Pgc * gc, char * msg);
 
+
 // Create New (Empty) Expression
 // `type` = Expression Type
 // Return => New Expression with type `type` or NULL in case of failure
