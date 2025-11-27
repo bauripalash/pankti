@@ -26,6 +26,7 @@ PObj *NewObject(Pgc *gc, PObjType type) {
         ObjTypeToString(type)
     );
 #endif
+	GcCounterNew(gc);
     return o;
 }
 
@@ -113,7 +114,7 @@ void FreeObject(Pgc *gc, PObj *o) {
 		ObjTypeToString(o->type)
     );
 	if (o->type == OT_UPVAL) {
-		printf("<UpValue> : %ld", (uint64_t)o->v.OUpval.value);
+		printf("<UpValue> : %ld", (uint64_t)o);
 	}else{
 		PrintObject(o);
 	}
@@ -171,4 +172,6 @@ void FreeObject(Pgc *gc, PObj *o) {
 			break;
 		}
     }
+
+	GcCounterFree(gc);
 }

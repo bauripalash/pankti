@@ -1,8 +1,13 @@
 dhori x = 0
 kaj y(a)
-	let z = y(a + 1)
-	print z
-	return z
+	dhori z = [1,2,"hello world", "mango", a * a]
+	let i = 0
+	while i < len(z) do
+		print z[i]
+		i = i + 1
+	end
 end
 
 y(1)
+y(100)
+

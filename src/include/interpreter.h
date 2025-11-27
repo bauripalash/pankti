@@ -7,8 +7,8 @@
 extern "C" {
 #endif
 
-#ifndef MAX_CALL_DEPTH
-#define MAX_CALL_DEPTH 1000
+#ifndef DEF_MAX_CALL_DEPTH
+#define DEF_MAX_CALL_DEPTH 1000
 #endif
 
 #include "ast.h"
@@ -45,6 +45,7 @@ typedef struct PInterpreter {
     size_t modCount;
     Pgc *gc;
 	size_t callDepth;
+	size_t maxCallDepth;
 } PInterpreter;
 
 // Create New Interpreter

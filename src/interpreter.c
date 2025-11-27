@@ -123,6 +123,7 @@ PInterpreter *NewInterpreter(Pgc *gc, PStmt **prog) {
     it->mods = NULL;
     it->modCount = 0;
 	it->callDepth = 0;
+	it->maxCallDepth = DEF_MAX_CALL_DEPTH;
     RegisterNatives(it, it->env);
 	RegisterRootEnv(gc, it->env);
     return it;
@@ -541,7 +542,7 @@ static PValue handleCall(
     assert(func->type == OT_FNC);
     struct OFunction *f = &func->v.OFunction;
 	
-	if (it->callDepth + 1 > MAX_CALL_DEPTH) {
+	if (it->callDepth + 1 > it->maxCallDepth) {
 		error(it, callExpr->op , StrFormat("Maximum call depth reached : %zu", it->callDepth));
 		return MakeNil();
 	}

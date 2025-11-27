@@ -12,16 +12,37 @@ extern "C" {
 #endif
 
 #include <stdbool.h>
+// Print Debug Information for Each GC Action, New Object, Free Object, Marking
+// Sweeping etc.
 //#define DEBUG_GC
+
+// Stress the GC. Run collector at every new statement from main program. 
+// Ignores gc threshold limits
+//#define STRESS_GC
+
+#ifndef GC_OBJ_THRESHOLD
+#define GC_OBJ_THRESHOLD 128
+#endif
+
+#ifndef GC_GROW_FACTOR
+#define GC_GROW_FACTOR 2
+#endif
 
 // Pankti Garbage Collector
 typedef struct Pgc {
+	// Disable GC
     bool disable;
+	// Stress the GC [For Debug ONLY]
     bool stress;
     PObj *objects;
     PStmt *stmts;
 	PEnv ** rootEnvs;
 	size_t rootEnvCount;
+	// Currently live objects
+	size_t objCount;
+	// Should we run collector
+	bool needCollect;
+	// When the objCount reaches here, collect garbage
     size_t nextGc;
     uint64_t timestamp;
 
@@ -32,6 +53,9 @@ void FreeGc(Pgc *gc);
 void RegisterRootEnv(Pgc * gc, PEnv * env);
 void UnregisterRootEnv(Pgc * gc, PEnv * env);
 void CollectGarbage(Pgc * gc);
+void GcCounterNew(Pgc * gc);
+void GcCounterFree(Pgc * gc);
+void GcUpdateThreshold(Pgc *gc);
 
 // Create a New Empty Object.
 // `type` = Type of statement

@@ -8,6 +8,9 @@
 #include <stdio.h>
 #include <time.h>
 
+#if defined (DEBUG_GC)
+#include "../include/ansicolors.h"
+#endif
 
 static void sweep(Pgc * gc);
 static void markRoots(Pgc * gc);
@@ -20,8 +23,11 @@ static void markObjectChildren(Pgc * gc, PObj * obj);
 Pgc *NewGc(void) {
     Pgc *gc = PCreate(Pgc);
     gc->disable = false;
+#if defined (STRESS_GC)
+    gc->stress = true;
+#else
     gc->stress = false;
-    gc->nextGc = 1024 * 1024;
+#endif
     gc->objects = NULL;
     gc->stmts = NULL;
     gc->timestamp = (uint64_t)time(NULL);
@@ -88,6 +94,37 @@ void UnregisterRootEnv(Pgc * gc, PEnv * env){
 	}
 	gc->rootEnvCount--;
 }
+void GcCounterNew(Pgc * gc){
+	if (gc == NULL) {
+		return;
+	}
+
+	gc->objCount++;
+	if (gc->objCount > gc->nextGc) {
+		gc->needCollect = true;
+	}
+}
+void GcCounterFree(Pgc * gc){
+	if (gc == NULL) {
+		return;
+	}
+	if (gc->objCount > 0) {
+		gc->objCount--;
+	}
+}
+
+void GcUpdateThreshold(Pgc *gc){
+	if (gc == NULL) {
+		return;
+	}
+
+	size_t newThreshold = gc->objCount * GC_GROW_FACTOR;
+	if (newThreshold < GC_OBJ_THRESHOLD) {
+		newThreshold = GC_OBJ_THRESHOLD;
+	}
+
+	gc->nextGc = newThreshold;
+}
 
 void CollectGarbage(Pgc * gc){
 	if (gc == NULL) {
@@ -98,9 +135,22 @@ void CollectGarbage(Pgc * gc){
 		return;
 	}
 
-	markRoots(gc);
-	sweep(gc);
-	gc->nextGc = gc->nextGc * 2;
+	if (gc->stress || gc->needCollect) {
+#if defined (DEBUG_GC)
+		printf(TERMC_YELLOW "[DEBUG] [GC] Starting Garbage Collection\n" TERMC_RESET);
+		printf(TERMC_BYELLOW "[DEBUG] [GC] [Object Count : %zu]\n" TERMC_RESET, gc->objCount);
+#endif
+		markRoots(gc);
+		sweep(gc);
+		GcUpdateThreshold(gc);
+		gc->needCollect = false;
+#if defined (DEBUG_GC)
+		printf(TERMC_YELLOW "[DEBUG] [GC] Finished Garbage Collection\n" TERMC_RESET);
+		printf(TERMC_BYELLOW "[DEBUG] [GC] [Object Count : %zu]\n" TERMC_RESET, gc->objCount);
+#endif
+		
+	}
+
 }
 
 static void markRoots(Pgc * gc){
