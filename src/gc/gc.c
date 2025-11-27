@@ -9,9 +9,13 @@
 #include <time.h>
 
 
-void MarkValue(Pgc * gc, PValue value);
-void MarkObject(Pgc * gc, PObj * obj);
-void MarkObjectChilds(Pgc * gc, PObj * obj);
+static void sweep(Pgc * gc);
+static void markRoots(Pgc * gc);
+static void markEnv(Pgc * gc, PEnv * env);
+static void markValue(Pgc * gc, PValue value);
+static void markObject(Pgc * gc, PObj * obj);
+static void markObjectChildren(Pgc * gc, PObj * obj);
+
 
 Pgc *NewGc(void) {
     Pgc *gc = PCreate(Pgc);
@@ -21,6 +25,8 @@ Pgc *NewGc(void) {
     gc->objects = NULL;
     gc->stmts = NULL;
     gc->timestamp = (uint64_t)time(NULL);
+	gc->rootEnvs = NULL;
+	gc->rootEnvCount = 0;
 
     return gc;
 }
@@ -51,18 +57,97 @@ void FreeGc(Pgc *gc) {
     freeStatements(gc);
     freeObjects(gc);
 
+	if (gc->rootEnvs != NULL && gc->rootEnvCount > 0) {
+		arrfree(gc->rootEnvs);
+	}
+
     PFree(gc);
 }
 
 
-void MarkValue(Pgc * gc, PValue value){
+void RegisterRootEnv(Pgc * gc, PEnv * env){
+	if (gc == NULL || env == NULL) {
+		return;
+	}
+
+	arrpush(gc->rootEnvs, env);
+	gc->rootEnvCount++;
+}
+
+
+void UnregisterRootEnv(Pgc * gc, PEnv * env){
+	if (gc == NULL || env == NULL) {
+		return;
+	}
+	for (size_t i = 0; i < gc->rootEnvCount; i++) {
+		if (gc->rootEnvs[i] == env) {
+			//With this delswap we don't to move items
+			arrdelswap(gc->rootEnvs, i); 			
+			break;
+		}
+	}
+	gc->rootEnvCount--;
+}
+
+void CollectGarbage(Pgc * gc){
+	if (gc == NULL) {
+		return;
+	}
+
+	if (gc->disable) {
+		return;
+	}
+
+	markRoots(gc);
+	sweep(gc);
+	gc->nextGc = gc->nextGc * 2;
+}
+
+static void markRoots(Pgc * gc){
+	if (gc == NULL) {
+		return;
+	}
+
+	if (gc->rootEnvs != NULL && gc->rootEnvCount > 0) {
+		for (size_t i = 0; i < gc->rootEnvCount; i++) {
+			markEnv(gc, gc->rootEnvs[i]);
+		}
+	}
+}
+
+static void sweep(Pgc * gc){
+	if (gc == NULL) {
+		return;
+	}
+	PObj * prev = NULL;
+	PObj * obj = gc->objects;
+	while (obj != NULL) {
+		PObj * next = obj->next;
+		if (obj->marked) {
+			obj->marked = false;
+			prev = obj;
+		}else{
+			if (prev != NULL) {
+				prev->next = next;
+			} else {
+				gc->objects = next;
+			}
+
+			FreeObject(gc, obj);
+		}
+
+		obj = next;
+	}
+}
+
+static void markValue(Pgc * gc, PValue value){
 	if (IsValueObj(value)) {
-		MarkObject(gc, ValueAsObj(value));
+		markObject(gc, ValueAsObj(value));
 	}
 }
 
 
-void MarkObject(Pgc * gc, PObj * obj){
+static void markObject(Pgc * gc, PObj * obj){
 	if (gc == NULL) {
 		return;
 	}
@@ -76,10 +161,10 @@ void MarkObject(Pgc * gc, PObj * obj){
 	}
 
 	obj->marked = true;
-	MarkObjectChilds(gc, obj);
+	markObjectChildren(gc, obj);
 }
 
-void MarkEnv(Pgc * gc, PEnv * env){
+static void markEnv(Pgc * gc, PEnv * env){
 	if (gc == NULL) {
 		return;
 	}
@@ -95,13 +180,13 @@ void MarkEnv(Pgc * gc, PEnv * env){
 	size_t envCount = (size_t)hmlen(env->table);
 
 	for (size_t i = 0; i < envCount; i++) {
-		MarkValue(gc, env->table[i].value);
+		markValue(gc, env->table[i].value);
 	}
 }
 
 
 
-void MarkObjectChilds(Pgc * gc, PObj * obj){
+static void markObjectChildren(Pgc * gc, PObj * obj){
 	if (gc == NULL) {
 		return;
 	}
@@ -120,7 +205,7 @@ void MarkObjectChilds(Pgc * gc, PObj * obj){
 		case OT_ARR:{
 			struct OArray * arr = &obj->v.OArray;
 			for (size_t i = 0; i < arr->count; i++) {
-				MarkValue(gc, arr->items[i]);
+				markValue(gc, arr->items[i]);
 			}
 			break;
 		}
@@ -129,8 +214,8 @@ void MarkObjectChilds(Pgc * gc, PObj * obj){
 			struct OMap * map = &obj->v.OMap;
 			size_t count = map->count;
 			for (size_t i = 0; i < count; i++) {
-				MarkValue(gc, map->table[i].vkey);
-				MarkValue(gc, map->table[i].value);
+				markValue(gc, map->table[i].vkey);
+				markValue(gc, map->table[i].value);
 			}
 			break;
 			
@@ -142,11 +227,16 @@ void MarkObjectChilds(Pgc * gc, PObj * obj){
 			}
 
 			if (func->env != NULL) {
-				MarkEnv(gc, func->env);
+				markEnv(gc, func->env);
 			}
 			
 			break;
 
+		}
+
+		case OT_UPVAL:{
+			markValue(gc, obj->v.OUpval.value);
+			break;
 		}
 
 	}

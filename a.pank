@@ -1,8 +1,8 @@
-dhori a = 100.99
-dhori b = sotti
-dhori c = nil
-dhori d = "mango" + " tango"
-dhori e = b and false
-dhori f = [a,b,c,d, e, "wow" + "tow"]
+dhori x = 0
+kaj y(a)
+	let z = y(a + 1)
+	print z
+	return z
+end
 
-print f
+y(1)

@@ -52,9 +52,14 @@ typedef enum PObjType {
     OT_FNC,
     // Array Object. Used by `OArray`
     OT_ARR,
+	// Map Object
     OT_MAP,
+	// Native Function Object
     OT_NATIVE,
+	// Error Object
     OT_ERROR,
+	// UpValue Object
+	OT_UPVAL,
 } PObjType;
 
 // Entry of HashMaps
@@ -122,6 +127,11 @@ typedef struct PObj {
             // Error message
             char *msg;
         } OError;
+
+		// UpValue Object. Type : `OT_UPVAL`
+		struct OUpval{
+			PValue value; //shared value
+		} OUpval;
     } v;
 
 } PObj;

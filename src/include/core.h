@@ -10,7 +10,7 @@ extern "C" {
 #include "lexer.h"
 #include "parser.h"
 
-// Main Body for whole interpreter program
+// Main Body for whole pankti runtime
 typedef struct PanktiCore {
     // Lexer
     Lexer *lexer;

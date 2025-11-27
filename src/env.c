@@ -50,6 +50,20 @@ void EnvPutValue(PEnv *e, uint64_t hash, PValue value) {
     if (e == NULL) {
         return;
     }
+	
+	if (e->table != NULL) {
+		long idx = hmgeti(e->table, hash);
+		if (idx > -1) {
+			PValue stored = hmget(e->table, hash);
+			if (IsValueObjType(stored, OT_UPVAL)) {
+				//If already existing value is upvalue just update its cell
+				ValueAsObj(stored)->v.OUpval.value = value;
+				return;
+			
+			}
+		}
+	}
+
     hmput(e->table, hash, value);
     e->count = (size_t)hmlen(e->table);
 }
@@ -67,6 +81,12 @@ bool EnvSetValue(PEnv *e, uint64_t hash, PValue value) {
     }
 
     if (hmgeti(e->table, hash) > -1) {
+		PValue stored = hmget(e->table, hash);
+		if (IsValueObjType(stored, OT_UPVAL)) {
+			// If the prexisting value is a upvalue, just update its cell value
+			ValueAsObj(stored)->v.OUpval.value = value;
+			return true;
+		}
         hmput(e->table, hash, value);
         return true;
     }
@@ -86,7 +106,11 @@ PValue EnvGetValue(PEnv *e, uint64_t hash, bool *found) {
 
     if (hmgeti(e->table, hash) > -1) {
         *found = true;
-        return hmget(e->table, hash);
+		PValue stored = hmget(e->table, hash);
+		if (IsValueObjType(stored, OT_UPVAL)) {
+			return ValueAsObj(stored)->v.OUpval.value;
+		}
+		return stored;
     }
 
     if (e->enclosing != NULL) {

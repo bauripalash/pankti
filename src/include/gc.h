@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 #include <stdbool.h>
-#define DEBUG_GC
+//#define DEBUG_GC
 
 // Pankti Garbage Collector
 typedef struct Pgc {
@@ -20,12 +20,18 @@ typedef struct Pgc {
     bool stress;
     PObj *objects;
     PStmt *stmts;
+	PEnv ** rootEnvs;
+	size_t rootEnvCount;
     size_t nextGc;
     uint64_t timestamp;
+
 } Pgc;
 
 Pgc *NewGc(void);
 void FreeGc(Pgc *gc);
+void RegisterRootEnv(Pgc * gc, PEnv * env);
+void UnregisterRootEnv(Pgc * gc, PEnv * env);
+void CollectGarbage(Pgc * gc);
 
 // Create a New Empty Object.
 // `type` = Type of statement
@@ -63,6 +69,8 @@ PObj *NewNativeFnObject(Pgc *gc, Token *name, NativeFn fn, int arity);
 // Create New Error Object
 // `msg` = Error message. It will be duplicated.
 PObj *NewErrorObject(Pgc *gc, char *msg);
+
+PObj * NewUpvalueObject(Pgc * gc, PValue initValue);
 
 // Shortcut for NewErrorObject + MakeObject
 PValue MakeError(Pgc *gc, char *msg);

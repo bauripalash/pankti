@@ -292,6 +292,10 @@ void PrintObject(const PObj *o) {
             }
             break;
         }
+		case OT_UPVAL:{
+			PrintValue(o->v.OUpval.value);
+			break;
+		}
     }
 }
 
@@ -303,6 +307,7 @@ char *ObjTypeToString(PObjType type) {
         case OT_MAP: return "HashMap"; break;
         case OT_NATIVE: return "Native Func"; break;
         case OT_ERROR: return "Error";
+		case OT_UPVAL: return "Upvalue";
     }
 
     return "";
@@ -330,6 +335,10 @@ bool IsObjEqual(const PObj *a, const PObj *b) {
             }
             break;
         }
+		case OT_UPVAL:{
+			result = IsValueEqual(a->v.OUpval.value, b->v.OUpval.value);
+			break;
+		}
     }
 
     return result;

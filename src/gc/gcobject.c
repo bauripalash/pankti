@@ -6,6 +6,7 @@
 #include "../include/utils.h"
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -18,6 +19,7 @@ PObj *NewObject(Pgc *gc, PObjType type) {
     o->type = type;
     o->next = gc->objects;
     gc->objects = o;
+	o->marked = false;
 #if defined DEBUG_GC
     printf(
         TERMC_BLUE "[DEBUG] [GC] %p New Object : %s\n" TERMC_RESET, (void*)o,
@@ -80,6 +82,13 @@ PObj *NewErrorObject(Pgc *gc, char *msg) {
     return o;
 }
 
+
+PObj * NewUpvalueObject(Pgc * gc, PValue initValue){
+	PObj * o = NewObject(gc, OT_UPVAL);
+	o->v.OUpval.value = initValue;
+	return o;
+}
+
 PValue MakeError(Pgc *gc, char *msg) {
     PObj *o = NewErrorObject(gc, msg);
     return MakeObject(o);
@@ -103,7 +112,11 @@ void FreeObject(Pgc *gc, PObj *o) {
 		(void*)o, 
 		ObjTypeToString(o->type)
     );
-    PrintObject(o);
+	if (o->type == OT_UPVAL) {
+		printf("<UpValue> : %ld", (uint64_t)o->v.OUpval.value);
+	}else{
+		PrintObject(o);
+	}
     printf("\n");
 #endif
 
@@ -152,5 +165,10 @@ void FreeObject(Pgc *gc, PObj *o) {
             freeBaseObj(o);
             break;
         }
+
+		case OT_UPVAL:{
+			freeBaseObj(o);
+			break;
+		}
     }
 }
