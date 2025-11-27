@@ -43,29 +43,20 @@ typedef struct ExResult {
 
 // Create a Simple Execution Result
 static inline ExResult ExSimple(PValue v) {
-    ExResult er = {
-		.type = ET_SIMPLE,
-		.value = v
-	};
+    ExResult er = {.type = ET_SIMPLE, .value = v};
     return er;
 }
 
 // Create a Break Execution Result
 static inline ExResult ExBreak(void) {
-    ExResult er = {
-		.type = ET_BREAK,
-		.value = MakeNil()
-	};
+    ExResult er = {.type = ET_BREAK, .value = MakeNil()};
 
-	return er;
+    return er;
 }
 
 // Create a Return Execution Result
 static inline ExResult ExReturn(PValue v) {
-    ExResult er = {
-		.type = ET_RETURN,
-		.value = v
-	};
+    ExResult er = {.type = ET_RETURN, .value = v};
     return er;
 }
 
