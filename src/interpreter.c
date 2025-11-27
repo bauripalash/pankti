@@ -43,25 +43,29 @@ typedef struct ExResult {
 
 // Create a Simple Execution Result
 static inline ExResult ExSimple(PValue v) {
-    ExResult er;
-    er.type = ET_SIMPLE;
-    er.value = v;
+    ExResult er = {
+		.type = ET_SIMPLE,
+		.value = v
+	};
     return er;
 }
 
 // Create a Break Execution Result
 static inline ExResult ExBreak(void) {
-    ExResult er;
-    er.type = ET_BREAK;
-    er.value = MakeNil();
-    return er;
+    ExResult er = {
+		.type = ET_BREAK,
+		.value = MakeNil()
+	};
+
+	return er;
 }
 
 // Create a Return Execution Result
 static inline ExResult ExReturn(PValue v) {
-    ExResult er;
-    er.type = ET_RETURN;
-    er.value = v;
+    ExResult er = {
+		.type = ET_RETURN,
+		.value = v
+	};
     return er;
 }
 
@@ -882,7 +886,7 @@ static ExResult execBlock(PInterpreter *it, PStmt *stmt, PEnv *env, bool ret) {
         return ExSimple(MakeNil());
     }
 
-    ExResult temp;
+    ExResult temp = ExSimple(MakeNil());
     PEnv *blockEnv = NewEnv(env);
 
     for (int i = 0; i < arrlen(stmtList); i++) {
