@@ -41,17 +41,6 @@ typedef struct ExResult {
     ExType type;
 } ExResult;
 
-// For Debug: Get ExResult Type as String
-static char *ExResultToStr(ExType t) {
-    switch (t) {
-        case ET_SIMPLE: return "Simple";
-        case ET_BREAK: return "Break";
-        case ET_RETURN: return "return";
-    }
-
-    return "Unknown";
-}
-
 // Create a Simple Execution Result
 static inline ExResult ExSimple(PValue v) {
     ExResult er;
@@ -596,6 +585,7 @@ static PValue callFunction(
     // needed
     PValue argStack[8];
     PValue *argPtr = NULL;
+	bool argsOnHeap = false;
 
     if (call->argCount > 8) {
         argPtr = PCalloc(call->argCount, sizeof(PValue));
@@ -607,8 +597,10 @@ static PValue callFunction(
             );
             return MakeNil();
         }
+		argsOnHeap = true;
     } else {
         argPtr = argStack;
+		argsOnHeap = false;
     }
 
     for (size_t i = 0; i < call->argCount; i++) {
@@ -616,7 +608,7 @@ static PValue callFunction(
     }
 
     PValue value = handleCall(it, func, argPtr, call->argCount, callExpr);
-    if (call->argCount > 8) {
+    if (argsOnHeap) {
         PFree(argPtr);
     }
     if (IsValueError(value)) {
@@ -648,6 +640,7 @@ static PValue callNative(
 
     PValue argStack[8];
     PValue *argPtr = NULL;
+	bool argsOnHeap = false;
     if (call->argCount > 8) {
         argPtr = PCalloc(call->argCount, sizeof(PValue));
         if (argPtr == NULL) {
@@ -658,8 +651,10 @@ static PValue callNative(
             );
             return MakeNil();
         }
+		argsOnHeap = true;
     } else {
         argPtr = argStack;
+		argsOnHeap = false;
     }
 
     for (size_t i = 0; i < call->argCount; i++) {
@@ -668,7 +663,7 @@ static PValue callNative(
 
     PValue value = nfuncObj->fn(it, argPtr, call->argCount);
 
-    if (call->argCount > 8) {
+    if (argsOnHeap) {
         PFree(argPtr);
     }
 
@@ -955,7 +950,9 @@ static ExResult vsWhileStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
         ExResult res = execute(it, stmt->stmt.SWhile.body, env);
         if (res.type == ET_BREAK) {
             break;
-        }
+        } else if (res.type == ET_RETURN){
+			return res;
+		}
 
         cond = evaluate(it, stmt->stmt.SWhile.cond, env);
     }
@@ -1074,13 +1071,13 @@ static ExResult execute(PInterpreter *it, PStmt *stmt, PEnv *env) {
     }
 
     switch (stmt->type) {
-        case STMT_PRINT: return vsPrint(it, stmt, env); break;
-        case STMT_EXPR: return vsExprStmt(it, stmt, env); break;
-        case STMT_LET: return vsLet(it, stmt, env); break;
-        case STMT_BLOCK: return vsBlock(it, stmt, env); break;
-        case STMT_IF: return vsIfStmt(it, stmt, env); break;
-        case STMT_WHILE: return vsWhileStmt(it, stmt, env); break;
-        case STMT_RETURN: return vsReturnStmt(it, stmt, env); break;
+        case STMT_PRINT: return vsPrint(it, stmt, env);
+        case STMT_EXPR: return vsExprStmt(it, stmt, env);
+        case STMT_LET: return vsLet(it, stmt, env);
+        case STMT_BLOCK: return vsBlock(it, stmt, env);
+        case STMT_IF: return vsIfStmt(it, stmt, env);
+        case STMT_WHILE: return vsWhileStmt(it, stmt, env);
+        case STMT_RETURN: return vsReturnStmt(it, stmt, env);
         case STMT_BREAK: return vsBreakStmt(it, stmt, env);
         case STMT_FUNC: return vsFuncStmt(it, stmt, env);
         case STMT_IMPORT: return vsImportStmt(it, stmt, env);

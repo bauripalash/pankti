@@ -1,13 +1,9 @@
-dhori x = 0
-kaj y(a)
-	dhori z = [1,2,"hello world", "mango", a * a]
-	let i = 0
-	while i < len(z) do
-		print z[i]
-		i = i + 1
+func mango(a)
+	while (a < 100) do
+		print a
+		a = a + 1
+		if a > 20 then return a end
 	end
 end
 
-y(1)
-y(100)
-
+mango(10)
