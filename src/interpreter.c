@@ -111,10 +111,10 @@ PInterpreter *NewInterpreter(Pgc *gc, PStmt **prog) {
     it->proxyCount = 0;
     it->mods = NULL;
     it->modCount = 0;
-	it->callDepth = 0;
-	it->maxCallDepth = DEF_MAX_CALL_DEPTH;
+    it->callDepth = 0;
+    it->maxCallDepth = DEF_MAX_CALL_DEPTH;
     RegisterNatives(it, it->env);
-	RegisterRootEnv(gc, it->env);
+    RegisterRootEnv(gc, it->env);
     return it;
 }
 void FreeInterpreter(PInterpreter *it) {
@@ -147,7 +147,7 @@ void Interpret(PInterpreter *it) {
     size_t progCount = (size_t)arrlen(it->program);
     for (size_t i = 0; i < progCount; i++) {
         execute(it, it->program[i], it->env);
-		CollectGarbage(it->gc);
+        CollectGarbage(it->gc);
     }
 
     // FreeObject(it->gc, obj);
@@ -526,17 +526,20 @@ static PValue vLogical(PInterpreter *it, PExpr *expr, PEnv *env) {
 
 // Evaluate a function call and return result (if any)
 static PValue handleCall(
-    PInterpreter *it, PObj *func, PValue *args, size_t count, PExpr * callExpr
+    PInterpreter *it, PObj *func, PValue *args, size_t count, PExpr *callExpr
 ) {
     assert(func->type == OT_FNC);
     struct OFunction *f = &func->v.OFunction;
-	
-	if (it->callDepth + 1 > it->maxCallDepth) {
-		error(it, callExpr->op , StrFormat("Maximum call depth reached : %zu", it->callDepth));
-		return MakeNil();
-	}
 
-	it->callDepth++;
+    if (it->callDepth + 1 > it->maxCallDepth) {
+        error(
+            it, callExpr->op,
+            StrFormat("Maximum call depth reached : %zu", it->callDepth)
+        );
+        return MakeNil();
+    }
+
+    it->callDepth++;
 
     PEnv *fnEnv = NewEnv((PEnv *)f->env);
     for (size_t i = 0; i < count; i++) {
@@ -545,9 +548,9 @@ static PValue handleCall(
 
     ExResult evalOut = execBlock(it, f->body, fnEnv, true);
 
-	if (it->callDepth >= 0) {
-		it->callDepth--;
-	}
+    if (it->callDepth >= 0) {
+        it->callDepth--;
+    }
 
     if (evalOut.type == ET_RETURN) {
         FreeEnv(fnEnv);
@@ -585,7 +588,7 @@ static PValue callFunction(
     // needed
     PValue argStack[8];
     PValue *argPtr = NULL;
-	bool argsOnHeap = false;
+    bool argsOnHeap = false;
 
     if (call->argCount > 8) {
         argPtr = PCalloc(call->argCount, sizeof(PValue));
@@ -597,10 +600,10 @@ static PValue callFunction(
             );
             return MakeNil();
         }
-		argsOnHeap = true;
+        argsOnHeap = true;
     } else {
         argPtr = argStack;
-		argsOnHeap = false;
+        argsOnHeap = false;
     }
 
     for (size_t i = 0; i < call->argCount; i++) {
@@ -640,7 +643,7 @@ static PValue callNative(
 
     PValue argStack[8];
     PValue *argPtr = NULL;
-	bool argsOnHeap = false;
+    bool argsOnHeap = false;
     if (call->argCount > 8) {
         argPtr = PCalloc(call->argCount, sizeof(PValue));
         if (argPtr == NULL) {
@@ -651,10 +654,10 @@ static PValue callNative(
             );
             return MakeNil();
         }
-		argsOnHeap = true;
+        argsOnHeap = true;
     } else {
         argPtr = argStack;
-		argsOnHeap = false;
+        argsOnHeap = false;
     }
 
     for (size_t i = 0; i < call->argCount; i++) {
@@ -950,9 +953,9 @@ static ExResult vsWhileStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
         ExResult res = execute(it, stmt->stmt.SWhile.body, env);
         if (res.type == ET_BREAK) {
             break;
-        } else if (res.type == ET_RETURN){
-			return res;
-		}
+        } else if (res.type == ET_RETURN) {
+            return res;
+        }
 
         cond = evaluate(it, stmt->stmt.SWhile.cond, env);
     }
@@ -975,56 +978,54 @@ static ExResult vsBreakStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     return ExBreak();
 }
 
-static void captureUpvals(PInterpreter * it, PEnv * parentEnv, PEnv * clsEnv){
-	if (parentEnv == NULL || clsEnv == NULL) {
-		return;
-	}
+static void captureUpvals(PInterpreter *it, PEnv *parentEnv, PEnv *clsEnv) {
+    if (parentEnv == NULL || clsEnv == NULL) {
+        return;
+    }
 
-	PEnv * cur = parentEnv;
-	while (cur != NULL) {
-		if (cur->table != NULL) {
-			size_t curCount = cur->count;
-			for (size_t i = 0; i < curCount; i++) {
-				uint64_t key = cur->table[i].key;
-				if (hmgeti(clsEnv->table, key) != -1) {
-					continue; // We already have this pair in closure
-				}
+    PEnv *cur = parentEnv;
+    while (cur != NULL) {
+        if (cur->table != NULL) {
+            size_t curCount = cur->count;
+            for (size_t i = 0; i < curCount; i++) {
+                uint64_t key = cur->table[i].key;
+                if (hmgeti(clsEnv->table, key) != -1) {
+                    continue; // We already have this pair in closure
+                }
 
-				PValue curVal = cur->table[i].value;
-				PValue upVal;
-				PObj * maybe = IsValueObj(curVal) ? ValueAsObj(curVal) : NULL;
+                PValue curVal = cur->table[i].value;
+                PValue upVal;
+                PObj *maybe = IsValueObj(curVal) ? ValueAsObj(curVal) : NULL;
 
-				if (maybe != NULL && maybe->type == OT_UPVAL) {
-					upVal = curVal;
-				} else {
-					PObj * upObj = NewUpvalueObject(it->gc, curVal);
-					upVal = MakeObject(upObj);
-					hmput(cur->table, key, upVal); // Upgrade parent env's upval
-					cur->count = (size_t)hmlen(cur->table);
-				}
+                if (maybe != NULL && maybe->type == OT_UPVAL) {
+                    upVal = curVal;
+                } else {
+                    PObj *upObj = NewUpvalueObject(it->gc, curVal);
+                    upVal = MakeObject(upObj);
+                    hmput(cur->table, key, upVal); // Upgrade parent env's upval
+                    cur->count = (size_t)hmlen(cur->table);
+                }
 
-				hmput(clsEnv->table, key, upVal);
+                hmput(clsEnv->table, key, upVal);
+            }
+        }
+        cur = cur->enclosing;
+    }
 
-			}
-		
-		}
-		cur = cur->enclosing;
-	}
-
-	clsEnv->count = (size_t)hmlen(clsEnv->table);
+    clsEnv->count = (size_t)hmlen(clsEnv->table);
 }
 
 // Execute function declaration statements
 static ExResult vsFuncStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     assert(stmt->type == STMT_FUNC);
     struct SFunc *fs = &stmt->stmt.SFunc;
-	PEnv * closureEnv = NewEnv(NULL);
+    PEnv *closureEnv = NewEnv(NULL);
     PObj *f = NewFuncObject(
         it->gc, fs->name, fs->params, fs->body, closureEnv, fs->paramCount
     );
 
     EnvPutValue(env, fs->name->hash, MakeObject(f));
-	captureUpvals(it, env, closureEnv);
+    captureUpvals(it, env, closureEnv);
     return ExSimple(MakeNil());
 }
 

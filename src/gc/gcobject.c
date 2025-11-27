@@ -19,14 +19,14 @@ PObj *NewObject(Pgc *gc, PObjType type) {
     o->type = type;
     o->next = gc->objects;
     gc->objects = o;
-	o->marked = false;
+    o->marked = false;
 #if defined DEBUG_GC
     printf(
-        TERMC_BLUE "[DEBUG] [GC] %p New Object : %s\n" TERMC_RESET, (void*)o,
+        TERMC_BLUE "[DEBUG] [GC] %p New Object : %s\n" TERMC_RESET, (void *)o,
         ObjTypeToString(type)
     );
 #endif
-	GcCounterNew(gc);
+    GcCounterNew(gc);
     return o;
 }
 
@@ -83,11 +83,10 @@ PObj *NewErrorObject(Pgc *gc, char *msg) {
     return o;
 }
 
-
-PObj * NewUpvalueObject(Pgc * gc, PValue initValue){
-	PObj * o = NewObject(gc, OT_UPVAL);
-	o->v.OUpval.value = initValue;
-	return o;
+PObj *NewUpvalueObject(Pgc *gc, PValue initValue) {
+    PObj *o = NewObject(gc, OT_UPVAL);
+    o->v.OUpval.value = initValue;
+    return o;
 }
 
 PValue MakeError(Pgc *gc, char *msg) {
@@ -109,15 +108,14 @@ void FreeObject(Pgc *gc, PObj *o) {
 
 #if defined DEBUG_GC
     printf(
-        TERMC_GREEN "[DEBUG] [GC] Freeing Object : %p : %s : " TERMC_RESET, 
-		(void*)o, 
-		ObjTypeToString(o->type)
+        TERMC_GREEN "[DEBUG] [GC] Freeing Object : %p : %s : " TERMC_RESET,
+        (void *)o, ObjTypeToString(o->type)
     );
-	if (o->type == OT_UPVAL) {
-		printf("<UpValue> : %ld", (uint64_t)o);
-	}else{
-		PrintObject(o);
-	}
+    if (o->type == OT_UPVAL) {
+        printf("<UpValue> : %ld", (uint64_t)o);
+    } else {
+        PrintObject(o);
+    }
     printf("\n");
 #endif
 
@@ -141,7 +139,7 @@ void FreeObject(Pgc *gc, PObj *o) {
         case OT_ARR: {
             struct OArray *arr = &o->v.OArray;
             arrfree(arr->items);
-			arr->items = NULL;
+            arr->items = NULL;
             freeBaseObj(o);
             break;
         }
@@ -150,7 +148,7 @@ void FreeObject(Pgc *gc, PObj *o) {
             if (map->table != NULL) {
                 hmfree(map->table);
             }
-			map->table = NULL;
+            map->table = NULL;
             freeBaseObj(o);
             break;
         }
@@ -167,11 +165,11 @@ void FreeObject(Pgc *gc, PObj *o) {
             break;
         }
 
-		case OT_UPVAL:{
-			freeBaseObj(o);
-			break;
-		}
+        case OT_UPVAL: {
+            freeBaseObj(o);
+            break;
+        }
     }
 
-	GcCounterFree(gc);
+    GcCounterFree(gc);
 }

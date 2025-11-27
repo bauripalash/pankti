@@ -23,8 +23,8 @@ PStmt *NewStmt(Pgc *gc, PStmtType type, Token *op) {
     gc->stmts = s;
 #if defined DEBUG_GC
     printf(
-        TERMC_BLUE "[DEBUG] [GC] %p New Statement : %s\n" TERMC_RESET, (void*)s,
-        StmtTypeToStr(type)
+        TERMC_BLUE "[DEBUG] [GC] %p New Statement : %s\n" TERMC_RESET,
+        (void *)s, StmtTypeToStr(type)
     );
 #endif
     return s;

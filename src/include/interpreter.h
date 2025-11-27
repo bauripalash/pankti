@@ -44,8 +44,8 @@ typedef struct PInterpreter {
     PModule **mods;
     size_t modCount;
     Pgc *gc;
-	size_t callDepth;
-	size_t maxCallDepth;
+    size_t callDepth;
+    size_t maxCallDepth;
 } PInterpreter;
 
 // Create New Interpreter

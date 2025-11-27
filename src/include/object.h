@@ -52,14 +52,14 @@ typedef enum PObjType {
     OT_FNC,
     // Array Object. Used by `OArray`
     OT_ARR,
-	// Map Object
+    // Map Object
     OT_MAP,
-	// Native Function Object
+    // Native Function Object
     OT_NATIVE,
-	// Error Object
+    // Error Object
     OT_ERROR,
-	// UpValue Object
-	OT_UPVAL,
+    // UpValue Object
+    OT_UPVAL,
 } PObjType;
 
 // Entry of HashMaps
@@ -74,7 +74,7 @@ typedef struct PObj {
     // Pankti Object Type
     PObjType type;
     struct PObj *next;
-	bool marked;
+    bool marked;
 
     // Union of All Pankti Objects
     union v {
@@ -128,10 +128,10 @@ typedef struct PObj {
             char *msg;
         } OError;
 
-		// UpValue Object. Type : `OT_UPVAL`
-		struct OUpval{
-			PValue value; //shared value
-		} OUpval;
+        // UpValue Object. Type : `OT_UPVAL`
+        struct OUpval {
+            PValue value; // shared value
+        } OUpval;
     } v;
 
 } PObj;

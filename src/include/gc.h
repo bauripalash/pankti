@@ -14,11 +14,11 @@ extern "C" {
 #include <stdbool.h>
 // Print Debug Information for Each GC Action, New Object, Free Object, Marking
 // Sweeping etc.
-//#define DEBUG_GC
+// #define DEBUG_GC
 
-// Stress the GC. Run collector at every new statement from main program. 
+// Stress the GC. Run collector at every new statement from main program.
 // Ignores gc threshold limits
-//#define STRESS_GC
+// #define STRESS_GC
 
 #ifndef GC_OBJ_THRESHOLD
 #define GC_OBJ_THRESHOLD 128
@@ -30,19 +30,19 @@ extern "C" {
 
 // Pankti Garbage Collector
 typedef struct Pgc {
-	// Disable GC
+    // Disable GC
     bool disable;
-	// Stress the GC [For Debug ONLY]
+    // Stress the GC [For Debug ONLY]
     bool stress;
     PObj *objects;
     PStmt *stmts;
-	PEnv ** rootEnvs;
-	size_t rootEnvCount;
-	// Currently live objects
-	size_t objCount;
-	// Should we run collector
-	bool needCollect;
-	// When the objCount reaches here, collect garbage
+    PEnv **rootEnvs;
+    size_t rootEnvCount;
+    // Currently live objects
+    size_t objCount;
+    // Should we run collector
+    bool needCollect;
+    // When the objCount reaches here, collect garbage
     size_t nextGc;
     uint64_t timestamp;
 
@@ -50,11 +50,11 @@ typedef struct Pgc {
 
 Pgc *NewGc(void);
 void FreeGc(Pgc *gc);
-void RegisterRootEnv(Pgc * gc, PEnv * env);
-void UnregisterRootEnv(Pgc * gc, PEnv * env);
-void CollectGarbage(Pgc * gc);
-void GcCounterNew(Pgc * gc);
-void GcCounterFree(Pgc * gc);
+void RegisterRootEnv(Pgc *gc, PEnv *env);
+void UnregisterRootEnv(Pgc *gc, PEnv *env);
+void CollectGarbage(Pgc *gc);
+void GcCounterNew(Pgc *gc);
+void GcCounterFree(Pgc *gc);
 void GcUpdateThreshold(Pgc *gc);
 
 // Create a New Empty Object.
@@ -94,7 +94,7 @@ PObj *NewNativeFnObject(Pgc *gc, Token *name, NativeFn fn, int arity);
 // `msg` = Error message. It will be duplicated.
 PObj *NewErrorObject(Pgc *gc, char *msg);
 
-PObj * NewUpvalueObject(Pgc * gc, PValue initValue);
+PObj *NewUpvalueObject(Pgc *gc, PValue initValue);
 
 // Shortcut for NewErrorObject + MakeObject
 PValue MakeError(Pgc *gc, char *msg);
