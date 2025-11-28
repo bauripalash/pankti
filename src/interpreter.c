@@ -1,3 +1,12 @@
+#include <math.h>
+#include <stddef.h>
+#include <string.h>
+#include <assert.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+
+#include "include/ptypes.h"
 #include "include/interpreter.h"
 #include "external/stb/stb_ds.h"
 #include "include/alloc.h"
@@ -10,18 +19,12 @@
 #include "include/pstdlib.h"
 #include "include/token.h"
 #include "include/utils.h"
-#include <math.h>
-#include <stddef.h>
-#include <string.h>
 
 #ifdef PANKTI_BUILD_DEBUG
 #undef NDDEBUG
 #endif
 
-#include <assert.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
+
 
 // Execution Result Type
 typedef enum ExType {
@@ -78,7 +81,7 @@ static void PushModule(PInterpreter *it, PModule *mod) {
 }
 
 static void PushProxy(
-    PInterpreter *it, uint64_t key, char *name, PModule *mod
+    PInterpreter *it, u64 key, char *name, PModule *mod
 ) {
     if (mod == NULL) {
         return; // error check
@@ -404,7 +407,7 @@ static void mapAssignment(
         return;
     }
 
-    uint64_t keyHash = GetValueHash(keyValue, it->gc->timestamp);
+    u64 keyHash = GetValueHash(keyValue, it->gc->timestamp);
     PValue value = evaluate(it, valueExpr, env);
     if (!MapObjSetValue(mapObj, keyValue, keyHash, value)) {
         error(it, keyExpr->op, "Internal Error : Failed to set value to map");
@@ -719,7 +722,7 @@ static PValue vMap(PInterpreter *it, PExpr *expr, PEnv *env) {
 
     for (size_t i = 0; i < map->count; i += 2) {
         PValue k = evaluate(it, map->etable[i], env);
-        uint64_t keyHash = GetValueHash(k, (uint64_t)it->gc->timestamp);
+        u64 keyHash = GetValueHash(k, (u64)it->gc->timestamp);
         if (!CanValueBeKey(k)) {
             if (table != NULL) {
                 hmfree(table);
@@ -785,7 +788,7 @@ static PValue mapSubscript(
     }
 
     struct OMap *map = &mapObj->v.OMap;
-    uint64_t keyHash = GetValueHash(keyValue, it->gc->timestamp);
+    u64 keyHash = GetValueHash(keyValue, it->gc->timestamp);
 
     if (hmgeti(map->table, keyHash) != -1) {
         return hmgets(map->table, keyHash).value;
@@ -983,7 +986,7 @@ static void captureUpvals(PInterpreter *it, PEnv *parentEnv, PEnv *clsEnv) {
         if (cur->table != NULL) {
             size_t curCount = cur->count;
             for (size_t i = 0; i < curCount; i++) {
-                uint64_t key = cur->table[i].key;
+                u64 key = cur->table[i].key;
                 if (hmgeti(clsEnv->table, key) != -1) {
                     continue; // We already have this pair in closure
                 }
@@ -1042,7 +1045,7 @@ static ExResult vsImportStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
         return ExSimple(MakeNil());
     }
     PushModule(it, mod);
-    uint64_t key = imp->name->hash;
+    u64 key = imp->name->hash;
     PushProxy(it, key, imp->name->lexeme, mod);
     StdlibMod stdmod = GetStdlibMod(mod->pathname);
     if (stdmod != STDLIB_NONE) {

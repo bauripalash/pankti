@@ -1,8 +1,6 @@
 #ifndef INTERPRETER_H
 #define INTERPRETER_H
 
-#include "gc.h"
-#include <stddef.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -10,9 +8,11 @@ extern "C" {
 #ifndef DEF_MAX_CALL_DEPTH
 #define DEF_MAX_CALL_DEPTH 1000
 #endif
-
+#include <stddef.h>
+#include "gc.h"
 #include "ast.h"
 #include "env.h"
+#include "ptypes.h"
 
 typedef enum PModType {
     PMOD_STDLIB,
@@ -26,7 +26,7 @@ typedef struct PModule {
 } PModule;
 
 typedef struct ModProxyEntry {
-    uint64_t key;
+    u64 key;
     char *name;
     PModule *mod;
 } ModProxyEntry;

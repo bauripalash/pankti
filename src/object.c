@@ -1,14 +1,17 @@
-#include "include/object.h"
-#include "external/stb/stb_ds.h"
-#include "external/xxhash/xxhash.h"
-#include "include/keywords.h"
-#include "include/utils.h"
 #include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+
+#include "include/ptypes.h"
+#include "include/object.h"
+#include "external/stb/stb_ds.h"
+#include "external/xxhash/xxhash.h"
+#include "include/keywords.h"
+#include "include/utils.h"
+
 
 // Golden ratio?
 #define CONST_NAN_HASH 0x9e3779b97f4a7c15ULL
@@ -78,18 +81,18 @@ bool CanValueBeKey(PValue val) {
     return true;
 }
 
-uint64_t GetObjectHash(const PObj *obj, uint64_t seed) {
+u64 GetObjectHash(const PObj *obj, u64 seed) {
     if (obj->type == OT_STR) {
         XXH64_hash_t hash =
             XXH64(obj->v.OString.value, strlen(obj->v.OString.value), seed);
-        return (uint64_t)hash;
+        return (u64)hash;
     }
 
     // Function should never reach here. Runtime checks should check for types
     return 0;
 }
 
-uint64_t GetValueHash(PValue val, uint64_t seed) {
+u64 GetValueHash(PValue val, u64 seed) {
     if (IsValueNum(val)) {
         double value = ValueAsNum(val);
         if (value == 0.0) {
@@ -98,14 +101,14 @@ uint64_t GetValueHash(PValue val, uint64_t seed) {
         if (isnan(value)) {
             return CONST_ZERO_HASH;
         }
-        uint64_t bits;
+        u64 bits;
         memcpy(&bits, &value, sizeof(bits));
-        return (uint64_t)XXH64(&bits, sizeof(bits), seed);
+        return (u64)XXH64(&bits, sizeof(bits), seed);
     } else if (IsValueNil(val)) {
         return CONST_NIL_HASH;
     } else if (IsValueBool(val)) {
         uint8_t value = ValueAsBool(val) ? 1 : 0;
-        return (uint64_t)XXH64(&value, 1, seed);
+        return (u64)XXH64(&value, 1, seed);
     } else if (IsValueObj(val)) {
         return GetObjectHash(ValueAsObj(val), seed);
     }
@@ -201,7 +204,7 @@ bool ArrayObjInsValue(PObj *o, int index, PValue value) {
     return true;
 }
 
-bool MapObjSetValue(PObj *o, PValue key, uint64_t keyHash, PValue value) {
+bool MapObjSetValue(PObj *o, PValue key, u64 keyHash, PValue value) {
     if (o == NULL) {
         return false;
     }

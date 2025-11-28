@@ -1,9 +1,3 @@
-#include "include/utils.h"
-#include "external/xxhash/xxhash.h"
-#include "include/alloc.h"
-#include "include/bengali.h"
-#include "include/ustring.h"
-
 #include <ctype.h>
 #include <math.h>
 #include <stdarg.h>
@@ -14,6 +8,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <uchar.h>
+
+#include "include/ptypes.h"
+#include "include/utils.h"
+#include "external/xxhash/xxhash.h"
+#include "include/alloc.h"
+#include "include/bengali.h"
+#include "include/ustring.h"
+
 
 // Potential bug: handling of non-seekable file
 char *ReadFile(const char *path) {
@@ -99,9 +101,9 @@ char *BoolToString(bool v) {
     return "false";
 }
 
-uint64_t StrHash(const char *str, size_t len, uint64_t seed) {
+u64 StrHash(const char *str, size_t len, u64 seed) {
     XXH64_hash_t hash = XXH64(str, len, (XXH64_hash_t)seed);
-    return (uint64_t)hash;
+    return (u64)hash;
 }
 
 // Source:

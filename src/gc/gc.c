@@ -29,7 +29,7 @@ Pgc *NewGc(void) {
 #endif
     gc->objects = NULL;
     gc->stmts = NULL;
-    gc->timestamp = (uint64_t)time(NULL);
+    gc->timestamp = (u64)time(NULL);
     gc->rootEnvs = NULL;
     gc->rootEnvCount = 0;
 

@@ -1,16 +1,19 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
-#include <stddef.h>
-#include <stdint.h>
-#include <string.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
+#include <stdbool.h>
+
+#include "ptypes.h"
 #include "ast.h"
 #include "token.h"
-#include <stdbool.h>
+
 
 // Forward declration for PObj
 typedef struct PObj PObj;
@@ -21,15 +24,15 @@ typedef struct PEnv PEnv;
 typedef enum PValueType { VT_NUM, VT_OBJ, VT_BOOL, VT_NIL } PValueType;
 
 #if defined USE_NAN_BOXING
-typedef uint64_t PValue;
-#define QNAN       ((uint64_t)0x7ffc000000000000)
-#define SIGN_BIT   ((uint64_t)0x8000000000000000)
+typedef u64 PValue;
+#define QNAN       ((u64)0x7ffc000000000000)
+#define SIGN_BIT   ((u64)0x8000000000000000)
 #define TAG_NIL    1
 #define TAG_FALSE  2
 #define TAG_TRUE   3
-#define NilValue   ((PValue)(uint64_t)(QNAN | TAG_NIL))
-#define TrueValue  ((PValue)(uint64_t)(QNAN | TAG_TRUE))
-#define FalseValue ((PValue)(uint64_t)(QNAN | TAG_FALSE))
+#define NilValue   ((PValue)(u64)(QNAN | TAG_NIL))
+#define TrueValue  ((PValue)(u64)(QNAN | TAG_TRUE))
+#define FalseValue ((PValue)(u64)(QNAN | TAG_FALSE))
 #else
 // Stack Allocated PValue
 typedef struct PValue {
@@ -64,7 +67,7 @@ typedef enum PObjType {
 
 // Entry of HashMaps
 typedef struct MapEntry {
-    uint64_t key;
+    u64 key;
     PValue vkey;
     PValue value;
 } MapEntry;
@@ -215,7 +218,7 @@ static inline PValue MakeNil(void) {
 
 // Make Object value. Wraps the object pointer as Value
 #if defined(USE_NAN_BOXING)
-#define MakeObject(obj) ((PValue)(SIGN_BIT | QNAN | (uint64_t)(uintptr_t)(obj)))
+#define MakeObject(obj) ((PValue)(SIGN_BIT | QNAN | (u64)(uintptr_t)(obj)))
 #else
 static inline PValue MakeObject(PObj *obj) {
     PValue val;
@@ -271,7 +274,7 @@ bool ObjectHasLen(PObj *obj);
 // If length can not be calculated for this object return -1
 double GetObjectLength(PObj *obj);
 
-uint64_t GetValueHash(PValue val, uint64_t seed);
+u64 GetValueHash(PValue val, u64 seed);
 // Can value be used as key for hash map
 bool CanValueBeKey(PValue val);
 // Can Object be used as key for hash map
@@ -280,7 +283,7 @@ bool CanObjectBeKey(PObjType type);
 // If Value is a object, returns Object Type
 const char *ValueTypeToStr(PValue val);
 
-bool MapObjSetValue(PObj *o, PValue key, uint64_t keyHash, PValue value);
+bool MapObjSetValue(PObj *o, PValue key, u64 keyHash, PValue value);
 bool ArrayObjInsValue(PObj *o, int index, PValue value);
 // Print Object
 void PrintObject(const PObj *o);

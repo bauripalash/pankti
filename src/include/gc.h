@@ -1,17 +1,22 @@
 #ifndef GC_H
 #define GC_H
 
-#include "ast.h"
-#include "object.h"
-#include "token.h"
-#include <stddef.h>
-#include <stdint.h>
-#include <time.h>
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include <stddef.h>
+#include <stdint.h>
+#include <time.h>
 #include <stdbool.h>
+
+#include "ast.h"
+#include "object.h"
+#include "token.h"
+#include "ptypes.h"
+
 // Print Debug Information for Each GC Action, New Object, Free Object, Marking
 // Sweeping etc.
 // #define DEBUG_GC
@@ -44,7 +49,7 @@ typedef struct Pgc {
     bool needCollect;
     // When the objCount reaches here, collect garbage
     size_t nextGc;
-    uint64_t timestamp;
+    u64 timestamp;
 
 } Pgc;
 

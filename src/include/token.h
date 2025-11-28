@@ -1,13 +1,14 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include "ptypes.h"
 
 // Token Types
 typedef enum TokenType {
@@ -141,7 +142,7 @@ typedef struct Token {
     size_t len;
     // Hash for the token lexeme. expect for Keywords, identifiers, strings,
     // numbers it will be 0 (zero)
-    uint64_t hash;
+    u64 hash;
 } Token;
 
 // Create an empty token.

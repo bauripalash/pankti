@@ -1,16 +1,19 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <time.h>
+
 #include "token.h"
 #include "ustring.h"
-#include <time.h>
+#include "ptypes.h"
 
 typedef struct PanktiCore PanktiCore;
 
@@ -41,7 +44,7 @@ typedef struct Lexer {
     UIter *iter;
 
     // Timestamp seed for hashing
-    uint64_t timestamp;
+    u64 timestamp;
 
     // Lexer Error occured
     bool hasError;

@@ -1,11 +1,13 @@
-#include "include/env.h"
-#include "external/stb/stb_ds.h"
-#include "include/alloc.h"
-#include "include/object.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+
+#include "include/env.h"
+#include "external/stb/stb_ds.h"
+#include "include/alloc.h"
+#include "include/object.h"
+#include "include/ptypes.h"
 
 PEnv *NewEnv(PEnv *enclosing) {
     PEnv *e = PCreate(PEnv);
@@ -46,7 +48,7 @@ void DebugEnv(PEnv *e) {
     }
 }
 
-void EnvPutValue(PEnv *e, uint64_t hash, PValue value) {
+void EnvPutValue(PEnv *e, u64 hash, PValue value) {
     if (e == NULL) {
         return;
     }
@@ -67,7 +69,7 @@ void EnvPutValue(PEnv *e, uint64_t hash, PValue value) {
     e->count = (size_t)hmlen(e->table);
 }
 
-bool EnvSetValue(PEnv *e, uint64_t hash, PValue value) {
+bool EnvSetValue(PEnv *e, u64 hash, PValue value) {
     if (e == NULL) {
         return false;
     }
@@ -97,7 +99,7 @@ bool EnvSetValue(PEnv *e, uint64_t hash, PValue value) {
     return false;
 }
 
-PValue EnvGetValue(PEnv *e, uint64_t hash, bool *found) {
+PValue EnvGetValue(PEnv *e, u64 hash, bool *found) {
     if (e == NULL) {
         *found = false;
         return MakeNil();

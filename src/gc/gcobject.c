@@ -112,7 +112,7 @@ void FreeObject(Pgc *gc, PObj *o) {
         (void *)o, ObjTypeToString(o->type)
     );
     if (o->type == OT_UPVAL) {
-        printf("<UpValue> : %ld", (uint64_t)o);
+        printf("<UpValue> : %ld", (u64)o);
     } else {
         PrintObject(o);
     }
