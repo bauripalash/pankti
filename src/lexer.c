@@ -36,7 +36,7 @@ Lexer *NewLexer(char *src) {
     lx->column = 1;
     lx->line = 1;
     lx->source = src;
-    lx->length = (size_t)strlen(src);
+    lx->length = (u64)strlen(src);
     lx->tokens = NULL;
     lx->core = NULL;
     lx->raw = false;
@@ -98,11 +98,11 @@ void ResetLexer(Lexer *lexer) {
     lexer->start = 0;
     lexer->column = 1;
     lexer->line = 1;
-    lexer->length = (size_t)strlen(lexer->source);
+    lexer->length = (u64)strlen(lexer->source);
     lexer->tokens = NULL;
 }
 
-static inline void error(Lexer *lx, size_t line, size_t col, const char *msg) {
+static inline void error(Lexer *lx, u64 line, u64 col, const char *msg) {
     lx->hasError = true;
     if (lx->core != NULL) {
         CoreLexerError(lx->core, line, col, msg);
@@ -135,7 +135,7 @@ static inline bool isAnyAlphaNum(char32_t c) {
 static bool atEnd(const Lexer *lexer) { return UIterIsEnd(lexer->iter); }
 
 static char32_t advance(Lexer *lexer) {
-    size_t pos = lexer->iter->pos;
+    u64 pos = lexer->iter->pos;
     char32_t cp = UIterNext(lexer->iter);
     if (cp != 0) {
         lexer->current += (lexer->iter->pos - pos);
@@ -170,7 +170,7 @@ static bool match(Lexer *lx, char32_t target) {
 }
 
 static bool addTokenWithLexeme(
-    Lexer *lx, TokenType type, char *str, size_t len
+    Lexer *lx, TokenType type, char *str, u64 len
 ) {
     Token *tok = NewToken(type);
     if (tok == NULL) {
@@ -189,7 +189,7 @@ static bool addTokenWithLexeme(
             tok->len = 1;
         }
     }
-    size_t column = lx->column;
+    u64 column = lx->column;
 
     column -= tok->len;
 
@@ -203,7 +203,7 @@ static bool addToken(Lexer *lx, TokenType type) {
 }
 
 static bool addStringToken(
-    Lexer *lx, char *str, size_t line, size_t col, size_t len
+    Lexer *lx, char *str, u64 line, u64 col, u64 len
 ) {
     Token *tok = NewToken(T_STR);
     if (tok == NULL) {
@@ -220,8 +220,8 @@ static bool addStringToken(
 }
 
 static void readString(Lexer *lx) {
-    size_t column = lx->column - 1;
-    size_t line = lx->line;
+    u64 column = lx->column - 1;
+    u64 line = lx->line;
     while (peek(lx) != '"' && !atEnd(lx)) {
         if (peek(lx) == '\n') {
             lx->line++;

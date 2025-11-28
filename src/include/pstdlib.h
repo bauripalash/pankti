@@ -25,14 +25,14 @@ typedef enum StdlibMod {
 
 typedef struct StdlibEntry {
     char *name;
-    size_t nlen;
+    u64 nlen;
     NativeFn fn;
     int arity;
 } StdlibEntry;
 
 #define MakeStdlibEntry(sname, nfn, ar)                                        \
     ((StdlibEntry){                                                            \
-        .name = sname, .nlen = (size_t)strlen(sname), .fn = nfn, .arity = ar   \
+        .name = sname, .nlen = (u64)strlen(sname), .fn = nfn, .arity = ar   \
     })
 
 typedef struct PInterpreter PInterpreter;

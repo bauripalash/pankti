@@ -1,7 +1,6 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -25,20 +24,20 @@ typedef struct Lexer {
     // If the lexer is raw, `source` will not be freed
     bool raw;
     // Length of source code string
-    size_t length;
+    u64 length;
     // Array of tokens; Filled with ScanTokens(...) function
     Token **tokens;
 
     // Start index of the character for token to be created
     // When creating a new token, this will be the first character index
-    size_t start;
+    u64 start;
     // Current index of the character being read
     // Will be last character of newly created token
-    size_t current;
+    u64 current;
     // Current line number
-    size_t line;
+    u64 line;
     // current column number of the start of the token
-    size_t column;
+    u64 column;
 
     // Codepoint iterator. The characters are read as UTF-32 characters
     UIter *iter;

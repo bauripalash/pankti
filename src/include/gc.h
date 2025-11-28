@@ -1,8 +1,6 @@
 #ifndef GC_H
 #define GC_H
 
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -42,13 +40,13 @@ typedef struct Pgc {
     PObj *objects;
     PStmt *stmts;
     PEnv **rootEnvs;
-    size_t rootEnvCount;
+    u64 rootEnvCount;
     // Currently live objects
-    size_t objCount;
+    u64 objCount;
     // Should we run collector
     bool needCollect;
     // When the objCount reaches here, collect garbage
-    size_t nextGc;
+    u64 nextGc;
     u64 timestamp;
 
 } Pgc;
@@ -83,11 +81,11 @@ PObj *NewStrObject(Pgc *gc, Token *name, char *value, bool virt);
 // `env` = Environment
 // `count` = Count of parameters
 PObj *NewFuncObject(
-    Pgc *gc, Token *name, Token **params, PStmt *body, void *env, size_t count
+    Pgc *gc, Token *name, Token **params, PStmt *body, void *env, u64 count
 );
 
 // Create New Array Object
-PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, size_t count);
+PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, u64 count);
 
 // Create New Map Object
 PObj *NewMapObject(Pgc *gc, Token *op);
@@ -157,14 +155,14 @@ PExpr *NewLogical(Pgc *gc, PExpr *left, Token *op, PExpr *right);
 // `count` = Count of arguments
 // Return => New Call Expression as Expression pointer or NULL
 PExpr *NewCallExpr(
-    Pgc *gc, Token *op, PExpr *callee, PExpr **args, size_t count
+    Pgc *gc, Token *op, PExpr *callee, PExpr **args, u64 count
 );
 
 // New Array Expression
-PExpr *NewArrayExpr(Pgc *gc, Token *op, PExpr **items, size_t count);
+PExpr *NewArrayExpr(Pgc *gc, Token *op, PExpr **items, u64 count);
 
 // Create New HashMap Expression
-PExpr *NewMapExpr(Pgc *gc, Token *op, PExpr **items, size_t count);
+PExpr *NewMapExpr(Pgc *gc, Token *op, PExpr **items, u64 count);
 
 PExpr *NewSubscriptExpr(Pgc *gc, Token *op, PExpr *value, PExpr *index);
 PExpr *NewModgetExpr(Pgc *gc, Token *op, PExpr *module, Token *child);
@@ -238,7 +236,7 @@ PStmt *NewBreakStmt(Pgc *gc, Token *op);
 // `count` = Number of parameters
 // Return => New Function Statement as Statement pointer or NULL
 PStmt *NewFuncStmt(
-    Pgc *gc, Token *name, Token **params, PStmt *body, size_t count
+    Pgc *gc, Token *name, Token **params, PStmt *body, u64 count
 );
 
 // New Import Statement

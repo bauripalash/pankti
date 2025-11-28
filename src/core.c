@@ -170,8 +170,8 @@ static inline char *coreErrorToStr(PCoreErrorType errtype) {
 // Simply print error message with line and column numbers, if present
 static void printErrMsg(
     PanktiCore *core,
-    size_t line,
-    size_t col,
+    u64 line,
+    u64 col,
     const char *msg,
     bool hasPos,
     PCoreErrorType errtype
@@ -195,8 +195,8 @@ static void printErrMsg(
 }
 
 void CoreRuntimeError(PanktiCore *core, Token *token, const char *msg) {
-    size_t line = 0;
-    size_t col = 0;
+    u64 line = 0;
+    u64 col = 0;
     if (token != NULL) {
         line = token->line;
         col = token->col;
@@ -209,8 +209,8 @@ void CoreRuntimeError(PanktiCore *core, Token *token, const char *msg) {
 }
 
 void CoreParserError(PanktiCore *core, Token *token, const char *msg) {
-    size_t line = 0;
-    size_t col = 0;
+    u64 line = 0;
+    u64 col = 0;
     if (token != NULL) {
         line = token->line;
         col = token->col;
@@ -220,20 +220,20 @@ void CoreParserError(PanktiCore *core, Token *token, const char *msg) {
 }
 
 void CoreLexerError(
-    PanktiCore *core, size_t line, size_t col, const char *msg
+    PanktiCore *core, u64 line, u64 col, const char *msg
 ) {
-    size_t _line = 0;
-    size_t _col = 0;
+    u64 _line = 0;
+    u64 _col = 0;
 
-    if (line != SIZE_MAX) {
+    if (line != UINT64_MAX) {
         _line = line;
     }
 
-    if (col != SIZE_MAX) {
+    if (col != UINT64_MAX) {
         _col = col;
     }
 
-    bool dontHavePos = line == SIZE_MAX || col == SIZE_MAX;
+    bool dontHavePos = line == UINT64_MAX || col == UINT64_MAX;
 
     printErrMsg(core, _line, _col, msg, !dontHavePos, PCERR_LEXER);
 }

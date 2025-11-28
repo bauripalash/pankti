@@ -1,9 +1,11 @@
+#include <stddef.h>
+#include <stdio.h>
 #include "include/ast.h"
 #include "external/stb/stb_ds.h"
 #include "include/ansicolors.h"
 #include "include/token.h"
-#include <stddef.h>
-#include <stdio.h>
+#include "include/ptypes.h"
+
 
 static char *LiteralTypeToStr(ExpLitType type) {
     switch (type) {
@@ -119,7 +121,7 @@ void AstPrint(PExpr *expr, int indent) {
 
             printIndent(indent + 1);
             printf("Args (%zu) {\n", call->argCount);
-            for (size_t i = 0; i < call->argCount; i++) {
+            for (u64 i = 0; i < call->argCount; i++) {
                 AstPrint(call->args[i], indent + 2);
             }
             printIndent(indent + 1);
@@ -137,7 +139,7 @@ void AstPrint(PExpr *expr, int indent) {
                 arr->count
             );
             printf("{\n");
-            for (size_t i = 0; i < arr->count; i++) {
+            for (u64 i = 0; i < arr->count; i++) {
                 AstPrint(arr->items[i], indent + 2);
             }
             printIndent(indent);
@@ -151,7 +153,7 @@ void AstPrint(PExpr *expr, int indent) {
                 map->count / 2
             );
             printf("{\n");
-            for (size_t i = 0; i < map->count; i += 2) {
+            for (u64 i = 0; i < map->count; i += 2) {
                 printIndent(indent + 1);
                 printf("{\n");
                 AstPrint(map->etable[i], indent + 2);
@@ -303,7 +305,7 @@ void AstStmtPrint(PStmt *stmt, int indent) {
                 "Func(" TERMC_GREEN "%s" TERMC_RESET ") <", fn->name->lexeme
             );
             printf(TERMC_GREEN);
-            for (size_t i = 0; i < fn->paramCount; i++) {
+            for (u64 i = 0; i < fn->paramCount; i++) {
                 printf("%s", fn->params[i]->lexeme);
                 if (i != fn->paramCount - 1) {
                     printf(TERMC_RESET ", " TERMC_GREEN);

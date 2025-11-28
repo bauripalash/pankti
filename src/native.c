@@ -10,14 +10,14 @@
 #include <stdio.h>
 #include <time.h>
 
-static PValue ntvClock(PInterpreter *it, PValue *args, size_t argc) {
+static PValue ntvClock(PInterpreter *it, PValue *args, u64 argc) {
     clock_t c = clock();
     double sec = (double)c / (double)CLOCKS_PER_SEC;
     return MakeNumber(sec);
 }
 
-static PValue ntvShow(PInterpreter *it, PValue *args, size_t argc) {
-    for (size_t i = 0; i < argc; i++) {
+static PValue ntvShow(PInterpreter *it, PValue *args, u64 argc) {
+    for (u64 i = 0; i < argc; i++) {
         PrintValue(args[i]);
         if (i + 1 < argc) {
             printf(" ");
@@ -27,7 +27,7 @@ static PValue ntvShow(PInterpreter *it, PValue *args, size_t argc) {
     return MakeNil();
 }
 
-static PValue ntvLen(PInterpreter *it, PValue *args, size_t argc) {
+static PValue ntvLen(PInterpreter *it, PValue *args, u64 argc) {
     PValue target = args[0];
     if (!IsValueObj(target)) {
         return MakeError(it->gc, "Length can not be calculated for this value");

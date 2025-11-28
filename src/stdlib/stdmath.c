@@ -1,6 +1,7 @@
 #include "../include/env.h"
 #include "../include/interpreter.h"
 #include "../include/pstdlib.h"
+#include "../include/ptypes.h"
 #include <math.h>
 #include <stddef.h>
 #include <string.h>
@@ -20,7 +21,7 @@ static inline double getGcd(double a, double b) {
     return x;
 }
 
-static PValue math_Sqrt(PInterpreter *it, PValue *args, size_t argc) {
+static PValue math_Sqrt(PInterpreter *it, PValue *args, u64 argc) {
     PValue rawVal = args[0];
     if (!IsValueNum(rawVal)) {
         // MakeError
@@ -30,7 +31,7 @@ static PValue math_Sqrt(PInterpreter *it, PValue *args, size_t argc) {
     return MakeNumber(result);
 }
 
-static PValue math_Log10(PInterpreter *it, PValue *args, size_t argc) {
+static PValue math_Log10(PInterpreter *it, PValue *args, u64 argc) {
     PValue rawVal = args[0];
     if (!IsValueNum(rawVal)) {
         // MakeError
@@ -39,7 +40,7 @@ static PValue math_Log10(PInterpreter *it, PValue *args, size_t argc) {
     double result = log10(ValueAsNum(rawVal));
     return MakeNumber(result);
 }
-static PValue math_Log(PInterpreter *it, PValue *args, size_t argc) {
+static PValue math_Log(PInterpreter *it, PValue *args, u64 argc) {
     PValue rawVal = args[0];
     if (!IsValueNum(rawVal)) {
         // MakeError
@@ -48,7 +49,7 @@ static PValue math_Log(PInterpreter *it, PValue *args, size_t argc) {
     double result = log(ValueAsNum(rawVal));
     return MakeNumber(result);
 }
-static PValue math_LogBase(PInterpreter *it, PValue *args, size_t argc) {
+static PValue math_LogBase(PInterpreter *it, PValue *args, u64 argc) {
     PValue rawBase = args[0];
     PValue rawNum = args[1];
 
@@ -59,40 +60,40 @@ static PValue math_LogBase(PInterpreter *it, PValue *args, size_t argc) {
     double result = log(ValueAsNum(rawNum)) / log(ValueAsNum(rawBase));
     return MakeNumber(result);
 }
-static PValue math_GCD(PInterpreter *it, PValue *args, size_t argc) {
+static PValue math_GCD(PInterpreter *it, PValue *args, u64 argc) {
     return MakeNil();
 }
-static PValue math_LCM(PInterpreter *it, PValue *args, size_t argc) {
+static PValue math_LCM(PInterpreter *it, PValue *args, u64 argc) {
     return MakeNil();
 }
-static PValue math_Sine(PInterpreter *it, PValue *args, size_t argc) {
+static PValue math_Sine(PInterpreter *it, PValue *args, u64 argc) {
     return MakeNil();
 }
-static PValue math_Cosine(PInterpreter *it, PValue *args, size_t argc) {
+static PValue math_Cosine(PInterpreter *it, PValue *args, u64 argc) {
     return MakeNil();
 }
-static PValue math_Tangent(PInterpreter *it, PValue *args, size_t argc) {
+static PValue math_Tangent(PInterpreter *it, PValue *args, u64 argc) {
     return MakeNil();
 }
-static PValue math_Degree(PInterpreter *it, PValue *args, size_t argc) {
+static PValue math_Degree(PInterpreter *it, PValue *args, u64 argc) {
     return MakeNil();
 }
-static PValue math_Radians(PInterpreter *it, PValue *args, size_t argc) {
+static PValue math_Radians(PInterpreter *it, PValue *args, u64 argc) {
     return MakeNil();
 }
-static PValue math_Number(PInterpreter *it, PValue *args, size_t argc) {
+static PValue math_Number(PInterpreter *it, PValue *args, u64 argc) {
     return MakeNil();
 }
-static PValue math_Abs(PInterpreter *it, PValue *args, size_t argc) {
+static PValue math_Abs(PInterpreter *it, PValue *args, u64 argc) {
     return MakeNil();
 }
-static PValue math_Round(PInterpreter *it, PValue *args, size_t argc) {
+static PValue math_Round(PInterpreter *it, PValue *args, u64 argc) {
     return MakeNil();
 }
-static PValue math_Floor(PInterpreter *it, PValue *args, size_t argc) {
+static PValue math_Floor(PInterpreter *it, PValue *args, u64 argc) {
     return MakeNil();
 }
-static PValue math_Ceil(PInterpreter *it, PValue *args, size_t argc) {
+static PValue math_Ceil(PInterpreter *it, PValue *args, u64 argc) {
     return MakeNil();
 }
 #define MATH_STD_SQRT    "বর্গমূল"

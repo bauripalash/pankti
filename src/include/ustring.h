@@ -20,9 +20,9 @@ typedef struct UIter {
     // Raw UTF-8 encoded string. Reference to source from Lexer object
     const char *str;
     // How many characters is in `str`.
-    size_t len;
+    u64 len;
     // Current position of iterator
-    size_t pos;
+    u64 pos;
 
     // Stack allocated peek buffer.
     // Index 0 is next codepoint.

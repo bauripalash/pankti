@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <uchar.h>
+#include "ptypes.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,19 +30,19 @@ char *ReadFile(const char *path);
 // `str` = String which the substring will be created from
 // `start` = Start index
 // `end` = End index
-char *SubString(const char *str, size_t start, size_t end);
+char *SubString(const char *str, u64 start, u64 end);
 
 // Return a malloc'd Duplicate string
-char *StrDuplicate(const char *str, size_t len);
+char *StrDuplicate(const char *str, u64 len);
 
 // String Hash?
-u64 StrHash(const char *str, size_t len, u64 seed);
+u64 StrHash(const char *str, u64 len, u64 seed);
 
 // Check if `str1` and `str2` is same
 bool StrEqual(const char *str1, const char *str2);
 
 // Get the length of a string. Return how many bytes, not actual codepoints
-size_t StrLength(const char *str);
+u64 StrLength(const char *str);
 
 // Format String; same as Raylib's TextFormat
 const char *StrFormat(const char *text, ...);
@@ -50,7 +51,7 @@ const char *StrFormat(const char *text, ...);
 char **StrSplit(const char *text, char delimiter, int *count);
 
 // Join Two String into one
-char *StrJoin(const char *a, size_t alen, const char *b, size_t blen, bool *ok);
+char *StrJoin(const char *a, u64 alen, const char *b, u64 blen, bool *ok);
 
 // Helper function for lexer to match English, Bengali and Phonetic version of
 // keywords
@@ -69,7 +70,7 @@ char32_t U8ToU32(const unsigned char *str);
 // Convert Bool to String; `"true"` or `"false"`
 char *BoolToString(bool v);
 
-double NumberFromStr(const char *lexeme, size_t len, bool *ok);
+double NumberFromStr(const char *lexeme, u64 len, bool *ok);
 
 // Check if double is integer
 bool IsDoubleInt(double d);

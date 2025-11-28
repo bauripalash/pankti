@@ -18,7 +18,7 @@ typedef struct PEnv {
         PValue value;
     } *table;
     // Count of pairs in table
-    size_t count;
+    u64 count;
     // Parent Environment
     struct PEnv *enclosing;
 } PEnv;

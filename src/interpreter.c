@@ -69,7 +69,7 @@ static PModule *NewModule(PInterpreter *it, char *name) {
         // throw error
         return NULL;
     }
-    mod->pathname = StrDuplicate(name, (size_t)strlen(name));
+    mod->pathname = StrDuplicate(name, (u64)strlen(name));
     // error check
     mod->env = NewEnv(NULL);
     return mod;
@@ -77,7 +77,7 @@ static PModule *NewModule(PInterpreter *it, char *name) {
 
 static void PushModule(PInterpreter *it, PModule *mod) {
     arrput(it->mods, mod);
-    it->modCount = (size_t)arrlen(it->mods);
+    it->modCount = (u64)arrlen(it->mods);
 }
 
 static void PushProxy(
@@ -89,7 +89,7 @@ static void PushProxy(
 
     ModProxyEntry s = {.key = key, .name = name, .mod = mod};
     hmputs(it->proxyTable, s);
-    it->proxyCount = (size_t)hmlen(it->proxyTable);
+    it->proxyCount = (u64)hmlen(it->proxyTable);
 }
 
 // Execute Statement
@@ -142,8 +142,8 @@ void FreeInterpreter(PInterpreter *it) {
     PFree(it);
 }
 void Interpret(PInterpreter *it) {
-    size_t progCount = (size_t)arrlen(it->program);
-    for (size_t i = 0; i < progCount; i++) {
+    u64 progCount = (u64)arrlen(it->program);
+    for (u64 i = 0; i < progCount; i++) {
         execute(it, it->program[i], it->env);
         CollectGarbage(it->gc);
     }
@@ -206,9 +206,9 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
                        (IsValueObj(r) && ValueAsObj(r)->type == OT_STR)) {
                 bool ok = true;
                 struct OString *ls = &ValueAsObj(l)->v.OString;
-                size_t lsLen = (size_t)strlen(ls->value);
+                u64 lsLen = (u64)strlen(ls->value);
                 struct OString *rs = &ValueAsObj(r)->v.OString;
-                size_t rsLen = (size_t)strlen(rs->value);
+                u64 rsLen = (u64)strlen(rs->value);
                 char *newStr = StrJoin(ls->value, lsLen, rs->value, rsLen, &ok);
                 if (!ok) {
                     error(it, expr->op, "Fail to join string");
@@ -524,7 +524,7 @@ static PValue vLogical(PInterpreter *it, PExpr *expr, PEnv *env) {
 
 // Evaluate a function call and return result (if any)
 static PValue handleCall(
-    PInterpreter *it, PObj *func, PValue *args, size_t count, PExpr *callExpr
+    PInterpreter *it, PObj *func, PValue *args, u64 count, PExpr *callExpr
 ) {
     assert(func->type == OT_FNC);
     struct OFunction *f = &func->v.OFunction;
@@ -540,7 +540,7 @@ static PValue handleCall(
     it->callDepth++;
 
     PEnv *fnEnv = NewEnv((PEnv *)f->env);
-    for (size_t i = 0; i < count; i++) {
+    for (u64 i = 0; i < count; i++) {
         EnvPutValue(fnEnv, f->params[i]->hash, args[i]);
     }
 
@@ -604,7 +604,7 @@ static PValue callFunction(
         argsOnHeap = false;
     }
 
-    for (size_t i = 0; i < call->argCount; i++) {
+    for (u64 i = 0; i < call->argCount; i++) {
         argPtr[i] = evaluate(it, call->args[i], env);
     }
 
@@ -658,7 +658,7 @@ static PValue callNative(
         argsOnHeap = false;
     }
 
-    for (size_t i = 0; i < call->argCount; i++) {
+    for (u64 i = 0; i < call->argCount; i++) {
         argPtr[i] = evaluate(it, call->args[i], env);
     }
 
@@ -704,7 +704,7 @@ static PValue vArray(PInterpreter *it, PExpr *expr, PEnv *env) {
     struct EArray *arr = &expr->exp.EArray;
     PValue *vitems = NULL;
 
-    for (size_t i = 0; i < arr->count; i++) {
+    for (u64 i = 0; i < arr->count; i++) {
         arrput(vitems, evaluate(it, arr->items[i], env));
     }
 
@@ -720,7 +720,7 @@ static PValue vMap(PInterpreter *it, PExpr *expr, PEnv *env) {
     MapEntry *table = NULL;
     MapEntry s;
 
-    for (size_t i = 0; i < map->count; i += 2) {
+    for (u64 i = 0; i < map->count; i += 2) {
         PValue k = evaluate(it, map->etable[i], env);
         u64 keyHash = GetValueHash(k, (u64)it->gc->timestamp);
         if (!CanValueBeKey(k)) {
@@ -737,7 +737,7 @@ static PValue vMap(PInterpreter *it, PExpr *expr, PEnv *env) {
 
     PObj *mapObj = NewMapObject(it->gc, map->op);
     mapObj->v.OMap.table = table;
-    mapObj->v.OMap.count = (size_t)hmlen(table);
+    mapObj->v.OMap.count = (u64)hmlen(table);
     return MakeObject(mapObj);
 }
 
@@ -984,8 +984,8 @@ static void captureUpvals(PInterpreter *it, PEnv *parentEnv, PEnv *clsEnv) {
     PEnv *cur = parentEnv;
     while (cur != NULL) {
         if (cur->table != NULL) {
-            size_t curCount = cur->count;
-            for (size_t i = 0; i < curCount; i++) {
+            u64 curCount = cur->count;
+            for (u64 i = 0; i < curCount; i++) {
                 u64 key = cur->table[i].key;
                 if (hmgeti(clsEnv->table, key) != -1) {
                     continue; // We already have this pair in closure
@@ -1001,7 +1001,7 @@ static void captureUpvals(PInterpreter *it, PEnv *parentEnv, PEnv *clsEnv) {
                     PObj *upObj = NewUpvalueObject(it->gc, curVal);
                     upVal = MakeObject(upObj);
                     hmput(cur->table, key, upVal); // Upgrade parent env's upval
-                    cur->count = (size_t)hmlen(cur->table);
+                    cur->count = (u64)hmlen(cur->table);
                 }
 
                 hmput(clsEnv->table, key, upVal);
@@ -1010,7 +1010,7 @@ static void captureUpvals(PInterpreter *it, PEnv *parentEnv, PEnv *clsEnv) {
         cur = cur->enclosing;
     }
 
-    clsEnv->count = (size_t)hmlen(clsEnv->table);
+    clsEnv->count = (u64)hmlen(clsEnv->table);
 }
 
 // Execute function declaration statements

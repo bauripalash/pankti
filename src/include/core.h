@@ -1,14 +1,17 @@
 #ifndef CORE_H
 #define CORE_H
-#include "gc.h"
-#include "token.h"
-#include <stddef.h>
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include <stddef.h>
+#include "gc.h"
+#include "token.h"
 #include "interpreter.h"
 #include "lexer.h"
 #include "parser.h"
+#include "ptypes.h"
 
 // Main Body for whole pankti runtime
 typedef struct PanktiCore {
@@ -62,10 +65,10 @@ void CoreParserError(PanktiCore *core, Token *token, const char *msg);
 // Throw Lexer/Syntax Error and Continue scanning for tokens to catch as many as
 // errors as we can find.
 // `core` = Interpreter Core
-// `line` = Non negative line number. If ambiguous pass SIZE_MAX.
-// `col` = Non negative byte based column number. If ambiguous pass SIZE_MAX.
+// `line` = Non negative line number. If ambiguous pass U64_MAX.
+// `col` = Non negative byte based column number. If ambiguous pass U64_MAX.
 // `msg` = Error Message
-void CoreLexerError(PanktiCore *core, size_t line, size_t col, const char *msg);
+void CoreLexerError(PanktiCore *core, u64 line, u64 col, const char *msg);
 #ifdef __cplusplus
 }
 #endif

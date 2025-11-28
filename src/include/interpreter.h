@@ -40,12 +40,12 @@ typedef struct PInterpreter {
     // The Parent Environment used across closures
     PEnv *env;
     ModProxyEntry *proxyTable;
-    size_t proxyCount;
+    u64 proxyCount;
     PModule **mods;
-    size_t modCount;
+    u64 modCount;
     Pgc *gc;
-    size_t callDepth;
-    size_t maxCallDepth;
+    u64 callDepth;
+    u64 maxCallDepth;
 } PInterpreter;
 
 // Create New Interpreter

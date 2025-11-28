@@ -10,7 +10,7 @@
 #include "include/alloc.h"
 
 
-static u32 uiterGetACp(const char *str, size_t len, size_t *ate) {
+static u32 uiterGetACp(const char *str, u64 len, u64 *ate) {
     if (len == 0) {
         *ate = 0;
         return 0;
@@ -82,12 +82,12 @@ static u32 uiterGetACp(const char *str, size_t len, size_t *ate) {
 
 static void uiterFillPeekBuffer(UIter *it) {
     it->peekCount = 0;
-    size_t curpos = it->pos;
+    u64 curpos = it->pos;
     for (int i = 0; i < UITER_PEEK_BUFFER_SIZE; i++) {
         if (curpos >= it->len) {
             break;
         }
-        size_t ate = 0;
+        u64 ate = 0;
         u32 cp = uiterGetACp(it->str + curpos, it->len - curpos, &ate);
         if (ate > 0) {
             it->peekBuf[i] = cp;
@@ -109,7 +109,7 @@ UIter *NewUIterator(const char *text) {
         return NULL;
     }
     it->str = text;
-    it->len = (size_t)strlen(text);
+    it->len = (u64)strlen(text);
     it->pos = 0;
     it->peekCount = 0;
     uiterFillPeekBuffer(it);
@@ -135,7 +135,7 @@ void UIterAdvance(UIter *iter) {
     }
 
     // how much first item in peek buffer ate?
-    size_t ate = 0;
+    u64 ate = 0;
     uiterGetACp(iter->str + iter->pos, iter->len - iter->pos, &ate);
     if (ate > 0) {
         iter->pos += ate;

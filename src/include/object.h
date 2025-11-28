@@ -45,7 +45,7 @@ typedef struct PValue {
 } PValue;
 #endif
 
-typedef PValue (*NativeFn)(PInterpreter *it, PValue *args, size_t argc);
+typedef PValue (*NativeFn)(PInterpreter *it, PValue *args, u64 argc);
 
 // Pankti Object Types
 typedef enum PObjType {
@@ -95,7 +95,7 @@ typedef struct PObj {
             // Token array of parameters
             Token **params;
             // Count of parameters
-            size_t paramCount;
+            u64 paramCount;
             // Function Environment. Will Always have a parent.
             PEnv *env;
             // Array of Statements to execute on demand.
@@ -105,13 +105,13 @@ typedef struct PObj {
 
         struct OArray {
             Token *op;
-            size_t count;
+            u64 count;
             PValue *items;
         } OArray;
 
         struct OMap {
             Token *op;
-            size_t count;
+            u64 count;
             MapEntry *table;
         } OMap;
 

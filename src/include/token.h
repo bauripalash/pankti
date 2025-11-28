@@ -134,12 +134,12 @@ typedef struct Token {
     // Can be NULL
     char *lexeme;
     // Line number
-    size_t line;
+    u64 line;
     // Column number. Distance from first character of the line
-    size_t col;
+    u64 col;
     // length of the token lexeme, if lexeme is optional depends of how many
     // characters the token contains need. For example, T_EQ is 1, T_EQEQ is 2
-    size_t len;
+    u64 len;
     // Hash for the token lexeme. expect for Keywords, identifiers, strings,
     // numbers it will be 0 (zero)
     u64 hash;

@@ -216,7 +216,7 @@ bool MapObjSetValue(PObj *o, PValue key, u64 keyHash, PValue value) {
     struct OMap *map = &o->v.OMap;
     MapEntry s = (MapEntry){keyHash, key, value};
     hmputs(map->table, s);
-    map->count = (size_t)hmlen(map->table);
+    map->count = (u64)hmlen(map->table);
     return true;
 }
 
@@ -252,7 +252,7 @@ void PrintObject(const PObj *o) {
             const struct OArray *arr = &o->v.OArray;
             printf("[");
             if (arr->items != NULL) {
-                for (size_t i = 0; i < arrlen(arr->items); i++) {
+                for (u64 i = 0; i < arrlen(arr->items); i++) {
                     PValue val = arr->items[i];
                     PrintValue(val);
                     if (i != arr->count - 1) {

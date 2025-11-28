@@ -1,13 +1,15 @@
 #ifndef AST_H
 #define AST_H
 
-#include <stdbool.h>
-#include <stddef.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include <stdbool.h>
+#include <stddef.h>
 #include "token.h"
+#include "ptypes.h"
 
 // Expression Type
 typedef enum PExprType {
@@ -108,7 +110,7 @@ typedef struct PExpr {
         struct EArray {
             Token *op;
             struct PExpr **items;
-            size_t count;
+            u64 count;
         } EArray;
 
         // Map Expression
@@ -116,7 +118,7 @@ typedef struct PExpr {
         struct EMap {
             Token *op;
             struct PExpr **etable;
-            size_t count;
+            u64 count;
         } EMap;
 
         // Subscript Expression
@@ -186,7 +188,7 @@ typedef struct PExpr {
             // Expression list of arguments
             struct PExpr **args;
             // Number of arguments provided
-            size_t argCount;
+            u64 argCount;
         } ECall;
     } exp;
 } PExpr;
@@ -314,7 +316,7 @@ typedef struct PStmt {
             // Token array of parameters
             Token **params;
             // Number of parameters
-            size_t paramCount;
+            u64 paramCount;
             // The body. Will always be Block Statement <`STMT_BLOCK`>
             struct PStmt *body;
         } SFunc;

@@ -82,7 +82,7 @@ void UnregisterRootEnv(Pgc *gc, PEnv *env) {
     if (gc == NULL || env == NULL) {
         return;
     }
-    for (size_t i = 0; i < gc->rootEnvCount; i++) {
+    for (u64 i = 0; i < gc->rootEnvCount; i++) {
         if (gc->rootEnvs[i] == env) {
             // With this delswap we don't to move items
             arrdelswap(gc->rootEnvs, i);
@@ -115,7 +115,7 @@ void GcUpdateThreshold(Pgc *gc) {
         return;
     }
 
-    size_t newThreshold = gc->objCount * GC_GROW_FACTOR;
+    u64 newThreshold = gc->objCount * GC_GROW_FACTOR;
     if (newThreshold < GC_OBJ_THRESHOLD) {
         newThreshold = GC_OBJ_THRESHOLD;
     }
@@ -166,7 +166,7 @@ static void markRoots(Pgc *gc) {
     }
 
     if (gc->rootEnvs != NULL && gc->rootEnvCount > 0) {
-        for (size_t i = 0; i < gc->rootEnvCount; i++) {
+        for (u64 i = 0; i < gc->rootEnvCount; i++) {
             markEnv(gc, gc->rootEnvs[i]);
         }
     }
@@ -233,9 +233,9 @@ static void markEnv(Pgc *gc, PEnv *env) {
         return;
     }
 
-    size_t envCount = (size_t)hmlen(env->table);
+    u64 envCount = (u64)hmlen(env->table);
 
-    for (size_t i = 0; i < envCount; i++) {
+    for (u64 i = 0; i < envCount; i++) {
         markValue(gc, env->table[i].value);
     }
 }
@@ -258,7 +258,7 @@ static void markObjectChildren(Pgc *gc, PObj *obj) {
 
         case OT_ARR: {
             struct OArray *arr = &obj->v.OArray;
-            for (size_t i = 0; i < arr->count; i++) {
+            for (u64 i = 0; i < arr->count; i++) {
                 markValue(gc, arr->items[i]);
             }
             break;
@@ -266,8 +266,8 @@ static void markObjectChildren(Pgc *gc, PObj *obj) {
 
         case OT_MAP: {
             struct OMap *map = &obj->v.OMap;
-            size_t count = map->count;
-            for (size_t i = 0; i < count; i++) {
+            u64 count = map->count;
+            for (u64 i = 0; i < count; i++) {
                 markValue(gc, map->table[i].vkey);
                 markValue(gc, map->table[i].value);
             }

@@ -29,7 +29,7 @@ char *ReadFile(const char *path) {
             fseek(file, 0, SEEK_SET);
 
             if (size >= 0) {
-                text = (char *)PCalloc((size_t)size + 1, sizeof(char));
+                text = (char *)PCalloc(size + 1, sizeof(char));
                 if (text == NULL) {
                     fclose(file);
                     return NULL;
@@ -46,18 +46,18 @@ char *ReadFile(const char *path) {
     return text;
 }
 
-char *SubString(const char *str, size_t start, size_t end) {
+char *SubString(const char *str, u64 start, u64 end) {
     if (str == NULL) {
         return NULL;
     }
 
-    size_t len = (size_t)strlen(str);
+    u64 len = (u64)strlen(str);
     if (start > end || end > len) {
         return NULL;
     }
 
-    size_t sublen = end - start;
-    char *result = PMalloc(((size_t)sublen + 1) * sizeof(char));
+    u64 sublen = end - start;
+    char *result = PMalloc((sublen + 1) * sizeof(char));
     if (result == NULL) {
         return NULL;
     }
@@ -70,12 +70,12 @@ bool StrEqual(const char *str1, const char *str2) {
     return strcmp(str1, str2) == 0;
 }
 
-char *StrDuplicate(const char *str, size_t len) {
+char *StrDuplicate(const char *str, u64 len) {
     if (str == NULL) {
         return NULL;
     }
 
-    char *dup = PCalloc((size_t)len + 1, sizeof(char));
+    char *dup = PCalloc(len + 1, sizeof(char));
     if (dup == NULL) {
         return NULL;
     }
@@ -83,7 +83,7 @@ char *StrDuplicate(const char *str, size_t len) {
     return dup;
 }
 
-size_t StrLength(const char *str) { return (size_t)strlen(str); }
+u64 StrLength(const char *str) { return (u64)strlen(str); }
 
 bool MatchKW(const char *s, const char *en, const char *pn, const char *bn) {
     return StrEqual(s, en) || StrEqual(s, pn) || StrEqual(s, bn);
@@ -101,8 +101,8 @@ char *BoolToString(bool v) {
     return "false";
 }
 
-u64 StrHash(const char *str, size_t len, u64 seed) {
-    XXH64_hash_t hash = XXH64(str, len, (XXH64_hash_t)seed);
+u64 StrHash(const char *str, u64 len, u64 seed) {
+    XXH64_hash_t hash = XXH64(str, (size_t)len, (XXH64_hash_t)seed);
     return (u64)hash;
 }
 
@@ -168,10 +168,10 @@ char **StrSplit(const char *text, char delimiter, int *count) {
 }
 
 char *StrJoin(
-    const char *a, size_t alen, const char *b, size_t blen, bool *ok
+    const char *a, u64 alen, const char *b, u64 blen, bool *ok
 ) {
-    size_t outlen = alen + blen + 1;
-    char *output = PCalloc((size_t)outlen, sizeof(char));
+    u64 outlen = alen + blen + 1;
+    char *output = PCalloc(outlen, sizeof(char));
     if (output == NULL) {
         *ok = false;
         return NULL;
@@ -184,9 +184,9 @@ char *StrJoin(
     return output;
 }
 
-double NumberFromStr(const char *lexeme, size_t len, bool *ok) {
+double NumberFromStr(const char *lexeme, u64 len, bool *ok) {
 
-    char *buf = PCalloc((size_t)(len + 1), sizeof(char));
+    char *buf = PCalloc(len + 1, sizeof(char));
     if (buf == NULL) {
         *ok = false;
         return -1;
