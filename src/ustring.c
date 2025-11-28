@@ -1,6 +1,3 @@
-#include "include/ustring.h"
-#include "include/alloc.h"
-
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -8,7 +5,12 @@
 #include <string.h>
 #include <uchar.h>
 
-static uint32_t uiterGetACp(const char *str, size_t len, size_t *ate) {
+#include "include/ptypes.h"
+#include "include/ustring.h"
+#include "include/alloc.h"
+
+
+static u32 uiterGetACp(const char *str, size_t len, size_t *ate) {
     if (len == 0) {
         *ate = 0;
         return 0;
@@ -36,7 +38,7 @@ static uint32_t uiterGetACp(const char *str, size_t len, size_t *ate) {
         }
 
         *ate = 2;
-        return (uint32_t)((c1 & 0x1F) << 6) | (uint32_t)(str[1] & 0x3F);
+        return (u32)((c1 & 0x1F) << 6) | (u32)(str[1] & 0x3F);
     }
 
     // 3 byte char
@@ -51,8 +53,8 @@ static uint32_t uiterGetACp(const char *str, size_t len, size_t *ate) {
         }
 
         *ate = 3;
-        return (uint32_t)((c1 & 0x0F) << 12) |
-               (uint32_t)((str[1] & 0x3F) << 6) | (uint32_t)(str[2] & 0x3F);
+        return (u32)((c1 & 0x0F) << 12) |
+               (u32)((str[1] & 0x3F) << 6) | (u32)(str[2] & 0x3F);
     }
 
     if ((c1 & 0xF8) == 0xF0) {
@@ -69,8 +71,8 @@ static uint32_t uiterGetACp(const char *str, size_t len, size_t *ate) {
 
         *ate = 4;
         return (
-            (uint32_t)((c1 & 0x07) << 18) | (uint32_t)((str[1] & 0x3F) << 12) |
-            (uint32_t)((str[2] & 0x3F) << 6) | (uint32_t)(str[3] & 0x3F)
+            (u32)((c1 & 0x07) << 18) | (u32)((str[1] & 0x3F) << 12) |
+            (u32)((str[2] & 0x3F) << 6) | (u32)(str[3] & 0x3F)
         );
     }
 
@@ -86,7 +88,7 @@ static void uiterFillPeekBuffer(UIter *it) {
             break;
         }
         size_t ate = 0;
-        uint32_t cp = uiterGetACp(it->str + curpos, it->len - curpos, &ate);
+        u32 cp = uiterGetACp(it->str + curpos, it->len - curpos, &ate);
         if (ate > 0) {
             it->peekBuf[i] = cp;
             it->peekCount++;
@@ -120,7 +122,7 @@ void FreeUIterator(UIter *iter) {
     PFree(iter);
 }
 bool UIterIsEnd(const UIter *iter) { return iter->peekCount == 0; }
-uint32_t UIterPeek(const UIter *iter, int offset) {
+u32 UIterPeek(const UIter *iter, int offset) {
     if (offset < 0 || offset >= iter->peekCount) {
         return 0;
     }
@@ -143,17 +145,17 @@ void UIterAdvance(UIter *iter) {
 
     uiterFillPeekBuffer(iter);
 }
-uint32_t UIterNext(UIter *it) {
+u32 UIterNext(UIter *it) {
     if (UIterIsEnd(it)) {
         return 0;
     }
 
-    uint32_t curCp = it->peekBuf[0];
+    u32 curCp = it->peekBuf[0];
     UIterAdvance(it);
     return curCp;
 }
 
-void U32ToU8(uint32_t value, uint8_t result[4]) {
+void U32ToU8(u32 value, uint8_t result[4]) {
     result[0] = (uint8_t)(value & 0xFF);
     result[1] = (uint8_t)((value >> 8) & 0xFF);
     result[2] = (uint8_t)((value >> 16) & 0xFF);
@@ -163,7 +165,7 @@ void U32ToU8(uint32_t value, uint8_t result[4]) {
 void DebugPeekBuffer(const UIter *it) {
     printf("PBuf[");
     for (int i = 0; i < it->peekCount; i++) {
-        uint32_t pk = it->peekBuf[i];
+        u32 pk = it->peekBuf[i];
         uint8_t x[4];
         U32ToU8(pk, x);
         printf("|%d:U+%04X:'%s'| ", i, pk, x);

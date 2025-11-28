@@ -1,9 +1,9 @@
 #include "include/bengali.h"
 #include <stdint.h>
 
-bool IsBnNumber(uint32_t c) { return (c >= BN_NUM_0 && c <= BN_NUM_9); }
-bool IsBnChar(uint32_t c) { return (c >= BN_RANGE_START && c <= BN_RANGE_END); }
-char GetEnFromBnNum(uint32_t c) {
+bool IsBnNumber(u32 c) { return (c >= BN_NUM_0 && c <= BN_NUM_9); }
+bool IsBnChar(u32 c) { return (c >= BN_RANGE_START && c <= BN_RANGE_END); }
+char GetEnFromBnNum(u32 c) {
     switch (c) {
         case BN_NUM_0: return '0';
         case BN_NUM_1: return '1';
