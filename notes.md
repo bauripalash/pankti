@@ -1,4 +1,3 @@
-===== Fib 35 =====
 > Saturday, October 25, 2025 7:58 PM (IST)
 
 I ran this simple recursive Fibonacci program which calculates the 35th 
@@ -104,10 +103,10 @@ need Return Object and Break Objects. With this most of the memory usage for
 fib(35) is gone. Before this most of the objects for that program was Return 
 objects. 
 
-Before this the Interpreter consume around 4-5 GB of RAM, now according to massif
-the peak usage is 26.4KiB (around 27KB) with system libc memory allocation
-functions, I removed mimalloc usage for this test to get the actual impact of
-this ExResult method.
+Before this the Interpreter consume around 4-5 GB of RAM, now according to 
+massif the peak usage is 26.4KiB (around 27KB) with system libc memory 
+allocation functions, I removed mimalloc usage for this test to get the actual 
+impact of this ExResult method.
 
 With all these changes, Interpreter execution time for fib(35) is reduced to
 around 8-9 seconds.
@@ -116,3 +115,12 @@ around 8-9 seconds.
 
 I removed mimalloc. The benchmark doesn't show any significant improvement with
 or without mimalloc for fib(35).
+
+> Friday, November 28, 2025 6:11 PM (IST)
+
+I made some radical changes to the implementation, which I believe will be
+benificial in the long run.
+
+I replaced usage of size_t with uint64_t types. The type size_t is platform
+dependent, thus array capacity, map capacity will be different on 64bit and 
+32bit systems.

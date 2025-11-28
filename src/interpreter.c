@@ -574,7 +574,7 @@ static PValue callFunction(
         error(
             it, callExpr->op,
             StrFormat(
-                "Function needs %d arguments but %d was given when calling",
+                "Function needs %zu arguments but %zu was given when calling",
                 funcObj->paramCount, call->argCount
             )
         );
