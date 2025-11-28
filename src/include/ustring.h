@@ -55,7 +55,7 @@ u32 UIterNext(UIter *it);
 // Convert the UTF-32 encoded codepoint to UTF-8 encoded character array
 // `value` = UTF-32 encoded codepoint
 // `result` = buffer to write the UTF-8 encoded bytes
-void U32ToU8(u32 value, uint8_t result[4]);
+void U32ToU8(u32 value, u8 result[4]);
 
 // Debug/Print the peek buffer
 void DebugPeekBuffer(const UIter *it);

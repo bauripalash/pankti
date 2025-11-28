@@ -155,18 +155,18 @@ u32 UIterNext(UIter *it) {
     return curCp;
 }
 
-void U32ToU8(u32 value, uint8_t result[4]) {
-    result[0] = (uint8_t)(value & 0xFF);
-    result[1] = (uint8_t)((value >> 8) & 0xFF);
-    result[2] = (uint8_t)((value >> 16) & 0xFF);
-    result[3] = (uint8_t)((value >> 24) & 0xFF);
+void U32ToU8(u32 value, u8 result[4]) {
+    result[0] = (u8)(value & 0xFF);
+    result[1] = (u8)((value >> 8) & 0xFF);
+    result[2] = (u8)((value >> 16) & 0xFF);
+    result[3] = (u8)((value >> 24) & 0xFF);
 }
 
 void DebugPeekBuffer(const UIter *it) {
     printf("PBuf[");
     for (int i = 0; i < it->peekCount; i++) {
         u32 pk = it->peekBuf[i];
-        uint8_t x[4];
+        u8 x[4];
         U32ToU8(pk, x);
         printf("|%d:U+%04X:'%s'| ", i, pk, x);
     }

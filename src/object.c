@@ -107,7 +107,7 @@ u64 GetValueHash(PValue val, u64 seed) {
     } else if (IsValueNil(val)) {
         return CONST_NIL_HASH;
     } else if (IsValueBool(val)) {
-        uint8_t value = ValueAsBool(val) ? 1 : 0;
+        u8 value = ValueAsBool(val) ? 1 : 0;
         return (u64)XXH64(&value, 1, seed);
     } else if (IsValueObj(val)) {
         return GetObjectHash(ValueAsObj(val), seed);

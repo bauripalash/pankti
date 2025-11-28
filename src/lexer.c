@@ -389,7 +389,7 @@ static void scanToken(Lexer *lx) {
                 readIdent(lx);
                 break;
             } else {
-                uint8_t rawChar[4];
+                u8 rawChar[4];
                 U32ToU8(c, rawChar);
                 error(
                     lx, lx->line, lx->column,
