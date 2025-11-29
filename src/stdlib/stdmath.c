@@ -4,7 +4,6 @@
 #include "../include/ptypes.h"
 #include <math.h>
 #include <stddef.h>
-#include <string.h>
 
 static inline double getGcd(double a, double b) {
     double x = (a > 0) ? a : -a;
@@ -61,7 +60,16 @@ static PValue math_LogBase(PInterpreter *it, PValue *args, u64 argc) {
     return MakeNumber(result);
 }
 static PValue math_GCD(PInterpreter *it, PValue *args, u64 argc) {
-    return MakeNil();
+	PValue rawA = args[0];
+	PValue rawB = args[1];
+
+	if (!IsValueNum(rawA) || !IsValueNum(rawB)) {
+		// Make Error
+		return MakeNil();
+	}
+
+	double result = getGcd(ValueAsNum(rawA), ValueAsNum(rawB));
+	return MakeNumber(result);
 }
 static PValue math_LCM(PInterpreter *it, PValue *args, u64 argc) {
     return MakeNil();

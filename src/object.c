@@ -200,6 +200,7 @@ bool ArrayObjInsValue(PObj *o, int index, PValue value) {
 
     arrput(arr->items, value);
     arrdelswap(arr->items, index);
+	arr->count = (u64)arrlen(arr->items);
 
     return true;
 }
