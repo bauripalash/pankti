@@ -3,9 +3,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "include/env.h"
 #include "external/stb/stb_ds.h"
 #include "include/alloc.h"
+#include "include/env.h"
 #include "include/object.h"
 #include "include/ptypes.h"
 

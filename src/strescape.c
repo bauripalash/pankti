@@ -1,9 +1,9 @@
+#include "include/strescape.h"
+#include "include/ptypes.h"
 #include <ctype.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-#include "include/ptypes.h"
-#include "include/strescape.h"
 static int hexToInt(char c) {
     if (isxdigit(c)) {
         if (isdigit(c)) {

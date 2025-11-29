@@ -95,9 +95,7 @@ PExpr *NewLogical(Pgc *gc, PExpr *left, Token *op, PExpr *right) {
     return e;
 }
 
-PExpr *NewCallExpr(
-    Pgc *gc, Token *op, PExpr *callee, PExpr **args, u64 count
-) {
+PExpr *NewCallExpr(Pgc *gc, Token *op, PExpr *callee, PExpr **args, u64 count) {
     PExpr *e = NewExpr(gc, EXPR_CALL, op);
     if (e == NULL) {
         return NULL;

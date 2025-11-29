@@ -5,15 +5,14 @@
 extern "C" {
 #endif
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-#include <stdbool.h>
 
-#include "ptypes.h"
 #include "ast.h"
+#include "ptypes.h"
 #include "token.h"
-
 
 // Forward declration for PObj
 typedef struct PObj PObj;

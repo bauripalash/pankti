@@ -38,7 +38,6 @@ typedef uint16_t char16;
 // UTF-8 Character
 typedef uint8_t char8;
 
-
 #ifdef __cplusplus
 }
 #endif

@@ -5,10 +5,9 @@
 #include <string.h>
 #include <uchar.h>
 
+#include "include/alloc.h"
 #include "include/ptypes.h"
 #include "include/ustring.h"
-#include "include/alloc.h"
-
 
 static u32 uiterGetACp(const char *str, u64 len, u64 *ate) {
     if (len == 0) {
@@ -53,8 +52,8 @@ static u32 uiterGetACp(const char *str, u64 len, u64 *ate) {
         }
 
         *ate = 3;
-        return (u32)((c1 & 0x0F) << 12) |
-               (u32)((str[1] & 0x3F) << 6) | (u32)(str[2] & 0x3F);
+        return (u32)((c1 & 0x0F) << 12) | (u32)((str[1] & 0x3F) << 6) |
+               (u32)(str[2] & 0x3F);
     }
 
     if ((c1 & 0xF8) == 0xF0) {

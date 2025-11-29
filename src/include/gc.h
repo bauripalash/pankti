@@ -5,15 +5,15 @@
 extern "C" {
 #endif
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <time.h>
-#include <stdbool.h>
 
 #include "ast.h"
 #include "object.h"
-#include "token.h"
 #include "ptypes.h"
+#include "token.h"
 
 // Print Debug Information for Each GC Action, New Object, Free Object, Marking
 // Sweeping etc.
@@ -154,9 +154,7 @@ PExpr *NewLogical(Pgc *gc, PExpr *left, Token *op, PExpr *right);
 // `args` = The argument array
 // `count` = Count of arguments
 // Return => New Call Expression as Expression pointer or NULL
-PExpr *NewCallExpr(
-    Pgc *gc, Token *op, PExpr *callee, PExpr **args, u64 count
-);
+PExpr *NewCallExpr(Pgc *gc, Token *op, PExpr *callee, PExpr **args, u64 count);
 
 // New Array Expression
 PExpr *NewArrayExpr(Pgc *gc, Token *op, PExpr **items, u64 count);

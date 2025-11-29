@@ -1,15 +1,14 @@
 #ifndef AST_H
 #define AST_H
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "ptypes.h"
+#include "token.h"
 #include <stdbool.h>
 #include <stddef.h>
-#include "token.h"
-#include "ptypes.h"
 
 // Expression Type
 typedef enum PExprType {

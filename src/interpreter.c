@@ -1,30 +1,28 @@
-#include <math.h>
-#include <stddef.h>
-#include <string.h>
 #include <assert.h>
+#include <math.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
-#include "include/ptypes.h"
-#include "include/interpreter.h"
 #include "external/stb/stb_ds.h"
 #include "include/alloc.h"
 #include "include/ast.h"
 #include "include/core.h"
 #include "include/env.h"
 #include "include/gc.h"
+#include "include/interpreter.h"
 #include "include/native.h"
 #include "include/object.h"
 #include "include/pstdlib.h"
+#include "include/ptypes.h"
 #include "include/token.h"
 #include "include/utils.h"
 
 #ifdef PANKTI_BUILD_DEBUG
 #undef NDDEBUG
 #endif
-
-
 
 // Execution Result Type
 typedef enum ExType {
@@ -80,9 +78,7 @@ static void PushModule(PInterpreter *it, PModule *mod) {
     it->modCount = (u64)arrlen(it->mods);
 }
 
-static void PushProxy(
-    PInterpreter *it, u64 key, char *name, PModule *mod
-) {
+static void PushProxy(PInterpreter *it, u64 key, char *name, PModule *mod) {
     if (mod == NULL) {
         return; // error check
     }

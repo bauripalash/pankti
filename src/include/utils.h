@@ -1,10 +1,10 @@
 #ifndef UTILS_H
 #define UTILS_H
+#include "ptypes.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <uchar.h>
-#include "ptypes.h"
 
 #ifdef __cplusplus
 extern "C" {

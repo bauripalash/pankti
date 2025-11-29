@@ -169,9 +169,7 @@ static bool match(Lexer *lx, char32_t target) {
     return true;
 }
 
-static bool addTokenWithLexeme(
-    Lexer *lx, TokenType type, char *str, u64 len
-) {
+static bool addTokenWithLexeme(Lexer *lx, TokenType type, char *str, u64 len) {
     Token *tok = NewToken(type);
     if (tok == NULL) {
         return false;
@@ -202,9 +200,7 @@ static bool addToken(Lexer *lx, TokenType type) {
     return addTokenWithLexeme(lx, type, NULL, 0);
 }
 
-static bool addStringToken(
-    Lexer *lx, char *str, u64 line, u64 col, u64 len
-) {
+static bool addStringToken(Lexer *lx, char *str, u64 line, u64 col, u64 len) {
     Token *tok = NewToken(T_STR);
     if (tok == NULL) {
         return false;

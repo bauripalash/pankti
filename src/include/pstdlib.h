@@ -32,7 +32,7 @@ typedef struct StdlibEntry {
 
 #define MakeStdlibEntry(sname, nfn, ar)                                        \
     ((StdlibEntry){                                                            \
-        .name = sname, .nlen = (u64)strlen(sname), .fn = nfn, .arity = ar   \
+        .name = sname, .nlen = (u64)strlen(sname), .fn = nfn, .arity = ar      \
     })
 
 typedef struct PInterpreter PInterpreter;

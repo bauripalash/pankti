@@ -5,10 +5,10 @@
 extern "C" {
 #endif
 
+#include "ptypes.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include "ptypes.h"
 
 // How many codepoints the Iterator can peek
 #define UITER_PEEK_BUFFER_SIZE 3

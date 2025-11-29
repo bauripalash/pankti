@@ -10,9 +10,9 @@ extern "C" {
 #include <stdint.h>
 #include <time.h>
 
+#include "ptypes.h"
 #include "token.h"
 #include "ustring.h"
-#include "ptypes.h"
 
 typedef struct PanktiCore PanktiCore;
 

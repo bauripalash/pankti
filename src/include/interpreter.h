@@ -8,11 +8,11 @@ extern "C" {
 #ifndef DEF_MAX_CALL_DEPTH
 #define DEF_MAX_CALL_DEPTH 1000
 #endif
-#include <stddef.h>
-#include "gc.h"
 #include "ast.h"
 #include "env.h"
+#include "gc.h"
 #include "ptypes.h"
+#include <stddef.h>
 
 typedef enum PModType {
     PMOD_STDLIB,

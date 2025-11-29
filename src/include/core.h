@@ -1,17 +1,16 @@
 #ifndef CORE_H
 #define CORE_H
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include <stddef.h>
 #include "gc.h"
-#include "token.h"
 #include "interpreter.h"
 #include "lexer.h"
 #include "parser.h"
 #include "ptypes.h"
+#include "token.h"
+#include <stddef.h>
 
 // Main Body for whole pankti runtime
 typedef struct PanktiCore {

@@ -4,8 +4,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include <stddef.h>
 #include "ptypes.h"
+#include <stddef.h>
 #define ERROR_UNICODE_CP 0xFFFD
 // String Escape Errors
 typedef enum StrEscapeErr {

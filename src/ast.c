@@ -1,11 +1,10 @@
-#include <stddef.h>
-#include <stdio.h>
 #include "include/ast.h"
 #include "external/stb/stb_ds.h"
 #include "include/ansicolors.h"
-#include "include/token.h"
 #include "include/ptypes.h"
-
+#include "include/token.h"
+#include <stddef.h>
+#include <stdio.h>
 
 static char *LiteralTypeToStr(ExpLitType type) {
     switch (type) {
@@ -223,7 +222,7 @@ void AstStmtPrint(PStmt *stmt, int indent) {
         case STMT_EXPR: {
             printf("Expr [\n");
             AstPrint(stmt->stmt.SExpr.expr, indent + 1);
-			printIndent(indent);
+            printIndent(indent);
             printf("]\n");
             break;
         }
@@ -234,7 +233,7 @@ void AstStmtPrint(PStmt *stmt, int indent) {
             );
 
             AstPrint(stmt->stmt.SLet.expr, indent + 1);
-			printIndent(indent);
+            printIndent(indent);
             printf("]\n");
             break;
         }

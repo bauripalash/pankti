@@ -9,13 +9,12 @@
 #include <string.h>
 #include <uchar.h>
 
-#include "include/ptypes.h"
-#include "include/utils.h"
 #include "external/xxhash/xxhash.h"
 #include "include/alloc.h"
 #include "include/bengali.h"
+#include "include/ptypes.h"
 #include "include/ustring.h"
-
+#include "include/utils.h"
 
 // Potential bug: handling of non-seekable file
 char *ReadFile(const char *path) {
@@ -167,9 +166,7 @@ char **StrSplit(const char *text, char delimiter, int *count) {
     return buffers;
 }
 
-char *StrJoin(
-    const char *a, u64 alen, const char *b, u64 blen, bool *ok
-) {
+char *StrJoin(const char *a, u64 alen, const char *b, u64 blen, bool *ok) {
     u64 outlen = alen + blen + 1;
     char *output = PCalloc(outlen, sizeof(char));
     if (output == NULL) {

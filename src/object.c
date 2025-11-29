@@ -5,13 +5,12 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "include/ptypes.h"
-#include "include/object.h"
 #include "external/stb/stb_ds.h"
 #include "external/xxhash/xxhash.h"
 #include "include/keywords.h"
+#include "include/object.h"
+#include "include/ptypes.h"
 #include "include/utils.h"
-
 
 // Golden ratio?
 #define CONST_NAN_HASH 0x9e3779b97f4a7c15ULL
@@ -200,7 +199,7 @@ bool ArrayObjInsValue(PObj *o, int index, PValue value) {
 
     arrput(arr->items, value);
     arrdelswap(arr->items, index);
-	arr->count = (u64)arrlen(arr->items);
+    arr->count = (u64)arrlen(arr->items);
 
     return true;
 }

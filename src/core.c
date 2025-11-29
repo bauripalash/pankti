@@ -219,9 +219,7 @@ void CoreParserError(PanktiCore *core, Token *token, const char *msg) {
     printErrMsg(core, line, col, msg, token != NULL, PCERR_PARSER);
 }
 
-void CoreLexerError(
-    PanktiCore *core, u64 line, u64 col, const char *msg
-) {
+void CoreLexerError(PanktiCore *core, u64 line, u64 col, const char *msg) {
     u64 _line = 0;
     u64 _col = 0;
 

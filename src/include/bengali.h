@@ -5,9 +5,9 @@
 extern "C" {
 #endif
 
+#include "ptypes.h"
 #include <stdbool.h>
 #include <stdint.h>
-#include "ptypes.h"
 
 // UTF32 Bengali Number `0`
 #define BN_NUM_0 0x09E6

@@ -1,14 +1,13 @@
 #ifndef ENV_H
 #define ENV_H
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include <stddef.h>
-#include <stdint.h>
 #include "object.h"
 #include "ptypes.h"
+#include <stddef.h>
+#include <stdint.h>
 
 // Environment Structure
 typedef struct PEnv {
