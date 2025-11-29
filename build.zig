@@ -47,6 +47,7 @@ pub fn build(b: *std.Build) void {
 
     var testsSrcs = [_][]const u8{
         "tests/test_lexer.c",
+        "tests/test_parser.c",
     };
 
     var debugFlags = [_][]const u8{

@@ -13,109 +13,107 @@ extern "C" {
 // Token Types
 typedef enum TokenType {
     // Token `(`
-    T_LEFT_PAREN,
+    T_LEFT_PAREN = 1,
 
     // Token `)`
-    T_RIGHT_PAREN,
+    T_RIGHT_PAREN = 2,
 
     // Token `{`
-    T_LEFT_BRACE,
+    T_LEFT_BRACE = 3,
 
     // Token `}`
-    T_RIGHT_BRACE,
+    T_RIGHT_BRACE = 4,
 
     // Token `[`
-    T_LS_BRACKET,
+    T_LS_BRACKET = 5,
 
     // Token `]`
-    T_RS_BRACKET,
+    T_RS_BRACKET = 6,
 
     // Token `,`
-    T_COMMA,
+    T_COMMA = 7,
     // Token `.`
-    T_DOT,
+    T_DOT = 8,
     // Token `+`
-    T_PLUS,
+    T_PLUS = 9,
     // Token `-`
-    T_MINUS,
+    T_MINUS = 10,
     // Token `:`
-    T_COLON,
+    T_COLON = 11,
     // Token `<Undecided>`
-    T_MOD,
+    T_MOD = 12,
     // Token `;`
-    T_SEMICOLON,
+    T_SEMICOLON = 13,
     // Token `/`
-    T_SLASH,
+    T_SLASH = 14,
     // Token `*`
-    T_ASTR,
+    T_ASTR = 15,
     // Token `**`
-    T_EXPONENT,
+    T_EXPONENT = 16,
 
     // Token `!`
-    T_BANG,
+    T_BANG = 17,
     // Token `!=`
-    T_BANG_EQ,
+    T_BANG_EQ = 18,
     // Token `=`
-    T_EQ,
+    T_EQ = 19,
     // Token `==`
-    T_EQEQ,
+    T_EQEQ = 20,
     // Token `>`
-    T_GT,
+    T_GT = 21,
     // Token `>=`
-    T_GTE,
+    T_GTE = 22,
     // Token `<`
-    T_LT,
+    T_LT = 23,
     // Token `<=`
-    T_LTE,
+    T_LTE = 24,
 
     // Token : Identifier `myvar = 100`
-    T_IDENT,
+    T_IDENT = 25,
     // Token : String `"<str>"`
-    T_STR,
+    T_STR = 26,
     // Token : Number `100.00`
-    T_NUM,
+    T_NUM = 27,
 
     // Token : Keyword `let/dhori`
-    T_LET,
+    T_LET = 28,
     // Token : Keyword `and/ebong`
-    T_AND,
+    T_AND = 29,
     // Token : Keyword `or/ba`
-    T_OR,
+    T_OR = 30,
     // Token : Keyword `func/kaj`
-    T_FUNC,
+    T_FUNC = 31,
     // Token : Keyword `if/jodi`
-    T_IF,
+    T_IF = 32,
     // Token : Keyword `then/tahole`
-    T_THEN,
+    T_THEN = 33,
     // Token : Keyword `else/nahole`
-    T_ELSE,
+    T_ELSE = 34,
     // Token : Keyword `end/sesh`
-    T_END,
+    T_END = 35,
     // Token : Keyword `while/jotokhon`
-    T_WHILE,
+    T_WHILE = 36,
     // Token : Keyword `do/koro`
-    T_DO,
+    T_DO = 37,
     // Token : Keyword `break/bhango`
-    T_BREAK,
+    T_BREAK = 38,
     // Token : Keyword `nil`
-    T_NIL,
+    T_NIL = 39,
     // Token : Keyword `true/sotti`
-    T_TRUE,
+    T_TRUE = 40,
     // Token : Keyword `false/mittha`
-    T_FALSE,
+    T_FALSE = 41,
     // Token : Keyword `return/ferot`
-    T_RETURN,
+    T_RETURN = 42,
     // Token : Keyword `import/anoyon`
-    T_IMPORT,
+    T_IMPORT = 43,
     // Token : Keyword `panic/golmal`
-    T_PANIC,
-    // Token : Keyword `len/ayoton`
-    T_LEN,
+    T_PANIC = 44,
     // Token : Keyword `print/print`
-    T_PRINT,
+    T_PRINT = 46,
 
     // Token : End of File
-    T_EOF
+    T_EOF = 47
 } TokenType;
 
 // Get Token Type as String
