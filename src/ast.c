@@ -223,7 +223,8 @@ void AstStmtPrint(PStmt *stmt, int indent) {
         case STMT_EXPR: {
             printf("Expr [\n");
             AstPrint(stmt->stmt.SExpr.expr, indent + 1);
-            printf("\n]\n");
+			printIndent(indent);
+            printf("]\n");
             break;
         }
         case STMT_LET: {
@@ -233,7 +234,8 @@ void AstStmtPrint(PStmt *stmt, int indent) {
             );
 
             AstPrint(stmt->stmt.SLet.expr, indent + 1);
-            printf("\n]\n");
+			printIndent(indent);
+            printf("]\n");
             break;
         }
         case STMT_BLOCK: {

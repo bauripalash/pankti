@@ -1,9 +1,10 @@
-func mango(a)
-	while (a < 100) do
-		print a
-		a = a + 1
-		if a > 20 then return a end
-	end
+func mango()
+	let mystring = "hello string"
+	return mystring
 end
 
-mango(10)
+print mango()
+
+print mango()
+
+mango()
