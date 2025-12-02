@@ -59,6 +59,7 @@ void CollectGarbage(Pgc *gc);
 void GcCounterNew(Pgc *gc);
 void GcCounterFree(Pgc *gc);
 void GcUpdateThreshold(Pgc *gc);
+void GcMarkValue(Pgc *gc, PValue value);
 
 // Create a New Empty Object.
 // `type` = Type of statement

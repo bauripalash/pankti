@@ -9,6 +9,8 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
+typedef struct Pgc Pgc;
+
 // Environment Structure
 typedef struct PEnv {
     // Variable Table
@@ -35,6 +37,12 @@ void FreeEnv(PEnv *e);
 // Print all pairs inside the Environment;
 // Does not print parent(s)
 void DebugEnv(PEnv *e);
+
+// Mark Environment Roots for GC
+void MarkEnvGC(Pgc * gc, PEnv * e);
+
+// Capture Upvalues Naively from parentEnv to clsEnv
+void EnvCaptureUpvalues(Pgc * gc, PEnv *parentEnv, PEnv *clsEnv);
 
 // Add Key/Value pair to the `e`'s table
 void EnvTableAddValue(PEnv *e , u64 hash, PValue value);

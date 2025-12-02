@@ -6,6 +6,7 @@
 #include "external/stb/stb_ds.h"
 #include "include/alloc.h"
 #include "include/env.h"
+#include "include/gc.h"
 #include "include/object.h"
 #include "include/ptypes.h"
 
@@ -40,6 +41,63 @@ u64 EnvGetCount(const PEnv * e){
 void EnvTableAddValue(PEnv *e , u64 hash, PValue value){
 	if (e == NULL) return;
     hmput(e->table, hash, value);
+}
+
+void MarkEnvGC(Pgc * gc, PEnv * e){
+	if (gc == NULL || e == NULL) {
+		return;
+	}
+
+	if (e->table == NULL) {
+		return;
+	}
+
+    u64 envCount = EnvGetCount(e);
+
+    for (u64 i = 0; i < envCount; i++) {
+        GcMarkValue(gc, e->table[i].value);
+    }
+}
+
+
+void EnvCaptureUpvalues(Pgc * gc, PEnv *parentEnv, PEnv *clsEnv) {
+    if (parentEnv == NULL || clsEnv == NULL) {
+        return;
+    }
+
+    PEnv *cur = parentEnv;
+    while (cur != NULL) {
+        if (cur->table != NULL) {
+            u64 curCount = cur->count;
+            for (u64 i = 0; i < curCount; i++) {
+                u64 key = cur->table[i].key;
+				if (EnvHasKey(clsEnv, key)) {
+					continue;
+				}
+
+                PValue curVal = cur->table[i].value;
+                PValue upVal;
+                PObj *maybe = IsValueObj(curVal) ? ValueAsObj(curVal) : NULL;
+
+                if (maybe != NULL && maybe->type == OT_UPVAL) {
+                    upVal = curVal;
+                } else {
+                    PObj *upObj = NewUpvalueObject(gc, curVal);
+                    upVal = MakeObject(upObj);
+                    //hmput(cur->table, key, upVal); // Upgrade parent env's upval
+					EnvTableAddValue(cur, key, upVal);
+					cur->count = EnvGetCount(cur);
+                }
+
+                //hmput(clsEnv->table, key, upVal);
+				EnvTableAddValue(clsEnv, key, upVal);
+            }
+        }
+        cur = cur->enclosing;
+    }
+
+    //clsEnv->count = (u64)hmlen(clsEnv->table);
+	clsEnv->count = EnvGetCount(clsEnv);
 }
 
 void DebugEnv(PEnv *e) {

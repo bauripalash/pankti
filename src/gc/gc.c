@@ -14,8 +14,6 @@
 
 static void sweep(Pgc *gc);
 static void markRoots(Pgc *gc);
-static void markEnv(Pgc *gc, PEnv *env);
-static void markValue(Pgc *gc, PValue value);
 static void markObject(Pgc *gc, PObj *obj);
 static void markObjectChildren(Pgc *gc, PObj *obj);
 
@@ -167,7 +165,7 @@ static void markRoots(Pgc *gc) {
 
     if (gc->rootEnvs != NULL && gc->rootEnvCount > 0) {
         for (u64 i = 0; i < gc->rootEnvCount; i++) {
-            markEnv(gc, gc->rootEnvs[i]);
+            MarkEnvGC(gc, gc->rootEnvs[i]);
         }
     }
 }
@@ -197,7 +195,7 @@ static void sweep(Pgc *gc) {
     }
 }
 
-static void markValue(Pgc *gc, PValue value) {
+void GcMarkValue(Pgc *gc, PValue value) {
     if (IsValueObj(value)) {
         markObject(gc, ValueAsObj(value));
     }
@@ -220,25 +218,6 @@ static void markObject(Pgc *gc, PObj *obj) {
     markObjectChildren(gc, obj);
 }
 
-static void markEnv(Pgc *gc, PEnv *env) {
-    if (gc == NULL) {
-        return;
-    }
-
-    if (env == NULL) {
-        return;
-    }
-
-    if (env->table == NULL) {
-        return;
-    }
-
-    u64 envCount = (u64)EnvGetCount(env);
-
-    for (u64 i = 0; i < envCount; i++) {
-        markValue(gc, env->table[i].value);
-    }
-}
 
 static void markObjectChildren(Pgc *gc, PObj *obj) {
     if (gc == NULL) {
@@ -259,7 +238,7 @@ static void markObjectChildren(Pgc *gc, PObj *obj) {
         case OT_ARR: {
             struct OArray *arr = &obj->v.OArray;
             for (u64 i = 0; i < arr->count; i++) {
-                markValue(gc, arr->items[i]);
+                GcMarkValue(gc, arr->items[i]);
             }
             break;
         }
@@ -268,8 +247,8 @@ static void markObjectChildren(Pgc *gc, PObj *obj) {
             struct OMap *map = &obj->v.OMap;
             u64 count = map->count;
             for (u64 i = 0; i < count; i++) {
-                markValue(gc, map->table[i].vkey);
-                markValue(gc, map->table[i].value);
+                GcMarkValue(gc, map->table[i].vkey);
+                GcMarkValue(gc, map->table[i].value);
             }
             break;
         }
@@ -280,14 +259,14 @@ static void markObjectChildren(Pgc *gc, PObj *obj) {
             }
 
             if (func->env != NULL) {
-                markEnv(gc, func->env);
+                MarkEnvGC(gc, func->env);
             }
 
             break;
         }
 
         case OT_UPVAL: {
-            markValue(gc, obj->v.OUpval.value);
+            GcMarkValue(gc, obj->v.OUpval.value);
             break;
         }
     }

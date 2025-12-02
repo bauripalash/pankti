@@ -972,46 +972,6 @@ static ExResult vsBreakStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     return ExBreak();
 }
 
-static void captureUpvals(PInterpreter *it, PEnv *parentEnv, PEnv *clsEnv) {
-    if (parentEnv == NULL || clsEnv == NULL) {
-        return;
-    }
-
-    PEnv *cur = parentEnv;
-    while (cur != NULL) {
-        if (cur->table != NULL) {
-            u64 curCount = cur->count;
-            for (u64 i = 0; i < curCount; i++) {
-                u64 key = cur->table[i].key;
-				if (EnvHasKey(clsEnv, key)) {
-					continue;
-				}
-
-                PValue curVal = cur->table[i].value;
-                PValue upVal;
-                PObj *maybe = IsValueObj(curVal) ? ValueAsObj(curVal) : NULL;
-
-                if (maybe != NULL && maybe->type == OT_UPVAL) {
-                    upVal = curVal;
-                } else {
-                    PObj *upObj = NewUpvalueObject(it->gc, curVal);
-                    upVal = MakeObject(upObj);
-                    //hmput(cur->table, key, upVal); // Upgrade parent env's upval
-					EnvTableAddValue(cur, key, upVal);
-					cur->count = EnvGetCount(cur);
-                }
-
-                //hmput(clsEnv->table, key, upVal);
-				EnvTableAddValue(clsEnv, key, upVal);
-            }
-        }
-        cur = cur->enclosing;
-    }
-
-    //clsEnv->count = (u64)hmlen(clsEnv->table);
-	clsEnv->count = EnvGetCount(clsEnv);
-}
-
 // Execute function declaration statements
 static ExResult vsFuncStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     assert(stmt->type == STMT_FUNC);
@@ -1022,7 +982,7 @@ static ExResult vsFuncStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     );
 
     EnvPutValue(env, fs->name->hash, MakeObject(f));
-    captureUpvals(it, env, closureEnv);
+    EnvCaptureUpvalues(it->gc, env, closureEnv);
     return ExSimple(MakeNil());
 }
 
