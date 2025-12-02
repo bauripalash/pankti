@@ -10,12 +10,16 @@
 #include "include/object.h"
 #include "include/ptypes.h"
 
+#define NAME   EnvTable
+#define KEY_TY u64
+#define VAL_TY PValue
+#define IMPLEMENTATION_MODE
+#include "external/verstable/verstable.h"
+
 PEnv *NewEnv(Pgc *gc, PEnv *enclosing) {
     if (gc->envFreeListCount > 0) {
         PEnv *e = arrpop(gc->envFreeList);
         e->enclosing = enclosing;
-        hmfree(e->table); // Reset the env : but stb_ds doesn't support it
-        e->count = 0;
         gc->envFreeListCount = arrlen(gc->envFreeList);
         return e;
     }
@@ -23,13 +27,17 @@ PEnv *NewEnv(Pgc *gc, PEnv *enclosing) {
     PEnv *e = PCreate(PEnv);
     // error check;
     e->count = 0;
-    e->table = NULL;
+    // e->table = NULL;
+    EnvTable_init(&e->table);
+    // EnvTable_reserve(&e->table, 8);
     e->enclosing = enclosing;
     return e;
 }
 
 void RecycleEnv(Pgc *gc, PEnv *e) {
     e->enclosing = NULL;
+    e->count = 0;
+    EnvTable_clear(&e->table);
     arrpush(gc->envFreeList, e);
     gc->envFreeListCount = arrlen(gc->envFreeList);
 }
@@ -39,24 +47,24 @@ void ReallyFreeEnv(PEnv *e) {
         return;
     }
 
-    if (e->table != NULL) {
-        hmfree(e->table);
-    }
+    EnvTable_cleanup(&e->table);
     PFree(e);
 }
 
 u64 EnvGetCount(const PEnv *e) {
-    if (e == NULL || e->table == NULL) {
+    if (e == NULL) {
         return UINT64_MAX;
     }
 
-    return (u64)hmlen(e->table);
+    return (u64)EnvTable_size(&e->table);
 }
 
 void EnvTableAddValue(PEnv *e, u64 hash, PValue value) {
-    if (e == NULL)
+    if (e == NULL) {
         return;
-    hmput(e->table, hash, value);
+    }
+    EnvTable_insert(&e->table, hash, value);
+    e->count = EnvGetCount(e);
 }
 
 void MarkEnvGC(Pgc *gc, PEnv *e) {
@@ -64,14 +72,9 @@ void MarkEnvGC(Pgc *gc, PEnv *e) {
         return;
     }
 
-    if (e->table == NULL) {
-        return;
-    }
-
-    u64 envCount = EnvGetCount(e);
-
-    for (u64 i = 0; i < envCount; i++) {
-        GcMarkValue(gc, e->table[i].value);
+    for (EnvTable_itr itr = vt_first(&e->table); !vt_is_end(itr);
+         itr = vt_next(itr)) {
+        GcMarkValue(gc, itr.data->val);
     }
 }
 
@@ -82,36 +85,30 @@ void EnvCaptureUpvalues(Pgc *gc, PEnv *parentEnv, PEnv *clsEnv) {
 
     PEnv *cur = parentEnv;
     while (cur != NULL) {
-        if (cur->table != NULL) {
-            u64 curCount = cur->count;
-            for (u64 i = 0; i < curCount; i++) {
-                u64 key = cur->table[i].key;
-                if (EnvHasKey(clsEnv, key)) {
-                    continue;
-                }
-
-                PValue curVal = cur->table[i].value;
-                PValue upVal;
-                PObj *maybe = IsValueObj(curVal) ? ValueAsObj(curVal) : NULL;
-
-                if (maybe != NULL && maybe->type == OT_UPVAL) {
-                    upVal = curVal;
-                } else {
-                    PObj *upObj = NewUpvalueObject(gc, curVal);
-                    upVal = MakeObject(upObj);
-                    // Upgrade parent env's upval
-                    EnvTableAddValue(cur, key, upVal);
-                    cur->count = EnvGetCount(cur);
-                }
-
-                // hmput(clsEnv->table, key, upVal);
-                EnvTableAddValue(clsEnv, key, upVal);
+        for (EnvTable_itr itr = vt_first(&cur->table); !vt_is_end(itr);
+             itr = vt_next(itr)) {
+            u64 key = itr.data->key;
+            if (EnvHasKey(clsEnv, key)) {
+                continue;
             }
+
+            PValue curVal = itr.data->val;
+            PValue upVal;
+
+            if (IsValueObjType(curVal, OT_UPVAL)) {
+                upVal = curVal;
+            } else {
+                // Upgrade cur env's value to upvalue;
+                PObj *curUpObj = NewUpvalueObject(gc, curVal);
+                upVal = MakeObject(curUpObj); // <- upgraded upval's value
+                EnvTableAddValue(cur, key, upVal);
+            }
+
+            EnvTableAddValue(clsEnv, key, upVal);
         }
         cur = cur->enclosing;
     }
 
-    // clsEnv->count = (u64)hmlen(clsEnv->table);
     clsEnv->count = EnvGetCount(clsEnv);
 }
 
@@ -119,14 +116,14 @@ void DebugEnv(PEnv *e) {
     if (e == NULL) {
         return;
     }
-    if (e->table == NULL) {
-        return;
-    }
-    u64 count = (u64)hmlen(e->table);
-    for (u64 i = 0; i < count; i++) {
-        printf("\n%zu < %ld '", i, e->table[i].key);
-        PrintValue(e->table[i].value);
-        printf("' >\n");
+
+    u64 i = 0;
+    for (EnvTable_itr itr = vt_first(&e->table); !vt_is_end(itr);
+         itr = vt_next(itr)) {
+        printf("%ld| <%ld '", i, itr.data->key);
+        PrintValue(itr.data->val);
+        printf("'>\n");
+        i++;
     }
 
     if (e->enclosing != NULL) {
@@ -135,10 +132,13 @@ void DebugEnv(PEnv *e) {
 }
 
 bool EnvHasKey(PEnv *e, u64 hash) {
-    if (e == NULL || e->table == NULL) {
+    if (e == NULL) {
         return false;
     }
-    if (hmgeti(e->table, hash) >= 0) {
+
+    EnvTable_itr it = EnvTable_get(&e->table, hash);
+
+    if (!vt_is_end(it)) {
         return true;
     }
 
@@ -150,42 +150,33 @@ void EnvPutValue(PEnv *e, u64 hash, PValue value) {
         return;
     }
 
-    if (e->table != NULL) {
-        long idx = hmgeti(e->table, hash);
-        if (idx > -1) {
-            PValue stored = hmget(e->table, hash);
-            if (IsValueObjType(stored, OT_UPVAL)) {
-                // If already existing value is upvalue just update its cell
-                ValueAsObj(stored)->v.OUpval.value = value;
-                return;
-            }
+    EnvTable_itr it = EnvTable_get(&e->table, hash);
+    if (!vt_is_end(it)) {
+        PValue stored = it.data->val;
+        if (IsValueObjType(stored, OT_UPVAL)) {
+            ValueAsObj(stored)->v.OUpval.value = value;
+            return;
         }
     }
 
-    hmput(e->table, hash, value);
-    e->count = (u64)hmlen(e->table);
+    EnvTable_insert(&e->table, hash, value);
+    e->count = EnvGetCount(e);
 }
 
 bool EnvSetValue(PEnv *e, u64 hash, PValue value) {
     if (e == NULL) {
         return false;
     }
-    if (e->table == NULL) {
-        if (e->enclosing != NULL) {
-            return EnvSetValue(e->enclosing, hash, value);
-        } else {
-            return false;
-        }
-    }
 
-    if (hmgeti(e->table, hash) > -1) {
-        PValue stored = hmget(e->table, hash);
+    EnvTable_itr it = EnvTable_get(&e->table, hash);
+    if (!vt_is_end(it)) {
+        PValue stored = it.data->val;
         if (IsValueObjType(stored, OT_UPVAL)) {
-            // If the prexisting value is a upvalue, just update its cell value
             ValueAsObj(stored)->v.OUpval.value = value;
             return true;
         }
-        hmput(e->table, hash, value);
+
+        EnvTable_insert(&e->table, hash, value);
         return true;
     }
 
@@ -202,12 +193,14 @@ PValue EnvGetValue(PEnv *e, u64 hash, bool *found) {
         return MakeNil();
     }
 
-    if (hmgeti(e->table, hash) > -1) {
+    EnvTable_itr it = EnvTable_get(&e->table, hash);
+    if (!vt_is_end(it)) {
         *found = true;
-        PValue stored = hmget(e->table, hash);
+        PValue stored = it.data->val;
         if (IsValueObjType(stored, OT_UPVAL)) {
             return ValueAsObj(stored)->v.OUpval.value;
         }
+
         return stored;
     }
 

@@ -9,15 +9,18 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
+#define NAME   EnvTable
+#define KEY_TY u64
+#define VAL_TY PValue
+#define HEADER_MODE
+#include "../external/verstable/verstable.h"
+
 typedef struct Pgc Pgc;
 
 // Environment Structure
 typedef struct PEnv {
     // Variable Table
-    struct {
-        u64 key;
-        PValue value;
-    } *table;
+    EnvTable table;
     // Count of pairs in table
     u64 count;
     // Parent Environment
