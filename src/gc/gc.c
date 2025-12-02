@@ -218,7 +218,6 @@ static void markObject(Pgc *gc, PObj *obj) {
     markObjectChildren(gc, obj);
 }
 
-
 static void markObjectChildren(Pgc *gc, PObj *obj) {
     if (gc == NULL) {
         return;

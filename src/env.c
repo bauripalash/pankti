@@ -30,27 +30,28 @@ void FreeEnv(PEnv *e) {
     PFree(e);
 }
 
-u64 EnvGetCount(const PEnv * e){
-	if (e == NULL || e->table == NULL) {
-		return UINT64_MAX;
-	}	
-	
-	return (u64)hmlen(e->table);
+u64 EnvGetCount(const PEnv *e) {
+    if (e == NULL || e->table == NULL) {
+        return UINT64_MAX;
+    }
+
+    return (u64)hmlen(e->table);
 }
 
-void EnvTableAddValue(PEnv *e , u64 hash, PValue value){
-	if (e == NULL) return;
+void EnvTableAddValue(PEnv *e, u64 hash, PValue value) {
+    if (e == NULL)
+        return;
     hmput(e->table, hash, value);
 }
 
-void MarkEnvGC(Pgc * gc, PEnv * e){
-	if (gc == NULL || e == NULL) {
-		return;
-	}
+void MarkEnvGC(Pgc *gc, PEnv *e) {
+    if (gc == NULL || e == NULL) {
+        return;
+    }
 
-	if (e->table == NULL) {
-		return;
-	}
+    if (e->table == NULL) {
+        return;
+    }
 
     u64 envCount = EnvGetCount(e);
 
@@ -59,8 +60,7 @@ void MarkEnvGC(Pgc * gc, PEnv * e){
     }
 }
 
-
-void EnvCaptureUpvalues(Pgc * gc, PEnv *parentEnv, PEnv *clsEnv) {
+void EnvCaptureUpvalues(Pgc *gc, PEnv *parentEnv, PEnv *clsEnv) {
     if (parentEnv == NULL || clsEnv == NULL) {
         return;
     }
@@ -71,9 +71,9 @@ void EnvCaptureUpvalues(Pgc * gc, PEnv *parentEnv, PEnv *clsEnv) {
             u64 curCount = cur->count;
             for (u64 i = 0; i < curCount; i++) {
                 u64 key = cur->table[i].key;
-				if (EnvHasKey(clsEnv, key)) {
-					continue;
-				}
+                if (EnvHasKey(clsEnv, key)) {
+                    continue;
+                }
 
                 PValue curVal = cur->table[i].value;
                 PValue upVal;
@@ -84,20 +84,21 @@ void EnvCaptureUpvalues(Pgc * gc, PEnv *parentEnv, PEnv *clsEnv) {
                 } else {
                     PObj *upObj = NewUpvalueObject(gc, curVal);
                     upVal = MakeObject(upObj);
-                    //hmput(cur->table, key, upVal); // Upgrade parent env's upval
-					EnvTableAddValue(cur, key, upVal);
-					cur->count = EnvGetCount(cur);
+                    // hmput(cur->table, key, upVal); // Upgrade parent env's
+                    // upval
+                    EnvTableAddValue(cur, key, upVal);
+                    cur->count = EnvGetCount(cur);
                 }
 
-                //hmput(clsEnv->table, key, upVal);
-				EnvTableAddValue(clsEnv, key, upVal);
+                // hmput(clsEnv->table, key, upVal);
+                EnvTableAddValue(clsEnv, key, upVal);
             }
         }
         cur = cur->enclosing;
     }
 
-    //clsEnv->count = (u64)hmlen(clsEnv->table);
-	clsEnv->count = EnvGetCount(clsEnv);
+    // clsEnv->count = (u64)hmlen(clsEnv->table);
+    clsEnv->count = EnvGetCount(clsEnv);
 }
 
 void DebugEnv(PEnv *e) {
@@ -119,15 +120,15 @@ void DebugEnv(PEnv *e) {
     }
 }
 
-bool EnvHasKey(PEnv *e, u64 hash){
-	if (e == NULL || e->table == NULL) {
-		return false;
-	}
-	if (hmgeti(e->table, hash) >= 0) {
-		return true;
-	}
+bool EnvHasKey(PEnv *e, u64 hash) {
+    if (e == NULL || e->table == NULL) {
+        return false;
+    }
+    if (hmgeti(e->table, hash) >= 0) {
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 void EnvPutValue(PEnv *e, u64 hash, PValue value) {
