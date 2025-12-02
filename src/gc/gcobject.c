@@ -122,7 +122,7 @@ void FreeObject(Pgc *gc, PObj *o) {
     switch (o->type) {
         case OT_FNC: {
             struct OFunction *f = &o->v.OFunction;
-            FreeEnv(f->env);
+            ReallyFreeEnv(f->env);
             freeBaseObj(o);
             break;
         }

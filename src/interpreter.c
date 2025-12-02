@@ -69,7 +69,7 @@ static PModule *NewModule(PInterpreter *it, char *name) {
     }
     mod->pathname = StrDuplicate(name, (u64)strlen(name));
     // error check
-    mod->env = NewEnv(NULL);
+    mod->env = NewEnv(it->gc, NULL);
     return mod;
 }
 
@@ -99,7 +99,7 @@ PInterpreter *NewInterpreter(Pgc *gc, PStmt **prog) {
     PInterpreter *it = PCreate(PInterpreter);
     it->program = prog;
     it->core = NULL;
-    it->env = NewEnv(NULL);
+    it->env = NewEnv(gc, NULL);
     it->gc = gc;
     it->proxyTable = NULL;
     it->proxyCount = 0;
@@ -117,7 +117,7 @@ void FreeInterpreter(PInterpreter *it) {
     }
 
     if (it->env != NULL) {
-        FreeEnv(it->env);
+        ReallyFreeEnv(it->env);
     }
 
     if (it->proxyCount > 0 && it->proxyTable != NULL) {
@@ -128,7 +128,7 @@ void FreeInterpreter(PInterpreter *it) {
         for (int i = 0; i < it->modCount; i++) {
             PModule *mod = arrpop(it->mods);
             PFree(mod->pathname);
-            FreeEnv(mod->env);
+            ReallyFreeEnv(mod->env);
             PFree(mod);
         }
 
@@ -535,7 +535,7 @@ static PValue handleCall(
 
     it->callDepth++;
 
-    PEnv *fnEnv = NewEnv((PEnv *)f->env);
+    PEnv *fnEnv = NewEnv(it->gc, (PEnv *)f->env);
     for (u64 i = 0; i < count; i++) {
         EnvPutValue(fnEnv, f->params[i]->hash, args[i]);
     }
@@ -547,11 +547,11 @@ static PValue handleCall(
     }
 
     if (evalOut.type == ET_RETURN) {
-        FreeEnv(fnEnv);
+    	RecycleEnv(it->gc, fnEnv);
         return evalOut.value;
     }
 
-    FreeEnv(fnEnv);
+    RecycleEnv(it->gc, fnEnv);
 
     return evalOut.value;
 }
@@ -877,21 +877,21 @@ static ExResult execBlock(PInterpreter *it, PStmt *stmt, PEnv *env, bool ret) {
     }
 
     ExResult temp = ExSimple(MakeNil());
-    PEnv *blockEnv = NewEnv(env);
+    PEnv *blockEnv = NewEnv(it->gc, env);
 
     for (int i = 0; i < arrlen(stmtList); i++) {
         temp = execute(it, stmtList[i], blockEnv);
         if (ret && temp.type == ET_RETURN) {
-            FreeEnv(blockEnv);
+            RecycleEnv(it->gc, blockEnv);
             return temp;
         }
         if (temp.type == ET_BREAK) {
-            FreeEnv(blockEnv);
+        	RecycleEnv(it->gc, blockEnv);
             return temp;
         }
     }
 
-    FreeEnv(blockEnv);
+    RecycleEnv(it->gc, blockEnv);
     return temp;
 }
 
@@ -976,7 +976,7 @@ static ExResult vsBreakStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
 static ExResult vsFuncStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     assert(stmt->type == STMT_FUNC);
     struct SFunc *fs = &stmt->stmt.SFunc;
-    PEnv *closureEnv = NewEnv(NULL);
+    PEnv *closureEnv = NewEnv(it->gc, NULL);
     PObj *f = NewFuncObject(
         it->gc, fs->name, fs->params, fs->body, closureEnv, fs->paramCount
     );

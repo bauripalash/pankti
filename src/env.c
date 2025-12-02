@@ -10,7 +10,17 @@
 #include "include/object.h"
 #include "include/ptypes.h"
 
-PEnv *NewEnv(PEnv *enclosing) {
+PEnv *NewEnv(Pgc *gc, PEnv *enclosing) {
+	
+	if (gc->envFreeListCount > 0) {
+		PEnv * e = arrpop(gc->envFreeList);
+		e->enclosing = enclosing;
+		hmfree(e->table); // Reset the env : but stb_ds doesn't support it
+		e->count = 0;
+		gc->envFreeListCount = arrlen(gc->envFreeList);
+		return e;
+	}
+
     PEnv *e = PCreate(PEnv);
     // error check;
     e->count = 0;
@@ -19,7 +29,14 @@ PEnv *NewEnv(PEnv *enclosing) {
     return e;
 }
 
-void FreeEnv(PEnv *e) {
+void RecycleEnv(Pgc *gc, PEnv *e){
+	e->enclosing = NULL;
+	arrpush(gc->envFreeList, e);
+	gc->envFreeListCount = arrlen(gc->envFreeList);
+	
+}
+
+void ReallyFreeEnv(PEnv *e) {
     if (e == NULL) {
         return;
     }

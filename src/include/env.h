@@ -29,10 +29,13 @@ typedef struct PEnv {
 
 // Create New Environment;
 // `enclosing` = Optional Parent Environment. Can be NULL
-PEnv *NewEnv(PEnv *enclosing);
+PEnv *NewEnv(Pgc *gc, PEnv *enclosing);
 
 // Free Environment with freeing all elements
-void FreeEnv(PEnv *e);
+void ReallyFreeEnv(PEnv *e);
+
+// Recycle Environment adding to GC's free list for reuse
+void RecycleEnv(Pgc *gc, PEnv *e);
 
 // Print all pairs inside the Environment;
 // Does not print parent(s)

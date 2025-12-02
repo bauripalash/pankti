@@ -49,6 +49,11 @@ typedef struct Pgc {
     u64 nextGc;
     u64 timestamp;
 
+	// Env Free List
+	PEnv ** envFreeList;
+	// Size/Count of Env Free List
+	u64 envFreeListCount;
+
 } Pgc;
 
 Pgc *NewGc(void);
