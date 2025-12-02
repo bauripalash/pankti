@@ -983,9 +983,9 @@ static void captureUpvals(PInterpreter *it, PEnv *parentEnv, PEnv *clsEnv) {
             u64 curCount = cur->count;
             for (u64 i = 0; i < curCount; i++) {
                 u64 key = cur->table[i].key;
-                if (hmgeti(clsEnv->table, key) != -1) {
-                    continue; // We already have this pair in closure
-                }
+				if (EnvHasKey(clsEnv, key)) {
+					continue;
+				}
 
                 PValue curVal = cur->table[i].value;
                 PValue upVal;
@@ -996,17 +996,20 @@ static void captureUpvals(PInterpreter *it, PEnv *parentEnv, PEnv *clsEnv) {
                 } else {
                     PObj *upObj = NewUpvalueObject(it->gc, curVal);
                     upVal = MakeObject(upObj);
-                    hmput(cur->table, key, upVal); // Upgrade parent env's upval
-                    cur->count = (u64)hmlen(cur->table);
+                    //hmput(cur->table, key, upVal); // Upgrade parent env's upval
+					EnvTableAddValue(cur, key, upVal);
+					cur->count = EnvGetCount(cur);
                 }
 
-                hmput(clsEnv->table, key, upVal);
+                //hmput(clsEnv->table, key, upVal);
+				EnvTableAddValue(clsEnv, key, upVal);
             }
         }
         cur = cur->enclosing;
     }
 
-    clsEnv->count = (u64)hmlen(clsEnv->table);
+    //clsEnv->count = (u64)hmlen(clsEnv->table);
+	clsEnv->count = EnvGetCount(clsEnv);
 }
 
 // Execute function declaration statements

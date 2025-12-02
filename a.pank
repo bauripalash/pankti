@@ -1,10 +1,24 @@
-func mango()
-	let mystring = "hello string"
-	return mystring
+let globalOne = 0
+let globalTwo = 0
+
+kaj main()
+  {
+    let a = "one"
+    kaj one()
+      print a
+    end
+    globalOne = one
+  }
+
+  {
+    let a = "two"
+    kaj two()
+      print a
+    end
+    globalTwo = two
+  }
 end
 
-print mango()
-
-print mango()
-
-mango()
+main()
+globalOne()
+globalTwo()

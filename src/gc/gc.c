@@ -233,7 +233,7 @@ static void markEnv(Pgc *gc, PEnv *env) {
         return;
     }
 
-    u64 envCount = (u64)hmlen(env->table);
+    u64 envCount = (u64)EnvGetCount(env);
 
     for (u64 i = 0; i < envCount; i++) {
         markValue(gc, env->table[i].value);

@@ -36,6 +36,13 @@ void FreeEnv(PEnv *e);
 // Does not print parent(s)
 void DebugEnv(PEnv *e);
 
+// Add Key/Value pair to the `e`'s table
+void EnvTableAddValue(PEnv *e , u64 hash, PValue value);
+// Check if `e`'s table has hash
+bool EnvHasKey(PEnv *e, u64 hash);
+// Get how many pairs env `e` has
+u64 EnvGetCount(const PEnv * e);
+
 // Create a Pair and push to the Environment table
 void EnvPutValue(PEnv *e, u64 hash, PValue value);
 

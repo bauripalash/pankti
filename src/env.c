@@ -29,6 +29,19 @@ void FreeEnv(PEnv *e) {
     PFree(e);
 }
 
+u64 EnvGetCount(const PEnv * e){
+	if (e == NULL || e->table == NULL) {
+		return UINT64_MAX;
+	}	
+	
+	return (u64)hmlen(e->table);
+}
+
+void EnvTableAddValue(PEnv *e , u64 hash, PValue value){
+	if (e == NULL) return;
+    hmput(e->table, hash, value);
+}
+
 void DebugEnv(PEnv *e) {
     if (e == NULL) {
         return;
@@ -46,6 +59,17 @@ void DebugEnv(PEnv *e) {
     if (e->enclosing != NULL) {
         DebugEnv(e->enclosing);
     }
+}
+
+bool EnvHasKey(PEnv *e, u64 hash){
+	if (e == NULL || e->table == NULL) {
+		return false;
+	}
+	if (hmgeti(e->table, hash) >= 0) {
+		return true;
+	}
+
+	return false;
 }
 
 void EnvPutValue(PEnv *e, u64 hash, PValue value) {
