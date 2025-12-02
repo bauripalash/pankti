@@ -11,15 +11,14 @@
 #include "include/ptypes.h"
 
 PEnv *NewEnv(Pgc *gc, PEnv *enclosing) {
-	
-	if (gc->envFreeListCount > 0) {
-		PEnv * e = arrpop(gc->envFreeList);
-		e->enclosing = enclosing;
-		hmfree(e->table); // Reset the env : but stb_ds doesn't support it
-		e->count = 0;
-		gc->envFreeListCount = arrlen(gc->envFreeList);
-		return e;
-	}
+    if (gc->envFreeListCount > 0) {
+        PEnv *e = arrpop(gc->envFreeList);
+        e->enclosing = enclosing;
+        hmfree(e->table); // Reset the env : but stb_ds doesn't support it
+        e->count = 0;
+        gc->envFreeListCount = arrlen(gc->envFreeList);
+        return e;
+    }
 
     PEnv *e = PCreate(PEnv);
     // error check;
@@ -29,11 +28,10 @@ PEnv *NewEnv(Pgc *gc, PEnv *enclosing) {
     return e;
 }
 
-void RecycleEnv(Pgc *gc, PEnv *e){
-	e->enclosing = NULL;
-	arrpush(gc->envFreeList, e);
-	gc->envFreeListCount = arrlen(gc->envFreeList);
-	
+void RecycleEnv(Pgc *gc, PEnv *e) {
+    e->enclosing = NULL;
+    arrpush(gc->envFreeList, e);
+    gc->envFreeListCount = arrlen(gc->envFreeList);
 }
 
 void ReallyFreeEnv(PEnv *e) {
@@ -101,8 +99,7 @@ void EnvCaptureUpvalues(Pgc *gc, PEnv *parentEnv, PEnv *clsEnv) {
                 } else {
                     PObj *upObj = NewUpvalueObject(gc, curVal);
                     upVal = MakeObject(upObj);
-                    // hmput(cur->table, key, upVal); // Upgrade parent env's
-                    // upval
+                    // Upgrade parent env's upval
                     EnvTableAddValue(cur, key, upVal);
                     cur->count = EnvGetCount(cur);
                 }

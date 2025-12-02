@@ -547,7 +547,7 @@ static PValue handleCall(
     }
 
     if (evalOut.type == ET_RETURN) {
-    	RecycleEnv(it->gc, fnEnv);
+        RecycleEnv(it->gc, fnEnv);
         return evalOut.value;
     }
 
@@ -886,7 +886,7 @@ static ExResult execBlock(PInterpreter *it, PStmt *stmt, PEnv *env, bool ret) {
             return temp;
         }
         if (temp.type == ET_BREAK) {
-        	RecycleEnv(it->gc, blockEnv);
+            RecycleEnv(it->gc, blockEnv);
             return temp;
         }
     }
