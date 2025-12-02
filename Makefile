@@ -28,6 +28,9 @@ RELEASE_CC ?= clang
 # File to Run on `run` step
 FILE ?= ./a.pank
 
+# File to Run for benchmark
+PERFFILE ?= ./fib35.pank
+
 # The Native Test Binary
 TEST_BIN ?= pankti_tests
 
@@ -102,14 +105,14 @@ cmake_clean:
 build_rls:
 	rm -rf build
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=$(RELEASE_CC)
-	cmake --build build
+	cmake --build build --target $(BIN)
 
 .PHONY: run_perf
 run_perf:
 	rm -rf build
 	cmake -S . -B build -DCMAKE_C_COMPILER=$(PERFCC) -DCMAKE_BUILD_TYPE=Release
-	cmake --build build
-	perf record -g --call-graph dwarf -F 999 ./$(CMAKE_OUTPUT)
+	cmake --build build --target $(BIN)
+	perf record -g --call-graph dwarf -F 999 ./$(CMAKE_OUTPUT) $(PERFFILE)
 	perf script -F +pid > pankti.perf
 
 
