@@ -8,8 +8,10 @@ cppcheck-result.txt
 massif.out.*
 *.perf
 perf.data
+perf.data.old
 _temp*.png
 cachegrind.out.*
+*callgrind.out.*
 ##### C.gitignore #####
 # Prerequisites
 *.d

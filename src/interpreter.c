@@ -43,20 +43,20 @@ typedef struct ExResult {
 } ExResult;
 
 // Create a Simple Execution Result
-static inline ExResult ExSimple(PValue v) {
+static finline ExResult ExSimple(PValue v) {
     ExResult er = {.type = ET_SIMPLE, .value = v};
     return er;
 }
 
 // Create a Break Execution Result
-static inline ExResult ExBreak(void) {
+static finline ExResult ExBreak(void) {
     ExResult er = {.type = ET_BREAK, .value = MakeNil()};
 
     return er;
 }
 
 // Create a Return Execution Result
-static inline ExResult ExReturn(PValue v) {
+static finline ExResult ExReturn(PValue v) {
     ExResult er = {.type = ET_RETURN, .value = v};
     return er;
 }
@@ -154,7 +154,7 @@ static void error(PInterpreter *it, Token *tok, const char *msg) {
 
 // Evaluate Literal Expression
 // Numbers, Strings, Bools, Nil
-static PValue vLiteral(PInterpreter *it, PExpr *expr, PEnv *env) {
+static finline PValue vLiteral(PInterpreter *it, PExpr *expr, PEnv *env) {
     if (expr == NULL) {
         error(it, NULL, "Invalid literal found");
         return MakeNil();
@@ -187,7 +187,7 @@ static PValue vLiteral(PInterpreter *it, PExpr *expr, PEnv *env) {
 // Basic Math: Addition, Substraction, Multiplication, Division
 // Comparison: Equality Check, Not Equal,
 // Greater Than, Greater than or Equal, Less Than, Less Than or Equal
-static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
+static finline PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
     assert(expr->type == EXPR_BINARY);
 
     PValue l = evaluate(it, expr->exp.EBinary.left, env);
@@ -321,7 +321,7 @@ static PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
 
 // Evaluate a variable
 // Returns the value of the variable from the `env` enviornment
-static PValue vVariable(PInterpreter *it, PExpr *expr, PEnv *env) {
+static finline PValue vVariable(PInterpreter *it, PExpr *expr, PEnv *env) {
     assert(expr->type == EXPR_VARIABLE);
     bool found = false;
     struct EVariable *var = &expr->exp.EVariable;
@@ -341,7 +341,7 @@ static PValue vVariable(PInterpreter *it, PExpr *expr, PEnv *env) {
 // Assignment Operation for Variables
 // `name` = The actual target expression which must evaluate to Variable expr
 // `val` = The new value to assign
-static PValue varAssignment(
+static finline PValue varAssignment(
     PInterpreter *it, PExpr *name, PExpr *val, PEnv *env
 ) {
     assert(name->type == EXPR_VARIABLE);
@@ -360,7 +360,7 @@ static PValue varAssignment(
 
 // Array Subscript Assignment
 // myarr[0] = "NewValue"
-static void arrAssignment(
+static finline void arrAssignment(
     PInterpreter *it, PObj *arrObj, PExpr *index, PExpr *value, PEnv *env
 ) {
     assert(arrObj->type == OT_ARR);
@@ -392,7 +392,7 @@ static void arrAssignment(
     }
 }
 
-static void mapAssignment(
+static finline void mapAssignment(
     PInterpreter *it, PObj *mapObj, PExpr *keyExpr, PExpr *valueExpr, PEnv *env
 ) {
     assert(mapObj->type == OT_MAP);
@@ -411,7 +411,7 @@ static void mapAssignment(
     }
 }
 
-static PValue subAssignment(
+static finline PValue subAssignment(
     PInterpreter *it, PExpr *targetExpr, PExpr *valueExpr, PEnv *env
 ) {
     assert(targetExpr->type == EXPR_SUBSCRIPT);
@@ -438,7 +438,7 @@ static PValue subAssignment(
 // Setting new value to prexisting variable
 // Replace items inside array
 // Put New Key-Value pair to map or replace prexisting one, if key exists
-static PValue vAssignment(PInterpreter *it, PExpr *expr, PEnv *env) {
+static finline PValue vAssignment(PInterpreter *it, PExpr *expr, PEnv *env) {
     assert(expr->type == EXPR_ASSIGN);
 
     struct EAssign *assign = &expr->exp.EAssign;
@@ -456,7 +456,7 @@ static PValue vAssignment(PInterpreter *it, PExpr *expr, PEnv *env) {
 // Unary Operation
 // -100 (Change sign of a number)
 // !true (Logical NOT operation; Flip boolean)
-static PValue vUnary(PInterpreter *it, PExpr *expr, PEnv *env) {
+static finline PValue vUnary(PInterpreter *it, PExpr *expr, PEnv *env) {
     assert(expr->type == EXPR_UNARY);
 
     PValue r = evaluate(it, expr->exp.EUnary.right, env);
@@ -484,7 +484,7 @@ static PValue vUnary(PInterpreter *it, PExpr *expr, PEnv *env) {
 }
 
 // Logical Operation : AND , OR
-static PValue vLogical(PInterpreter *it, PExpr *expr, PEnv *env) {
+static finline PValue vLogical(PInterpreter *it, PExpr *expr, PEnv *env) {
     assert(expr->type == EXPR_LOGICAL);
 
     PValue left = evaluate(it, expr->exp.ELogical.left, env);
@@ -519,7 +519,7 @@ static PValue vLogical(PInterpreter *it, PExpr *expr, PEnv *env) {
 }
 
 // Evaluate a function call and return result (if any)
-static PValue handleCall(
+static finline PValue handleCall(
     PInterpreter *it, PObj *func, PValue *args, u64 count, PExpr *callExpr
 ) {
     assert(func->type == OT_FNC);
@@ -557,7 +557,7 @@ static PValue handleCall(
 }
 
 // Handle User-Defined Function Calls
-static PValue callFunction(
+static finline PValue callFunction(
     PInterpreter *it, PObj *func, PExpr *callExpr, PEnv *env
 ) {
     assert(func->type == OT_FNC);
@@ -615,7 +615,7 @@ static PValue callFunction(
 }
 
 // Handle Native Function Calls
-static PValue callNative(
+static finline PValue callNative(
     PInterpreter *it, PObj *nfunc, PExpr *callExpr, PEnv *env
 ) {
     assert(nfunc->type == OT_NATIVE);
@@ -672,7 +672,7 @@ static PValue callNative(
 }
 
 // Function Call Operation
-static PValue vCall(PInterpreter *it, PExpr *expr, PEnv *env) {
+static finline PValue vCall(PInterpreter *it, PExpr *expr, PEnv *env) {
     assert(expr->type == EXPR_CALL);
     struct ECall *ec = &expr->exp.ECall;
     PValue co = evaluate(it, ec->callee, env);
@@ -695,7 +695,7 @@ static PValue vCall(PInterpreter *it, PExpr *expr, PEnv *env) {
 }
 
 // Create New Array Literal Object
-static PValue vArray(PInterpreter *it, PExpr *expr, PEnv *env) {
+static finline PValue vArray(PInterpreter *it, PExpr *expr, PEnv *env) {
     assert(expr->type == EXPR_ARRAY);
     struct EArray *arr = &expr->exp.EArray;
     PValue *vitems = NULL;
@@ -709,7 +709,7 @@ static PValue vArray(PInterpreter *it, PExpr *expr, PEnv *env) {
 }
 
 // Create New Map Literal Object
-static PValue vMap(PInterpreter *it, PExpr *expr, PEnv *env) {
+static finline PValue vMap(PInterpreter *it, PExpr *expr, PEnv *env) {
     assert(expr->type == EXPR_MAP);
     struct EMap *map = &expr->exp.EMap;
 
@@ -738,7 +738,7 @@ static PValue vMap(PInterpreter *it, PExpr *expr, PEnv *env) {
 }
 
 // Subscript for Arrays
-static PValue arraySubscript(
+static finline PValue arraySubscript(
     PInterpreter *it, PObj *arrObj, PExpr *expr, PEnv *env
 ) {
     assert(arrObj->type == OT_ARR);
@@ -769,7 +769,7 @@ static PValue arraySubscript(
 }
 
 // subscripting for Map
-static PValue mapSubscript(
+static finline PValue mapSubscript(
     PInterpreter *it, PObj *mapObj, PExpr *expr, PEnv *env
 ) {
     assert(mapObj->type == OT_MAP);
@@ -795,7 +795,7 @@ static PValue mapSubscript(
 }
 
 // Evaluate subscripting expression
-static PValue vSubscript(PInterpreter *it, PExpr *expr, PEnv *env) {
+static finline PValue vSubscript(PInterpreter *it, PExpr *expr, PEnv *env) {
     assert(expr->type == EXPR_SUBSCRIPT);
     struct ESubscript *sub = &expr->exp.ESubscript;
     PValue subValue = evaluate(it, sub->value, env);
@@ -815,7 +815,7 @@ static PValue vSubscript(PInterpreter *it, PExpr *expr, PEnv *env) {
     return MakeNil();
 }
 
-static PValue vModget(PInterpreter *it, PExpr *expr, PEnv *env) {
+static finline PValue vModget(PInterpreter *it, PExpr *expr, PEnv *env) {
     assert(expr->type == EXPR_MODGET);
     struct EModget *mg = &expr->exp.EModget;
 
@@ -896,13 +896,13 @@ static ExResult execBlock(PInterpreter *it, PStmt *stmt, PEnv *env, bool ret) {
 }
 
 // Execute block statements
-static ExResult vsBlock(PInterpreter *it, PStmt *stmt, PEnv *env) {
+static finline ExResult vsBlock(PInterpreter *it, PStmt *stmt, PEnv *env) {
     assert(stmt->type == STMT_BLOCK);
     return execBlock(it, stmt, env, true);
 }
 
 // Execute variable declaration statements
-static ExResult vsLet(PInterpreter *it, PStmt *stmt, PEnv *env) {
+static finline ExResult vsLet(PInterpreter *it, PStmt *stmt, PEnv *env) {
     assert(stmt->type == STMT_LET);
     PValue value = evaluate(it, stmt->stmt.SLet.expr, env);
     EnvPutValue(env, stmt->stmt.SLet.name->hash, value);
@@ -910,7 +910,7 @@ static ExResult vsLet(PInterpreter *it, PStmt *stmt, PEnv *env) {
 }
 
 // Temporary print statements
-static ExResult vsPrint(PInterpreter *it, PStmt *stmt, PEnv *env) {
+static finline ExResult vsPrint(PInterpreter *it, PStmt *stmt, PEnv *env) {
     assert(stmt->type == STMT_PRINT);
     PValue value = evaluate(it, stmt->stmt.SPrint.value, env);
     PrintValue(value);
@@ -919,13 +919,13 @@ static ExResult vsPrint(PInterpreter *it, PStmt *stmt, PEnv *env) {
 }
 
 // Execute Expression statements
-static ExResult vsExprStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
+static finline ExResult vsExprStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     assert(stmt->type == STMT_EXPR);
     return ExSimple(evaluate(it, stmt->stmt.SExpr.expr, env));
 }
 
 // Execute If-Else conditional statements
-static ExResult vsIfStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
+static finline ExResult vsIfStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     assert(stmt->type == STMT_IF);
     PValue cond = evaluate(it, stmt->stmt.SIf.cond, env);
     if (IsValueTruthy(cond)) {
@@ -940,7 +940,7 @@ static ExResult vsIfStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
 }
 
 // Execute While-Do loop statements
-static ExResult vsWhileStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
+static finline ExResult vsWhileStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     assert(stmt->type == STMT_WHILE);
     PValue cond = evaluate(it, stmt->stmt.SWhile.cond, env);
     while (IsValueTruthy(cond)) {
@@ -958,7 +958,7 @@ static ExResult vsWhileStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
 }
 
 // Execute return statements
-static ExResult vsReturnStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
+static finline ExResult vsReturnStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     assert(stmt->type == STMT_RETURN);
 
     struct SReturn *ret = &stmt->stmt.SReturn;
@@ -967,13 +967,13 @@ static ExResult vsReturnStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
 }
 
 // Execute break statements
-static ExResult vsBreakStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
+static finline ExResult vsBreakStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     assert(stmt->type == STMT_BREAK);
     return ExBreak();
 }
 
 // Execute function declaration statements
-static ExResult vsFuncStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
+static finline ExResult vsFuncStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     assert(stmt->type == STMT_FUNC);
     struct SFunc *fs = &stmt->stmt.SFunc;
     PEnv *closureEnv = NewEnv(it->gc, NULL);
@@ -986,7 +986,7 @@ static ExResult vsFuncStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     return ExSimple(MakeNil());
 }
 
-static ExResult vsImportStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
+static finline ExResult vsImportStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     assert(stmt->type == STMT_IMPORT);
     struct SImport *imp = &stmt->stmt.SImport;
 

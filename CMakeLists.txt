@@ -27,7 +27,7 @@ add_subdirectory(tests)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD_REQUIRED ON)
-set_property(TARGET ${PROJECT_NAME} PROPERTY C_EXTENSIONS OFF)
+#set_property(TARGET ${PROJECT_NAME} PROPERTY C_EXTENSIONS OFF)
 
 #target_link_options(${PROJECT_NAME} PRIVATE "-static")
 
@@ -49,10 +49,9 @@ set(PANKTI_RELEASE_CFLAGS
 	"-funroll-loops" 
 )
 
-set(PANKTI_RELEASE_LINKER_FLAGS
-	"-lm"
-	"-flto"
-	"-funroll-loops"
+set (PANKTI_REL_WITH_DINFO_CFLAGS
+	"-g3"
+	${PANKTI_RELEASE_CFLAGS}
 )
 
 set(PANKTI_DEBUG_LINKER_FLAGS
@@ -62,6 +61,18 @@ set(PANKTI_DEBUG_LINKER_FLAGS
 	"-fsanitize=float-cast-overflow"
 	"-flto"
 )
+
+set(PANKTI_RELEASE_LINKER_FLAGS
+	"-lm"
+	"-flto"
+	"-funroll-loops"
+)
+
+set(PANKTI_REL_WITH_DINFO_LINKER_FLAGS 
+	${PANKTI_RELEASE_LINKER_FLAGS}
+)
+
+
 
 if(USE_NAN_BOXING)
 	add_compile_definitions(USE_NAN_BOXING=1)
@@ -73,14 +84,14 @@ endif()
 target_compile_options(${PROJECT_NAME} PRIVATE 
 	$<$<CONFIG:Debug>:${PANKTI_DEBUG_CFLAGS}>
 	$<$<CONFIG:Release>:${PANKTI_RELEASE_CFLAGS}>
-	$<$<CONFIG:RelWithDebInfo>:${PANKTI_RELEASE_CFLAGS}>
+	$<$<CONFIG:RelWithDebInfo>:${PANKTI_REL_WITH_DINFO_CFLAGS}>
 	$<$<CONFIG:MinSizeRel>:${PANKTI_RELEASE_CFLAGS}>
 )
 
 target_link_options(${PROJECT_NAME} PRIVATE
     $<$<CONFIG:Debug>:${PANKTI_DEBUG_LINKER_FLAGS}>
     $<$<CONFIG:Release>:${PANKTI_RELEASE_LINKER_FLAGS}>
-    $<$<CONFIG:RelWithDebInfo>:${PANKTI_RELEASE_LINKER_FLAGS}>
+    $<$<CONFIG:RelWithDebInfo>:${PANKTI_REL_WITH_DINFO_LINKER_FLAGS}>
     $<$<CONFIG:MinSizeRel>:${PANKTI_RELEASE_LINKER_FLAGS}>
 )
 

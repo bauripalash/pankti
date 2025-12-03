@@ -103,9 +103,9 @@ cmake_clean:
 
 .PHONY: build_dbg
 build_dbg:
-       rm -rf build
-       cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
-       cmake --build build --target $(BIN)
+	rm -rf build
+	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+	cmake --build build --target $(BIN)
 
 .PHONY: build_rls
 build_rls:
@@ -113,14 +113,20 @@ build_rls:
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=$(RELEASE_CC)
 	cmake --build build --target $(BIN)
 
-.PHONY: run_perf
-run_perf:
+.PHONY: build_rld
+build_rld:
 	rm -rf build
-	cmake -S . -B build -DCMAKE_C_COMPILER=$(PERFCC) -DCMAKE_BUILD_TYPE=Release
+	cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_COMPILER=$(RELEASE_CC)
 	cmake --build build --target $(BIN)
+
+.PHONY: run_perf
+run_perf: build_rld
 	perf record -g --call-graph dwarf -F 999 ./$(CMAKE_OUTPUT) $(PERFFILE)
 	perf script -F +pid > pankti.perf
 
+.PHONY: run_callgrind
+run_callgrind: build_rld
+	valgrind --tool=callgrind --callgrind-out-file="$(BIN).%p.callgrind.out" --dump-instr=yes --simulate-cache=yes $(CMAKE_OUTPUT) $(PERFFILE)
 
 .PHONY: infer
 infer: cmake_clean
