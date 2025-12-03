@@ -101,6 +101,12 @@ cmake_cc:
 cmake_clean:
 	cd build && make clean
 
+.PHONY: build_dbg
+build_dbg:
+       rm -rf build
+       cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+       cmake --build build --target $(BIN)
+
 .PHONY: build_rls
 build_rls:
 	rm -rf build
