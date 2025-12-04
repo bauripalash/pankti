@@ -1,0 +1,18 @@
+#dhori list = []
+#dhori i = 0
+#dhori limit = 10000
+
+#jotokhon i < limit koro
+#	list[i] = i
+#	i = i + 1
+#sesh
+
+#dhori sum = 0
+#dhori j = 0
+
+#jotokhon j < limit koro
+#	sum = sum + list[i]
+#	j = j + 1
+#sesh
+
+#print sum

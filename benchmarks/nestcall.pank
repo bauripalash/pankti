@@ -1,0 +1,22 @@
+kaj jog(a,b)
+	ferao a + b
+sesh
+
+kaj goon(a,b)
+	ferao a * b
+sesh
+
+kaj gonona(a)
+	return jog(goon(a, a), goon(a,2))
+sesh
+
+dhori sum = 0
+dhori i = 0
+dhori limit = 100000
+
+jotokhon i < limit koro
+	sum = sum + gonona(i)
+	i = i + 1
+sesh
+
+print sum

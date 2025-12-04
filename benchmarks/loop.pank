@@ -1,0 +1,10 @@
+dhori sum = 0
+dhori i = 0
+dhori limit = 1000000
+
+jotokhon i < limit koro
+	sum = sum + 1
+	i = i + 1
+sesh
+
+print sum

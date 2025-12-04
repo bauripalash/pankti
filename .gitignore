@@ -12,6 +12,7 @@ perf.data.old
 _temp*.png
 cachegrind.out.*
 *callgrind.out.*
+benchmarks.html
 ##### C.gitignore #####
 # Prerequisites
 *.d

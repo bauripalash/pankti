@@ -132,6 +132,11 @@ run_callgrind: build_rld
 run_clangtidy:
 	clang-tidy --config-file=.clang-tidy $(SOURCES) $(HEADERS)
 
+.PHONY: run_benchmarks
+run_benchmarks: build_rls
+	bash run_benchmarks.sh $(CMAKE_OUTPUT)
+	pandoc -f markdown -t html -o benchmarks.html benchmark_results.md
+
 .PHONY: infer
 infer: cmake_clean
 	infer run --compilation-database build/compile_commands.json
