@@ -124,3 +124,14 @@ benificial in the long run.
 I replaced usage of size_t with uint64_t types. The type size_t is platform
 dependent, thus array capacity, map capacity will be different on 64bit and 
 32bit systems.
+
+> Thursday, December 4, 2025 5:17 PM (IST)
+
+I swapped stb_ds library's hash table based Environment with verstable.h based
+hash table. The benchmarks showed, stb_ds's hash table was a huge factor in 
+performance loss. With verstable, the fib(35) benchmarks finished within 3-4
+seconds.
+
+With the stb_ds's hash table, there was no way to reset the table, so env
+free list was not doing anything for performance. verstable based env without
+free list was still much more fast than stb_ds.
