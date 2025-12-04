@@ -3,6 +3,7 @@
         "src/external/",
 		"src/include/exported",
 		"build/_deps/",
-		"build-web/_deps"
+		"build-web/_deps",
+		"tests/"
     ]
 }

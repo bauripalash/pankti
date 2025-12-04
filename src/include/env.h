@@ -9,11 +9,13 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
+// NOLINTBEGIN(clang-analyzer-*)
 #define NAME   EnvTable
 #define KEY_TY u64
 #define VAL_TY PValue
 #define HEADER_MODE
 #include "../external/verstable/verstable.h"
+// NOLINTEND(clang-analyzer-*)
 
 typedef struct Pgc Pgc;
 
@@ -50,8 +52,6 @@ void MarkEnvGC(Pgc *gc, PEnv *e);
 // Capture Upvalues Naively from parentEnv to clsEnv
 void EnvCaptureUpvalues(Pgc *gc, PEnv *parentEnv, PEnv *clsEnv);
 
-// Add Key/Value pair to the `e`'s table
-void EnvTableAddValue(PEnv *e, u64 hash, PValue value);
 // Check if `e`'s table has hash
 bool EnvHasKey(PEnv *e, u64 hash);
 // Get how many pairs env `e` has

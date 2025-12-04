@@ -128,6 +128,10 @@ run_perf: build_rld
 run_callgrind: build_rld
 	valgrind --tool=callgrind --callgrind-out-file="$(BIN).%p.callgrind.out" --dump-instr=yes --simulate-cache=yes $(CMAKE_OUTPUT) $(PERFFILE)
 
+.PHONY: run_clangtidy
+run_clangtidy:
+	clang-tidy --config-file=.clang-tidy $(SOURCES) $(HEADERS)
+
 .PHONY: infer
 infer: cmake_clean
 	infer run --compilation-database build/compile_commands.json

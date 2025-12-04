@@ -10,17 +10,19 @@
 #include "include/object.h"
 #include "include/ptypes.h"
 
+// NOLINTBEGIN
 #define NAME   EnvTable
 #define KEY_TY u64
 #define VAL_TY PValue
 #define IMPLEMENTATION_MODE
 #include "external/verstable/verstable.h"
+// NOLINTEND
 
 PEnv *NewEnv(Pgc *gc, PEnv *enclosing) {
     if (gc->envFreeListCount > 0) {
         PEnv *e = arrpop(gc->envFreeList);
         e->enclosing = enclosing;
-        gc->envFreeListCount = arrlen(gc->envFreeList);
+        gc->envFreeListCount = (u64)arrlen(gc->envFreeList);
         return e;
     }
 
@@ -39,7 +41,7 @@ void RecycleEnv(Pgc *gc, PEnv *e) {
     e->count = 0;
     EnvTable_clear(&e->table);
     arrpush(gc->envFreeList, e);
-    gc->envFreeListCount = arrlen(gc->envFreeList);
+    gc->envFreeListCount = (u64)arrlen(gc->envFreeList);
 }
 
 void ReallyFreeEnv(PEnv *e) {
@@ -59,13 +61,16 @@ u64 EnvGetCount(const PEnv *e) {
     return (u64)EnvTable_size(&e->table);
 }
 
-void EnvTableAddValue(PEnv *e, u64 hash, PValue value) {
+//NOLINTBEGIN
+static inline void envTableInsertValue(PEnv *e, u64 hash, PValue value) {
     if (e == NULL) {
         return;
     }
+	//NOLINENEXTLINE
     EnvTable_insert(&e->table, hash, value);
     e->count = EnvGetCount(e);
 }
+//NOLINTEND
 
 void MarkEnvGC(Pgc *gc, PEnv *e) {
     if (gc == NULL || e == NULL) {
@@ -101,10 +106,10 @@ void EnvCaptureUpvalues(Pgc *gc, PEnv *parentEnv, PEnv *clsEnv) {
                 // Upgrade cur env's value to upvalue;
                 PObj *curUpObj = NewUpvalueObject(gc, curVal);
                 upVal = MakeObject(curUpObj); // <- upgraded upval's value
-                EnvTableAddValue(cur, key, upVal);
+                envTableInsertValue(cur, key, upVal);
             }
 
-            EnvTableAddValue(clsEnv, key, upVal);
+            envTableInsertValue(clsEnv, key, upVal);
         }
         cur = cur->enclosing;
     }
@@ -145,23 +150,28 @@ bool EnvHasKey(PEnv *e, u64 hash) {
     return false;
 }
 
+// Dont lint the next function. all the warnings are from external library
+//NOLINTBEGIN
 void EnvPutValue(PEnv *e, u64 hash, PValue value) {
+
     if (e == NULL) {
         return;
     }
-
     EnvTable_itr it = EnvTable_get(&e->table, hash);
-    if (!vt_is_end(it)) {
-        PValue stored = it.data->val;
+    if (!vt_is_end(it)) { 
+		PValue stored = it.data->val;
         if (IsValueObjType(stored, OT_UPVAL)) {
             ValueAsObj(stored)->v.OUpval.value = value;
             return;
-        }
-    }
-
-    EnvTable_insert(&e->table, hash, value);
-    e->count = EnvGetCount(e);
+        }else{
+			it.data->val = value;
+			return;
+		}
+    } else{
+		envTableInsertValue(e, hash, value); 
+	}
 }
+//NOLINTEND
 
 bool EnvSetValue(PEnv *e, u64 hash, PValue value) {
     if (e == NULL) {
@@ -174,10 +184,11 @@ bool EnvSetValue(PEnv *e, u64 hash, PValue value) {
         if (IsValueObjType(stored, OT_UPVAL)) {
             ValueAsObj(stored)->v.OUpval.value = value;
             return true;
-        }
-
-        EnvTable_insert(&e->table, hash, value);
-        return true;
+        }else{
+			//envTableInsertValue(e, hash, value);
+			it.data->val = value;
+	        return true;
+		}
     }
 
     if (e->enclosing != NULL) {
@@ -199,9 +210,9 @@ PValue EnvGetValue(PEnv *e, u64 hash, bool *found) {
         PValue stored = it.data->val;
         if (IsValueObjType(stored, OT_UPVAL)) {
             return ValueAsObj(stored)->v.OUpval.value;
-        }
-
-        return stored;
+        } else {
+			return stored;
+		}
     }
 
     if (e->enclosing != NULL) {
