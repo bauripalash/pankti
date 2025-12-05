@@ -6,17 +6,17 @@ extern "C" {
 #endif
 
 #ifdef _MSC_VER
-    #define finline __forceinline
+#define finline __forceinline
 #elif defined(__GNUC__)
-    #define finline inline __attribute__((__always_inline__))
+#define finline inline __attribute__((__always_inline__))
 #elif defined(__CLANG__)
-    #if __has_attribute(__always_inline__)
-        #define finline inline __attribute__((__always_inline__))
-    #else
-        #define finline inline
-    #endif
+#if __has_attribute(__always_inline__)
+#define finline inline __attribute__((__always_inline__))
 #else
-    #define finline inline
+#define finline inline
+#endif
+#else
+#define finline inline
 #endif
 
 #include <stdint.h>

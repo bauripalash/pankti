@@ -341,9 +341,8 @@ static finline PValue vVariable(PInterpreter *it, PExpr *expr, PEnv *env) {
 // Assignment Operation for Variables
 // `name` = The actual target expression which must evaluate to Variable expr
 // `val` = The new value to assign
-static finline PValue varAssignment(
-    PInterpreter *it, PExpr *name, PExpr *val, PEnv *env
-) {
+static finline PValue
+varAssignment(PInterpreter *it, PExpr *name, PExpr *val, PEnv *env) {
     assert(name->type == EXPR_VARIABLE);
     struct EVariable *target = &name->exp.EVariable;
     PValue vValue = evaluate(it, val, env);
@@ -557,9 +556,8 @@ static finline PValue handleCall(
 }
 
 // Handle User-Defined Function Calls
-static finline PValue callFunction(
-    PInterpreter *it, PObj *func, PExpr *callExpr, PEnv *env
-) {
+static finline PValue
+callFunction(PInterpreter *it, PObj *func, PExpr *callExpr, PEnv *env) {
     assert(func->type == OT_FNC);
     assert(callExpr->type == EXPR_CALL);
 
@@ -615,9 +613,8 @@ static finline PValue callFunction(
 }
 
 // Handle Native Function Calls
-static finline PValue callNative(
-    PInterpreter *it, PObj *nfunc, PExpr *callExpr, PEnv *env
-) {
+static finline PValue
+callNative(PInterpreter *it, PObj *nfunc, PExpr *callExpr, PEnv *env) {
     assert(nfunc->type == OT_NATIVE);
     assert(callExpr->type == EXPR_CALL);
 
@@ -738,9 +735,8 @@ static finline PValue vMap(PInterpreter *it, PExpr *expr, PEnv *env) {
 }
 
 // Subscript for Arrays
-static finline PValue arraySubscript(
-    PInterpreter *it, PObj *arrObj, PExpr *expr, PEnv *env
-) {
+static finline PValue
+arraySubscript(PInterpreter *it, PObj *arrObj, PExpr *expr, PEnv *env) {
     assert(arrObj->type == OT_ARR);
     assert(expr->type == EXPR_SUBSCRIPT);
 
@@ -769,9 +765,8 @@ static finline PValue arraySubscript(
 }
 
 // subscripting for Map
-static finline PValue mapSubscript(
-    PInterpreter *it, PObj *mapObj, PExpr *expr, PEnv *env
-) {
+static finline PValue
+mapSubscript(PInterpreter *it, PObj *mapObj, PExpr *expr, PEnv *env) {
     assert(mapObj->type == OT_MAP);
     assert(expr->type == EXPR_SUBSCRIPT);
 

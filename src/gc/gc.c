@@ -32,7 +32,7 @@ Pgc *NewGc(void) {
     gc->rootEnvCount = 0;
 
     gc->envFreeList = NULL;
-	arrsetcap(gc->envFreeList, 8);
+    arrsetcap(gc->envFreeList, 8);
     gc->envFreeListCount = 0;
 
     return gc;

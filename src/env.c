@@ -61,16 +61,16 @@ u64 EnvGetCount(const PEnv *e) {
     return (u64)EnvTable_size(&e->table);
 }
 
-//NOLINTBEGIN
+// NOLINTBEGIN
 static inline void envTableInsertValue(PEnv *e, u64 hash, PValue value) {
     if (e == NULL) {
         return;
     }
-	//NOLINENEXTLINE
+    // NOLINENEXTLINE
     EnvTable_insert(&e->table, hash, value);
     e->count = EnvGetCount(e);
 }
-//NOLINTEND
+// NOLINTEND
 
 void MarkEnvGC(Pgc *gc, PEnv *e) {
     if (gc == NULL || e == NULL) {
@@ -151,27 +151,27 @@ bool EnvHasKey(PEnv *e, u64 hash) {
 }
 
 // Dont lint the next function. all the warnings are from external library
-//NOLINTBEGIN
+// NOLINTBEGIN
 void EnvPutValue(PEnv *e, u64 hash, PValue value) {
 
     if (e == NULL) {
         return;
     }
     EnvTable_itr it = EnvTable_get(&e->table, hash);
-    if (!vt_is_end(it)) { 
-		PValue stored = it.data->val;
+    if (!vt_is_end(it)) {
+        PValue stored = it.data->val;
         if (IsValueObjType(stored, OT_UPVAL)) {
             ValueAsObj(stored)->v.OUpval.value = value;
             return;
-        }else{
-			it.data->val = value;
-			return;
-		}
-    } else{
-		envTableInsertValue(e, hash, value); 
-	}
+        } else {
+            it.data->val = value;
+            return;
+        }
+    } else {
+        envTableInsertValue(e, hash, value);
+    }
 }
-//NOLINTEND
+// NOLINTEND
 
 bool EnvSetValue(PEnv *e, u64 hash, PValue value) {
     if (e == NULL) {
@@ -184,11 +184,11 @@ bool EnvSetValue(PEnv *e, u64 hash, PValue value) {
         if (IsValueObjType(stored, OT_UPVAL)) {
             ValueAsObj(stored)->v.OUpval.value = value;
             return true;
-        }else{
-			//envTableInsertValue(e, hash, value);
-			it.data->val = value;
-	        return true;
-		}
+        } else {
+            // envTableInsertValue(e, hash, value);
+            it.data->val = value;
+            return true;
+        }
     }
 
     if (e->enclosing != NULL) {
@@ -211,8 +211,8 @@ PValue EnvGetValue(PEnv *e, u64 hash, bool *found) {
         if (IsValueObjType(stored, OT_UPVAL)) {
             return ValueAsObj(stored)->v.OUpval.value;
         } else {
-			return stored;
-		}
+            return stored;
+        }
     }
 
     if (e->enclosing != NULL) {

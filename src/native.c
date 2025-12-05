@@ -39,30 +39,34 @@ static PValue ntvLen(PInterpreter *it, PValue *args, u64 argc) {
     return MakeNumber(GetObjectLength(targetObj));
 }
 
-static PValue ntvPushArray(PInterpreter *it, PValue * args, u64 argc){
-	
-	if (argc < 2) {
-		return MakeError(it->gc, "Push needs atleast two arguments, array and an element to add");
-	}
-	
-	PValue rawArray = args[0];
+static PValue ntvPushArray(PInterpreter *it, PValue *args, u64 argc) {
 
-	if (!IsValueObjType(rawArray, OT_ARR)) {
-		return MakeError(it->gc, "Push can only be used on arrays");
-	}
+    if (argc < 2) {
+        return MakeError(
+            it->gc,
+            "Push needs atleast two arguments, array and an element to add"
+        );
+    }
 
-	PObj * obj = ValueAsObj(rawArray);
+    PValue rawArray = args[0];
 
-	u64 elmCount = argc - 1;
-	for (u64 i = 0; i < elmCount; i++) {
-		PValue elm = args[i + 1];
-		if (!ArrayObjPushValue(obj, elm)){
-			return MakeError(it->gc, "Interenal Error : Failed to push item to array");
-		}
-	}
+    if (!IsValueObjType(rawArray, OT_ARR)) {
+        return MakeError(it->gc, "Push can only be used on arrays");
+    }
 
-	return obj->v.OArray.count;
+    PObj *obj = ValueAsObj(rawArray);
 
+    u64 elmCount = argc - 1;
+    for (u64 i = 0; i < elmCount; i++) {
+        PValue elm = args[i + 1];
+        if (!ArrayObjPushValue(obj, elm)) {
+            return MakeError(
+                it->gc, "Interenal Error : Failed to push item to array"
+            );
+        }
+    }
+
+    return obj->v.OArray.count;
 }
 
 void RegisterNatives(PInterpreter *it, PEnv *env) {
@@ -88,6 +92,8 @@ void RegisterNatives(PInterpreter *it, PEnv *env) {
     PObj *lenFn = NewNativeFnObject(it->gc, NULL, ntvLen, 1);
     EnvPutValue(env, StrHash("len", 3, it->gc->timestamp), MakeObject(lenFn));
 
-	PObj *pushFn = NewNativeFnObject(it->gc, NULL, ntvPushArray, -1);
-	EnvPutValue(env, StrHash("append", 6, it->gc->timestamp), MakeObject(pushFn));
+    PObj *pushFn = NewNativeFnObject(it->gc, NULL, ntvPushArray, -1);
+    EnvPutValue(
+        env, StrHash("append", 6, it->gc->timestamp), MakeObject(pushFn)
+    );
 }
