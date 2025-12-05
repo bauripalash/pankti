@@ -758,11 +758,11 @@ static finline PValue arraySubscript(
         return MakeNil();
     }
 
-    int indexInt = (int)indexDbl;
+    u64 indexInt = (u64)indexDbl;
     struct OArray *array = &arrObj->v.OArray;
 
     if (indexInt >= array->count) {
-        error(it, sub->index->op, "Array Index out of range");
+        error(it, sub->index->op, "Array Index out of Range");
         return MakeNil();
     }
     return array->items[indexInt];

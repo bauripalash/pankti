@@ -284,6 +284,8 @@ const char *ValueTypeToStr(PValue val);
 
 bool MapObjSetValue(PObj *o, PValue key, u64 keyHash, PValue value);
 bool ArrayObjInsValue(PObj *o, int index, PValue value);
+// Push new item to array. Return false if failed to push value.
+bool ArrayObjPushValue(PObj *o, PValue value);
 // Print Object
 void PrintObject(const PObj *o);
 
