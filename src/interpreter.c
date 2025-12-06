@@ -61,6 +61,9 @@ static finline ExResult ExReturn(PValue v) {
     return er;
 }
 
+// create an empty module
+// copy the path aka `name` of the module
+// create an empty env
 static PModule *NewModule(PInterpreter *it, char *name) {
     PModule *mod = PMalloc(sizeof(PModule));
     if (mod == NULL) {
@@ -73,11 +76,14 @@ static PModule *NewModule(PInterpreter *it, char *name) {
     return mod;
 }
 
+// Add the module to interpreter's imported module list
 static void PushModule(PInterpreter *it, PModule *mod) {
     arrput(it->mods, mod);
     it->modCount = (u64)arrlen(it->mods);
 }
 
+// Create a proxy for module `mod`
+// There can many proxy which points to a single module
 static void PushProxy(PInterpreter *it, u64 key, char *name, PModule *mod) {
     if (mod == NULL) {
         return; // error check
@@ -836,7 +842,6 @@ static finline PValue vModget(PInterpreter *it, PExpr *expr, PEnv *env) {
         error(it, modTok, "Module not found");
         return MakeNil();
     }
-    return MakeNil();
 }
 
 static PValue evaluate(PInterpreter *it, PExpr *expr, PEnv *env) {
@@ -983,8 +988,11 @@ static finline ExResult vsFuncStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
 
 static finline ExResult vsImportStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     assert(stmt->type == STMT_IMPORT);
-    struct SImport *imp = &stmt->stmt.SImport;
 
+	// import foo "bar"
+	// here `bar` is path
+	// `foo` is the the name
+    struct SImport *imp = &stmt->stmt.SImport;
     PValue pathValue = evaluate(it, imp->path, env);
 
     if (!IsValueObjType(pathValue, OT_STR)) {
@@ -993,15 +1001,29 @@ static finline ExResult vsImportStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     }
 
     char *pathStr = ValueAsObj(pathValue)->v.OString.value;
+
+	//Create a blank module
     PModule *mod = NewModule(it, pathStr);
+
     if (mod == NULL) {
         error(it, stmt->op, "Failed to create module");
         return ExSimple(MakeNil());
     }
+
+	// Add module to interpreter
     PushModule(it, mod);
-    u64 key = imp->name->hash;
-    PushProxy(it, key, imp->name->lexeme, mod);
+    
+	u64 key = imp->name->hash;
+    
+	PushProxy(it, key, imp->name->lexeme, mod);
+
+	// Fetch which stdlib module to import, 
+	// if nothing matches returns STDLIB_NONE
     StdlibMod stdmod = GetStdlibMod(mod->pathname);
+
+	// Register the env to gc, so it doesn't free the env in the next statement
+	RegisterRootEnv(it->gc, mod->env);
+
     if (stdmod != STDLIB_NONE) {
         PushStdlib(it, mod->env, mod->pathname, stdmod);
     } else {

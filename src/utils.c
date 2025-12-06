@@ -182,7 +182,6 @@ char *StrJoin(const char *a, u64 alen, const char *b, u64 blen, bool *ok) {
 }
 
 double NumberFromStr(const char *lexeme, u64 len, bool *ok) {
-
     char *buf = PCalloc(len + 1, sizeof(char));
     if (buf == NULL) {
         *ok = false;

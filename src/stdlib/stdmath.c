@@ -3,6 +3,7 @@
 #include "../include/pstdlib.h"
 #include "../include/ptypes.h"
 #include <math.h>
+#include <stdbool.h>
 #include <stddef.h>
 
 static inline double getGcd(double a, double b) {
@@ -72,37 +73,112 @@ static PValue math_GCD(PInterpreter *it, PValue *args, u64 argc) {
     return MakeNumber(result);
 }
 static PValue math_LCM(PInterpreter *it, PValue *args, u64 argc) {
-    return MakeNil();
+    PValue rawA = args[0];
+    PValue rawB = args[1];
+
+    if (!IsValueNum(rawA) || !IsValueNum(rawB)) {
+        // Make Error
+        return MakeNil();
+    }
+
+    double numA = ValueAsNum(rawA);
+    double numB = ValueAsNum(rawB);
+    double result = (numA * numB) / getGcd(numA, numB);
+    return MakeNumber(result);
 }
 static PValue math_Sine(PInterpreter *it, PValue *args, u64 argc) {
-    return MakeNil();
+    PValue raw = args[0];
+    if (!IsValueNum(raw)) {
+        return MakeNil(); // error
+    }
+    double result = sin(ValueAsNum(raw));
+    return MakeNumber(result);
 }
 static PValue math_Cosine(PInterpreter *it, PValue *args, u64 argc) {
-    return MakeNil();
+    PValue raw = args[0];
+    if (!IsValueNum(raw)) {
+        return MakeNil(); // error
+    }
+    double result = cos(ValueAsNum(raw));
+    return MakeNumber(result);
 }
 static PValue math_Tangent(PInterpreter *it, PValue *args, u64 argc) {
-    return MakeNil();
+    PValue raw = args[0];
+    if (!IsValueNum(raw)) {
+        return MakeNil(); // error
+    }
+    double result = tan(ValueAsNum(raw));
+    return MakeNumber(result);
 }
 static PValue math_Degree(PInterpreter *it, PValue *args, u64 argc) {
-    return MakeNil();
+    PValue raw = args[0];
+    if (!IsValueNum(raw)) {
+        return MakeNil(); // error
+    }
+    double result = ValueAsNum(raw) * (180.0 / CONST_PI);
+    return MakeNumber(result);
 }
 static PValue math_Radians(PInterpreter *it, PValue *args, u64 argc) {
-    return MakeNil();
+    PValue raw = args[0];
+    if (!IsValueNum(raw)) {
+        return MakeNil(); // error
+    }
+    double result = ValueAsNum(raw) * (CONST_PI / 180.0);
+    return MakeNumber(result);
 }
 static PValue math_Number(PInterpreter *it, PValue *args, u64 argc) {
-    return MakeNil();
+    PValue rawStr = args[0];
+
+    if (!IsValueObjType(rawStr, OT_STR)) {
+        return MakeError(it->gc, "Only string can be converted to numbers");
+    }
+
+    struct OString *strObj = &ValueAsObj(rawStr)->v.OString;
+    double result = 0;
+    bool isok = true;
+    if (strObj->isVirtual) {
+        result = NumberFromStr(strObj->value, StrLength(strObj->value), &isok);
+    } else {
+        result = NumberFromStr(strObj->name->lexeme, strObj->name->len, &isok);
+    }
+
+    if (!isok) {
+        return MakeError(it->gc, "Failed to convert string to number");
+    }
+
+    return MakeNumber(result);
 }
 static PValue math_Abs(PInterpreter *it, PValue *args, u64 argc) {
-    return MakeNil();
+    PValue raw = args[0];
+    if (!IsValueNum(raw)) {
+        return MakeNil(); // error
+    }
+    double result = fabs(ValueAsNum(raw));
+    return MakeNumber(result);
 }
 static PValue math_Round(PInterpreter *it, PValue *args, u64 argc) {
-    return MakeNil();
+    PValue raw = args[0];
+    if (!IsValueNum(raw)) {
+        return MakeNil(); // error
+    }
+    double result = round(ValueAsNum(raw));
+    return MakeNumber(result);
 }
 static PValue math_Floor(PInterpreter *it, PValue *args, u64 argc) {
-    return MakeNil();
+    PValue raw = args[0];
+    if (!IsValueNum(raw)) {
+        return MakeNil(); // error
+    }
+    double result = floor(ValueAsNum(raw));
+    return MakeNumber(result);
 }
 static PValue math_Ceil(PInterpreter *it, PValue *args, u64 argc) {
-    return MakeNil();
+    PValue raw = args[0];
+    if (!IsValueNum(raw)) {
+        return MakeNil(); // error
+    }
+    double result = ceil(ValueAsNum(raw));
+    return MakeNumber(result);
 }
 #define MATH_STD_SQRT    "বর্গমূল"
 #define MATH_STD_LOGTEN  "লগদশ"
@@ -120,6 +196,8 @@ static PValue math_Ceil(PInterpreter *it, PValue *args, u64 argc) {
 #define MATH_STD_ROUND   "রাউন্ড"
 #define MATH_STD_FLOOR   "ফ্লোর"
 #define MATH_STD_CEIL    "সিল"
+#define MATH_STD_PI      "পাই"
+#define MATH_STD_E       "ই"
 
 void PushStdlibMath(PInterpreter *it, PEnv *env) {
     StdlibEntry entries[] = {
@@ -151,6 +229,12 @@ void PushStdlibMath(PInterpreter *it, PEnv *env) {
         );
     }
 
-    EnvPutValue(env, StrHash("pi", 2, it->gc->timestamp), MakeNumber(CONST_PI));
-    EnvPutValue(env, StrHash("e", 1, it->gc->timestamp), MakeNumber(CONST_E));
+    EnvPutValue(
+        env, StrHash(MATH_STD_PI, StrLength(MATH_STD_PI), it->gc->timestamp),
+        MakeNumber(CONST_PI)
+    );
+    EnvPutValue(
+        env, StrHash(MATH_STD_E, StrLength(MATH_STD_E), it->gc->timestamp),
+        MakeNumber(CONST_E)
+    );
 }

@@ -246,17 +246,12 @@ void PrintObject(const PObj *o) {
     switch (o->type) {
         case OT_STR: {
             const struct OString *str = &o->v.OString;
-            if (str->isVirtual) {
                 if (str->value != NULL) {
                     printf("%s", str->value);
                 } else {
                     printf("<INVALID STRING>");
                 }
-            } else {
-                if (str->name != NULL) {
-                    printf("%s", str->name->lexeme);
-                }
-            }
+ 
             break;
         }
         case OT_FNC: {
@@ -322,16 +317,15 @@ void PrintObject(const PObj *o) {
 
 char *ObjTypeToString(PObjType type) {
     switch (type) {
-        case OT_STR: return "String"; break;
-        case OT_FNC: return "Function"; break;
-        case OT_ARR: return "Array"; break;
-        case OT_MAP: return "HashMap"; break;
-        case OT_NATIVE: return "Native Func"; break;
+        case OT_STR: return "String";
+        case OT_FNC: return "Function";
+        case OT_ARR: return "Array";
+        case OT_MAP: return "HashMap";
+        case OT_NATIVE: return "Native Func";
         case OT_ERROR: return "Error";
         case OT_UPVAL: return "Upvalue";
     }
 
-    return "";
 }
 
 bool IsObjEqual(const PObj *a, const PObj *b) {

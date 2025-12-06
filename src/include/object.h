@@ -84,6 +84,8 @@ typedef struct PObj {
         struct OString {
             Token *name;
             char *value;
+			// If string is virtual it means the it was created at runtime
+			// otherwise the `value` is actually referenced from AST's literal
             bool isVirtual;
         } OString;
         // Function Object. Type : `OT_FNC`

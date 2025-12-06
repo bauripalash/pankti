@@ -23,7 +23,6 @@ static PValue ntvShow(PInterpreter *it, PValue *args, u64 argc) {
             printf(" ");
         }
     }
-    printf("\n");
     return MakeNil();
 }
 

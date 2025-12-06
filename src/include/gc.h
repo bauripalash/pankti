@@ -8,7 +8,6 @@ extern "C" {
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <time.h>
 
 #include "ast.h"
 #include "object.h"
@@ -78,6 +77,8 @@ void FreeObject(Pgc *gc, PObj *o);
 // `name` = Token (optional if virtual, created in runtime)
 // `value` = String value
 // `virt` = Is the string virtual aka. created on runtime
+// If string is virtual it means, the string object is the owner of value
+// otherwise the owner of the heap allocated string is owned by AST's Literal
 PObj *NewStrObject(Pgc *gc, Token *name, char *value, bool virt);
 
 // Create Function Statement Object
