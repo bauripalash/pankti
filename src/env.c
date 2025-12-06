@@ -11,9 +11,12 @@
 #include "include/ptypes.h"
 
 // NOLINTBEGIN
+static inline uint64_t envHash(u64 key){ return key; }
 #define NAME   EnvTable
 #define KEY_TY u64
 #define VAL_TY PValue
+#define MAX_LOAD 0.75
+#define HASH_FN envHash
 #define IMPLEMENTATION_MODE
 #include "external/verstable/verstable.h"
 // NOLINTEND

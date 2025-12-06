@@ -63,12 +63,14 @@ void FreeCore(PanktiCore *core) {
     PFree(core);
 }
 
+#ifdef PANKTI_BUILD_DEBUG
 // Print All the Scanned Tokens
 #define DEBUG_LEXER
 // Print the Ast
 #define DEBUG_PARSER
 // Print time it takes to finish each step
 #define DEBUG_TIMES
+#endif
 
 void RunCore(PanktiCore *core) {
     if (core == NULL) {
