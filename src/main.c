@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifndef PANKTI_VERSION
+#define PANKTI_VERSION "0.0.0"
+#endif
+
 #ifdef PANKTI_OS_WIN
 void setupWindows() {
 #include <io.h>
@@ -25,9 +29,8 @@ void setupOs(void) {
 int main(int argc, char **argv) {
     setupOs();
     if (argc < 2) {
-        printf("Error: Please provide a filename to run.\n");
-        printf("Pankti Programming Language\n");
-        printf("Usage: pankti [Filename]\n");
+		printf("Pankti Programming Language v%s\n", PANKTI_VERSION);
+		printf("Usage: pankti [FILENAME]\n");
         return 1;
     } else {
         char *filepath = argv[1];
