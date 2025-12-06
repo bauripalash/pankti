@@ -31,8 +31,8 @@ Pgc *NewGc(void) {
     gc->rootEnvs = NULL;
     gc->rootEnvCount = 0;
 
-    gc->envFreeList = NULL;
-    arrsetcap(gc->envFreeList, 8);
+	gc->envFreeListCap = GC_ENV_FREELIST_DEF_CAP;
+    gc->envFreeList = PCreateArray(PEnv*, gc->envFreeListCap);
     gc->envFreeListCount = 0;
 
     return gc;
@@ -70,9 +70,10 @@ void FreeGc(Pgc *gc) {
 
     if (gc->envFreeList != NULL) {
         for (u64 i = 0; i < gc->envFreeListCount; i++) {
-            ReallyFreeEnv(arrpop(gc->envFreeList));
+            ReallyFreeEnv(gc->envFreeList[i]);
         }
-        arrfree(gc->envFreeList);
+
+		PFree(gc->envFreeList);
     }
 
     PFree(gc);

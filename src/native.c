@@ -65,7 +65,7 @@ static PValue ntvPushArray(PInterpreter *it, PValue *args, u64 argc) {
         }
     }
 
-    return obj->v.OArray.count;
+    return MakeNumber(obj->v.OArray.count);
 }
 
 void RegisterNatives(PInterpreter *it, PEnv *env) {

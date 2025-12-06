@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "external/stb/stb_ds.h"
 #include "include/alloc.h"
 #include "include/env.h"
 #include "include/gc.h"
@@ -23,9 +22,9 @@ static inline uint64_t envHash(u64 key){ return key; }
 
 PEnv *NewEnv(Pgc *gc, PEnv *enclosing) {
     if (gc->envFreeListCount > 0) {
-        PEnv *e = arrpop(gc->envFreeList);
+		gc->envFreeListCount--;
+        PEnv *e = gc->envFreeList[gc->envFreeListCount];
         e->enclosing = enclosing;
-        gc->envFreeListCount = (u64)arrlen(gc->envFreeList);
         return e;
     }
 
@@ -42,9 +41,21 @@ PEnv *NewEnv(Pgc *gc, PEnv *enclosing) {
 void RecycleEnv(Pgc *gc, PEnv *e) {
     e->enclosing = NULL;
     e->count = 0;
+
+	if (gc->envFreeListCount >= gc->envFreeListCap) {
+		u64 newCap = gc->envFreeListCap * GC_ENV_FREELIST_GROW_FACTOR;
+		PEnv ** temp = PRealloc(gc->envFreeList, sizeof(PEnv*) * newCap);
+		if (temp == NULL) {
+			ReallyFreeEnv(e);
+			return;
+		}
+		gc->envFreeList = temp;
+		gc->envFreeListCap = newCap;
+	}
+
     EnvTable_clear(&e->table);
-    arrpush(gc->envFreeList, e);
-    gc->envFreeListCount = (u64)arrlen(gc->envFreeList);
+	gc->envFreeList[gc->envFreeListCount] = e;
+    gc->envFreeListCount++;
 }
 
 void ReallyFreeEnv(PEnv *e) {

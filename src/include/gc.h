@@ -30,6 +30,14 @@ extern "C" {
 #define GC_GROW_FACTOR 2
 #endif
 
+#ifndef GC_ENV_FREELIST_GROW_FACTOR
+#define GC_ENV_FREELIST_GROW_FACTOR 2
+#endif
+
+#ifndef GC_ENV_FREELIST_DEF_CAP
+#define GC_ENV_FREELIST_DEF_CAP 16
+#endif
+
 // Pankti Garbage Collector
 typedef struct Pgc {
     // Disable GC
@@ -52,6 +60,8 @@ typedef struct Pgc {
     PEnv **envFreeList;
     // Size/Count of Env Free List
     u64 envFreeListCount;
+	// Capacity of Env Free List
+	u64 envFreeListCap;
 
 } Pgc;
 
