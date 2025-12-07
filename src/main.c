@@ -1,11 +1,8 @@
 #include "include/core.h"
+#include "include/version.h"
 #include <locale.h>
 #include <stdio.h>
-#include <stdlib.h>
 
-#ifndef PANKTI_VERSION
-#define PANKTI_VERSION "0.0.0"
-#endif
 
 #ifdef PANKTI_OS_WIN
 void setupWindows() {

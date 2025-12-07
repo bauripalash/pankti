@@ -1,7 +1,64 @@
 const std = @import("std");
+
+const VERSION_FILE = "PANKTI_VERSION.txt";
+
+const GitInfo = struct {
+    hash: []const u8,
+    count: []const u8,
+};
+
+pub fn getGitInfo(b: *std.Build) GitInfo {
+    var result: GitInfo = .{
+        .count = "",
+        .hash = "",
+    };
+
+    var code: u8 = undefined;
+
+    const hashResult = b.runAllowFail(
+        &[_][]const u8{ "git", "rev-parse", "--short", "HEAD" },
+        &code,
+        .Ignore,
+    ) catch "";
+
+    var tagName = b.runAllowFail(
+        &[_][]const u8{ "git", "describe", "--tags", "--abbrev=0" },
+        &code,
+        .Ignore,
+    ) catch "";
+
+    var countResult: []u8 = undefined;
+    if (code != 0) {
+        countResult = b.runAllowFail(
+            &[_][]const u8{ "git", "rev-list", "--count", "HEAD" },
+            &code,
+            .Ignore,
+        ) catch "";
+    } else {
+        tagName = std.mem.trim(u8, tagName, "\n\r \t");
+        countResult = b.runAllowFail(
+            &[_][]const u8{
+                "git",
+                "rev-list",
+                "--count",
+                b.fmt("{s}..HEAD", .{tagName}),
+            },
+            &code,
+            .Ignore,
+        ) catch "";
+    }
+
+    result.hash = std.mem.trim(u8, hashResult, "\n\r \t");
+    result.count = std.mem.trim(u8, countResult, "\n\r \t");
+
+    return result;
+}
+
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
+
+    const gitinfo = getGitInfo(b);
 
     var srcCore = [_][]const u8{
         "src/ast.c",
@@ -50,11 +107,7 @@ pub fn build(b: *std.Build) void {
         "tests/test_parser.c",
     };
 
-    var debugFlags = [_][]const u8{
-        "-Wall",
-        "-std=c11",
-        "-g3",
-    };
+    var debugFlags = [_][]const u8{ "-Wall", "-std=c11", "-g3" };
 
     const mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
@@ -89,6 +142,36 @@ pub fn build(b: *std.Build) void {
 
     exe.linkLibC();
     testsExe.linkLibC();
+
+    mod.addCMacro("PANKTI_GIT_HASH", b.fmt("\"{s}\"", .{gitinfo.hash}));
+    testsMod.addCMacro("PANKTI_GIT_HASH", b.fmt("\"{s}\"", .{gitinfo.hash}));
+
+    mod.addCMacro("PANKTI_GIT_COUNT", b.fmt("\"{s}\"", .{gitinfo.count}));
+    testsMod.addCMacro("PANKTI_GIT_COUNT", b.fmt("\"{s}\"", .{gitinfo.count}));
+
+    mod.addCMacro("USE_NAN_BOXING", "1");
+    testsMod.addCMacro("USE_NAN_BOXING", "1");
+
+    if (target.result.os.tag == .linux) {
+        mod.addCMacro("PANKTI_OS_LINUX", "1");
+        testsMod.addCMacro("PANKTI_OS_LINUX", "1");
+    } else if (target.result.os.tag == .windows) {
+        mod.addCMacro("PANKTI_OS_WIN", "1");
+        testsMod.addCMacro("PANKTI_OS_WIN", "1");
+    } else if (target.result.os.tag == .macos) {
+        mod.addCMacro("PANKTI_OS_MAC", "1");
+        testsMod.addCMacro("PANKTI_OS_MAC", "1");
+    } // Web platform not yet available
+
+    if (optimize == .Debug) {
+        mod.addCMacro("PANKTI_BUILD_DEBUG", "1");
+        testsMod.addCMacro("PANKTI_BUILD_DEBUG", "1");
+    } else {
+        mod.addCMacro("PANKTI_BUILD_RELEASE", "1");
+        testsMod.addCMacro("PANKTI_BUILD_RELEASE", "1");
+    }
+
+    //testsMod.addCMacro("PANKTI_VERSION", b.fmt("\"{s}\"", .{versionInfo}));
 
     b.installArtifact(exe);
 
