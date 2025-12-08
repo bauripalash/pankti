@@ -86,7 +86,7 @@ endif()
 
 
 enable_testing()
-add_subdirectory(tests)
+add_subdirectory(tests/frontend)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD_REQUIRED ON)

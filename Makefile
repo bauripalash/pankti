@@ -35,7 +35,7 @@ PERFFILE ?= ./fib35.pank
 TEST_BIN ?= pankti_tests
 
 # Test Binary Output path for CMake build
-TEST_OUTPUT ?= $(CMAKE_BUILD_DIR)/tests/$(TEST_BIN)
+TEST_OUTPUT ?= $(CMAKE_BUILD_DIR)/tests/frontend/$(TEST_BIN)
 
 # Test Binary Output path for Zig build
 ZIG_TEST_OUTPUT ?= $(ZIG_BUILD_DIR)/bin/$(TEST_BIN)
@@ -59,9 +59,14 @@ run: build
 	./$(CMAKE_OUTPUT) $(FILE)
 
 .PHONY: test
-test:
-	cmake --build build --target $(TEST_BIN)
-	./$(TEST_OUTPUT) $(TEST_ARGS)
+test: build_rls
+	@cmake --build build --target $(TEST_BIN)
+	@echo "==== Running Frontend Tests ===="
+	@./$(TEST_OUTPUT) $(TEST_ARGS)
+	@echo "==== Finished Frontend Tests ===="
+	@echo "==== Running Runtime Tests ===="
+	@PANKTI_BIN=$(CMAKE_OUTPUT) python -m unittest discover -s tests
+	@echo "==== Finished Runtime Tests ===="
 
 
 .PHONY: zbuild
@@ -74,8 +79,13 @@ zrun: zbuild
 
 .PHONY: ztest
 ztest:
-	zig build ntests
-	./$(ZIG_TEST_OUTPUT) $(TEST_ARGS)
+	@zig build ntests -Doptimize=ReleaseFast
+	@echo "==== Running Frontend Tests ===="
+	@./$(ZIG_TEST_OUTPUT) $(TEST_ARGS)
+	@echo "==== Finished Frontend Tests ===="
+	@echo "==== Running Runtime Tests ===="
+	@PANKTI_BIN=$(ZIG_OUTPUT) python -m unittest discover -s tests
+	@echo "==== Finished Runtime Tests ===="
 
 .PHONY: fmt
 fmt:

@@ -99,12 +99,12 @@ pub fn build(b: *std.Build) void {
     };
 
     var testsMain = [_][]const u8{
-        "tests/test_main.c",
+        "tests/frontend/test_main.c",
     };
 
     var testsSrcs = [_][]const u8{
-        "tests/test_lexer.c",
-        "tests/test_parser.c",
+        "tests/frontend/test_lexer.c",
+        "tests/frontend/test_parser.c",
     };
 
     var debugFlags = [_][]const u8{ "-Wall", "-std=c11", "-g3" };
@@ -120,7 +120,7 @@ pub fn build(b: *std.Build) void {
     mod.addCSourceFiles(.{ .files = &srcExternal, .flags = &debugFlags });
 
     const testsMod = b.createModule(.{
-        .root_source_file = b.path("tests/test_main.zig"),
+        .root_source_file = b.path("tests/frontend/test_main.zig"),
         .target = target,
         .optimize = optimize,
     });
