@@ -2,9 +2,9 @@ import unittest
 from . import script_runner as r
 
 
-class TestStdlibMath(unittest.TestCase):
-    def test_stdlibmath(self):
-        output, expected = r.runner_golden("stdmath")
+class TestBenchmarks(unittest.TestCase):
+    def test_fib(self):
+        output, expected = r.runner_golden("fib30")
 
         output_lines = output.splitlines()
         expected_lines = expected.splitlines()

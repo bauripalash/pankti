@@ -65,7 +65,7 @@ test: build_rls
 	@./$(TEST_OUTPUT) $(TEST_ARGS)
 	@echo "==== Finished Frontend Tests ===="
 	@echo "==== Running Runtime Tests ===="
-	@PANKTI_BIN=$(CMAKE_OUTPUT) python -m unittest discover -s tests
+	@PANKTI_BIN=$(CMAKE_OUTPUT) python -m unittest discover -s tests --verbose
 	@echo "==== Finished Runtime Tests ===="
 
 
@@ -84,7 +84,7 @@ ztest:
 	@./$(ZIG_TEST_OUTPUT) $(TEST_ARGS)
 	@echo "==== Finished Frontend Tests ===="
 	@echo "==== Running Runtime Tests ===="
-	@PANKTI_BIN=$(ZIG_OUTPUT) python -m unittest discover -s tests
+	@PANKTI_BIN=$(ZIG_OUTPUT) python -m unittest discover -s tests --verbose
 	@echo "==== Finished Runtime Tests ===="
 
 .PHONY: fmt
