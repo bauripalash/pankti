@@ -84,6 +84,7 @@ ztest:
 	@./$(ZIG_TEST_OUTPUT) $(TEST_ARGS)
 	@echo "==== Finished Frontend Tests ===="
 	@echo "==== Running Runtime Tests ===="
+	@zig build -Doptimize=ReleaseFast
 	@PANKTI_BIN=$(ZIG_OUTPUT) python -m unittest discover -s tests --verbose
 	@echo "==== Finished Runtime Tests ===="
 
