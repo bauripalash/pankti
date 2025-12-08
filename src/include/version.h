@@ -26,7 +26,7 @@ extern "C" {
 
 // Release Level
 // '_' = Normal Release (Default)
-// `dev`, `alpha`, `beta`, rc = Pre-release
+// `dev`, `alpha<NUMBER>`, `beta<NUMBER>`, rc<NUMBER> = Pre-release
 #ifndef PANKTI_RELEASE_LEVEL
 #define PANKTI_RELEASE_LEVEL "dev"
 #endif
@@ -60,17 +60,6 @@ static inline int PanktiVersionHasGitInfo(void){
 	return PANKTI_GIT_COUNT[0] != '\0' && PANKTI_GIT_HASH[0] != '\0';
 }
 
-
-static inline const char * PanktiVersionGetString(void){
-	if (!PanktiVersionHasGitInfo()) {
-		return PANKTI_VERSION_BASE;
-	}else{
-		return  PANKTI_VERSION_BASE "-" PANKTI_RELEASE_LEVEL ".r" PANKTI_GIT_COUNT "+" PANKTI_GIT_HASH;
-	}
-}
-
-#define PANKTI_VERSION PanktiVersionGetString()
-
 static inline const char * PanktiVersionGetBase(void){
 	return PANKTI_VERSION_BASE;
 }
@@ -79,17 +68,38 @@ static inline const char * PanktiVersionGetGitHash(void){
 	return PANKTI_GIT_HASH;
 }
 
-static inline const char * PanktiVersionGetGitCount(void){
-	return PANKTI_GIT_COUNT;
-}
-
-static inline const char * PanktiVersionGetReleaseLevel(void){
-	return PANKTI_RELEASE_LEVEL;
-}
-
 static inline int PanktiVersionGetHex(void){
 	return PANKTI_VERSION_AS_HEX;
 }
+
+static inline int PanktiVersionIsPrerelease(void){
+	if (PANKTI_RELEASE_LEVEL[0] != '\0') {
+		return 1;
+	}else{
+		return 0;
+	}
+}
+
+static inline int PanktiVersionIsDevBuild(void){
+	return PanktiVersionIsPrerelease() && PANKTI_RELEASE_LEVEL[0] == 'd';
+}
+
+
+static inline const char * PanktiVersionGetString(void){
+	if (PanktiVersionIsPrerelease()) {
+		if (PanktiVersionHasGitInfo() && PanktiVersionIsDevBuild()) {
+			return  PANKTI_VERSION_BASE "-" PANKTI_RELEASE_LEVEL ".r" PANKTI_GIT_COUNT "+" PANKTI_GIT_HASH;
+		} else{
+			return PANKTI_VERSION_BASE "-" PANKTI_RELEASE_LEVEL;
+		}
+	}else{
+		return PANKTI_VERSION_BASE;
+	}
+}
+
+#define PANKTI_VERSION PanktiVersionGetString()
+
+
 
 #ifdef __cplusplus
 }
