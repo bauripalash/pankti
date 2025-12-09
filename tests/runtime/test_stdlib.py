@@ -1,18 +1,10 @@
 import unittest
-from . import script_runner as r
+from . import testcore
 
 
-class TestStdlibMath(unittest.TestCase):
-    def test_stdlibmath(self):
-        output, expected = r.runner_golden("stdmath")
-
-        output_lines = output.splitlines()
-        expected_lines = expected.splitlines()
-
-        self.assertEqual(len(output_lines), len(expected_lines))
-
-        for i, (out, gold) in enumerate(zip(output_lines, expected_lines)):
-            self.assertEqual(out.strip(), gold.strip(), f"line number -> {i}")
+class TestStdlibMath(testcore.PanktiTestCase):
+    def test_stdlib_math(self):
+        self.golden("stdmath")
 
 
 if __name__ == "__main__":

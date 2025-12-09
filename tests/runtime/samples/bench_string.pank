@@ -1,0 +1,10 @@
+dhori string = ""
+dhori i = 0
+dhori limit = 10000
+
+jotokhon i < limit koro
+	string = string + "a"
+	i = i + 1
+sesh
+
+print string

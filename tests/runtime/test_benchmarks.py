@@ -1,18 +1,22 @@
 import unittest
-from . import script_runner as r
+from . import testcore
 
 
-class TestBenchmarks(unittest.TestCase):
-    def test_fib(self):
-        output, expected = r.runner_golden("fib30")
+class TestBenchmarks(testcore.PanktiTestCase):
+    def test_benchmark_array(self):
+        self.golden("bench_array")
 
-        output_lines = output.splitlines()
-        expected_lines = expected.splitlines()
+    def test_benchmark_fib(self):
+        self.golden("bench_fib")
 
-        self.assertEqual(len(output_lines), len(expected_lines))
+    def test_benchmark_loop(self):
+        self.golden("bench_loop")
 
-        for i, (out, gold) in enumerate(zip(output_lines, expected_lines)):
-            self.assertEqual(out.strip(), gold.strip(), f"line number -> {i}")
+    def test_benchmark_nestcall(self):
+        self.golden("bench_nestcall")
+
+    def test_benchmark_string(self):
+        self.golden("bench_string")
 
 
 if __name__ == "__main__":

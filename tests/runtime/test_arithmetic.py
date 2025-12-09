@@ -1,5 +1,5 @@
 import unittest
-from . import script_runner as r
+from . import testcore
 
 precedence_test_cases: dict[str, float] = {
     "1 + 2 * 3": 1 + 2 * 3,
@@ -9,11 +9,11 @@ precedence_test_cases: dict[str, float] = {
 }
 
 
-class TestBasicArithmetic(unittest.TestCase):
+class TestBasicArithmetic(testcore.PanktiTestCase):
     def test_arithmetic_precedence(self):
         for src, expected in precedence_test_cases.items():
-            out = r.runner_raw("print " + src)
-            self.assertAlmostEqual(r.as_float(out), expected, 6)
+            out = self.run_raw("print " + src)
+            self.assertAlmostEqual(float(out), expected, 6)
 
 
 if __name__ == "__main__":

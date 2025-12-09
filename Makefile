@@ -88,6 +88,10 @@ ztest:
 	@PANKTI_BIN=$(ZIG_OUTPUT) python -m unittest discover -s tests --verbose
 	@echo "==== Finished Runtime Tests ===="
 
+.PHONY: runtime_tests
+runtime_tests:
+	python -m unittest discover -s tests --verbose
+
 .PHONY: fmt
 fmt:
 	@clang-format -i -style=file --verbose $(SOURCES) $(HEADERS)
