@@ -29,7 +29,7 @@ RELEASE_CC ?= clang
 FILE ?= ./a.pank
 
 # File to Run for benchmark
-PERFFILE ?= ./fib35.pank
+PERFFILE ?= ./benchmarks/fib.pank
 
 # The Native Test Binary
 TEST_BIN ?= pankti_tests
