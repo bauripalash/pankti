@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-#define OS_STDLIB_NAME     "os"
+#define OS_STDLIB_NAME     "ওএস"
 #define MATH_STDLIB_NAME   "গণিত"
 #define MAP_STDLIB_NAME    "map"
 #define STRING_STDLIB_NAME "string"

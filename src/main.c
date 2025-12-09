@@ -5,8 +5,9 @@
 
 
 #ifdef PANKTI_OS_WIN
-void setupWindows() {
 #include <io.h>
+#include <windows.h>
+void setupWindows() {
     SetConsoleOutputCP(65001);
 }
 #endif
