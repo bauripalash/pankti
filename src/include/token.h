@@ -11,7 +11,7 @@ extern "C" {
 #include <stdint.h>
 
 // Token Types
-typedef enum TokenType {
+typedef enum PTokenType {
     // Token `(`
     T_LEFT_PAREN = 1,
 
@@ -114,19 +114,19 @@ typedef enum TokenType {
 
     // Token : End of File
     T_EOF = 47
-} TokenType;
+} PTokenType;
 
 // Get Token Type as String
-char *TokTypeToStr(TokenType type);
+char *TokTypeToStr(PTokenType type);
 // Print Token Type
-void PrintTokType(TokenType type);
+void PrintTokType(PTokenType type);
 // Is Token Double character?
-bool IsDoubleTok(TokenType type);
+bool IsDoubleTok(PTokenType type);
 
 // Token Object
 typedef struct Token {
     // Token Type
-    TokenType type;
+    PTokenType type;
     // Optional Lexeme : Referenced from source directly using string indexing.
     // Only used for Keywords, identifiers, strings, numbers.
     // Can be NULL
@@ -145,7 +145,7 @@ typedef struct Token {
 
 // Create an empty token.
 // `type` = Token type
-Token *NewToken(TokenType type);
+Token *NewToken(PTokenType type);
 // Free the token object
 void FreeToken(Token *token);
 // Set token lexeme. Calculate and set hash.

@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-char *TokTypeToStr(TokenType type) {
+char *TokTypeToStr(PTokenType type) {
     switch (type) {
         case T_LEFT_PAREN: return "LeftParen";
         case T_RIGHT_PAREN: return "RightParen";
@@ -58,16 +58,16 @@ char *TokTypeToStr(TokenType type) {
 
     return "Unknown";
 }
-void PrintTokType(TokenType type) { printf("%s", TokTypeToStr(type)); }
+void PrintTokType(PTokenType type) { printf("%s", TokTypeToStr(type)); }
 
-bool IsDoubleTok(TokenType type) {
+bool IsDoubleTok(PTokenType type) {
     if (type == T_BANG_EQ || type == T_EQEQ || type == T_GTE || type == T_LTE) {
         return true;
     }
     return false;
 }
 
-Token *NewToken(TokenType type) {
+Token *NewToken(PTokenType type) {
     Token *tok = PMalloc(sizeof(Token));
     if (tok == NULL) {
         return NULL;

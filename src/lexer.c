@@ -169,7 +169,7 @@ static bool match(Lexer *lx, char32_t target) {
     return true;
 }
 
-static bool addTokenWithLexeme(Lexer *lx, TokenType type, char *str, u64 len) {
+static bool addTokenWithLexeme(Lexer *lx, PTokenType type, char *str, u64 len) {
     Token *tok = NewToken(type);
     if (tok == NULL) {
         return false;
@@ -196,7 +196,7 @@ static bool addTokenWithLexeme(Lexer *lx, TokenType type, char *str, u64 len) {
     return true;
 }
 
-static bool addToken(Lexer *lx, TokenType type) {
+static bool addToken(Lexer *lx, PTokenType type) {
     return addTokenWithLexeme(lx, type, NULL, 0);
 }
 
@@ -249,7 +249,7 @@ static void readNumber(Lexer *lx) {
     addTokenWithLexeme(lx, T_NUM, lexeme, lx->current - lx->start);
 }
 
-static TokenType getIdentType(const char *str) {
+static PTokenType getIdentType(const char *str) {
     if (MatchKW(str, KW_EN_LET, KW_PN_LET, KW_BN_LET)) {
         return T_LET;
     } else if (MatchKW(str, KW_EN_AND, KW_PN_AND, KW_BN_AND)) {
@@ -297,7 +297,7 @@ static void readIdent(Lexer *lx) {
     }
 
     char *lexeme = SubString(lx->source, lx->start, lx->current);
-    TokenType identType = getIdentType(lexeme);
+    PTokenType identType = getIdentType(lexeme);
     addTokenWithLexeme(lx, identType, lexeme, lx->current - lx->start);
 }
 

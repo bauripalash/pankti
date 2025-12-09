@@ -20,7 +20,7 @@ typedef struct PInterpreter PInterpreter;
 typedef struct PEnv PEnv;
 
 // Value Type
-typedef enum PValueType { VT_NUM, VT_OBJ, VT_BOOL, VT_NIL } PValueType;
+typedef enum PValueType { PVAL_NUM, PVAL_OBJ, PVAL_BOOL, PVAL_NIL } PValueType;
 
 #if defined USE_NAN_BOXING
 typedef u64 PValue;
@@ -148,7 +148,7 @@ static inline PValue MakeNumber(double number) {
     return val;
 #else
     PValue val;
-    val.type = VT_NUM;
+    val.type = PVAL_NUM;
     val.v.num = number;
     return val;
 #endif
@@ -171,7 +171,7 @@ PValueType GetValueType(PValue value);
 #if defined(USE_NAN_BOXING)
 #define IsValueNum(val) (((val) & QNAN) != QNAN)
 #else
-#define IsValueNum(val) (val.type == VT_NUM)
+#define IsValueNum(val) (val.type == PVAL_NUM)
 #endif
 
 // Make a bool value
@@ -180,7 +180,7 @@ PValueType GetValueType(PValue value);
 #else
 static inline PValue MakeBool(bool bl) {
     PValue val;
-    val.type = VT_BOOL;
+    val.type = PVAL_BOOL;
     val.v.bl = bl;
     return val;
 }
@@ -190,7 +190,7 @@ static inline PValue MakeBool(bool bl) {
 #if defined(USE_NAN_BOXING)
 #define IsValueBool(val) (((val) | 1) == TrueValue)
 #else
-#define IsValueBool(val) (val.type == VT_BOOL)
+#define IsValueBool(val) (val.type == PVAL_BOOL)
 #endif
 
 #if defined(USE_NAN_BOXING)
@@ -205,7 +205,7 @@ static inline PValue MakeBool(bool bl) {
 #else
 static inline PValue MakeNil(void) {
     PValue val;
-    val.type = VT_NIL;
+    val.type = PVAL_NIL;
     return val;
 }
 #endif
@@ -214,7 +214,7 @@ static inline PValue MakeNil(void) {
 #if defined(USE_NAN_BOXING)
 #define IsValueNil(val) ((val) == NilValue)
 #else
-#define IsValueNil(val) (val.type == VT_NIL)
+#define IsValueNil(val) (val.type == PVAL_NIL)
 #endif
 
 // Make Object value. Wraps the object pointer as Value
@@ -223,7 +223,7 @@ static inline PValue MakeNil(void) {
 #else
 static inline PValue MakeObject(PObj *obj) {
     PValue val;
-    val.type = VT_OBJ;
+    val.type = PVAL_OBJ;
     val.v.obj = obj;
     return val;
 }
@@ -233,7 +233,7 @@ static inline PValue MakeObject(PObj *obj) {
 #if defined(USE_NAN_BOXING)
 #define IsValueObj(val) (((val) & (QNAN | SIGN_BIT)) == (QNAN | SIGN_BIT))
 #else
-#define IsValueObj(val) (val.type == VT_OBJ)
+#define IsValueObj(val) (val.type == PVAL_OBJ)
 #endif
 
 // Typecast value to object. Returns PObj pointer to the heap allocated object

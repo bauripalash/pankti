@@ -43,22 +43,22 @@ void PrintValue(PValue val) {
 
 PValueType GetValueType(PValue value) {
     if (IsValueNum(value)) {
-        return VT_NUM;
+        return PVAL_NUM;
     } else if (IsValueBool(value)) {
-        return VT_BOOL;
+        return PVAL_BOOL;
     } else if (IsValueNil(value)) {
-        return VT_NIL;
+        return PVAL_NIL;
     } else {
-        return VT_OBJ;
+        return PVAL_OBJ;
     }
 }
 
 const char *ValueTypeToStr(PValue val) {
     switch (GetValueType(val)) {
-        case VT_NUM: return "Number";
-        case VT_BOOL: return "Bool";
-        case VT_NIL: return "Nil";
-        case VT_OBJ: return ObjTypeToString(ValueAsObj(val)->type);
+        case PVAL_NUM: return "Number";
+        case PVAL_BOOL: return "Bool";
+        case PVAL_NIL: return "Nil";
+        case PVAL_OBJ: return ObjTypeToString(ValueAsObj(val)->type);
     }
 
     return "Unknown";
@@ -134,11 +134,11 @@ bool IsValueEqual(PValue a, PValue b) {
 #if defined(USE_NAN_BOXING)
         return a == b;
 #else
-        if (a.type == VT_NIL) {
+        if (a.type == PVAL_NIL) {
             return true;
-        } else if (a.type == VT_NUM) {
+        } else if (a.type == PVAL_NUM) {
             return a.v.num == b.v.num;
-        } else if (a.type == VT_BOOL) {
+        } else if (a.type == PVAL_BOOL) {
             return a.v.bl == b.v.bl;
         }
 #endif

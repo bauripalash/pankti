@@ -71,7 +71,7 @@ static Token *peek(const Parser *p) { return p->tokens[p->pos]; }
 
 static bool atEnd(const Parser *p) { return peek(p)->type == T_EOF; }
 
-static bool check(const Parser *p, TokenType t) {
+static bool check(const Parser *p, PTokenType t) {
 
     if (atEnd(p)) {
         return false;
@@ -89,7 +89,7 @@ static Token *advance(Parser *p) {
     return previous(p);
 }
 
-static bool matchMany(Parser *p, TokenType *types, int count) {
+static bool matchMany(Parser *p, PTokenType *types, int count) {
     for (int i = 0; i < count; i++) {
         if (check(p, types[i])) {
             advance(p);
@@ -100,7 +100,7 @@ static bool matchMany(Parser *p, TokenType *types, int count) {
     return false;
 }
 
-static bool matchOne(Parser *p, TokenType type) {
+static bool matchOne(Parser *p, PTokenType type) {
     if (check(p, type)) {
         advance(p);
         return true;
@@ -114,7 +114,7 @@ static inline void error(Parser *p, Token *tok, char *msg) {
     CoreParserError(p->core, tok, msg);
 }
 
-static Token *eat(Parser *p, TokenType t, char *msg) {
+static Token *eat(Parser *p, PTokenType t, char *msg) {
     if (check(p, t)) {
         return advance(p);
     }
@@ -164,7 +164,7 @@ static PExpr *rAssignment(Parser *p) {
 
 static PExpr *rEquality(Parser *p) {
     PExpr *expr = rComparison(p);
-    while (matchMany(p, (TokenType[]){T_BANG_EQ, T_EQEQ}, 2)) {
+    while (matchMany(p, (PTokenType[]){T_BANG_EQ, T_EQEQ}, 2)) {
         Token *op = previous(p);
         PExpr *right = rComparison(p);
 
@@ -176,7 +176,7 @@ static PExpr *rEquality(Parser *p) {
 
 static PExpr *rComparison(Parser *p) {
     PExpr *expr = rTerm(p);
-    while (matchMany(p, (TokenType[]){T_GT, T_GTE, T_LT, T_LTE}, 4)) {
+    while (matchMany(p, (PTokenType[]){T_GT, T_GTE, T_LT, T_LTE}, 4)) {
         Token *op = previous(p);
         PExpr *right = rTerm(p);
         expr = NewBinaryExpr(p->gc, expr, op, right);
@@ -187,7 +187,7 @@ static PExpr *rComparison(Parser *p) {
 
 static PExpr *rTerm(Parser *p) {
     PExpr *expr = rFactor(p);
-    while (matchMany(p, (TokenType[]){T_MINUS, T_PLUS}, 2)) {
+    while (matchMany(p, (PTokenType[]){T_MINUS, T_PLUS}, 2)) {
         Token *op = previous(p);
         PExpr *right = rFactor(p);
         expr = NewBinaryExpr(p->gc, expr, op, right);
@@ -198,7 +198,7 @@ static PExpr *rTerm(Parser *p) {
 
 static PExpr *rFactor(Parser *p) {
     PExpr *expr = rUnary(p);
-    while (matchMany(p, (TokenType[]){T_SLASH, T_ASTR}, 2)) {
+    while (matchMany(p, (PTokenType[]){T_SLASH, T_ASTR}, 2)) {
         Token *op = previous(p);
         PExpr *right = rUnary(p);
         if (right == NULL) {
@@ -210,7 +210,7 @@ static PExpr *rFactor(Parser *p) {
 }
 
 static PExpr *rUnary(Parser *p) {
-    if (matchMany(p, (TokenType[]){T_BANG, T_MINUS}, 2)) {
+    if (matchMany(p, (PTokenType[]){T_BANG, T_MINUS}, 2)) {
         Token *op = previous(p);
         PExpr *right = rUnary(p);
         return NewUnary(p->gc, op, right);
