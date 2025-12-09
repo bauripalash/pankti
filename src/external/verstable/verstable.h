@@ -456,7 +456,7 @@ License (MIT):
 #endif
 
 // Masks for manipulating and extracting data from a bucket's uint16_t metadatum.
-#define VT_EMPTY               0x0000
+#define _VT_EMPTY               0x0000
 #define VT_HASH_FRAG_MASK      0xF000 // 0b1111000000000000.
 #define VT_IN_HOME_BUCKET_MASK 0x0800 // 0b0000100000000000.
 #define VT_DISPLACEMENT_MASK   0x07FF // 0b0000011111111111, also denotes the displacement limit. Set to VT_LOAD to 1.0
@@ -538,9 +538,9 @@ static inline int vt_first_nonzero_uint16( uint64_t val )
 
 #endif
 
-// When the bucket count is zero, setting the metadata pointer to point to a VT_EMPTY placeholder, rather than NULL,
+// When the bucket count is zero, setting the metadata pointer to point to a _VT_EMPTY placeholder, rather than NULL,
 // allows us to avoid checking for a zero bucket count during insertion and lookup.
-static const uint16_t vt_empty_placeholder_metadatum = VT_EMPTY;
+static const uint16_t vt_empty_placeholder_metadatum = _VT_EMPTY;
 
 // Default hash and comparison functions.
 
@@ -1142,7 +1142,7 @@ static inline bool VT_CAT( NAME, _find_first_empty )(
   while( true )
   {
     *empty = ( home_bucket + linear_dispacement ) & table->buckets_mask;
-    if( table->metadata[ *empty ] == VT_EMPTY )
+    if( table->metadata[ *empty ] == _VT_EMPTY )
       return true;
 
     if( VT_UNLIKELY( ++*displacement == VT_DISPLACEMENT_MASK ) )
@@ -1272,7 +1272,7 @@ static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _insert_raw )(
       // Load-factor check.
       VT_UNLIKELY( table->key_count + 1 > VT_CAT( NAME, _bucket_count )( table ) * MAX_LOAD ) ||
       // Vacate the home bucket if it contains a key.
-      ( table->metadata[ home_bucket ] != VT_EMPTY && VT_UNLIKELY( !VT_CAT( NAME, _evict )( table, home_bucket ) ) )
+      ( table->metadata[ home_bucket ] != _VT_EMPTY && VT_UNLIKELY( !VT_CAT( NAME, _evict )( table, home_bucket ) ) )
     )
       return VT_CAT( NAME, _end_itr )();
 
@@ -1423,7 +1423,7 @@ bool VT_CAT( NAME, _rehash )( NAME *table, size_t bucket_count )
     new_table.metadata[ bucket_count ] = 0x01;
 
     for( size_t bucket = 0; bucket < VT_CAT( NAME, _bucket_count )( table ); ++bucket )
-      if( table->metadata[ bucket ] != VT_EMPTY )
+      if( table->metadata[ bucket ] != _VT_EMPTY )
       {
         VT_CAT( NAME, _itr ) itr = VT_CAT( NAME, _insert_raw )(
           &new_table,
@@ -1613,7 +1613,7 @@ VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _erase_itr_raw )( NAME *table, VT_CAT( N
     #ifdef KEY_DTOR_FN
     KEY_DTOR_FN( table->buckets[ itr_bucket ].key );
     #endif
-    table->metadata[ itr_bucket ] = VT_EMPTY;
+    table->metadata[ itr_bucket ] = _VT_EMPTY;
     return true;
   }
 
@@ -1644,7 +1644,7 @@ VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _erase_itr_raw )( NAME *table, VT_CAT( N
       if( next == itr_bucket )
       {
         table->metadata[ bucket ] |= VT_DISPLACEMENT_MASK;
-        table->metadata[ itr_bucket ] = VT_EMPTY;
+        table->metadata[ itr_bucket ] = _VT_EMPTY;
         return true;
       }
 
@@ -1670,7 +1670,7 @@ VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _erase_itr_raw )( NAME *table, VT_CAT( N
         table->metadata[ bucket ] & VT_HASH_FRAG_MASK );
 
       table->metadata[ prev ] |= VT_DISPLACEMENT_MASK;
-      table->metadata[ bucket ] = VT_EMPTY;
+      table->metadata[ bucket ] = _VT_EMPTY;
 
       // Whether the iterator should be advanced depends on whether the key moved to the iterator bucket came from
       // before or after that bucket.
@@ -1793,7 +1793,7 @@ VT_API_FN_QUALIFIERS void VT_CAT( NAME, _clear )( NAME *table )
 
   for( size_t i = 0; i < VT_CAT( NAME, _bucket_count )( table ); ++i )
   {
-    if( table->metadata[ i ] != VT_EMPTY )
+    if( table->metadata[ i ] != _VT_EMPTY )
     {
       #ifdef KEY_DTOR_FN
       KEY_DTOR_FN( table->buckets[ i ].key );
@@ -1803,7 +1803,7 @@ VT_API_FN_QUALIFIERS void VT_CAT( NAME, _clear )( NAME *table )
       #endif
     }
 
-    table->metadata[ i ] = VT_EMPTY;
+    table->metadata[ i ] = _VT_EMPTY;
   }
 
   table->key_count = 0;
