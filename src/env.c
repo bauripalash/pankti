@@ -10,12 +10,14 @@
 #include "include/ptypes.h"
 
 // NOLINTBEGIN
-static inline uint64_t envHash(u64 key){ return key; }
+static inline uint64_t envHashFn(u64 key){ return key; }
+static inline bool envCompareFn(u64 key1, u64 key2) { return key1 == key2; }
 #define NAME   EnvTable
 #define KEY_TY u64
 #define VAL_TY PValue
 #define MAX_LOAD 0.75
-#define HASH_FN envHash
+#define HASH_FN envHashFn
+#define CMPR_FN envCompareFn
 #define IMPLEMENTATION_MODE
 #include "external/verstable/verstable.h"
 // NOLINTEND
@@ -91,8 +93,8 @@ void MarkEnvGC(Pgc *gc, PEnv *e) {
         return;
     }
 
-    for (EnvTable_itr itr = vt_first(&e->table); !vt_is_end(itr);
-         itr = vt_next(itr)) {
+    for (EnvTable_itr itr = EnvTable_first(&e->table); !EnvTable_is_end(itr);
+         itr = EnvTable_next(itr)) {
         GcMarkValue(gc, itr.data->val);
     }
 }
@@ -104,8 +106,8 @@ void EnvCaptureUpvalues(Pgc *gc, PEnv *parentEnv, PEnv *clsEnv) {
 
     PEnv *cur = parentEnv;
     while (cur != NULL) {
-        for (EnvTable_itr itr = vt_first(&cur->table); !vt_is_end(itr);
-             itr = vt_next(itr)) {
+        for (EnvTable_itr itr = EnvTable_first(&cur->table); !EnvTable_is_end(itr);
+             itr = EnvTable_next(itr)) {
             u64 key = itr.data->key;
             if (EnvHasKey(clsEnv, key)) {
                 continue;
@@ -137,8 +139,8 @@ void DebugEnv(PEnv *e) {
     }
 
     u64 i = 0;
-    for (EnvTable_itr itr = vt_first(&e->table); !vt_is_end(itr);
-         itr = vt_next(itr)) {
+    for (EnvTable_itr itr = EnvTable_first(&e->table); !EnvTable_is_end(itr);
+         itr = EnvTable_next(itr)) {
         printf("%ld| <%ld '", i, itr.data->key);
         PrintValue(itr.data->val);
         printf("'>\n");
@@ -157,7 +159,7 @@ bool EnvHasKey(PEnv *e, u64 hash) {
 
     EnvTable_itr it = EnvTable_get(&e->table, hash);
 
-    if (!vt_is_end(it)) {
+    if (!EnvTable_is_end(it)) {
         return true;
     }
 
@@ -172,7 +174,7 @@ void EnvPutValue(PEnv *e, u64 hash, PValue value) {
         return;
     }
     EnvTable_itr it = EnvTable_get(&e->table, hash);
-    if (!vt_is_end(it)) {
+    if (!EnvTable_is_end(it)) {
         PValue stored = it.data->val;
         if (IsValueObjType(stored, OT_UPVAL)) {
             ValueAsObj(stored)->v.OUpval.value = value;
@@ -193,7 +195,7 @@ bool EnvSetValue(PEnv *e, u64 hash, PValue value) {
     }
 
     EnvTable_itr it = EnvTable_get(&e->table, hash);
-    if (!vt_is_end(it)) {
+    if (!EnvTable_is_end(it)) {
         PValue stored = it.data->val;
         if (IsValueObjType(stored, OT_UPVAL)) {
             ValueAsObj(stored)->v.OUpval.value = value;
@@ -219,7 +221,7 @@ PValue EnvGetValue(PEnv *e, u64 hash, bool *found) {
     }
 
     EnvTable_itr it = EnvTable_get(&e->table, hash);
-    if (!vt_is_end(it)) {
+    if (!EnvTable_is_end(it)) {
         *found = true;
         PValue stored = it.data->val;
         if (IsValueObjType(stored, OT_UPVAL)) {
