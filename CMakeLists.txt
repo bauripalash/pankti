@@ -63,7 +63,7 @@ endif()
 
 # ================== OS CHECK ==================
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "CYGWIN") 
+if (WIN32 OR CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "CYGWIN" OR CMAKE_SYSTEM_NAME STREQUAL "MSYS") 
 	set(IS_OS_WIN TRUE)
 endif()
 
@@ -117,7 +117,6 @@ set(PANKTI_DEBUG_CFLAGS
 	"-g3" 
 	"-pedantic"
 	"-Wall" 
-	"-Wconversion"
 	"-fsanitize=address"
 	"-fsanitize=undefined"
 	"-fsanitize=float-cast-overflow" 
@@ -140,13 +139,26 @@ set (PANKTI_REL_WITH_DINFO_CFLAGS
 
 if(IS_MSVC)
 	# Put MSVC CFLAGS overrides
+	set(PANKTI_DEBUG_CFLAGS
+		"/Od"
+		"/Wall"
+	)
+	set(PANKTI_RELEASE_CFLAGS
+		"/GL"
+		"/Ox"
+		"/GF"
+		"/Gy"
+	)
+	set (PANKTI_REL_WITH_DINFO_CFLAGS
+		"-g3"
+		${PANKTI_RELEASE_CFLAGS}
+	)
 endif()
 
 # ================== END COMPILER FLAGS ==================
 
 # ================== LINKER FLAGS ==================
 set(PANKTI_DEBUG_LINKER_FLAGS
-	"-lm"
 	"-fsanitize=address"
 	"-fsanitize=undefined"
 	"-fsanitize=float-cast-overflow"
@@ -154,7 +166,6 @@ set(PANKTI_DEBUG_LINKER_FLAGS
 )
 
 set(PANKTI_RELEASE_LINKER_FLAGS
-	"-lm"
 	"-flto"
 	"-funroll-loops"
 )
@@ -165,6 +176,14 @@ set(PANKTI_REL_WITH_DINFO_LINKER_FLAGS
 
 if(IS_MSVC)
 	# Put MSVC LDFLAGS overrides
+	set(PANKTI_DEBUG_LINKER_FLAGS
+	)
+	set(PANKTI_RELEASE_LINKER_FLAGS
+		"/LTCG"
+	)
+	set(PANKTI_REL_WITH_DINFO_LINKER_FLAGS 
+		${PANKTI_RELEASE_LINKER_FLAGS}
+	)
 endif()
 # ================== END LINKER FLAGS ==================
 
@@ -183,6 +202,10 @@ target_link_options(${PROJECT_NAME} PRIVATE
     $<$<CONFIG:MinSizeRel>:${PANKTI_RELEASE_LINKER_FLAGS}>
 )
 
+if (NOT IS_MSVC)
+	target_link_libraries(${PROJECT_NAME} PRIVATE m)
+endif()
+
 if(IS_DEBUG_BUILD)
 	target_compile_definitions(${PROJECT_NAME} PRIVATE MI_TRACK_ASAN=1)
 	add_compile_definitions(PANKTI_BUILD_DEBUG)
@@ -195,7 +218,7 @@ if(USE_NAN_BOXING)
 endif()
 
 if (IS_OS_WIN) 
-	add_compile_definitions(PANTKI_OS_WIN)
+	add_compile_definitions(PANKTI_OS_WIN)
 elseif (IS_OS_LINUX)
 	add_compile_definitions(PANKTI_OS_LINUX)
 elseif (IS_OS_MACOS) 
@@ -218,6 +241,7 @@ else()
 	message(STATUS "NaN-Boxing : Disabled")
 endif()
 message(STATUS "Build Type : ${CMAKE_BUILD_TYPE}")
+message(STATUS "OS :  ${CMAKE_SYSTEM_NAME}")
 message(STATUS "Compiler :  ${CMAKE_C_COMPILER_ID}")
 
 message(STATUS "==========================================")
