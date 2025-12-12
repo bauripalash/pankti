@@ -1,47 +1,47 @@
 # Actual Binary Name
-BIN ?= pankti
+BIN=pankti
 
 # Build Directory of CMake
-CMAKE_BUILD_DIR ?= build
+CMAKE_BUILD_DIR=build
 
 # Zig Out Directory
-ZIG_BUILD_DIR ?= zig-out
+ZIG_BUILD_DIR=zig-out
 
 # CMake built binary
-CMAKE_OUTPUT ?= $(CMAKE_BUILD_DIR)/$(BIN)
+CMAKE_OUTPUT=$(CMAKE_BUILD_DIR)/$(BIN)
 
 # Zig built binary
-ZIG_OUTPUT ?= $(ZIG_BUILD_DIR)/bin/$(BIN)
+ZIG_OUTPUT=$(ZIG_BUILD_DIR)/bin/$(BIN)
 
 # CC
-CC:=
+CC=cc
 
 # TCC Path (for future use)
-TCC ?= /usr/bin/tcc
+TCC=/usr/bin/tcc
 
 # Performance Test Compiler
-PERFCC ?=clang
+PERFCC=clang
 
 # Release Mode Compiler
-RELEASE_CC ?= clang
+RELEASE_CC=clang
 
 # File to Run on `run` step
-FILE ?= ./a.pank
+FILE=./a.pank
 
 # File to Run for benchmark
-PERFFILE ?= ./benchmarks/fib.pank
+PERFFILE=./benchmarks/fib.pank
 
 # The Native Test Binary
-TEST_BIN ?= pankti_tests
+TEST_BIN=pankti_tests
 
 # Test Binary Output path for CMake build
-TEST_OUTPUT ?= $(CMAKE_BUILD_DIR)/tests/frontend/$(TEST_BIN)
+TEST_OUTPUT=$(CMAKE_BUILD_DIR)/tests/frontend/$(TEST_BIN)
 
 # Test Binary Output path for Zig build
-ZIG_TEST_OUTPUT ?= $(ZIG_BUILD_DIR)/bin/$(TEST_BIN)
+ZIG_TEST_OUTPUT=$(ZIG_BUILD_DIR)/bin/$(TEST_BIN)
 
 # Arguments to pass to the testing binary
-TEST_ARGS ?= 
+TEST_ARGS=
 
 
 HEADERS:= $(shell find src/include -path 'src/external' -prune -o -path 'src/include/exported' -prune -o -name '*.h' -print)
