@@ -35,7 +35,7 @@ PERFFILE=./benchmarks/fib.pank
 TEST_BIN=pankti_tests
 
 # Test Binary Output path for CMake build
-TEST_OUTPUT=$(CMAKE_BUILD_DIR)/tests/frontend/$(TEST_BIN)
+TEST_OUTPUT=$(CMAKE_BUILD_DIR)/$(TEST_BIN)
 
 # Test Binary Output path for Zig build
 ZIG_TEST_OUTPUT=$(ZIG_BUILD_DIR)/bin/$(TEST_BIN)
