@@ -36,6 +36,15 @@ char *ReadFile(const char *path) {
 
                 fread(text, (size_t)size, 1, file);
                 text[size] = '\0';
+
+				// Check and Remove BOM from file
+				if (size >= 3 &&
+					(uchar)text[0] == UTF8_BOM_0 &&
+					(uchar)text[1] == UTF8_BOM_1 &&
+					(uchar)text[2] == UTF8_BOM_2) {
+					memmove(text, text + 3, size - 3);
+					text[size-3] = '\0';
+				}
             }
 
             fclose(file);
