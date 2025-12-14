@@ -135,3 +135,39 @@ seconds.
 With the stb_ds's hash table, there was no way to reset the table, so env
 free list was not doing anything for performance. verstable based env without
 free list was still much more fast than stb_ds.
+
+> Sunday, December 14, 2025 6:02 PM (IST)
+
+== Building On Windows ==
+
+The Interpreter builds fine as is on Windows and on Linux. Windows MSVC specific
+build flags are added in CMakeLists.txt file. 
+
+I have both Windows 11 and Arch based Manjaro installed. I have been using
+Visual Studio 2022 for experimenting with Windows compatibility. The Project
+was already compiling fine with MSVC, but it was throwing few warnings about
+compiler and linker flags which are not supported in MSVC. 
+
+From the beginning I made sure to not include any POSIX specific non-standard
+library. Thus, Mingw-w64 based GCC, Clang, MSVC can easily compile the
+Interpreter as is.
+
+Currently the Makefile is being used as shortcut dispatcher for long commands 
+such as `cmake -S . -B -DCMAKE_C_COMPILER=<..>` or cleaning the build directory
+ & building for scratch or running python unittests for runtime. The Makefile
+is already Windows NMake compatible except for the HEADERS, SOURCES fetching
+with shell commands and NMake doesn't recognize .PHONY commands so as the CMake
+builds the output in `build` directory, the build command doesn't work; to
+simplify the shortcut dispatcher system instead of making the Makefile for
+compatible with NMake I just created build.bat file for windows, it is just line
+to line translation from Makefile.
+
+== Minimum Supported Windows Version : Windows 7 ==
+
+I must support Windows 7 32bit, there can't be any compromises with this. 
+Currently the Interpreter will work fine on Windows 32bit. But there are two
+problems that I am facing currently, Unicode support on `cmd.exe` and powershell
+for Windows 7 is terrible. My name in Bengali has 3 graphemes and if in UTF-32
+it will 4 codepoints. On Windows 7 cmd.exe or powershell it will be displayed as
+`[?][?][?][?]`. Setting the Console Codepage does nothing new. I have to check
+for ways to fix this as soon as possible.
