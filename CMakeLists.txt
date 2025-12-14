@@ -24,8 +24,7 @@ set_property(CACHE
 	"Debug" "Release" "RelWithDebInfo" "MinSizeRel"
 )
 
-add_executable(${PROJECT_NAME})
-add_subdirectory(src)
+
 
 set(GIT_COMMIT_HASH "_")
 set(GIT_COMMIT_COUNT "_")
@@ -205,6 +204,8 @@ if(IS_MSVC)
 endif()
 # ================== END LINKER FLAGS ==================
 
+add_executable(${PROJECT_NAME})
+add_subdirectory(src)
 
 target_compile_options(${PROJECT_NAME} PRIVATE 
 	$<$<CONFIG:Debug>:${PANKTI_DEBUG_CFLAGS}>

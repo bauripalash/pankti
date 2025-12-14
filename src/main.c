@@ -9,6 +9,9 @@
 #include <windows.h>
 void setupWindows() {
     SetConsoleOutputCP(65001);
+	SetConsoleCP(CP_UTF8);
+	__setmode(__fileno(stdout), _O_U8TEXT);
+	__setmode(__fileno(stderr), _O_U8TEXT);
 }
 #endif
 
