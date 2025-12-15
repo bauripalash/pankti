@@ -10,21 +10,21 @@
 #include "include/ptypes.h"
 
 // NOLINTBEGIN
-static inline uint64_t envHashFn(u64 key){ return key; }
+static inline uint64_t envHashFn(u64 key) { return key; }
 static inline bool envCompareFn(u64 key1, u64 key2) { return key1 == key2; }
-#define NAME   EnvTable
-#define KEY_TY u64
-#define VAL_TY PValue
+#define NAME     EnvTable
+#define KEY_TY   u64
+#define VAL_TY   PValue
 #define MAX_LOAD 0.75
-#define HASH_FN envHashFn
-#define CMPR_FN envCompareFn
+#define HASH_FN  envHashFn
+#define CMPR_FN  envCompareFn
 #define IMPLEMENTATION_MODE
 #include "external/verstable/verstable.h"
 // NOLINTEND
 
 PEnv *NewEnv(Pgc *gc, PEnv *enclosing) {
     if (gc->envFreeListCount > 0) {
-		gc->envFreeListCount--;
+        gc->envFreeListCount--;
         PEnv *e = gc->envFreeList[gc->envFreeListCount];
         e->enclosing = enclosing;
         return e;
@@ -44,19 +44,19 @@ void RecycleEnv(Pgc *gc, PEnv *e) {
     e->enclosing = NULL;
     e->count = 0;
 
-	if (gc->envFreeListCount >= gc->envFreeListCap) {
-		u64 newCap = gc->envFreeListCap * GC_ENV_FREELIST_GROW_FACTOR;
-		PEnv ** temp = PRealloc(gc->envFreeList, sizeof(PEnv*) * newCap);
-		if (temp == NULL) {
-			ReallyFreeEnv(e);
-			return;
-		}
-		gc->envFreeList = temp;
-		gc->envFreeListCap = newCap;
-	}
+    if (gc->envFreeListCount >= gc->envFreeListCap) {
+        u64 newCap = gc->envFreeListCap * GC_ENV_FREELIST_GROW_FACTOR;
+        PEnv **temp = PRealloc(gc->envFreeList, sizeof(PEnv *) * newCap);
+        if (temp == NULL) {
+            ReallyFreeEnv(e);
+            return;
+        }
+        gc->envFreeList = temp;
+        gc->envFreeListCap = newCap;
+    }
 
     EnvTable_clear(&e->table);
-	gc->envFreeList[gc->envFreeListCount] = e;
+    gc->envFreeList[gc->envFreeListCount] = e;
     gc->envFreeListCount++;
 }
 
@@ -106,8 +106,8 @@ void EnvCaptureUpvalues(Pgc *gc, PEnv *parentEnv, PEnv *clsEnv) {
 
     PEnv *cur = parentEnv;
     while (cur != NULL) {
-        for (EnvTable_itr itr = EnvTable_first(&cur->table); !EnvTable_is_end(itr);
-             itr = EnvTable_next(itr)) {
+        for (EnvTable_itr itr = EnvTable_first(&cur->table);
+             !EnvTable_is_end(itr); itr = EnvTable_next(itr)) {
             u64 key = itr.data->key;
             if (EnvHasKey(clsEnv, key)) {
                 continue;

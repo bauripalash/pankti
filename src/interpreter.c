@@ -989,9 +989,9 @@ static finline ExResult vsFuncStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
 static finline ExResult vsImportStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     assert(stmt->type == STMT_IMPORT);
 
-	// import foo "bar"
-	// here `bar` is path
-	// `foo` is the the name
+    // import foo "bar"
+    // here `bar` is path
+    // `foo` is the the name
     struct SImport *imp = &stmt->stmt.SImport;
     PValue pathValue = evaluate(it, imp->path, env);
 
@@ -1002,7 +1002,7 @@ static finline ExResult vsImportStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
 
     char *pathStr = ValueAsObj(pathValue)->v.OString.value;
 
-	//Create a blank module
+    // Create a blank module
     PModule *mod = NewModule(it, pathStr);
 
     if (mod == NULL) {
@@ -1010,19 +1010,19 @@ static finline ExResult vsImportStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
         return ExSimple(MakeNil());
     }
 
-	// Add module to interpreter
+    // Add module to interpreter
     PushModule(it, mod);
-    
-	u64 key = imp->name->hash;
-    
-	PushProxy(it, key, imp->name->lexeme, mod);
 
-	// Fetch which stdlib module to import, 
-	// if nothing matches returns STDLIB_NONE
+    u64 key = imp->name->hash;
+
+    PushProxy(it, key, imp->name->lexeme, mod);
+
+    // Fetch which stdlib module to import,
+    // if nothing matches returns STDLIB_NONE
     StdlibMod stdmod = GetStdlibMod(mod->pathname);
 
-	// Register the env to gc, so it doesn't free the env in the next statement
-	RegisterRootEnv(it->gc, mod->env);
+    // Register the env to gc, so it doesn't free the env in the next statement
+    RegisterRootEnv(it->gc, mod->env);
 
     if (stdmod != STDLIB_NONE) {
         PushStdlib(it, mod->env, mod->pathname, stdmod);

@@ -3,15 +3,14 @@
 #include <locale.h>
 #include <stdio.h>
 
-
 #ifdef PANKTI_OS_WIN
 #include <io.h>
 #include <windows.h>
 void setupWindows() {
     SetConsoleOutputCP(65001);
-	SetConsoleCP(CP_UTF8);
-	__setmode(__fileno(stdout), _O_U8TEXT);
-	__setmode(__fileno(stderr), _O_U8TEXT);
+    SetConsoleCP(CP_UTF8);
+    __setmode(__fileno(stdout), _O_U8TEXT);
+    __setmode(__fileno(stderr), _O_U8TEXT);
 }
 #endif
 
@@ -30,8 +29,8 @@ void setupOs(void) {
 int main(int argc, char **argv) {
     setupOs();
     if (argc < 2) {
-		printf("Pankti Programming Language v%s\n", PANKTI_VERSION);
-		printf("Usage: pankti [FILENAME]\n");
+        printf("Pankti Programming Language v%s\n", PANKTI_VERSION);
+        printf("Usage: pankti [FILENAME]\n");
         return 1;
     } else {
         char *filepath = argv[1];

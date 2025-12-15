@@ -19,13 +19,12 @@ extern "C" {
 #define MAX_STRSPLIT_COUNT 128
 #define MAX_STRBUF_LENGTH  1024
 
-#define UTF8_BOM_0 0xEF
-#define UTF8_BOM_1 0xBB
-#define UTF8_BOM_2 0xBF
+#define UTF8_BOM_0         0xEF
+#define UTF8_BOM_1         0xBB
+#define UTF8_BOM_2         0xBF
 
 // Return item count of array
 #define ArrCount(arr) (sizeof(arr) / sizeof(arr[0]))
-
 
 // Read file to string (must free the returned string)
 // `path` = Path to the file

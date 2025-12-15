@@ -246,12 +246,12 @@ void PrintObject(const PObj *o) {
     switch (o->type) {
         case OT_STR: {
             const struct OString *str = &o->v.OString;
-                if (str->value != NULL) {
-                    printf("%s", str->value);
-                } else {
-                    printf("<INVALID STRING>");
-                }
- 
+            if (str->value != NULL) {
+                printf("%s", str->value);
+            } else {
+                printf("<INVALID STRING>");
+            }
+
             break;
         }
         case OT_FNC: {
@@ -325,7 +325,6 @@ char *ObjTypeToString(PObjType type) {
         case OT_ERROR: return "Error";
         case OT_UPVAL: return "Upvalue";
     }
-
 }
 
 bool IsObjEqual(const PObj *a, const PObj *b) {

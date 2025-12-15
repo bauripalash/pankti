@@ -60,8 +60,8 @@ typedef struct Pgc {
     PEnv **envFreeList;
     // Size/Count of Env Free List
     u64 envFreeListCount;
-	// Capacity of Env Free List
-	u64 envFreeListCap;
+    // Capacity of Env Free List
+    u64 envFreeListCap;
 
 } Pgc;
 
