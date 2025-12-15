@@ -206,6 +206,7 @@ endif()
 
 add_executable(${PROJECT_NAME})
 add_subdirectory(src)
+add_compile_definitions(USING_CMAKE_BUILD=1)
 
 target_compile_options(${PROJECT_NAME} PRIVATE 
 	$<$<CONFIG:Debug>:${PANKTI_DEBUG_CFLAGS}>

@@ -151,6 +151,8 @@ pub fn build(b: *std.Build) void {
 
     mod.addCMacro("USE_NAN_BOXING", "1");
     testsMod.addCMacro("USE_NAN_BOXING", "1");
+    mod.addCMacro("USING_ZIG_BUILD", "1");
+    testsMod.addCMacro("USING_ZIG_BUILD", "1");
 
     if (target.result.os.tag == .linux) {
         mod.addCMacro("PANKTI_OS_LINUX", "1");
