@@ -134,9 +134,7 @@ set(PANKTI_DEBUG_CFLAGS
 	"-g3" 
 	"-pedantic"
 	"-Wall" 
-	"-fsanitize=address"
-	"-fsanitize=undefined"
-	"-fsanitize=float-cast-overflow" 
+
 )
 
 set(PANKTI_RELEASE_CFLAGS
@@ -153,6 +151,14 @@ set (PANKTI_REL_WITH_DINFO_CFLAGS
 	"-g3"
 	${PANKTI_RELEASE_CFLAGS}
 )
+
+if(IS_OS_LINUX)
+	list(APPEND PANKTI_DEBUG_CFLAGS 	
+		"-fsanitize=address"
+		"-fsanitize=undefined"
+		"-fsanitize=float-cast-overflow" 
+	)
+endif()
 
 if(IS_MSVC)
 	# Put MSVC CFLAGS overrides
@@ -176,9 +182,6 @@ endif()
 
 # ================== LINKER FLAGS ==================
 set(PANKTI_DEBUG_LINKER_FLAGS
-	"-fsanitize=address"
-	"-fsanitize=undefined"
-	"-fsanitize=float-cast-overflow"
 	"-flto"
 )
 
@@ -190,7 +193,13 @@ set(PANKTI_RELEASE_LINKER_FLAGS
 set(PANKTI_REL_WITH_DINFO_LINKER_FLAGS 
 	${PANKTI_RELEASE_LINKER_FLAGS}
 )
-
+if(IS_OS_LINUX)
+	list(APPEND PANKTI_DEBUG_LINKER_FLAGS
+		"-fsanitize=address"
+		"-fsanitize=undefined"
+		"-fsanitize=float-cast-overflow" 
+	)
+endif()
 if(IS_MSVC)
 	# Put MSVC LDFLAGS overrides
 	set(PANKTI_DEBUG_LINKER_FLAGS

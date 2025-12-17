@@ -6,11 +6,12 @@
 #ifdef PANKTI_OS_WIN
 #include <io.h>
 #include <windows.h>
-void setupWindows() {
+#include <fcntl.h>
+void setupWindows(void) {
     SetConsoleOutputCP(65001);
     SetConsoleCP(CP_UTF8);
-    __setmode(__fileno(stdout), _O_U8TEXT);
-    __setmode(__fileno(stderr), _O_U8TEXT);
+    //_setmode(_fileno(stdout), _O_U8TEXT);
+    //_setmode(_fileno(stderr), _O_U8TEXT);
 }
 #endif
 
