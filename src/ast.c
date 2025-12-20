@@ -2,6 +2,7 @@
 #include "external/stb/stb_ds.h"
 #include "include/ansicolors.h"
 #include "include/ptypes.h"
+#include "include/printer.h"
 #include "include/token.h"
 #include <stddef.h>
 #include <stdio.h>
@@ -28,28 +29,28 @@ void AstPrintLiteral(PExpr *expr) {
 
     struct ELiteral *lit = &expr->exp.ELiteral;
 
-    printf(
+    PanPrint(
         TERMC_YELLOW "%s(" TERMC_RESET "%s" TERMC_YELLOW ")" TERMC_RESET,
         LiteralTypeToStr(lit->type), lit->op->lexeme
     );
-    printf("\n");
+    PanPrint("\n");
 }
 
 static void printIndent(int indent) {
     for (int i = 0; i < indent; i++) {
-        printf("  ");
+        PanPrint("  ");
     }
 }
 
 void AstPrint(PExpr *expr, int indent) {
     printIndent(indent);
     if (expr == NULL) {
-        printf("[Invalid Expression!]\n");
+        PanPrint("[Invalid Expression!]\n");
         return;
     }
     switch (expr->type) {
         case EXPR_BINARY: {
-            printf(
+            PanPrint(
                 TERMC_PURPLE "BinaryExpr(" TERMC_RESET "%s" TERMC_PURPLE
                              ")\n" TERMC_RESET,
                 TokTypeToStr(expr->exp.EBinary.op->type)
@@ -60,7 +61,7 @@ void AstPrint(PExpr *expr, int indent) {
             break;
         }
         case EXPR_UNARY: {
-            printf(
+            PanPrint(
                 TERMC_GREEN "Unary(" TERMC_RESET "%s" TERMC_GREEN
                             ")\n" TERMC_RESET,
                 TokTypeToStr(expr->exp.EBinary.op->type)
@@ -74,13 +75,13 @@ void AstPrint(PExpr *expr, int indent) {
             break;
         }
         case EXPR_GROUPING: {
-            printf(TERMC_GREEN "Group\n" TERMC_RESET);
+            PanPrint(TERMC_GREEN "Group\n" TERMC_RESET);
 
             AstPrint(expr->exp.EGrouping.expr, indent + 1);
             break;
         }
         case EXPR_VARIABLE: {
-            printf(
+            PanPrint(
                 TERMC_RED "Var(" TERMC_GREEN "%s" TERMC_RED ")\n" TERMC_RESET,
                 expr->exp.EVariable.name->lexeme
             );
@@ -88,117 +89,117 @@ void AstPrint(PExpr *expr, int indent) {
             break;
         }
         case EXPR_ASSIGN: {
-            printf(TERMC_YELLOW "Assign {\n" TERMC_RESET);
+            PanPrint(TERMC_YELLOW "Assign {\n" TERMC_RESET);
             printIndent(indent + 1);
-            printf("Target {\n");
+            PanPrint("Target {\n");
             AstPrint(expr->exp.EAssign.name, indent + 2);
             printIndent(indent + 1);
-            printf("}\n");
+            PanPrint("}\n");
 
             printIndent(indent + 1);
-            printf("Value {\n");
+            PanPrint("Value {\n");
             AstPrint(expr->exp.EAssign.value, indent + 2);
             printIndent(indent + 1);
-            printf("}\n");
+            PanPrint("}\n");
             printIndent(indent);
-            printf("}\n");
+            PanPrint("}\n");
             break;
         }
         case EXPR_LOGICAL: {
-            printf("Logical : {}\n");
+            PanPrint("Logical : {}\n");
             break;
         }
         case EXPR_CALL: {
             struct ECall *call = &expr->exp.ECall;
-            printf(TERMC_YELLOW "Call" TERMC_RESET);
-            printf("{\n");
+            PanPrint(TERMC_YELLOW "Call" TERMC_RESET);
+            PanPrint("{\n");
             printIndent(indent + 1);
-            printf("Callee {\n");
+            PanPrint("Callee {\n");
             AstPrint(call->callee, indent + 2);
             printIndent(indent + 1);
-            printf("}\n");
+            PanPrint("}\n");
 
             printIndent(indent + 1);
-            printf("Args (%zu) {\n", call->argCount);
+            PanPrint("Args (%zu) {\n", call->argCount);
             for (u64 i = 0; i < call->argCount; i++) {
                 AstPrint(call->args[i], indent + 2);
             }
             printIndent(indent + 1);
-            printf("}\n");
+            PanPrint("}\n");
 
             printIndent(indent);
-            printf("}\n");
+            PanPrint("}\n");
             break;
         }
         case EXPR_ARRAY: {
             struct EArray *arr = &expr->exp.EArray;
-            printf(
+            PanPrint(
                 TERMC_RED "Array (" TERMC_GREEN "%zu" TERMC_RED
                           ") " TERMC_RESET,
                 arr->count
             );
-            printf("{\n");
+            PanPrint("{\n");
             for (u64 i = 0; i < arr->count; i++) {
                 AstPrint(arr->items[i], indent + 2);
             }
             printIndent(indent);
-            printf("}\n");
+            PanPrint("}\n");
             break;
         }
         case EXPR_MAP: {
             struct EMap *map = &expr->exp.EMap;
-            printf(
+            PanPrint(
                 TERMC_RED "Map (" TERMC_GREEN "%zu" TERMC_RED ") " TERMC_RESET,
                 map->count / 2
             );
-            printf("{\n");
+            PanPrint("{\n");
             for (u64 i = 0; i < map->count; i += 2) {
                 printIndent(indent + 1);
-                printf("{\n");
+                PanPrint("{\n");
                 AstPrint(map->etable[i], indent + 2);
 
                 AstPrint(map->etable[i + 1], indent + 2);
                 printIndent(indent + 1);
-                printf("}\n");
+                PanPrint("}\n");
             }
             printIndent(indent);
-            printf("}\n");
+            PanPrint("}\n");
             break;
         }
         case EXPR_SUBSCRIPT: {
             struct ESubscript *sub = &expr->exp.ESubscript;
-            printf(TERMC_YELLOW "Subscript " TERMC_RESET);
-            printf("{\n");
+            PanPrint(TERMC_YELLOW "Subscript " TERMC_RESET);
+            PanPrint("{\n");
             printIndent(indent + 1);
-            printf("Value {\n");
+            PanPrint("Value {\n");
             AstPrint(sub->value, indent + 2);
             printIndent(indent + 1);
-            printf("}\n");
+            PanPrint("}\n");
             printIndent(indent + 1);
-            printf("Index {\n");
+            PanPrint("Index {\n");
             AstPrint(sub->index, indent + 2);
             printIndent(indent + 1);
-            printf("}\n");
+            PanPrint("}\n");
             printIndent(indent);
-            printf("}\n");
+            PanPrint("}\n");
             break;
         }
 
         case EXPR_MODGET: {
             struct EModget *mg = &expr->exp.EModget;
-            printf(TERMC_YELLOW "ModuleGet" TERMC_RESET);
-            printf("{\n");
+            PanPrint(TERMC_YELLOW "ModuleGet" TERMC_RESET);
+            PanPrint("{\n");
             printIndent(indent + 1);
-            printf("Module {\n");
+            PanPrint("Module {\n");
             AstPrint(mg->module, indent + 2);
             printIndent(indent + 1);
-            printf("}\n");
+            PanPrint("}\n");
             printIndent(indent + 1);
-            printf(
+            PanPrint(
                 "Child(" TERMC_GREEN "%s" TERMC_RESET ")\n", mg->child->lexeme
             );
             printIndent(indent);
-            printf("}\n");
+            PanPrint("}\n");
             break;
         }
     }
@@ -206,128 +207,128 @@ void AstPrint(PExpr *expr, int indent) {
 
 void AstStmtPrint(PStmt *stmt, int indent) {
     if (stmt == NULL) {
-        printf("Invalid Statement\n");
+        PanPrint("Invalid Statement\n");
         return;
     }
     printIndent(indent);
     switch (stmt->type) {
         case STMT_PRINT: {
-            printf("Print [\n");
+            PanPrint("Print [\n");
             AstPrint(stmt->stmt.SPrint.value, indent + 1);
             printIndent(indent);
-            printf("]\n");
+            PanPrint("]\n");
             break;
         }
 
         case STMT_EXPR: {
-            printf("Expr [\n");
+            PanPrint("Expr [\n");
             AstPrint(stmt->stmt.SExpr.expr, indent + 1);
             printIndent(indent);
-            printf("]\n");
+            PanPrint("]\n");
             break;
         }
         case STMT_LET: {
-            printf(
+            PanPrint(
                 "Let (" TERMC_GREEN "%s" TERMC_RESET ") [\n",
                 stmt->stmt.SLet.name->lexeme
             );
 
             AstPrint(stmt->stmt.SLet.expr, indent + 1);
             printIndent(indent);
-            printf("]\n");
+            PanPrint("]\n");
             break;
         }
         case STMT_BLOCK: {
-            printf("Block [\n");
+            PanPrint("Block [\n");
             for (long i = 0; i < arrlen(stmt->stmt.SBlock.stmts); i++) {
                 AstStmtPrint(stmt->stmt.SBlock.stmts[i], indent + 1);
             }
             printIndent(indent);
-            printf("]\n");
+            PanPrint("]\n");
 
             break;
         }
         case STMT_IF: {
-            printf("If [\n");
+            PanPrint("If [\n");
             printIndent(indent + 1);
-            printf("Cond {\n");
+            PanPrint("Cond {\n");
             AstPrint(stmt->stmt.SIf.cond, indent + 2);
             printIndent(indent + 1);
-            printf("}\n");
+            PanPrint("}\n");
             printIndent(indent + 1);
-            printf("Then {\n");
+            PanPrint("Then {\n");
             AstStmtPrint(stmt->stmt.SIf.thenBranch, indent + 2);
             printIndent(indent + 1);
-            printf("}\n");
+            PanPrint("}\n");
             printIndent(indent + 1);
-            printf("Else {\n");
+            PanPrint("Else {\n");
             if (stmt->stmt.SIf.elseBranch != NULL) {
                 AstStmtPrint(stmt->stmt.SIf.elseBranch, indent + 2);
             }
             printIndent(indent + 1);
-            printf("}\n");
+            PanPrint("}\n");
             printIndent(indent);
-            printf("]\n");
+            PanPrint("]\n");
 
             break;
         }
         case STMT_WHILE: {
-            printf("While [\n");
+            PanPrint("While [\n");
             printIndent(indent + 1);
-            printf("Cond {\n");
+            PanPrint("Cond {\n");
             AstPrint(stmt->stmt.SWhile.cond, indent + 2);
             printIndent(indent + 1);
-            printf("}\n");
+            PanPrint("}\n");
             printIndent(indent + 1);
-            printf("Body {\n");
+            PanPrint("Body {\n");
             AstStmtPrint(stmt->stmt.SWhile.body, indent + 2);
             printIndent(indent + 1);
-            printf("}\n");
+            PanPrint("}\n");
             printIndent(indent);
-            printf("]\n");
+            PanPrint("]\n");
             break;
         }
 
         case STMT_RETURN: {
-            printf("Return [\n");
+            PanPrint("Return [\n");
             AstPrint(stmt->stmt.SReturn.value, indent + 1);
             printIndent(indent);
-            printf("]\n");
+            PanPrint("]\n");
             break;
         }
         case STMT_BREAK: {
-            printf("Break []\n");
+            PanPrint("Break []\n");
             break;
         }
         case STMT_FUNC: {
             struct SFunc *fn = &stmt->stmt.SFunc;
 
-            printf(
+            PanPrint(
                 "Func(" TERMC_GREEN "%s" TERMC_RESET ") <", fn->name->lexeme
             );
-            printf(TERMC_GREEN);
+            PanPrint(TERMC_GREEN);
             for (u64 i = 0; i < fn->paramCount; i++) {
-                printf("%s", fn->params[i]->lexeme);
+                PanPrint("%s", fn->params[i]->lexeme);
                 if (i != fn->paramCount - 1) {
-                    printf(TERMC_RESET ", " TERMC_GREEN);
+                    PanPrint(TERMC_RESET ", " TERMC_GREEN);
                 }
             }
-            printf(TERMC_RESET "> [\n");
+            PanPrint(TERMC_RESET "> [\n");
             AstStmtPrint(fn->body, indent + 1);
             printIndent(indent);
-            printf("]\n");
+            PanPrint("]\n");
             break;
         }
         case STMT_IMPORT: {
             struct SImport *import = &stmt->stmt.SImport;
-            printf(
+            PanPrint(
                 "Import(" TERMC_GREEN "%s" TERMC_RESET ") ",
                 import->name->lexeme
             );
-            printf("{\n");
+            PanPrint("{\n");
             AstPrint(import->path, indent + 2);
             printIndent(indent);
-            printf("}\n");
+            PanPrint("}\n");
             break;
         }
     }

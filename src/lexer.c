@@ -1,10 +1,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <uchar.h>
 
 #include "external/stb/stb_ds.h"
@@ -16,6 +13,7 @@
 #include "include/token.h"
 #include "include/ustring.h"
 #include "include/utils.h"
+#include "include/printer.h"
 
 Lexer *NewLexer(char *src) {
     Lexer *lx = PMalloc(sizeof(Lexer));
@@ -108,7 +106,7 @@ static inline void error(Lexer *lx, u64 line, u64 col, const char *msg) {
         CoreLexerError(lx->core, line, col, msg);
     } else {
         // Should never reach here
-        printf(
+        PanPrint(
             "Invalid character found at line %zu column %zu", lx->line,
             lx->column
         );

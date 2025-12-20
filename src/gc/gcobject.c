@@ -21,7 +21,7 @@ PObj *NewObject(Pgc *gc, PObjType type) {
     gc->objects = o;
     o->marked = false;
 #if defined DEBUG_GC
-    printf(
+    PanPrint(
         TERMC_BLUE "[DEBUG] [GC] %p New Object : %s\n" TERMC_RESET, (void *)o,
         ObjTypeToString(type)
     );
@@ -107,16 +107,16 @@ void FreeObject(Pgc *gc, PObj *o) {
     }
 
 #if defined DEBUG_GC
-    printf(
+    PanPrint(
         TERMC_GREEN "[DEBUG] [GC] Freeing Object : %p : %s : " TERMC_RESET,
         (void *)o, ObjTypeToString(o->type)
     );
     if (o->type == OT_UPVAL) {
-        printf("<UpValue> : %ld", (u64)o);
+        PanPrint("<UpValue> : %ld", (u64)o);
     } else {
         PrintObject(o);
     }
-    printf("\n");
+    PanPrint("\n");
 #endif
 
     switch (o->type) {

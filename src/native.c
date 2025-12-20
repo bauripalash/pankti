@@ -4,10 +4,10 @@
 #include "include/interpreter.h"
 #include "include/object.h"
 #include "include/ptypes.h"
+#include "include/printer.h"
 #include "include/utils.h"
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <time.h>
 
 static PValue ntvClock(PInterpreter *it, PValue *args, u64 argc) {
@@ -20,7 +20,7 @@ static PValue ntvShow(PInterpreter *it, PValue *args, u64 argc) {
     for (u64 i = 0; i < argc; i++) {
         PrintValue(args[i]);
         if (i + 1 < argc) {
-            printf(" ");
+            PanPrint(" ");
         }
     }
     return MakeNil();

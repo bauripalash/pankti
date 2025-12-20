@@ -3,7 +3,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <string.h>
 
 #include "external/stb/stb_ds.h"
@@ -17,6 +16,7 @@
 #include "include/object.h"
 #include "include/pstdlib.h"
 #include "include/ptypes.h"
+#include "include/printer.h"
 #include "include/token.h"
 #include "include/utils.h"
 
@@ -914,7 +914,7 @@ static finline ExResult vsPrint(PInterpreter *it, PStmt *stmt, PEnv *env) {
     assert(stmt->type == STMT_PRINT);
     PValue value = evaluate(it, stmt->stmt.SPrint.value, env);
     PrintValue(value);
-    printf("\n");
+    PanPrint("\n");
     return ExSimple(MakeNil());
 }
 

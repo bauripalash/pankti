@@ -8,6 +8,7 @@ set(PANKTI_SRC_FILES
   "${CMAKE_CURRENT_LIST_DIR}/native.c"
   "${CMAKE_CURRENT_LIST_DIR}/object.c"
   "${CMAKE_CURRENT_LIST_DIR}/parser.c"
+  "${CMAKE_CURRENT_LIST_DIR}/printer.c"
   "${CMAKE_CURRENT_LIST_DIR}/strescape.c"
   "${CMAKE_CURRENT_LIST_DIR}/token.c"
   "${CMAKE_CURRENT_LIST_DIR}/ustring.c"

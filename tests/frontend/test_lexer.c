@@ -1,6 +1,7 @@
 #include "../../src/external/stb/stb_ds.h"
 #include "../../src/include/lexer.h"
 #include "../../src/include/utils.h"
+#include "../../src/include/printer.h"
 #include "include/utest.h"
 #include <stdbool.h>
 
@@ -12,12 +13,12 @@
     ScanTokens(utest_fixture->lx);
 
 #define PrintAllTokens(toks, count)                                            \
-    printf("==== Token ====\n");                                               \
+    PanPrint("==== Token ====\n");                                               \
     for (int i = 0; i < count; i++) {                                          \
         PrintToken(toks[i]);                                                   \
-        printf("\n");                                                          \
+        PanPrint("\n");                                                          \
     }                                                                          \
-    printf("===============\n");
+    PanPrint("===============\n");
 
 #define CheckTokens(lx, ttypes)                                                \
     int count = ArrCount(types);                                               \

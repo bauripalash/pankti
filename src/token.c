@@ -2,9 +2,7 @@
 #include "include/alloc.h"
 #include "include/ansicolors.h"
 #include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "include/printer.h"
 
 char *TokTypeToStr(PTokenType type) {
     switch (type) {
@@ -58,7 +56,7 @@ char *TokTypeToStr(PTokenType type) {
 
     return "Unknown";
 }
-void PrintTokType(PTokenType type) { printf("%s", TokTypeToStr(type)); }
+void PrintTokType(PTokenType type) { PanPrint("%s", TokTypeToStr(type)); }
 
 bool IsDoubleTok(PTokenType type) {
     if (type == T_BANG_EQ || type == T_EQEQ || type == T_GTE || type == T_LTE) {
@@ -137,7 +135,7 @@ static const char *getLexeme(const Token *t) {
 }
 
 void PrintToken(const Token *token) {
-    printf(
+    PanPrint(
         "Token[" TERMC_BLUE "%zu:%zu | " TERMC_PURPLE "%s" TERMC_BLUE
         ":'" TERMC_GREEN "%s" TERMC_BLUE "' (%ld)" TERMC_RESET "]",
         token->line, token->col, TokTypeToStr(token->type), getLexeme(token),
@@ -146,5 +144,5 @@ void PrintToken(const Token *token) {
 }
 
 void PrintOpToken(const Token *token) {
-    printf("[%s]", TokTypeToStr(token->type));
+    PanPrint("[%s]", TokTypeToStr(token->type));
 }

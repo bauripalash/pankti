@@ -1,13 +1,11 @@
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <uchar.h>
 
 #include "include/alloc.h"
 #include "include/ptypes.h"
 #include "include/ustring.h"
+#include "include/printer.h"
 
 static u32 uiterGetACp(const char *str, u64 len, u64 *ate) {
     if (len == 0) {
@@ -162,12 +160,12 @@ void U32ToU8(u32 value, u8 result[4]) {
 }
 
 void DebugPeekBuffer(const UIter *it) {
-    printf("PBuf[");
+    PanPrint("PBuf[");
     for (int i = 0; i < it->peekCount; i++) {
         u32 pk = it->peekBuf[i];
         u8 x[4];
         U32ToU8(pk, x);
-        printf("|%d:U+%04X:'%s'| ", i, pk, x);
+        PanPrint("|%d:U+%04X:'%s'| ", i, pk, x);
     }
-    printf("]\n");
+    PanPrint("]\n");
 }

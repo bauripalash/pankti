@@ -1,7 +1,7 @@
 #include "include/core.h"
 #include "include/version.h"
+#include "include/printer.h"
 #include <locale.h>
-#include <stdio.h>
 
 #ifdef PANKTI_OS_WIN
 #include <io.h>
@@ -10,8 +10,6 @@
 void setupWindows(void) {
     SetConsoleOutputCP(65001);
     SetConsoleCP(CP_UTF8);
-    //_setmode(_fileno(stdout), _O_U8TEXT);
-    //_setmode(_fileno(stderr), _O_U8TEXT);
 }
 #endif
 
@@ -20,7 +18,7 @@ void setupOs(void) {
 #ifdef PANKTI_OS_WIN
     setupWindows();
 #elif PANKTI_OS_MAC
-    printf(
+    PanPrint(
         "WARNING : Pankti Should Run on Apple computers."
         "But This platform is not officially supported.\n"
     );
@@ -30,14 +28,14 @@ void setupOs(void) {
 int main(int argc, char **argv) {
     setupOs();
     if (argc < 2) {
-        printf("Pankti Programming Language v%s\n", PANKTI_VERSION);
-        printf("Usage: pankti [FILENAME]\n");
+        PanPrint("Pankti Programming Language v%s\n", PANKTI_VERSION);
+        PanPrint("Usage: pankti [FILENAME]\n");
         return 1;
     } else {
         char *filepath = argv[1];
         PanktiCore *core = NewCore(filepath);
         if (core == NULL) {
-            printf("Error: Failed to initialize Pankti Runtime\n");
+            PanPrint("Error: Failed to initialize Pankti Runtime\n");
             return 2;
         }
         RunCore(core);

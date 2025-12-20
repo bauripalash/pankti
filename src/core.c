@@ -9,6 +9,7 @@
 #include "include/parser.h"
 #include "include/token.h"
 #include "include/utils.h"
+#include "include/printer.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -22,7 +23,7 @@ PanktiCore *NewCore(const char *path) {
     core->path = path;
     core->source = ReadFile(core->path);
     if (core->source == NULL) {
-        printf("Failed to Read Source Code\n");
+        PanPrint("Failed to Read Source Code\n");
         PFree(core);
         return NULL;
     }
@@ -74,11 +75,11 @@ void FreeCore(PanktiCore *core) {
 
 void RunCore(PanktiCore *core) {
     if (core == NULL) {
-        printf("Internal Error : Failed to create Pankti Core\n");
+        PanPrint("Internal Error : Failed to create Pankti Core\n");
         exit(1);
     }
     if (core->lexer == NULL) {
-        printf("Internal Error : Failed to create Pankti Lexer\n");
+        PanPrint("Internal Error : Failed to create Pankti Lexer\n");
         exit(1);
     }
     stbds_rand_seed((size_t)time(NULL));
@@ -89,21 +90,21 @@ void RunCore(PanktiCore *core) {
     ScanTokens(core->lexer);
 #if defined DEBUG_TIMES
     clock_t lxToc = clock();
-    printf(
+    PanPrint(
         "[DEBUG] Scanner finished : %f sec.\n",
         (double)(lxToc - lxTic) / CLOCKS_PER_SEC
     );
 #endif
 #if defined DEBUG_PARSER
-    printf("==== Token ====\n");
+    PanPrint("==== Token ====\n");
     for (int i = 0; i < arrlen(core->lexer->tokens); i++) {
         PrintToken(core->lexer->tokens[i]);
-        printf("\n");
+        PanPrint("\n");
     }
-    printf("===============\n");
+    PanPrint("===============\n");
 #endif
     if (core->lexer->hasError) {
-        printf("Lexer Error found!\n");
+        PanPrint("Lexer Error found!\n");
         FreeCore(core);
         exit(1);
     }
@@ -116,20 +117,20 @@ void RunCore(PanktiCore *core) {
     PStmt **prog = ParseParser(core->parser);
 #if defined DEBUG_TIMES
     clock_t pToc = clock();
-    printf(
+    PanPrint(
         "[DEBUG] Parser finished : %f sec.\n",
         (double)(pToc - pTic) / CLOCKS_PER_SEC
     );
 #endif
 #if defined DEBUG_PARSER
-    printf("===== AST =====\n");
+    PanPrint("===== AST =====\n");
     for (int i = 0; i < arrlen(prog); i++) {
         AstStmtPrint(prog[i], 0);
     }
-    printf("===== END =====\n");
+    PanPrint("===== END =====\n");
 #endif
     if (core->parser->hasError) {
-        printf("Parser Error(s) found!\n");
+        PanPrint("Parser Error(s) found!\n");
     }
 
     if (core->lexer->hasError || core->parser->hasError) {
@@ -146,14 +147,14 @@ void RunCore(PanktiCore *core) {
     Interpret(core->it);
 #if defined DEBUG_TIMES
     clock_t inToc = clock();
-    printf(
+    PanPrint(
         "[DEBUG] Interpreter finished : %f sec.\n",
         (double)(inToc - inTic) / CLOCKS_PER_SEC
     );
 #endif
 
     if (core->caughtError) {
-        printf("Runtime Error found!\n");
+        PanPrint("Runtime Error found!\n");
         FreeCore(core);
         exit(1);
     }
@@ -179,19 +180,19 @@ static void printErrMsg(
     PCoreErrorType errtype
 ) {
     if (hasPos) {
-        printf("[");
+        PanPrint("[");
 
         if (line >= 1) {
-            printf("line: %zu", line);
+            PanPrint("line: %zu", line);
         }
 
         if (col >= 1) {
-            printf(" : column: %zu", col);
+            PanPrint(" : column: %zu", col);
         }
-        printf("] ");
+        PanPrint("] ");
     }
 
-    printf(
+    PanPrint(
         TERMC_RED "%s Error: %s" TERMC_RESET "\n", coreErrorToStr(errtype), msg
     );
 }
@@ -205,7 +206,7 @@ void CoreRuntimeError(PanktiCore *core, Token *token, const char *msg) {
     }
 
     printErrMsg(core, line, col, msg, token != NULL, PCERR_RUNTIME);
-    printf("Runtime Error Occured!\n");
+    PanPrint("Runtime Error Occured!\n");
     FreeCore(core);
     exit(3);
 }

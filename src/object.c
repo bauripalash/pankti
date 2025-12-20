@@ -2,7 +2,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <string.h>
 
 #include "external/stb/stb_ds.h"
@@ -10,6 +9,7 @@
 #include "include/keywords.h"
 #include "include/object.h"
 #include "include/ptypes.h"
+#include "include/printer.h"
 #include "include/utils.h"
 
 // Golden ratio?
@@ -26,18 +26,18 @@ void PrintValue(PValue val) {
         double num = ValueAsNum(val);
 
         if (IsDoubleInt(num)) {
-            printf("%0.f", num);
+            PanPrint("%0.f", num);
         } else {
-            printf("%f", num);
+            PanPrint("%f", num);
         }
     } else if (IsValueBool(val)) {
-        printf("%s", ValueAsBool(val) ? KW_BN_TRUE : KW_BN_FALSE);
+        PanPrint("%s", ValueAsBool(val) ? KW_BN_TRUE : KW_BN_FALSE);
     } else if (IsValueNil(val)) {
-        printf(KW_BN_NIL);
+        PanPrint(KW_BN_NIL);
     } else if (IsValueObj(val)) {
         PrintObject(ValueAsObj(val));
     } else {
-        printf("Unknown");
+        PanPrint("Unknown");
     }
 }
 
@@ -247,9 +247,9 @@ void PrintObject(const PObj *o) {
         case OT_STR: {
             const struct OString *str = &o->v.OString;
             if (str->value != NULL) {
-                printf("%s", str->value);
+                PanPrint("%s", str->value);
             } else {
-                printf("<INVALID STRING>");
+                PanPrint("<INVALID STRING>");
             }
 
             break;
@@ -257,54 +257,54 @@ void PrintObject(const PObj *o) {
         case OT_FNC: {
             const struct OFunction *func = &o->v.OFunction;
             if (func->name != NULL) {
-                printf("<fn %s>", func->name->lexeme);
+                PanPrint("<fn %s>", func->name->lexeme);
             }
             break;
         }
         case OT_ARR: {
             const struct OArray *arr = &o->v.OArray;
-            printf("[");
+            PanPrint("[");
             if (arr->items != NULL) {
                 for (u64 i = 0; i < arrlen(arr->items); i++) {
                     PValue val = arr->items[i];
                     PrintValue(val);
                     if (i != arr->count - 1) {
-                        printf(", ");
+                        PanPrint(", ");
                     }
                 }
             }
-            printf("]");
+            PanPrint("]");
             break;
         }
         case OT_NATIVE: {
-            printf(
+            PanPrint(
                 "<native %s>",
                 o->v.ONative.name != NULL ? o->v.ONative.name->lexeme : "'Null'"
             );
             break;
         }
         case OT_MAP: {
-            printf("{");
+            PanPrint("{");
             const struct OMap *map = &o->v.OMap;
             if (map->table != NULL) {
                 for (int i = 0; i < map->count; i++) {
                     PValue k = map->table[i].vkey;
                     PValue v = map->table[i].value;
                     PrintValue(k);
-                    printf(" : ");
+                    PanPrint(" : ");
                     PrintValue(v);
                     if (i + 1 != map->count) {
-                        printf(", ");
+                        PanPrint(", ");
                     }
                 }
             }
 
-            printf("}");
+            PanPrint("}");
             break;
         }
         case OT_ERROR: {
             if (o->v.OError.msg != NULL) {
-                printf("%s", o->v.OError.msg);
+                PanPrint("%s", o->v.OError.msg);
             }
             break;
         }

@@ -3,7 +3,6 @@
 #include "../include/ast.h"
 #include "../include/gc.h"
 #include "../include/token.h"
-#include "../include/utils.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>

@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <time.h>
 
 #if defined(DEBUG_GC)
@@ -144,11 +143,11 @@ void CollectGarbage(Pgc *gc) {
 
     if (gc->stress || gc->needCollect) {
 #if defined(DEBUG_GC)
-        printf(
+        PanPrint(
             TERMC_YELLOW
             "[DEBUG] [GC] Starting Garbage Collection\n" TERMC_RESET
         );
-        printf(
+        PanPrint(
             TERMC_BYELLOW "[DEBUG] [GC] [Object Count : %zu]\n" TERMC_RESET,
             gc->objCount
         );
@@ -158,11 +157,11 @@ void CollectGarbage(Pgc *gc) {
         GcUpdateThreshold(gc);
         gc->needCollect = false;
 #if defined(DEBUG_GC)
-        printf(
+        PanPrint(
             TERMC_YELLOW
             "[DEBUG] [GC] Finished Garbage Collection\n" TERMC_RESET
         );
-        printf(
+        PanPrint(
             TERMC_BYELLOW "[DEBUG] [GC] [Object Count : %zu]\n" TERMC_RESET,
             gc->objCount
         );

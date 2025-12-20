@@ -1,13 +1,13 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 
 #include "include/alloc.h"
 #include "include/env.h"
 #include "include/gc.h"
 #include "include/object.h"
 #include "include/ptypes.h"
+#include "include/printer.h"
 
 // NOLINTBEGIN
 static inline uint64_t envHashFn(u64 key) { return key; }
@@ -141,9 +141,9 @@ void DebugEnv(PEnv *e) {
     u64 i = 0;
     for (EnvTable_itr itr = EnvTable_first(&e->table); !EnvTable_is_end(itr);
          itr = EnvTable_next(itr)) {
-        printf("%ld| <%ld '", i, itr.data->key);
+        PanPrint("%ld| <%ld '", i, itr.data->key);
         PrintValue(itr.data->val);
-        printf("'>\n");
+        PanPrint("'>\n");
         i++;
     }
 

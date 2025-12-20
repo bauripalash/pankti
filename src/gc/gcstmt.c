@@ -1,12 +1,14 @@
 #include "../external/stb/stb_ds.h"
 #include "../include/alloc.h"
-#include "../include/ansicolors.h"
 #include "../include/ast.h"
 #include "../include/gc.h"
 #include "../include/token.h"
 #include <stddef.h>
 #include <stdio.h>
-#include <stdlib.h>
+
+#if defined (DEBUG_GC)
+#include "../include/ansicolors.h"
+#endif
 
 // ===================
 // Creation Functions
@@ -22,7 +24,7 @@ PStmt *NewStmt(Pgc *gc, PStmtType type, Token *op) {
     s->next = gc->stmts;
     gc->stmts = s;
 #if defined DEBUG_GC
-    printf(
+    PanPrint(
         TERMC_BLUE "[DEBUG] [GC] %p New Statement : %s\n" TERMC_RESET,
         (void *)s, StmtTypeToStr(type)
     );
@@ -151,7 +153,7 @@ void FreeStmt(Pgc *gc, PStmt *s) {
         return;
     }
 #if defined DEBUG_GC
-    printf(
+    PanPrint(
         TERMC_GREEN "[DEBUG] [GC] Freeing Statement : %s\n" TERMC_RESET,
         StmtTypeToStr(s->type)
     );
