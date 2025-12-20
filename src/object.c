@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "external/stb/stb_ds.h"
@@ -236,6 +237,11 @@ bool MapObjSetValue(PObj *o, PValue key, u64 keyHash, PValue value) {
     hmputs(map->table, s);
     map->count = (u64)hmlen(map->table);
     return true;
+}
+
+bool MapObjPushPair(PObj *o, PValue key, PValue value, u64 seed) {
+    u64 keyHash = GetValueHash(key, seed);
+    return MapObjSetValue(o, key, keyHash, value);
 }
 
 void PrintObject(const PObj *o) {

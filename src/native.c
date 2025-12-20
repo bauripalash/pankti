@@ -42,30 +42,52 @@ static PValue ntvPushArray(PInterpreter *it, PValue *args, u64 argc) {
 
     if (argc < 2) {
         return MakeError(
-            it->gc,
-            "Push needs atleast two arguments, array and an element to add"
+            it->gc, "Push needs atleast two arguments, for appending to array"
+                    " Or 3 arguments for adding new pair to a map"
         );
     }
 
-    PValue rawArray = args[0];
+    PValue target = args[0];
 
-    if (!IsValueObjType(rawArray, OT_ARR)) {
-        return MakeError(it->gc, "Push can only be used on arrays");
-    }
+    if (IsValueObjType(target, OT_ARR)) {
 
-    PObj *obj = ValueAsObj(rawArray);
+        PObj *obj = ValueAsObj(target);
 
-    u64 elmCount = argc - 1;
-    for (u64 i = 0; i < elmCount; i++) {
-        PValue elm = args[i + 1];
-        if (!ArrayObjPushValue(obj, elm)) {
+        u64 elmCount = argc - 1;
+        for (u64 i = 0; i < elmCount; i++) {
+            PValue elm = args[i + 1];
+            if (!ArrayObjPushValue(obj, elm)) {
+                return MakeError(
+                    it->gc, "Interenal Error : Failed to push item to array"
+                );
+            }
+        }
+
+        return MakeNumber((double)obj->v.OArray.count);
+    } else if (IsValueObjType(target, OT_MAP)) {
+        if (argc != 3) {
             return MakeError(
-                it->gc, "Interenal Error : Failed to push item to array"
+                it->gc,
+                "Push needs atleast 3 arguments, map and a key-value pair"
             );
         }
+
+        PObj *obj = ValueAsObj(target);
+        PValue key = args[1];
+        PValue value = args[2];
+
+        if (!MapObjPushPair(obj, key, value, it->gc->timestamp)) {
+            return MakeError(
+                it->gc, "Interenal Error : Failed to add key-value pair to map"
+            );
+        }
+
+        return MakeNumber((double)obj->v.OMap.count);
     }
 
-    return MakeNumber(obj->v.OArray.count);
+    return MakeError(
+        it->gc, "append(...) function only works on arrays and maps"
+    );
 }
 
 void RegisterNatives(PInterpreter *it, PEnv *env) {

@@ -284,7 +284,11 @@ bool CanObjectBeKey(PObjType type);
 // If Value is a object, returns Object Type
 const char *ValueTypeToStr(PValue val);
 
+// Set or Update key value (with key) pair in map
 bool MapObjSetValue(PObj *o, PValue key, u64 keyHash, PValue value);
+// Add New Pair or Update existing pair in map
+bool MapObjPushPair(PObj *o, PValue key, PValue value, u64 seed);
+
 bool ArrayObjInsValue(PObj *o, int index, PValue value);
 // Push new item to array. Return false if failed to push value.
 bool ArrayObjPushValue(PObj *o, PValue value);

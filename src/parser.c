@@ -295,7 +295,9 @@ static PExpr *rArrayExpr(Parser *p) {
         if (check(p, T_RS_BRACKET)) {
             break;
         }
-        eat(p, T_COMMA, "Expected ',' comma after array item");
+        if (eat(p, T_COMMA, "Expected ',' comma after array item") == NULL) {
+            break;
+        }
     }
     Token *rbrace = eat(p, T_RS_BRACKET, "Expected ']' after array items");
     u64 itemCount = (u64)arrlen(items);

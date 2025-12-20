@@ -1,24 +1,11 @@
-let globalOne = 0
-let globalTwo = 0
+let mylist = [1,2,3, "hello"]
+let mymap = {"list" : mylist, 1 : "palash"}
+show(mylist, "\n")
+show(mymap, "\n")
+append(mylist, "mylist")
+show(mylist, "\n")
 
-kaj main()
-  {
-    let a = "one"
-    kaj one()
-      print a
-    end
-    globalOne = one
-  }
-
-  {
-    let a = "two"
-    kaj two()
-      print a
-    end
-    globalTwo = two
-  }
-end
-
-main()
-globalOne()
-globalTwo()
+show(mymap, "\n")
+append(mymap, 2 , "bauri")
+show(mymap, "\n")
+append("hello", "world")
