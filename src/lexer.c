@@ -312,7 +312,16 @@ static void scanToken(Lexer *lx) {
         case '.': addToken(lx, T_DOT); break;
         case '+': addToken(lx, T_PLUS); break;
         case '-': addToken(lx, T_MINUS); break;
-        case '/': addToken(lx, T_SLASH); break;
+        case '/': {
+            if (match(lx, '/')) {
+                while (peek(lx) != '\n' && !atEnd(lx)) {
+                    advance(lx);
+                }
+            } else {
+                addToken(lx, T_SLASH);
+            }
+            break;
+        }
         case ':': addToken(lx, T_COLON); break;
         case '%': addToken(lx, T_MOD); break;
         case ';': addToken(lx, T_SEMICOLON); break;
@@ -367,12 +376,6 @@ static void scanToken(Lexer *lx) {
         case '\n': {
             lx->line++;
             lx->column = 1;
-            break;
-        }
-        case '#': {
-            while (peek(lx) != '\n' && !atEnd(lx)) {
-                advance(lx);
-            }
             break;
         }
         default: {
