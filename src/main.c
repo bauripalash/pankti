@@ -1,12 +1,12 @@
 #include "include/core.h"
-#include "include/version.h"
 #include "include/printer.h"
+#include "include/version.h"
 #include <locale.h>
 
 #ifdef PANKTI_OS_WIN
+#include <fcntl.h>
 #include <io.h>
 #include <windows.h>
-#include <fcntl.h>
 void setupWindows(void) {
     SetConsoleOutputCP(65001);
     SetConsoleCP(CP_UTF8);

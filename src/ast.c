@@ -1,8 +1,8 @@
 #include "include/ast.h"
 #include "external/stb/stb_ds.h"
 #include "include/ansicolors.h"
-#include "include/ptypes.h"
 #include "include/printer.h"
+#include "include/ptypes.h"
 #include "include/token.h"
 #include <stddef.h>
 #include <stdio.h>

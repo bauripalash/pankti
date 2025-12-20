@@ -1,8 +1,8 @@
 #include "include/token.h"
 #include "include/alloc.h"
 #include "include/ansicolors.h"
-#include <stdbool.h>
 #include "include/printer.h"
+#include <stdbool.h>
 
 char *TokTypeToStr(PTokenType type) {
     switch (type) {

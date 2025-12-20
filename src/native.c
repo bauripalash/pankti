@@ -3,8 +3,8 @@
 #include "include/gc.h"
 #include "include/interpreter.h"
 #include "include/object.h"
-#include "include/ptypes.h"
 #include "include/printer.h"
+#include "include/ptypes.h"
 #include "include/utils.h"
 #include <stddef.h>
 #include <stdint.h>

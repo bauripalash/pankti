@@ -3,9 +3,9 @@
 #include <string.h>
 
 #include "include/alloc.h"
+#include "include/printer.h"
 #include "include/ptypes.h"
 #include "include/ustring.h"
-#include "include/printer.h"
 
 static u32 uiterGetACp(const char *str, u64 len, u64 *ate) {
     if (len == 0) {

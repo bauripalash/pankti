@@ -8,8 +8,8 @@
 #include "external/xxhash/xxhash.h"
 #include "include/keywords.h"
 #include "include/object.h"
-#include "include/ptypes.h"
 #include "include/printer.h"
+#include "include/ptypes.h"
 #include "include/utils.h"
 
 // Golden ratio?

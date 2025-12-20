@@ -6,7 +6,7 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#if defined (DEBUG_GC)
+#if defined(DEBUG_GC)
 #include "../include/ansicolors.h"
 #endif
 

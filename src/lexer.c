@@ -10,10 +10,10 @@
 #include "include/core.h"
 #include "include/keywords.h"
 #include "include/lexer.h"
+#include "include/printer.h"
 #include "include/token.h"
 #include "include/ustring.h"
 #include "include/utils.h"
-#include "include/printer.h"
 
 Lexer *NewLexer(char *src) {
     Lexer *lx = PMalloc(sizeof(Lexer));

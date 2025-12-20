@@ -14,9 +14,9 @@
 #include "include/interpreter.h"
 #include "include/native.h"
 #include "include/object.h"
+#include "include/printer.h"
 #include "include/pstdlib.h"
 #include "include/ptypes.h"
-#include "include/printer.h"
 #include "include/token.h"
 #include "include/utils.h"
 

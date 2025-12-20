@@ -7,9 +7,9 @@
 #include "include/interpreter.h"
 #include "include/lexer.h"
 #include "include/parser.h"
+#include "include/printer.h"
 #include "include/token.h"
 #include "include/utils.h"
-#include "include/printer.h"
 
 #include <stdbool.h>
 #include <stddef.h>

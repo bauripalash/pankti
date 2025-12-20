@@ -6,8 +6,8 @@
 #include "include/env.h"
 #include "include/gc.h"
 #include "include/object.h"
-#include "include/ptypes.h"
 #include "include/printer.h"
+#include "include/ptypes.h"
 
 // NOLINTBEGIN
 static inline uint64_t envHashFn(u64 key) { return key; }
