@@ -486,7 +486,6 @@ static PStmt *rExprStmt(Parser *p) {
     return NewExprStmt(p->gc, previous(p), value);
 }
 
-
 static PStmt *rLetStmt(Parser *p) {
     Token *name = eat(p, T_IDENT, "Expected Identifier");
     eat(p, T_EQ, "Expected equal");
@@ -609,7 +608,7 @@ static PStmt *rImportStmt(Parser *p) {
 }
 
 static PStmt *rStmt(Parser *p) {
-	if (matchOne(p, T_LEFT_BRACE)) {
+    if (matchOne(p, T_LEFT_BRACE)) {
         return rBlockStmt(p);
     } else if (matchOne(p, T_IF)) {
         return rIfStmt(p);

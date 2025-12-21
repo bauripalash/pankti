@@ -24,7 +24,7 @@ extern "C" {
 #define UTF8_BOM_2         0xBF
 
 // Return item count of array
-#define ArrCount(arr) (sizeof(arr) / sizeof(arr[0]))
+#define ArrCount(arr)  (sizeof(arr) / sizeof(arr[0]))
 
 #define DefStrLen(str) ((u64)(sizeof(str) - 1))
 

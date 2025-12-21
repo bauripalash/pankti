@@ -12,7 +12,7 @@
 
 #define NAME_CLOCK_EN  "clock"
 #define NAME_CLOCK_BN  "সময়"
-#define NAME_CLOCK_PN "somoy"
+#define NAME_CLOCK_PN  "somoy"
 
 #define NAME_SHOW_EN   "show"
 #define NAME_SHOW_BN   "দেখাও"
@@ -58,8 +58,9 @@ static PValue ntvAppend(PInterpreter *it, PValue *args, u64 argc) {
 
     if (argc < 2) {
         return MakeError(
-            it->gc, "append(...) needs atleast two arguments, for appending to array"
-                    " Or 3 arguments for adding new pair to a map"
+            it->gc,
+            "append(...) needs atleast two arguments, for appending to array"
+            " Or 3 arguments for adding new pair to a map"
         );
     }
 
@@ -83,8 +84,8 @@ static PValue ntvAppend(PInterpreter *it, PValue *args, u64 argc) {
     } else if (IsValueObjType(target, OT_MAP)) {
         if (argc != 3) {
             return MakeError(
-                it->gc,
-                "append(...) needs atleast 3 arguments, map and a key-value pair"
+                it->gc, "append(...) needs atleast 3 arguments, map and a "
+                        "key-value pair"
             );
         }
 
@@ -94,7 +95,8 @@ static PValue ntvAppend(PInterpreter *it, PValue *args, u64 argc) {
 
         if (!MapObjPushPair(obj, key, value, it->gc->timestamp)) {
             return MakeError(
-                it->gc, "Interenal Error : Failed to append key-value pair to map"
+                it->gc,
+                "Interenal Error : Failed to append key-value pair to map"
             );
         }
 
