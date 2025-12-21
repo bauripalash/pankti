@@ -32,16 +32,6 @@ PStmt *NewStmt(Pgc *gc, PStmtType type, Token *op) {
     return s;
 }
 
-PStmt *NewPrintStmt(Pgc *gc, Token *op, PExpr *value) {
-    PStmt *s = NewStmt(gc, STMT_PRINT, op);
-
-    if (s == NULL) {
-        return NULL;
-    }
-    s->stmt.SPrint.op = op;
-    s->stmt.SPrint.value = value;
-    return s;
-}
 PStmt *NewExprStmt(Pgc *gc, Token *op, PExpr *value) {
     PStmt *s = NewStmt(gc, STMT_EXPR, op);
     if (s == NULL) {
@@ -167,12 +157,6 @@ void FreeStmt(Pgc *gc, PStmt *s) {
         case STMT_LET: {
             // should we do this?
             FreeExpr(gc, s->stmt.SLet.expr);
-            freeBaseStmt(gc, s);
-            break;
-        }
-        case STMT_PRINT: {
-            // what if the variable is still in env and used later?
-            FreeExpr(gc, s->stmt.SPrint.value);
             freeBaseStmt(gc, s);
             break;
         }

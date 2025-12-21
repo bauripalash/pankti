@@ -196,9 +196,6 @@ typedef struct PExpr {
 typedef enum PStmtType {
     // Expression Statement: Naked expressions
     STMT_EXPR = 1,
-    // Print Statement : Temporary measure to print objects
-    // NOTE: (should not be in final interpreter)
-    STMT_PRINT,
     // If Statement
     STMT_IF,
     // Let Statement : Variable Declaration
@@ -227,11 +224,6 @@ typedef struct PStmt {
     // `Temporary` Print Statement (for Debugging only)
     // Type: `STMT_PRINT`
     union stmt {
-        struct SPrint {
-            Token *op;
-            PExpr *value;
-        } SPrint;
-
         // Expression Statement : Naked Expressions
         // Type: `STMT_EXPR`
         struct SExpr {

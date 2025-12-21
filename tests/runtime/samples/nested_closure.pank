@@ -1,24 +1,22 @@
-let globalOne = 0
-let globalTwo = 0
+ধরি সাধারণ_ক = ০
+ধরি সাধারণ_খ = ০
 
-kaj main()
-  {
-    let a = "one"
-    kaj one()
-      print a
-    end
-    globalOne = one
-  }
-
-  {
-    let a = "two"
-    kaj two()
-      print a
-    end
-    globalTwo = two
-  }
-end
-
-main()
-globalOne()
-globalTwo()
+কাজ প্রধান()
+    {
+            ধরি ক = "one"
+            কাজ এক()
+                দেখাও(ক, "\n")
+            শেষ
+            সাধারণ_ক = এক
+    }
+    {
+            ধরি ক = "two"
+            কাজ দুই()
+                দেখাও(ক, "\n")
+            শেষ
+            সাধারণ_খ = দুই
+    }
+শেষ
+প্রধান()
+সাধারণ_ক()
+সাধারণ_খ()

@@ -1,22 +1,22 @@
-kaj jog(a,b)
-	ferao a + b
-sesh
+কাজ যোগ(ক, খ)
+	ফেরাও ক + খ
+শেষ
 
-kaj goon(a,b)
-	ferao a * b
-sesh
+কাজ গুন(ক, খ)
+	ফেরাও ক * খ
+শেষ
 
-kaj gonona(a)
-	return jog(goon(a, a), goon(a,2))
-sesh
+কাজ গণনা(ক)
+	ফেরাও যোগ(গুন(ক, ক), গুন(ক, ২))
+শেষ
 
-dhori sum = 0
-dhori i = 0
-dhori limit = 100000
+ধরি যোগফল = ০
+ধরি ক = ০
+ধরি সীমা = ১০০০০০
 
-jotokhon i < limit koro
-	sum = sum + gonona(i)
-	i = i + 1
-sesh
+যতক্ষণ ক < সীমা করো
+	যোগফল = যোগফল + গণনা(ক)
+	ক = ক + ১
+শেষ
 
-print sum
+দেখাও(যোগফল, "\n")

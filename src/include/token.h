@@ -109,9 +109,6 @@ typedef enum PTokenType {
     T_IMPORT = 43,
     // Token : Keyword `panic/golmal`
     T_PANIC = 44,
-    // Token : Keyword `print/print`
-    T_PRINT = 46,
-
     // Token : End of File
     T_EOF = 47
 } PTokenType;

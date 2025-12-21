@@ -475,8 +475,7 @@ static void syncParser(Parser *p) {
             case T_WHILE:
             case T_IF:
             case T_RETURN:
-            case T_IMPORT:
-            case T_PRINT: return;
+            case T_IMPORT: return;
             default: advance(p); break;
         }
     }
@@ -487,11 +486,6 @@ static PStmt *rExprStmt(Parser *p) {
     return NewExprStmt(p->gc, previous(p), value);
 }
 
-static PStmt *rPrintStmt(Parser *p) {
-    Token *op = previous(p);
-    PExpr *value = rExpression(p);
-    return NewPrintStmt(p->gc, op, value);
-}
 
 static PStmt *rLetStmt(Parser *p) {
     Token *name = eat(p, T_IDENT, "Expected Identifier");
@@ -615,9 +609,7 @@ static PStmt *rImportStmt(Parser *p) {
 }
 
 static PStmt *rStmt(Parser *p) {
-    if (matchOne(p, T_PRINT)) {
-        return rPrintStmt(p);
-    } else if (matchOne(p, T_LEFT_BRACE)) {
+	if (matchOne(p, T_LEFT_BRACE)) {
         return rBlockStmt(p);
     } else if (matchOne(p, T_IF)) {
         return rIfStmt(p);

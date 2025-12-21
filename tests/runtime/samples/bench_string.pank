@@ -1,10 +1,10 @@
-dhori string = ""
-dhori i = 0
-dhori limit = 10000
+ধরি স = ""
+ধরি ক = ০
+ধরি সীমা = ১০০০০
+যতক্ষণ ক < সীমা করো
+	স = স + "a"
+	ক = ক + ১
+শেষ
 
-jotokhon i < limit koro
-	string = string + "a"
-	i = i + 1
-sesh
+দেখাও(স, "\n")
 
-print string

@@ -909,15 +909,6 @@ static finline ExResult vsLet(PInterpreter *it, PStmt *stmt, PEnv *env) {
     return ExSimple(value);
 }
 
-// Temporary print statements
-static finline ExResult vsPrint(PInterpreter *it, PStmt *stmt, PEnv *env) {
-    assert(stmt->type == STMT_PRINT);
-    PValue value = evaluate(it, stmt->stmt.SPrint.value, env);
-    PrintValue(value);
-    PanPrint("\n");
-    return ExSimple(MakeNil());
-}
-
 // Execute Expression statements
 static finline ExResult vsExprStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     assert(stmt->type == STMT_EXPR);
@@ -1046,7 +1037,6 @@ static ExResult execute(PInterpreter *it, PStmt *stmt, PEnv *env) {
     }
 
     switch (stmt->type) {
-        case STMT_PRINT: return vsPrint(it, stmt, env);
         case STMT_EXPR: return vsExprStmt(it, stmt, env);
         case STMT_LET: return vsLet(it, stmt, env);
         case STMT_BLOCK: return vsBlock(it, stmt, env);

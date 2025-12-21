@@ -12,7 +12,7 @@ kaj fib(n)
 	return fib(n-2) + fib(n-1)
 end
 
-print fib(10)
+show(fib(10))
 ```
 Compiled with -Wall -flto -O3 flags. Using standard library `clock()` function
 I ran some speed tests, using this method:

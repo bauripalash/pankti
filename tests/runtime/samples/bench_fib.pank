@@ -1,9 +1,9 @@
-kaj fib(n)
-	if n < 2 then
-		return n
-	end
+কাজ ফিব(ক)
+	যদি ক < ২ তাহলে
+		ফেরাও ক
+	শেষ
 
-	return fib(n-2) + fib(n-1)
-end
+	ফেরাও ফিব(ক - ২) + ফিব(ক - ১)
+শেষ
 
-print fib(30)
+দেখাও(ফিব(৩০))

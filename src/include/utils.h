@@ -26,6 +26,8 @@ extern "C" {
 // Return item count of array
 #define ArrCount(arr) (sizeof(arr) / sizeof(arr[0]))
 
+#define DefStrLen(str) ((u64)(sizeof(str) - 1))
+
 // Read file to string (must free the returned string)
 // `path` = Path to the file
 char *ReadFile(const char *path);

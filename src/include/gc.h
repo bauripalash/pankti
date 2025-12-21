@@ -189,12 +189,6 @@ PStmt *NewStmt(Pgc *gc, PStmtType type, Token *op);
 // Free Statement
 void FreeStmt(Pgc *gc, PStmt *stmt);
 
-// New (Debug) Print Statement
-// `op` = The `print` token
-// `value` = The expression to print
-// Return => New Print Statement as Statement pointer or NULL
-PStmt *NewPrintStmt(Pgc *gc, Token *op, PExpr *value);
-
 // New (Naked) Expression Statement
 // `op` = The last token the expression.
 // The first expression is not used as single token expression without any

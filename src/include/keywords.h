@@ -23,7 +23,6 @@ extern "C" {
 #define KW_EN_DO     "do"
 #define KW_EN_BREAK  "break"
 #define KW_EN_LEN    "len"
-#define KW_EN_PRINT  "print"
 
 #define KW_PN_LET    "dhori"
 #define KW_PN_AND    "ebong"
@@ -43,7 +42,6 @@ extern "C" {
 #define KW_PN_DO     "koro"
 #define KW_PN_BREAK  "bhango"
 #define KW_PN_LEN    "ayoton"
-#define KW_PN_PRINT  "dekhao"
 
 #define KW_BN_LET    "ধরি"
 #define KW_BN_AND    "এবং"
@@ -63,7 +61,6 @@ extern "C" {
 #define KW_BN_DO     "করো"
 #define KW_BN_BREAK  "ভাঙো"
 #define KW_BN_LEN    "আয়তন"
-#define KW_BN_PRINT  "দেখাও"
 
 #ifdef __cplusplus
 }

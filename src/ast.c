@@ -212,14 +212,6 @@ void AstStmtPrint(PStmt *stmt, int indent) {
     }
     printIndent(indent);
     switch (stmt->type) {
-        case STMT_PRINT: {
-            PanPrint("Print [\n");
-            AstPrint(stmt->stmt.SPrint.value, indent + 1);
-            printIndent(indent);
-            PanPrint("]\n");
-            break;
-        }
-
         case STMT_EXPR: {
             PanPrint("Expr [\n");
             AstPrint(stmt->stmt.SExpr.expr, indent + 1);
@@ -342,7 +334,6 @@ char *StmtTypeToStr(PStmtType type) {
         case STMT_BLOCK: return "Block Stmt";
         case STMT_LET: return "Let Stmt";
         case STMT_EXPR: return "Expr Stmt";
-        case STMT_PRINT: return "Print Stmt";
         case STMT_BREAK: return "Break Stmt";
         case STMT_FUNC: return "Func Stmt";
         case STMT_IMPORT: return "Import Stmt";

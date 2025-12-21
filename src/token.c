@@ -50,7 +50,6 @@ char *TokTypeToStr(PTokenType type) {
         case T_RETURN: return "Return";
         case T_IMPORT: return "Import";
         case T_PANIC: return "Panic";
-        case T_PRINT: return "Print";
         case T_EOF: return "EOF";
     };
 

@@ -1,18 +1,18 @@
-dhori list = []
-dhori i = 0
-dhori limit = 10000
+ধরি লিস্ট = []
+ধরি ক = ০
+ধরি সীমা = ১০০০০
 
-jotokhon i < limit koro
-	append(list, i)
-	i = i + 1
-sesh
+যতক্ষণ ক < সীমা করো
+	সংযোগ(লিস্ট, ক)
+	ক = ক + ১
+শেষ
 
-dhori sum = 0
-dhori j = 0
+ধরি যোগফল = ০
+ধরি খ = ০
 
-jotokhon j < limit koro
-	sum = sum + list[j]
-	j = j + 1
-sesh
+যতক্ষণ খ < সীমা করো
+	যোগফল = যোগফল + লিস্ট[খ]
+	খ = খ + ১
+শেষ
 
-print sum
+দেখাও(যোগফল, "\n")

@@ -1,10 +1,10 @@
-dhori sum = 0
-dhori i = 0
-dhori limit = 1000000
+ধরি যোগফল = ০
+ধরি ক = ০
+ধরি সীমা = ১০০০০০০
 
-jotokhon i < limit koro
-	sum = sum + 1
-	i = i + 1
-sesh
+যতক্ষণ ক < সীমা করো
+	যোগফল = যোগফল + ১
+	ক = ক + ১
+শেষ
 
-print sum
+দেখাও(যোগফল, "\n")

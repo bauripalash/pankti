@@ -10,6 +10,22 @@
 #include <stdint.h>
 #include <time.h>
 
+#define NAME_CLOCK_EN  "clock"
+#define NAME_CLOCK_BN  "সময়"
+#define NAME_CLOCK_PN "somoy"
+
+#define NAME_SHOW_EN   "show"
+#define NAME_SHOW_BN   "দেখাও"
+#define NAME_SHOW_PN   "dekhao"
+
+#define NAME_LEN_EN    "len"
+#define NAME_LEN_BN    "আয়তন"
+#define NAME_LEN_PN    "ayoton"
+
+#define NAME_APPEND_EN "append"
+#define NAME_APPEND_BN "সংযোগ"
+#define NAME_APPEND_PN "songjog"
+
 static PValue ntvClock(PInterpreter *it, PValue *args, u64 argc) {
     clock_t c = clock();
     double sec = (double)c / (double)CLOCKS_PER_SEC;
@@ -38,11 +54,11 @@ static PValue ntvLen(PInterpreter *it, PValue *args, u64 argc) {
     return MakeNumber(GetObjectLength(targetObj));
 }
 
-static PValue ntvPushArray(PInterpreter *it, PValue *args, u64 argc) {
+static PValue ntvAppend(PInterpreter *it, PValue *args, u64 argc) {
 
     if (argc < 2) {
         return MakeError(
-            it->gc, "Push needs atleast two arguments, for appending to array"
+            it->gc, "append(...) needs atleast two arguments, for appending to array"
                     " Or 3 arguments for adding new pair to a map"
         );
     }
@@ -58,7 +74,7 @@ static PValue ntvPushArray(PInterpreter *it, PValue *args, u64 argc) {
             PValue elm = args[i + 1];
             if (!ArrayObjPushValue(obj, elm)) {
                 return MakeError(
-                    it->gc, "Interenal Error : Failed to push item to array"
+                    it->gc, "Interenal Error : Failed to append item to array"
                 );
             }
         }
@@ -68,7 +84,7 @@ static PValue ntvPushArray(PInterpreter *it, PValue *args, u64 argc) {
         if (argc != 3) {
             return MakeError(
                 it->gc,
-                "Push needs atleast 3 arguments, map and a key-value pair"
+                "append(...) needs atleast 3 arguments, map and a key-value pair"
             );
         }
 
@@ -78,7 +94,7 @@ static PValue ntvPushArray(PInterpreter *it, PValue *args, u64 argc) {
 
         if (!MapObjPushPair(obj, key, value, it->gc->timestamp)) {
             return MakeError(
-                it->gc, "Interenal Error : Failed to add key-value pair to map"
+                it->gc, "Interenal Error : Failed to append key-value pair to map"
             );
         }
 
@@ -89,6 +105,8 @@ static PValue ntvPushArray(PInterpreter *it, PValue *args, u64 argc) {
         it->gc, "append(...) function only works on arrays and maps"
     );
 }
+
+#define DefStrHash(s, it) ((StrHash(s, DefStrLen(s), it->gc->timestamp)))
 
 void RegisterNatives(PInterpreter *it, PEnv *env) {
     if (it == NULL) {
@@ -104,17 +122,23 @@ void RegisterNatives(PInterpreter *it, PEnv *env) {
     }
 
     PObj *clockFn = NewNativeFnObject(it->gc, NULL, ntvClock, 0);
-    EnvPutValue(
-        env, StrHash("clock", 5, it->gc->timestamp), MakeObject(clockFn)
-    );
     PObj *showFn = NewNativeFnObject(it->gc, NULL, ntvShow, -1);
-    EnvPutValue(env, StrHash("show", 4, it->gc->timestamp), MakeObject(showFn));
-
     PObj *lenFn = NewNativeFnObject(it->gc, NULL, ntvLen, 1);
-    EnvPutValue(env, StrHash("len", 3, it->gc->timestamp), MakeObject(lenFn));
+    PObj *appendFn = NewNativeFnObject(it->gc, NULL, ntvAppend, -1);
 
-    PObj *pushFn = NewNativeFnObject(it->gc, NULL, ntvPushArray, -1);
-    EnvPutValue(
-        env, StrHash("append", 6, it->gc->timestamp), MakeObject(pushFn)
-    );
+    EnvPutValue(env, DefStrHash(NAME_CLOCK_EN, it), MakeObject(clockFn));
+    EnvPutValue(env, DefStrHash(NAME_CLOCK_BN, it), MakeObject(clockFn));
+    EnvPutValue(env, DefStrHash(NAME_CLOCK_PN, it), MakeObject(clockFn));
+
+    EnvPutValue(env, DefStrHash(NAME_SHOW_EN, it), MakeObject(showFn));
+    EnvPutValue(env, DefStrHash(NAME_SHOW_BN, it), MakeObject(showFn));
+    EnvPutValue(env, DefStrHash(NAME_SHOW_PN, it), MakeObject(showFn));
+
+    EnvPutValue(env, DefStrHash(NAME_LEN_EN, it), MakeObject(lenFn));
+    EnvPutValue(env, DefStrHash(NAME_LEN_BN, it), MakeObject(lenFn));
+    EnvPutValue(env, DefStrHash(NAME_LEN_PN, it), MakeObject(lenFn));
+
+    EnvPutValue(env, DefStrHash(NAME_APPEND_EN, it), MakeObject(appendFn));
+    EnvPutValue(env, DefStrHash(NAME_APPEND_BN, it), MakeObject(appendFn));
+    EnvPutValue(env, DefStrHash(NAME_APPEND_PN, it), MakeObject(appendFn));
 }
