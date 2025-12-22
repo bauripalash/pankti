@@ -14,12 +14,14 @@ extern "C" {
 #define MATH_STDLIB_NAME   "গণিত"
 #define MAP_STDLIB_NAME    "ম্যাপ"
 #define STRING_STDLIB_NAME "string"
+#define ARRAY_STDLIB_NAME  "array"
 
 typedef enum StdlibMod {
     STDLIB_NONE = 0,
     STDLIB_OS,
     STDLIB_MATH,
     STDLIB_MAP,
+    STDLIB_ARRAY,
     STDLIB_STRING,
 } StdlibMod;
 
@@ -44,6 +46,8 @@ static inline StdlibMod GetStdlibMod(const char *name) {
         return STDLIB_MATH;
     } else if (StrEqual(name, MAP_STDLIB_NAME)) {
         return STDLIB_MAP;
+    } else if (StrEqual(name, ARRAY_STDLIB_NAME)) {
+        return STDLIB_ARRAY;
     } else if (StrEqual(name, STRING_STDLIB_NAME)) {
         return STDLIB_STRING;
     }
@@ -54,6 +58,7 @@ void PushStdlib(PInterpreter *it, PEnv *env, const char *name, StdlibMod mod);
 void PushStdlibOs(PInterpreter *it, PEnv *env);
 void PushStdlibMath(PInterpreter *it, PEnv *env);
 void PushStdlibMap(PInterpreter *it, PEnv *env);
+void PushStdlibArray(PInterpreter *it, PEnv *env);
 void PushStdlibString(PInterpreter *it, PEnv *env);
 
 #ifdef __cplusplus

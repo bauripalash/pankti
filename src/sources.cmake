@@ -22,6 +22,7 @@ set(PANKTI_SRC_FILES
   # Stdlib
   "${CMAKE_CURRENT_LIST_DIR}/stdlib/pstdlib.c"
   "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdmap.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdarray.c"
   "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdmath.c"
   "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdos.c"
   "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdstring.c"
