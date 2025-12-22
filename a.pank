@@ -1,8 +1,2 @@
-import arr "array"
-
-let mylist = [1,2,3, "hello"]
-show(arr.exists(mylist, "hello"), "\n")
-show(arr.index(mylist, "hello"), "\n")
-show(arr.delete(mylist , 2), "\n")
-show(mylist, "\n")
-
+let mylist = [1,23,4]
+show(mylist, " ",  mylist[1], "\n")

@@ -7,6 +7,8 @@ class TestStdlibMath(testcore.PanktiTestCase):
         self.golden("stdmath")
     def test_stdlib_map(self):
         self.golden("stdmap")
+    def test_stdlib_array(self):
+        self.golden("stdarray")
 
 
 if __name__ == "__main__":

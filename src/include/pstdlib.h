@@ -14,7 +14,7 @@ extern "C" {
 #define MATH_STDLIB_NAME   "গণিত"
 #define MAP_STDLIB_NAME    "ম্যাপ"
 #define STRING_STDLIB_NAME "string"
-#define ARRAY_STDLIB_NAME  "array"
+#define ARRAY_STDLIB_NAME  "তালিকা"
 
 typedef enum StdlibMod {
     STDLIB_NONE = 0,

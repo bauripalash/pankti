@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 // TODO: check if index is too big to be a double
 static finline u64 getArrIndex(PObj *arr, PValue val, bool *found) {
@@ -29,6 +30,58 @@ static PValue array_Exists(PInterpreter *it, PValue *args, u64 argc) {
     bool found = false;
     (void)getArrIndex(ValueAsObj(rawArray), key, &found);
     return MakeBool(found);
+}
+
+static PValue array_Add(PInterpreter *it, PValue *args, u64 argc) {
+
+    PValue rawArray = args[0];
+    if (!IsValueObjType(rawArray, OT_ARR)) {
+        return MakeError(it->gc, "add only takes array");
+    }
+
+    PValue rawIndex = args[1];
+    double dblIndex = -1;
+    if (IsValueNum(rawIndex)) {
+        dblIndex = ValueAsNum(rawIndex);
+
+        if (dblIndex < 0) {
+            return MakeError(
+                it->gc, "add(array, index, value) -> index must be a "
+                        "non-negetive integer"
+            );
+        }
+
+        if (!IsDoubleInt(dblIndex)) {
+            return MakeError(
+                it->gc, "add(array, index, value) -> index must be a "
+                        "non-negetive integer"
+            );
+        }
+    } else {
+        return MakeError(
+            it->gc,
+            "add(array, index, value) -> index must be a non-negetive integer"
+        );
+    }
+    u64 arrIndex = (u64)floor(dblIndex);
+    struct OArray *arr = &ValueAsObj(rawArray)->v.OArray;
+
+    if (arrIndex >= arr->count) {
+        return MakeError(it->gc, "add(....) index out of range");
+    }
+
+    if (arrIndex > 0 && arr->items == NULL) {
+        // TODO: Error handle on NULL
+        return MakeError(
+            it->gc, "Internal Error : Failed to add item at index `<TODO>` as "
+                    "the array is null? <TODO>"
+        );
+    }
+
+    PValue val = args[2];
+    arrins(arr->items, arrIndex, val);
+    arr->count = arrlen(arr->items);
+    return MakeNumber((double)arr->count);
 }
 
 static PValue array_Index(PInterpreter *it, PValue *args, u64 argc) {
@@ -94,8 +147,10 @@ static PValue array_Delete(PInterpreter *it, PValue *args, u64 argc) {
             return MakeError(it->gc, "delete(....) index out of range");
         }
 
+        // TODO: Null Check when null and index is greater than 0
         PValue result = arr->items[index];
         arrdel(arr->items, index);
+        arr->count = arrlen(arr->items);
         return result;
     } else {
         if (arr->count == 0) {
@@ -109,14 +164,16 @@ static PValue array_Delete(PInterpreter *it, PValue *args, u64 argc) {
     }
 }
 
-#define ARRAY_STD_EXISTS "exists"
-#define ARRAY_STD_INDEX  "index"
-#define ARRAY_STD_DELETE "delete"
+#define ARRAY_STD_EXISTS "বর্তমান"
+#define ARRAY_STD_INDEX  "সূচক"
+#define ARRAY_STD_ADD    "সংযোগ"
+#define ARRAY_STD_DELETE "বিয়োগ"
 
 void PushStdlibArray(PInterpreter *it, PEnv *env) {
     StdlibEntry entries[] = {
         MakeStdlibEntry(ARRAY_STD_EXISTS, array_Exists, 2),
         MakeStdlibEntry(ARRAY_STD_INDEX, array_Index, 2),
+        MakeStdlibEntry(ARRAY_STD_ADD, array_Add, 3),
         MakeStdlibEntry(ARRAY_STD_DELETE, array_Delete, -1),
     };
 
