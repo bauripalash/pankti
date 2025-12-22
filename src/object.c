@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -242,6 +243,16 @@ bool MapObjSetValue(PObj *o, PValue key, u64 keyHash, PValue value) {
 bool MapObjPushPair(PObj *o, PValue key, PValue value, u64 seed) {
     u64 keyHash = GetValueHash(key, seed);
     return MapObjSetValue(o, key, keyHash, value);
+}
+
+bool MapObjHasKey(PObj *o, PValue key, u64 hash) {
+    assert(o->type == OT_MAP);
+
+    if (hmgeti(o->v.OMap.table, hash) >= 0) {
+        return true;
+    }
+
+    return false;
 }
 
 void PrintObject(const PObj *o) {

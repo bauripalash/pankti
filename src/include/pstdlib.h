@@ -12,7 +12,7 @@ extern "C" {
 
 #define OS_STDLIB_NAME     "ওএস"
 #define MATH_STDLIB_NAME   "গণিত"
-#define MAP_STDLIB_NAME    "map"
+#define MAP_STDLIB_NAME    "ম্যাপ"
 #define STRING_STDLIB_NAME "string"
 
 typedef enum StdlibMod {

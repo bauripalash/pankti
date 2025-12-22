@@ -8,3 +8,13 @@ show(mylist, "\n")
 show(mymap, "\n")
 append(mymap, 2 , "bauri")
 show(mymap, "\n")
+
+import ম্যাপ  "ম্যাপ"
+
+show(ম্যাপ.বর্তমান(mymap, "list") , "\n")
+let keys = ম্যাপ.সূচক(mymap)
+show(keys, "\n")
+show(len(keys), "\n")
+let values = ম্যাপ.মান(mymap)
+show(values, "\n")
+show(len(values), "\n")

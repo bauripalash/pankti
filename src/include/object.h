@@ -284,6 +284,8 @@ bool CanObjectBeKey(PObjType type);
 // If Value is a object, returns Object Type
 const char *ValueTypeToStr(PValue val);
 
+// Check if specified value exists in map
+bool MapObjHasKey(PObj *o, PValue key, u64 hash);
 // Set or Update key value (with key) pair in map
 bool MapObjSetValue(PObj *o, PValue key, u64 keyHash, PValue value);
 // Add New Pair or Update existing pair in map
