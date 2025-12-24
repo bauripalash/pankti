@@ -216,6 +216,7 @@ endif()
 add_executable(${PROJECT_NAME})
 add_subdirectory(src)
 add_compile_definitions(USING_CMAKE_BUILD=1)
+add_subdirectory(src/external/libgrapheme)
 
 target_compile_options(${PROJECT_NAME} PRIVATE 
 	$<$<CONFIG:Debug>:${PANKTI_DEBUG_CFLAGS}>
@@ -230,6 +231,8 @@ target_link_options(${PROJECT_NAME} PRIVATE
     $<$<CONFIG:RelWithDebInfo>:${PANKTI_REL_WITH_DINFO_LINKER_FLAGS}>
     $<$<CONFIG:MinSizeRel>:${PANKTI_RELEASE_LINKER_FLAGS}>
 )
+
+target_link_libraries(${PROJECT_NAME} PRIVATE libgrapheme)
 
 if (NOT IS_MSVC)
 	target_link_libraries(${PROJECT_NAME} PRIVATE m)

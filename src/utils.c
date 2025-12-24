@@ -9,9 +9,11 @@
 #include <string.h>
 #include <uchar.h>
 
+#include "external/stb/stb_ds.h"
 #include "external/xxhash/xxhash.h"
 #include "include/alloc.h"
 #include "include/bengali.h"
+#include "include/printer.h"
 #include "include/ptypes.h"
 #include "include/ustring.h"
 #include "include/utils.h"
@@ -137,6 +139,77 @@ const char *StrFormat(const char *text, ...) {
     }
 
     return curbuf;
+}
+
+char **StrSplitDelim(const char *str, const char *delim, u64 *count, bool *ok) {
+    if (str == NULL || delim == NULL) {
+        *ok = false;
+        return NULL;
+    }
+
+    char **result = NULL;
+    // Input string length
+    u64 slen = StrLength(str);
+
+    if (slen == 0) {
+        *ok = false;
+        return NULL;
+    }
+
+    // if delimiter is empty or null
+    // return a single item array containing the while string
+    if (delim == NULL || delim[0] == '\0') {
+        char *dup = StrDuplicate(str, slen);
+        if (dup == NULL) {
+            *ok = false;
+            *count = 0;
+            return NULL;
+        }
+
+        arrput(result, dup);
+        *count = 1;
+        *ok = true;
+        return result;
+    }
+    // delimiter string length
+    u64 dlen = StrLength(delim);
+
+    const char *start = str;
+    char *token = "";
+
+    while ((token = strstr(start, delim)) != NULL) {
+        u64 tokenLen = token - start;
+        char *tokenStr = PMalloc(sizeof(char) * (tokenLen + 1));
+        if (tokenStr == NULL) {
+            if (result != NULL) {
+                for (u64 i = 0; i < arrlen(result); i++) {
+                    PFree(result[i]);
+                }
+
+                arrfree(result);
+                result = NULL;
+            }
+
+            *ok = false;
+            return NULL;
+        }
+        memcpy(tokenStr, start, tokenLen);
+        tokenStr[tokenLen] = '\0';
+        arrput(result, tokenStr);
+        start = token + dlen;
+    }
+
+    u64 lastLen = StrLength(start);
+    if (lastLen > 0) {
+        char *laststr = PMalloc(sizeof(char) * (lastLen + 1));
+        memcpy(laststr, start, lastLen);
+        laststr[lastLen] = '\0';
+        arrput(result, laststr);
+    }
+
+    *count = arrlen(result);
+    *ok = true;
+    return result;
 }
 
 // Source:

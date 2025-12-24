@@ -265,6 +265,8 @@ bool IsValueTruthy(PValue val);
 bool IsValueEqual(PValue a, PValue b);
 // Print value to stdout
 void PrintValue(PValue val);
+// Get string from value
+char *ValueToString(PValue val);
 // Check if value is a error object
 bool IsValueError(PValue val);
 
@@ -296,6 +298,8 @@ bool ArrayObjInsValue(PObj *o, int index, PValue value);
 bool ArrayObjPushValue(PObj *o, PValue value);
 // Print Object
 void PrintObject(const PObj *o);
+// Get string from object
+char *ObjToString(PObj *obj);
 
 // Get Object type as String
 char *ObjTypeToString(PObjType type);

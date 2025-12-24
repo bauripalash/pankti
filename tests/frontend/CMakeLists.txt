@@ -8,6 +8,9 @@ add_executable(pankti_tests
 	${PANKTI_NATIVE_TEST_FILES}
 )
 
+
+target_link_libraries(pankti_tests PRIVATE libgrapheme)
+
 if (NOT IS_MSVC)
 	target_link_libraries(pankti_tests PRIVATE m)
 endif()

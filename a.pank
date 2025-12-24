@@ -1,2 +1,28 @@
-let mylist = [1,23,4]
-show(mylist, " ",  mylist[1], "\n")
+import str "string"
+
+let name = "palashhellobaurihellohi"
+let array = str.split(name, "l")
+show(array, "\n")
+show(len(array), "\n")
+
+let i = 0
+while i < len(array) do
+    show( i, " -> '" , array[i], "\b'\n")
+    i = i + 1
+end
+
+let x = str.string(array)
+let y = str.string(name)
+show(y, "\n")
+show(x, "\n")
+show("len|array ->", len(array), "\n")
+show("len|x ->", len(x), "\n")
+
+let m = {
+    "name" : "palash",
+    "year" : "2025"
+}
+
+show("mlen -> ",len(m), m, "\n")
+let ms = str.string(m)
+show("mslen->", len(ms), ms, "\n")

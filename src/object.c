@@ -3,11 +3,12 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <string.h>
 
+#include "external/gb/gb_string.h"
 #include "external/stb/stb_ds.h"
 #include "external/xxhash/xxhash.h"
+#include "include/alloc.h"
 #include "include/keywords.h"
 #include "include/object.h"
 #include "include/printer.h"
@@ -332,6 +333,134 @@ void PrintObject(const PObj *o) {
     }
 }
 
+char *ValueToString(PValue val) {
+    char *result = NULL;
+    if (IsValueNum(val)) {
+        gbString str;
+        double dblNum = ValueAsNum(val);
+        if (IsDoubleInt(dblNum)) {
+            str = gb_make_string(StrFormat("%d", (int)floor(val)));
+        } else {
+            str = gb_make_string(StrFormat("%f", ValueAsNum(val)));
+        }
+        result = StrDuplicate(str, (u64)gb_string_length(str));
+        gb_free_string(str);
+
+    } else if (IsValueBool(val)) {
+        if (ValueAsBool(val) == true) { // just make it more verbose
+            result = StrDuplicate(KW_BN_TRUE, StrLength(KW_BN_TRUE));
+        } else {
+            result = StrDuplicate(KW_BN_FALSE, StrLength(KW_BN_FALSE));
+        }
+    } else if (IsValueNil(val)) {
+        result = StrDuplicate(KW_BN_NIL, StrLength(KW_BN_NIL));
+    } else if (IsValueObj(val)) {
+        result = ObjToString(ValueAsObj(val));
+    }
+
+    return result;
+}
+
+char *ObjToString(PObj *obj) {
+    char *result = NULL;
+    switch (obj->type) {
+        case OT_STR: {
+            struct OString *str = &obj->v.OString;
+            if (str->value == NULL) {
+                return NULL;
+            }
+
+            result = StrDuplicate(str->value, StrLength(str->value));
+            break;
+        }
+
+        case OT_FNC: {
+            struct OFunction *fn = &obj->v.OFunction;
+            const char *temp =
+                StrFormat("<%s '%s'>", KW_BN_FUNC, fn->name->lexeme);
+            result = StrDuplicate(temp, strlen(temp));
+            break;
+        }
+        case OT_ARR: {
+            struct OArray *arr = &obj->v.OArray;
+
+            gbString s = gb_make_string("[");
+
+            for (u64 i = 0; i < arr->count; i++) {
+                PValue val = arr->items[i];
+                char *temp = ValueToString(val);
+                s = gb_append_cstring(s, temp);
+
+                if (i != arr->count - 1) {
+                    s = gb_append_cstring(s, ", ");
+                }
+                PFree(temp);
+            }
+            s = gb_append_cstring(s, "]");
+            result = StrDuplicate(s, (u64)gb_string_length(s));
+            gb_free_string(s);
+            break;
+        }
+        case OT_MAP: {
+            struct OMap *map = &obj->v.OMap;
+            gbString s = gb_make_string("{");
+            u64 count = map->count;
+            for (u64 i = 0; i < count; i++) {
+                PValue key = map->table[i].vkey;
+                PValue val = map->table[i].value;
+
+                char *keyStr = ValueToString(key);
+                char *valStr = ValueToString(val);
+
+                if (keyStr == NULL || valStr == NULL) {
+                    gb_free_string(s);
+                    PFree(result);
+                    result = NULL;
+
+                    if (keyStr != NULL) {
+                        PFree(keyStr);
+                    }
+
+                    if (valStr != NULL) {
+                        PFree(valStr);
+                    }
+
+                    return NULL;
+                }
+
+                s = gb_append_cstring(s, StrFormat("%s: %s", keyStr, valStr));
+                if (i != count - 1) {
+                    s = gb_append_cstring(s, ", ");
+                }
+                PFree(keyStr);
+                PFree(valStr);
+            }
+
+            s = gb_append_cstring(s, "}");
+            result = StrDuplicate(s, (u64)gb_string_length(s));
+            gb_free_string(s);
+            break;
+        }
+        case OT_NATIVE: {
+            const char *temp = StrFormat("<Native '%s'>", "<todo>");
+            result = StrDuplicate(temp, strlen(temp));
+            break;
+        }
+        case OT_ERROR: {
+            const char *temp = StrFormat("<Error '%s'>", "<todo>");
+            result = StrDuplicate(temp, strlen(temp));
+            break;
+        }
+        case OT_UPVAL: {
+            const char *temp = StrFormat("<UpValue '%s'>", "<todo>");
+            result = StrDuplicate(temp, strlen(temp));
+            break;
+        }
+    }
+
+    return result;
+}
+
 char *ObjTypeToString(PObjType type) {
     switch (type) {
         case OT_STR: return "String";
@@ -342,6 +471,7 @@ char *ObjTypeToString(PObjType type) {
         case OT_ERROR: return "Error";
         case OT_UPVAL: return "Upvalue";
     }
+    return "Unknown"; // should never reach here
 }
 
 bool IsObjEqual(const PObj *a, const PObj *b) {

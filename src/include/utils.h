@@ -54,6 +54,8 @@ u64 StrLength(const char *str);
 // Format String; same as Raylib's TextFormat
 const char *StrFormat(const char *text, ...);
 
+char **StrSplitDelim(const char *str, const char *delim, u64 *count, bool *ok);
+
 // Split String; same as Raylib's TextSplit
 char **StrSplit(const char *text, char delimiter, int *count);
 
