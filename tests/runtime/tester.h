@@ -1,5 +1,5 @@
-#ifndef TEST_TESTER_H
-#define TEST_TESTER_H
+#ifndef RUNTIME_TEST_TESTER_H
+#define RUNTIME_TEST_TESTER_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -11,7 +11,7 @@ extern "C" {
 #include <stdbool.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include <time.h>
+#include "../include/utest.h"
 
 #ifdef PANKTI_OS_WIN
 #define stat _stat
@@ -83,10 +83,16 @@ static inline bool matchOutput(const char * cmd, const char * golden, bool debug
     return true;
 }
 
-static inline bool RunGolden(const char * name, const char * dir, const char * script){
+static inline bool RunGolden(const char * script){
     char * panktiPath = getenv("PANKTI_BIN");
     if (panktiPath == NULL) {
-        printf("[ERROR] Pannkti Binary Not Set\n");
+        printf("[ERROR] Pankti Binary Not Set\n");
+        return false;
+    }
+
+    char * dir = getenv("SAMPLES_DIR");
+    if (dir == NULL) {
+        printf("[ERROR] Samples Directory Not Set\n");
         return false;
     }
 
@@ -129,18 +135,27 @@ static inline bool RunGolden(const char * name, const char * dir, const char * s
         printf("[INFO] Golden Path: '%s'\n", goldenPath);
     }
     
-    clock_t pTic = clock();
-    printf("[RUNNING] : %s\n", name);
+    //clock_t pTic = clock();
+    //printf("[RUNNING] : %s\n", name);
     if (matchOutput(command, goldenPath, enableDebug)){
-        clock_t pToc = clock();
-        printf("[PASSED] : %s (%f sec)\n",name, (double)(pToc - pTic) / CLOCKS_PER_SEC);
+        //clock_t pToc = clock();
+        //printf("[PASSED] : %s (%f sec)\n",name, (double)(pToc - pTic) / CLOCKS_PER_SEC);
         return true;
     }else{
-        printf("[Failed] : %s\n", name);
+        //printf("[Failed] : %s\n", name);
         return false;
     }
 
 }
+
+#define GoldenTest(script) \
+    {\
+    bool isok = RunGolden(script);\
+    if (!isok){\
+        ASSERT_TRUE_MSG(isok, "Golden Run Failed!");\
+    }\
+    }
+
 
 #ifdef __cplusplus
 }

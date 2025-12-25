@@ -2,7 +2,7 @@
 #include "../../src/include/lexer.h"
 #include "../../src/include/utils.h"
 #include "../../src/include/printer.h"
-#include "include/utest.h"
+#include "../include/utest.h"
 #include <stdbool.h>
 
 #define DEBUG_TEST_LEXER

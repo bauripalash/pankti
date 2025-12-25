@@ -2,7 +2,7 @@
 #include "../../src/include/parser.h"
 #include "../../src/include/gc.h"
 #include "../../src/external/stb/stb_ds.h"
-#include "include/utest.h"
+#include "../include/utest.h"
 
 struct ParserTest{
 	Lexer * lx;

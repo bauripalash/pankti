@@ -31,17 +31,24 @@ FILE=./a.pank
 # File to Run for benchmark
 PERFFILE=./benchmarks/fib.pank
 
-# The Native Test Binary
-TEST_BIN=pankti_tests
+# The Native Frontend Test Binary
+FRONTEND_TEST_BIN=pankti_tests
 
-# Test Binary Output path for CMake build
-TEST_OUTPUT=$(CMAKE_BUILD_DIR)/$(TEST_BIN)
+# Frontend Test Binary Output path for CMake build
+FRONTEND_TEST_OUTPUT=$(CMAKE_BUILD_DIR)/$(FRONTEND_TEST_BIN)
+
+# The Native Runtime Test Binary
+RUNTIME_TEST_BIN=pankti_runtime_tests
+# Runtime Test Binary Output path for CMake build
+RUNTIME_TEST_OUTPUT=$(CMAKE_BUILD_DIR)/$(RUNTIME_TEST_BIN)
+SAMPLES_DIR=tests/runtime/samples
 
 # Test Binary Output path for Zig build
-ZIG_TEST_OUTPUT=$(ZIG_BUILD_DIR)/bin/$(TEST_BIN)
+ZIG_TEST_OUTPUT=$(ZIG_BUILD_DIR)/bin/$(FRONTEND_TEST_BIN)
 
 # Arguments to pass to the testing binary
-TEST_ARGS=
+FRONTEND_TEST_ARGS=
+RUNTIME_TEST_ARGS=
 
 
 HEADERS:= $(shell find src/include -path 'src/external' -prune -o -path 'src/include/exported' -prune -o -name '*.h' -print)
@@ -60,12 +67,13 @@ run: build
 
 .PHONY: test
 test: build_rls
-	@cmake --build build --target $(TEST_BIN)
+	@cmake --build build --target $(FRONTEND_TEST_BIN)
+	@cmake --build build --target $(RUNTIME_TEST_BIN)
 	@echo "==== Running Frontend Tests ===="
-	@./$(TEST_OUTPUT) $(TEST_ARGS)
+	@./$(FRONTEND_TEST_OUTPUT) $(FRONTEND_TEST_ARGS)
 	@echo "==== Finished Frontend Tests ===="
 	@echo "==== Running Runtime Tests ===="
-	@PANKTI_BIN=$(CMAKE_OUTPUT) python -m unittest discover -s tests --verbose
+	@PANKTI_BIN=${CMAKE_OUTPUT} SAMPLES_DIR=${SAMPLES_DIR} ./${RUNTIME_TEST_OUTPUT}
 	@echo "==== Finished Runtime Tests ===="
 
 
@@ -81,7 +89,7 @@ zrun: zbuild
 ztest:
 	@zig build ntests -Doptimize=ReleaseFast
 	@echo "==== Running Frontend Tests ===="
-	@./$(ZIG_TEST_OUTPUT) $(TEST_ARGS)
+	@./$(ZIG_TEST_OUTPUT) $(FRONTEND_TEST_ARGS)
 	@echo "==== Finished Frontend Tests ===="
 	@echo "==== Running Runtime Tests ===="
 	@zig build -Doptimize=ReleaseFast
@@ -90,7 +98,10 @@ ztest:
 
 .PHONY: runtime_tests
 runtime_tests:
-	python -m unittest discover -s tests --verbose
+	@cmake --build build --target $(RUNTIME_TEST_BIN)
+	@echo "==== Running Runtime Tests ===="
+	@PANKTI_BIN=${CMAKE_OUTPUT} SAMPLES_DIR=${SAMPLES_DIR} ./${RUNTIME_TEST_OUTPUT}
+	@echo "==== Finished Runtime Tests ===="
 
 .PHONY: fmt
 fmt:
@@ -110,7 +121,7 @@ cmake_setup:
 
 .PHONY: cmake_clang
 cmake_cc:
-	cmake -S . -B build -DCMAKE_C_COMPILER=$(CC)
+	cmake -S . -B build -DCMAKE_C_COMPILER=clang
 
 .PHONY: cmake_clean
 cmake_clean:

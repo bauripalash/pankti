@@ -261,6 +261,7 @@ endif()
 
 enable_testing()
 add_subdirectory(tests/frontend)
+add_subdirectory(tests/runtime)
 
 message(STATUS "")
 message(STATUS "")
