@@ -108,7 +108,7 @@ static PValue str_Split(PInterpreter *it, PValue *args, u64 argc) {
 static PValue str_String(PInterpreter *it, PValue *args, u64 argc) {
     PValue target = args[0];
     char *str = ValueToString(target); // we don't need to free this
-    // as ownership to given to string object crated below
+    // as ownership is given to string object crated below
     if (str == NULL) {
         return MakeNil(); // error
     }
