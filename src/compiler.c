@@ -157,16 +157,16 @@ static bool compileArrayExpr(PCompiler *comp, PExpr *expr) {
     return true;
 }
 
-static bool compileMapExpr(PCompiler *comp, PExpr * expr){
-    struct EMap * map = &expr->exp.EMap;
-    u64 itemCount = map->count; //actual pairs = itemCount/2
-    u64 pairCount = itemCount/2;
-    for (u64 i = 0; i < itemCount; i+=2) {
+static bool compileMapExpr(PCompiler *comp, PExpr *expr) {
+    struct EMap *map = &expr->exp.EMap;
+    u64 itemCount = map->count; // actual pairs = itemCount/2
+    u64 pairCount = itemCount / 2;
+    for (u64 i = 0; i < itemCount; i += 2) {
         if (!compileExpr(comp, map->etable[i])) {
             return false;
         }
 
-        if (!compileExpr(comp, map->etable[i+1])) {
+        if (!compileExpr(comp, map->etable[i + 1])) {
             return false;
         }
     }

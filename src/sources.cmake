@@ -19,6 +19,9 @@ set(PANKTI_SRC_FILES
 
   "${CMAKE_CURRENT_LIST_DIR}/opcode.c"
   "${CMAKE_CURRENT_LIST_DIR}/compiler.c"
+  "${CMAKE_CURRENT_LIST_DIR}/vm.c"
+  
+
   
 
   "${CMAKE_CURRENT_LIST_DIR}/gc/gc.c"

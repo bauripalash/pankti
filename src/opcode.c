@@ -16,7 +16,7 @@ static const POpDefinition opDefs[] = {
     {"OpGT", 0, {0}},       {"OpGTE", 0, {0}},    {"OpLT", 0, {0}},
     {"OpLTE", 0, {0}},      {"OpNegate", 0, {0}}, {"OpNot", 0, {0}},
     {"OpArray", 1, {2}}, // todo: max u64 count
-    {"OpMap", 1,{2}}, //todo max u64/2 count;
+    {"OpMap", 1, {2}},   // todo max u64/2 count;
 };
 
 const char *OpCodeToStr(PanOpCode code) { return opDefs[code].name; }
@@ -163,4 +163,8 @@ u16 ReadU16(const PBytecode *b, u64 offset) {
     }
 
     return (u16)((u16)(b->code[offset] << 8) | (u16)b->code[offset + 1]);
+}
+
+u16 ReadU16RawCode(const u8 *code, u64 offset) {
+    return (u16)((u16)(code[offset] << 8) | (u16)code[offset + 1]);
 }

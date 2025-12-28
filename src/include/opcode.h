@@ -70,6 +70,8 @@ u16 AddConstantToPool(PBytecode *b, PValue value);
 // Read a u16 operand from Bytecode
 u16 ReadU16(const PBytecode *b, u64 offset);
 
+u16 ReadU16RawCode(const u8 *code, u64 offset);
+
 #ifdef __cplusplus
 }
 #endif

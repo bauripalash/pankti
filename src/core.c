@@ -13,6 +13,7 @@
 #include "include/ptypes.h"
 #include "include/token.h"
 #include "include/utils.h"
+#include "include/vm.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -166,9 +167,17 @@ void RunCore(PanktiCore *core) {
         PCompiler *com = NewCompiler(core->gc);
         CompilerCompile(com, prog);
         DebugBytecode(com->code, 0);
-        FreeCompiler(com);
 
         PanPrint("=====   END    =====\n");
+
+        PanPrint("=====   VM     =====\n");
+        PVm *vm = NewVm();
+        SetupVm(vm, com->code);
+        VmRun(vm);
+        PanPrint("=====   END    =====\n");
+
+        FreeCompiler(com);
+        FreeVm(vm);
     }
 
     if (core->caughtError) {
