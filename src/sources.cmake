@@ -15,6 +15,12 @@ set(PANKTI_SRC_FILES
   "${CMAKE_CURRENT_LIST_DIR}/ustring.c"
   "${CMAKE_CURRENT_LIST_DIR}/utils.c"
 
+  # Compiler Stuff
+
+  "${CMAKE_CURRENT_LIST_DIR}/opcode.c"
+  "${CMAKE_CURRENT_LIST_DIR}/compiler.c"
+  
+
   "${CMAKE_CURRENT_LIST_DIR}/gc/gc.c"
   "${CMAKE_CURRENT_LIST_DIR}/gc/gcexpr.c"
   "${CMAKE_CURRENT_LIST_DIR}/gc/gcobject.c"

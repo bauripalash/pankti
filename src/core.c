@@ -3,11 +3,14 @@
 #include "include/alloc.h"
 #include "include/ansicolors.h"
 #include "include/ast.h"
+#include "include/compiler.h"
 #include "include/gc.h"
 #include "include/interpreter.h"
 #include "include/lexer.h"
+#include "include/opcode.h"
 #include "include/parser.h"
 #include "include/printer.h"
+#include "include/ptypes.h"
 #include "include/token.h"
 #include "include/utils.h"
 
@@ -138,20 +141,35 @@ void RunCore(PanktiCore *core) {
         exit(1);
     }
 
-    core->it = NewInterpreter(core->gc, prog);
-    core->it->core = core;
+    char *useCompiler = getenv("COMPILER");
+    if (useCompiler == NULL) {
+
+        core->it = NewInterpreter(core->gc, prog);
+        core->it->core = core;
 #if defined DEBUG_TIMES
-    clock_t inTic = clock();
+        clock_t inTic = clock();
 #endif
 
-    Interpret(core->it);
+        Interpret(core->it);
 #if defined DEBUG_TIMES
-    clock_t inToc = clock();
-    PanPrint(
-        "[DEBUG] Interpreter finished : %f sec.\n",
-        (double)(inToc - inTic) / CLOCKS_PER_SEC
-    );
+        clock_t inToc = clock();
+        PanPrint(
+            "[DEBUG] Interpreter finished : %f sec.\n",
+            (double)(inToc - inTic) / CLOCKS_PER_SEC
+        );
 #endif
+
+    } else {
+
+        PanPrint("===== COMPILER =====\n");
+
+        PCompiler *com = NewCompiler(core->gc);
+        CompilerCompile(com, prog);
+        DebugBytecode(com->code, 0);
+        FreeCompiler(com);
+
+        PanPrint("=====   END    =====\n");
+    }
 
     if (core->caughtError) {
         PanPrint("Runtime Error found!\n");
