@@ -16,6 +16,7 @@ static const POpDefinition opDefs[] = {
     {"OpGT", 0, {0}},       {"OpGTE", 0, {0}},    {"OpLT", 0, {0}},
     {"OpLTE", 0, {0}},      {"OpNegate", 0, {0}}, {"OpNot", 0, {0}},
     {"OpArray", 1, {2}}, // todo: max u64 count
+    {"OpMap", 1,{2}}, //todo max u64/2 count;
 };
 
 const char *OpCodeToStr(PanOpCode code) { return opDefs[code].name; }
@@ -106,7 +107,8 @@ void DebugBytecode(const PBytecode *bt, u64 offset) {
                 ofs += disasmConstIns(def.name, ofs, bt);
                 break;
             }
-            case OP_ARRAY: {
+            case OP_ARRAY:
+            case OP_MAP: {
                 ofs += disasmBytesIns(def.name, ofs, bt);
                 break;
             }

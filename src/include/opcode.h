@@ -29,6 +29,7 @@ typedef enum PanOpCode {
     OP_NEGATE,
     OP_NOT,
     OP_ARRAY,
+    OP_MAP,
 } PanOpCode;
 
 typedef struct POpDefinition {
