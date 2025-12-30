@@ -34,6 +34,19 @@ void FreeCompiler(PCompiler *comp) {
     PFree(comp);
 }
 
+static u16 addConstant(PCompiler *comp, PValue value) {
+    u16 index = AddConstantToPool(comp->code, value);
+    return index;
+}
+
+static u64 emitBt(PCompiler *comp, Token *tok, PanOpCode op) {
+    return EmitBytecode(comp->code, tok, op);
+}
+
+static u64 emitBtU16(PCompiler *comp, Token *tok, PanOpCode op, u16 a) {
+    return EmitBytecodeWithOneArg(comp->code, tok, op, a);
+}
+
 bool CompilerCompile(PCompiler *compiler, PStmt **prog) {
     compiler->prog = prog;
     compiler->progCount = (u64)arrlen(prog);
@@ -43,20 +56,10 @@ bool CompilerCompile(PCompiler *compiler, PStmt **prog) {
             return false;
         }
     }
+
+    emitBt(compiler, compiler->code->tokens[0], OP_RETURN);
+
     return false;
-}
-
-static u16 addConstant(PCompiler *comp, PValue value) {
-    u16 index = AddConstantToPool(comp->code, value);
-    return index;
-}
-
-static u64 emitBt(PCompiler *comp, PanOpCode op) {
-    return EmitBytecode(comp->code, op);
-}
-
-static u64 emitBtU16(PCompiler *comp, PanOpCode op, u16 a) {
-    return EmitBytecodeWithOneArg(comp->code, op, a);
 }
 
 // static u64 emitBtU8s(PCompiler * comp, PanOpCode op, u8 a, u8 b){
@@ -69,7 +72,7 @@ static bool compileLitExpr(PCompiler *comp, PExpr *expr) {
     switch (lit->type) {
         case EXP_LIT_NUM: {
             u16 constIdx = addConstant(comp, MakeNumber(lit->value.nvalue));
-            emitBtU16(comp, OP_CONST, constIdx);
+            emitBtU16(comp, lit->op, OP_CONST, constIdx);
             break;
         }
         case EXP_LIT_STR: {
@@ -79,15 +82,15 @@ static bool compileLitExpr(PCompiler *comp, PExpr *expr) {
                 // todo: error check
             }
             u16 constIdx = addConstant(comp, MakeObject(strObj));
-            emitBtU16(comp, OP_CONST, constIdx);
+            emitBtU16(comp, lit->op, OP_CONST, constIdx);
             break;
         }
         case EXP_LIT_BOOL: {
-            emitBt(comp, lit->value.bvalue ? OP_TRUE : OP_FALSE);
+            emitBt(comp, lit->op, lit->value.bvalue ? OP_TRUE : OP_FALSE);
             break;
         }
         case EXP_LIT_NIL: {
-            emitBt(comp, OP_NIL);
+            emitBt(comp, lit->op, OP_NIL);
             break;
         }
 
@@ -112,17 +115,17 @@ static bool compileBinExpr(PCompiler *comp, PExpr *expr) {
     }
 
     switch (bin->op->type) {
-        case T_PLUS: emitBt(comp, OP_ADD); break;
-        case T_MINUS: emitBt(comp, OP_SUB); break;
-        case T_ASTR: emitBt(comp, OP_MUL); break;
-        case T_SLASH: emitBt(comp, OP_DIV); break;
-        case T_EXPONENT: emitBt(comp, OP_EXPONENT); break;
-        case T_EQEQ: emitBt(comp, OP_EQUAL); break;
-        case T_BANG_EQ: emitBt(comp, OP_NOTEQUAL); break;
-        case T_GT: emitBt(comp, OP_GT); break;
-        case T_GTE: emitBt(comp, OP_GTE); break;
-        case T_LT: emitBt(comp, OP_LT); break;
-        case T_LTE: emitBt(comp, OP_LTE); break;
+        case T_PLUS: emitBt(comp, bin->op, OP_ADD); break;
+        case T_MINUS: emitBt(comp, bin->op, OP_SUB); break;
+        case T_ASTR: emitBt(comp, bin->op, OP_MUL); break;
+        case T_SLASH: emitBt(comp, bin->op, OP_DIV); break;
+        case T_EXPONENT: emitBt(comp, bin->op, OP_EXPONENT); break;
+        case T_EQEQ: emitBt(comp, bin->op, OP_EQUAL); break;
+        case T_BANG_EQ: emitBt(comp, bin->op, OP_NOTEQUAL); break;
+        case T_GT: emitBt(comp, bin->op, OP_GT); break;
+        case T_GTE: emitBt(comp, bin->op, OP_GTE); break;
+        case T_LT: emitBt(comp, bin->op, OP_LT); break;
+        case T_LTE: emitBt(comp, bin->op, OP_LTE); break;
         default: break;
     }
 
@@ -136,8 +139,8 @@ static bool compileUnaryExpr(PCompiler *comp, PExpr *expr) {
         return false;
     }
     switch (unary->op->type) {
-        case T_MINUS: emitBt(comp, OP_NEGATE); break;
-        case T_BANG: emitBt(comp, OP_NOT); break;
+        case T_MINUS: emitBt(comp, unary->op, OP_NEGATE); break;
+        case T_BANG: emitBt(comp, unary->op, OP_NOT); break;
         default: break;
     }
     return true;
@@ -152,7 +155,7 @@ static bool compileArrayExpr(PCompiler *comp, PExpr *expr) {
         }
     }
 
-    emitBtU16(comp, OP_ARRAY, (u16)itemCount);
+    emitBtU16(comp, arr->op, OP_ARRAY, (u16)itemCount);
 
     return true;
 }
@@ -171,7 +174,7 @@ static bool compileMapExpr(PCompiler *comp, PExpr *expr) {
         }
     }
 
-    emitBtU16(comp, OP_MAP, (u16)pairCount);
+    emitBtU16(comp, map->op, OP_MAP, (u16)pairCount);
 
     return true;
 }
@@ -194,7 +197,16 @@ static bool compileExprStmt(PCompiler *comp, PStmt *stmt) {
         return false;
     }
 
-    emitBt(comp, OP_POP);
+    // emitBt(comp,stmt->stmt.SExpr.expr->op,  OP_POP);
+    return true;
+}
+
+static bool compileDebugStmt(PCompiler *comp, PStmt *stmt) {
+    if (!compileExpr(comp, stmt->stmt.SDebug.expr)) {
+        return false;
+    }
+
+    emitBt(comp, stmt->stmt.SDebug.expr->op, OP_DEBUG);
     return true;
 }
 
@@ -206,6 +218,10 @@ static bool compileStmt(PCompiler *comp, PStmt *stmt) {
     switch (stmt->type) {
         case STMT_EXPR: {
             compileExprStmt(comp, stmt);
+            break;
+        }
+        case STMT_DEBUG: {
+            compileDebugStmt(comp, stmt);
             break;
         }
         default: {

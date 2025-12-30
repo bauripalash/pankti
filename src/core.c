@@ -172,7 +172,7 @@ void RunCore(PanktiCore *core) {
 
         PanPrint("=====   VM     =====\n");
         PVm *vm = NewVm();
-        SetupVm(vm, com->code);
+        SetupVm(vm, core->gc, com->code);
         VmRun(vm);
         PanPrint("=====   END    =====\n");
 

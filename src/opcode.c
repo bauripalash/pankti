@@ -4,17 +4,22 @@
 #include "include/object.h"
 #include "include/printer.h"
 #include "include/ptypes.h"
+#include "include/token.h"
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
 
 static const POpDefinition opDefs[] = {
-    {"OpConst", 1, {2}},    {"OpTrue", 0, {0}},   {"OpFalse", 0, {0}},
-    {"OpNil", 0, {0}},      {"OpPop", 0, {0}},    {"OpAdd", 0, {0}},
-    {"OpSub", 0, {0}},      {"OpMul", 0, {0}},    {"OpDiv", 0, {0}},
-    {"OpExponent", 0, {0}}, {"OpEqual", 0, {0}},  {"OpNotEqual", 0, {0}},
-    {"OpGT", 0, {0}},       {"OpGTE", 0, {0}},    {"OpLT", 0, {0}},
-    {"OpLTE", 0, {0}},      {"OpNegate", 0, {0}}, {"OpNot", 0, {0}},
+    {"OpConst", 1, {2}},  {"OpDebug", 0, {0}},
+    {"OpReturn", 0, {0}}, {"OpTrue", 0, {0}},
+    {"OpFalse", 0, {0}},  {"OpNil", 0, {0}},
+    {"OpPop", 0, {0}},    {"OpAdd", 0, {0}},
+    {"OpSub", 0, {0}},    {"OpMul", 0, {0}},
+    {"OpDiv", 0, {0}},    {"OpExponent", 0, {0}},
+    {"OpEqual", 0, {0}},  {"OpNotEqual", 0, {0}},
+    {"OpGT", 0, {0}},     {"OpGTE", 0, {0}},
+    {"OpLT", 0, {0}},     {"OpLTE", 0, {0}},
+    {"OpNegate", 0, {0}}, {"OpNot", 0, {0}},
     {"OpArray", 1, {2}}, // todo: max u64 count
     {"OpMap", 1, {2}},   // todo max u64/2 count;
 };
@@ -29,6 +34,8 @@ PBytecode *NewBytecode(void) {
     b->codeCount = 0;
     b->constPool = NULL;
     b->constCount = 0;
+    b->lines = NULL;
+    b->tokens = NULL;
     return b;
 }
 
@@ -45,6 +52,16 @@ void FreeBytecode(PBytecode *b) {
     if (b->constPool != NULL) {
         arrfree(b->constPool);
         b->constCount = 0;
+    }
+
+    if (b->lines != NULL) {
+        arrfree(b->lines);
+        b->lines = NULL;
+    }
+
+    if (b->tokens != NULL) {
+        arrfree(b->tokens);
+        b->tokens = NULL;
     }
 
     PFree(b);
@@ -78,11 +95,14 @@ static u64 disasmBytesIns(const char *name, u64 offset, const PBytecode *b) {
 void DebugBytecode(const PBytecode *bt, u64 offset) {
     PanPrint("==== DEBUG BYTECODE ====\n");
     u64 ofs = offset;
+    u64 tokIndex = 0;
     while (ofs < bt->codeCount) {
         PanOpCode op = (PanOpCode)bt->code[ofs];
         POpDefinition def = GetOpDefinition(op);
-        PanPrint("%05d : 0x%02x : ", ofs, op);
+
+        PanPrint("%05d : |%ld| 0x%02x : ", ofs, 0, op);
         switch (op) {
+            case OP_RETURN:
             case OP_POP:
             case OP_TRUE:
             case OP_FALSE:
@@ -99,6 +119,7 @@ void DebugBytecode(const PBytecode *bt, u64 offset) {
             case OP_LT:
             case OP_LTE:
             case OP_NEGATE:
+            case OP_DEBUG:
             case OP_NOT: {
                 ofs += disasmSimpleIns(def.name, ofs);
                 break;
@@ -114,18 +135,21 @@ void DebugBytecode(const PBytecode *bt, u64 offset) {
             }
         }
         ofs++;
+        tokIndex++;
     }
 
     PanPrint("====  END BYTECODE  ====\n");
 }
 
-u64 EmitBytecode(PBytecode *b, PanOpCode op) {
+u64 EmitBytecode(PBytecode *b, Token *tok, PanOpCode op) {
     u64 pos = b->codeCount;
     arrput(b->code, op);
+    arrput(b->tokens, tok);
+    arrput(b->lines, tok->line);
     b->codeCount++;
     return pos;
 }
-u64 EmitBytecodeWithOneArg(PBytecode *b, PanOpCode op, u16 a) {
+u64 EmitBytecodeWithOneArg(PBytecode *b, Token *tok, PanOpCode op, u16 a) {
     u64 pos = b->codeCount;
     arrput(b->code, op);
     b->codeCount++;
@@ -133,9 +157,13 @@ u64 EmitBytecodeWithOneArg(PBytecode *b, PanOpCode op, u16 a) {
     b->codeCount++;
     arrput(b->code, (u8)(a & 0xFF));
     b->codeCount++;
+    arrput(b->tokens, tok);
+    arrput(b->lines, tok->line);
     return pos;
 }
-u64 EmitBytecodeWithTwoArgs(PBytecode *b, PanOpCode op, u8 one, u8 two) {
+u64 EmitBytecodeWithTwoArgs(
+    PBytecode *b, Token *tok, PanOpCode op, u8 one, u8 two
+) {
     u64 pos = b->codeCount;
     arrput(b->code, op);
     b->codeCount++;
@@ -143,6 +171,8 @@ u64 EmitBytecodeWithTwoArgs(PBytecode *b, PanOpCode op, u8 one, u8 two) {
     b->codeCount++;
     arrput(b->code, two);
     b->codeCount++;
+    arrput(b->tokens, tok);
+    arrput(b->lines, tok->line);
     return pos;
 }
 

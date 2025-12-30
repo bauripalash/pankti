@@ -189,6 +189,8 @@ PStmt *NewStmt(Pgc *gc, PStmtType type, Token *op);
 // Free Statement
 void FreeStmt(Pgc *gc, PStmt *stmt);
 
+// Debug Statement
+PStmt *NewDebugStmt(Pgc *gc, Token *op, PExpr *value);
 // New (Naked) Expression Statement
 // `op` = The last token the expression.
 // The first expression is not used as single token expression without any

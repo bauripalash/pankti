@@ -486,6 +486,12 @@ static PStmt *rExprStmt(Parser *p) {
     return NewExprStmt(p->gc, previous(p), value);
 }
 
+static PStmt *rDebugStmt(Parser *p) {
+    PExpr *value = rExpression(p);
+    return NewDebugStmt(p->gc, previous(p), value);
+    ;
+}
+
 static PStmt *rLetStmt(Parser *p) {
     Token *name = eat(p, T_IDENT, "Expected Identifier");
     eat(p, T_EQ, "Expected equal");
@@ -622,6 +628,8 @@ static PStmt *rStmt(Parser *p) {
         return rFuncStmt(p);
     } else if (matchOne(p, T_IMPORT)) {
         return rImportStmt(p);
+    } else if (matchOne(p, T_DEBUG)) {
+        return rDebugStmt(p);
     }
     return rExprStmt(p);
 }

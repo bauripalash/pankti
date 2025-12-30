@@ -300,6 +300,7 @@ static void readIdent(Lexer *lx) {
 static void scanToken(Lexer *lx) {
     char32_t c = advance(lx);
     switch (c) {
+        case '?': addToken(lx, T_DEBUG); break; // for debug
         case '(': addToken(lx, T_LEFT_PAREN); break;
         case ')': addToken(lx, T_RIGHT_PAREN); break;
         case '{': addToken(lx, T_LEFT_BRACE); break;

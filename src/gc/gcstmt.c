@@ -32,6 +32,16 @@ PStmt *NewStmt(Pgc *gc, PStmtType type, Token *op) {
     return s;
 }
 
+PStmt *NewDebugStmt(Pgc *gc, Token *op, PExpr *value) {
+    PStmt *s = NewStmt(gc, STMT_DEBUG, op);
+    if (s == NULL) {
+        return NULL;
+    }
+    s->stmt.SDebug.op = op;
+    s->stmt.SDebug.expr = value;
+    return s;
+}
+
 PStmt *NewExprStmt(Pgc *gc, Token *op, PExpr *value) {
     PStmt *s = NewStmt(gc, STMT_EXPR, op);
     if (s == NULL) {
@@ -149,6 +159,11 @@ void FreeStmt(Pgc *gc, PStmt *s) {
     );
 #endif
     switch (s->type) {
+        case STMT_DEBUG: {
+            FreeExpr(gc, s->stmt.SDebug.expr);
+            freeBaseStmt(gc, s);
+            break;
+        }
         case STMT_EXPR: {
             FreeExpr(gc, s->stmt.SExpr.expr);
             freeBaseStmt(gc, s);

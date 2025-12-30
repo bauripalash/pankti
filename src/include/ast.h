@@ -212,6 +212,8 @@ typedef enum PStmtType {
     STMT_FUNC,
     // Import Module Statement
     STMT_IMPORT,
+    // Debug (for internal usage)
+    STMT_DEBUG,
 } PStmtType;
 
 // Pankti Statement
@@ -221,9 +223,13 @@ typedef struct PStmt {
     // Common operator
     Token *op;
     struct PStmt *next;
-    // `Temporary` Print Statement (for Debugging only)
-    // Type: `STMT_PRINT`
     union stmt {
+        // `Temporary` Print Statement (for Debugging only)
+        // Type: `STMT_DEBUG`
+        struct SDebug {
+            Token *op;
+            PExpr *expr;
+        } SDebug;
         // Expression Statement : Naked Expressions
         // Type: `STMT_EXPR`
         struct SExpr {

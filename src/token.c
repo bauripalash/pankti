@@ -50,6 +50,7 @@ char *TokTypeToStr(PTokenType type) {
         case T_RETURN: return "Return";
         case T_IMPORT: return "Import";
         case T_PANIC: return "Panic";
+        case T_DEBUG: return "Debug";
         case T_EOF: return "EOF";
     };
 
@@ -128,6 +129,7 @@ static const char *getLexeme(const Token *t) {
         case T_GTE: return ">=";
         case T_LT: return "<";
         case T_LTE: return "<=";
+        case T_DEBUG: return "?";
         case T_EOF: return "<EOF>";
         default: return "";
     }

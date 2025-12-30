@@ -3,6 +3,7 @@
 
 #include "object.h"
 #include "ptypes.h"
+#include "token.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -11,15 +12,17 @@ extern "C" {
 
 typedef enum PanOpCode {
     OP_CONST = 0,
-    OP_TRUE = 1,
-    OP_FALSE = 2,
-    OP_NIL = 3,
-    OP_POP = 4,
-    OP_ADD = 5,
-    OP_SUB = 6,
-    OP_MUL = 7,
-    OP_DIV = 8,
-    OP_EXPONENT = 9,
+    OP_DEBUG,
+    OP_RETURN,
+    OP_TRUE,
+    OP_FALSE,
+    OP_NIL,
+    OP_POP,
+    OP_ADD,
+    OP_SUB,
+    OP_MUL,
+    OP_DIV,
+    OP_EXPONENT,
     OP_EQUAL,
     OP_NOTEQUAL,
     OP_GT,
@@ -46,6 +49,8 @@ typedef struct PBytecode {
     u64 codeCount;
     PValue *constPool;
     u16 constCount;
+    Token **tokens;
+    u64 *lines;
 } PBytecode;
 
 // Create a new Bytecode Object
@@ -58,11 +63,13 @@ void FreeBytecode(PBytecode *b);
 void DebugBytecode(const PBytecode *bt, u64 offset);
 
 // Emit and Write a Opcode
-u64 EmitBytecode(PBytecode *b, PanOpCode op);
+u64 EmitBytecode(PBytecode *b, Token *tok, PanOpCode op);
 // Emit and Write a Opcode with u16 operand
-u64 EmitBytecodeWithOneArg(PBytecode *b, PanOpCode op, u16 a);
+u64 EmitBytecodeWithOneArg(PBytecode *b, Token *tok, PanOpCode op, u16 a);
 // Emit and Write a Opcode with two u8 operands
-u64 EmitBytecodeWithTwoArgs(PBytecode *b, PanOpCode op, u8 one, u8 two);
+u64 EmitBytecodeWithTwoArgs(
+    PBytecode *b, Token *tok, PanOpCode op, u8 one, u8 two
+);
 
 // Add New Constant to Constant pool and return its index
 u16 AddConstantToPool(PBytecode *b, PValue value);
