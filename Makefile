@@ -56,6 +56,9 @@ SOURCES:= $(shell find src/ -path 'src/external' -prune -o -name '*.c' -print)
 
 
 all: run
+.PHONY: crun
+crun:
+	make run COMPILER=true
 
 .PHONY: build
 build:

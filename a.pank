@@ -1,1 +1,4 @@
-?"mango" + " tango"
+let a = "name"
+?a + " what is"
+a = "palash"
+?a

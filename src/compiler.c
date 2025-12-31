@@ -178,6 +178,31 @@ static bool compileMapExpr(PCompiler *comp, PExpr *expr) {
 
     return true;
 }
+static u16 addIdentConst(PCompiler *comp, Token *tok) {
+    PObj *strObj = NewStrObject(comp->gc, tok, tok->lexeme, false);
+    PValue strVal = MakeObject(strObj);
+    u16 constIndex = addConstant(comp, strVal);
+    return constIndex;
+}
+
+static bool compileVariableExpr(PCompiler *comp, PExpr *expr) {
+    struct EVariable *var = &expr->exp.EVariable;
+    u16 constIndex = addIdentConst(comp, var->name);
+    emitBtU16(comp, var->name, OP_GET_GLOBAL, constIndex);
+    return true;
+}
+
+static bool compileAssignExpr(PCompiler *comp, PExpr *expr) {
+    struct EAssign *assign = &expr->exp.EAssign;
+    if (assign->name->type == EXPR_VARIABLE) {
+        u16 constIndex = addIdentConst(comp, assign->name->exp.EVariable.name);
+        compileExpr(comp, assign->value);
+        emitBtU16(comp, assign->op, OP_SET_GLOBAL, constIndex);
+        return true;
+    }
+
+    return false;
+}
 
 static bool compileExpr(PCompiler *comp, PExpr *expr) {
     switch (expr->type) {
@@ -186,6 +211,8 @@ static bool compileExpr(PCompiler *comp, PExpr *expr) {
         case EXPR_UNARY: return compileUnaryExpr(comp, expr);
         case EXPR_ARRAY: return compileArrayExpr(comp, expr);
         case EXPR_MAP: return compileMapExpr(comp, expr);
+        case EXPR_VARIABLE: return compileVariableExpr(comp, expr);
+        case EXPR_ASSIGN: return compileAssignExpr(comp, expr);
         default: break;
     }
 
@@ -197,7 +224,7 @@ static bool compileExprStmt(PCompiler *comp, PStmt *stmt) {
         return false;
     }
 
-    // emitBt(comp,stmt->stmt.SExpr.expr->op,  OP_POP);
+    emitBt(comp, stmt->stmt.SExpr.expr->op, OP_POP);
     return true;
 }
 
@@ -210,6 +237,16 @@ static bool compileDebugStmt(PCompiler *comp, PStmt *stmt) {
     return true;
 }
 
+static bool compileLetStmt(PCompiler *comp, PStmt *stmt) {
+    struct SLet *let = &stmt->stmt.SLet;
+    u16 nameIndex = addIdentConst(comp, let->name);
+    if (!compileExpr(comp, let->expr)) {
+        return false;
+    }
+
+    emitBtU16(comp, let->name, OP_DEFINE_GLOBAL, nameIndex);
+    return true;
+}
 static bool compileStmt(PCompiler *comp, PStmt *stmt) {
     if (comp == NULL || stmt == NULL) {
         return false;
@@ -222,6 +259,10 @@ static bool compileStmt(PCompiler *comp, PStmt *stmt) {
         }
         case STMT_DEBUG: {
             compileDebugStmt(comp, stmt);
+            break;
+        }
+        case STMT_LET: {
+            compileLetStmt(comp, stmt);
             break;
         }
         default: {

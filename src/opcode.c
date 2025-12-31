@@ -10,18 +10,20 @@
 #include <stdio.h>
 
 static const POpDefinition opDefs[] = {
-    {"OpConst", 1, {2}},  {"OpDebug", 0, {0}},
-    {"OpReturn", 0, {0}}, {"OpTrue", 0, {0}},
-    {"OpFalse", 0, {0}},  {"OpNil", 0, {0}},
-    {"OpPop", 0, {0}},    {"OpAdd", 0, {0}},
-    {"OpSub", 0, {0}},    {"OpMul", 0, {0}},
-    {"OpDiv", 0, {0}},    {"OpExponent", 0, {0}},
-    {"OpEqual", 0, {0}},  {"OpNotEqual", 0, {0}},
-    {"OpGT", 0, {0}},     {"OpGTE", 0, {0}},
-    {"OpLT", 0, {0}},     {"OpLTE", 0, {0}},
-    {"OpNegate", 0, {0}}, {"OpNot", 0, {0}},
+    {"OpConst", 1, {2}},        {"OpDebug", 0, {0}},
+    {"OpReturn", 0, {0}},       {"OpTrue", 0, {0}},
+    {"OpFalse", 0, {0}},        {"OpNil", 0, {0}},
+    {"OpPop", 0, {0}},          {"OpAdd", 0, {0}},
+    {"OpSub", 0, {0}},          {"OpMul", 0, {0}},
+    {"OpDiv", 0, {0}},          {"OpExponent", 0, {0}},
+    {"OpEqual", 0, {0}},        {"OpNotEqual", 0, {0}},
+    {"OpGT", 0, {0}},           {"OpGTE", 0, {0}},
+    {"OpLT", 0, {0}},           {"OpLTE", 0, {0}},
+    {"OpNegate", 0, {0}},       {"OpNot", 0, {0}},
     {"OpArray", 1, {2}}, // todo: max u64 count
     {"OpMap", 1, {2}},   // todo max u64/2 count;
+    {"OpDefineGlobal", 1, {2}}, {"OpGetGlobal", 1, {2}},
+    {"OpSetGlobal", 1, {2}},
 };
 
 const char *OpCodeToStr(PanOpCode code) { return opDefs[code].name; }
@@ -95,7 +97,6 @@ static u64 disasmBytesIns(const char *name, u64 offset, const PBytecode *b) {
 void DebugBytecode(const PBytecode *bt, u64 offset) {
     PanPrint("==== DEBUG BYTECODE ====\n");
     u64 ofs = offset;
-    u64 tokIndex = 0;
     while (ofs < bt->codeCount) {
         PanOpCode op = (PanOpCode)bt->code[ofs];
         POpDefinition def = GetOpDefinition(op);
@@ -129,13 +130,15 @@ void DebugBytecode(const PBytecode *bt, u64 offset) {
                 break;
             }
             case OP_ARRAY:
-            case OP_MAP: {
+            case OP_MAP:
+            case OP_DEFINE_GLOBAL:
+            case OP_GET_GLOBAL:
+            case OP_SET_GLOBAL: {
                 ofs += disasmBytesIns(def.name, ofs, bt);
                 break;
             }
         }
         ofs++;
-        tokIndex++;
     }
 
     PanPrint("====  END BYTECODE  ====\n");

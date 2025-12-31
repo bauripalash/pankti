@@ -35,6 +35,8 @@ PObj *NewStrObject(Pgc *gc, Token *name, char *value, bool virt) {
     o->v.OString.name = name;
     o->v.OString.value = value;
     o->v.OString.isVirtual = virt;
+    u64 hash = StrHash(value, StrLength(value), gc->timestamp);
+    o->v.OString.hash = hash;
     return o;
 }
 

@@ -6,10 +6,12 @@
 #include "include/opcode.h"
 #include "include/printer.h"
 #include "include/ptypes.h"
+#include "include/symtable.h"
 #include "include/utils.h"
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 PVm *NewVm(void) {
     PVm *vm = PCreate(PVm);
@@ -20,6 +22,7 @@ PVm *NewVm(void) {
     vm->constCount = 0;
     vm->ip = 0;
     vm->gc = NULL;
+    vm->globals = NewSymbolTable();
 
     return vm;
 }
@@ -28,11 +31,19 @@ void SetupVm(PVm *vm, Pgc *gc, PBytecode *bt) {
     vm->constPool = bt->constPool;
     vm->constCount = bt->constCount;
     vm->code = bt->code;
-    vm->ip = vm->code;
+    vm->ip = bt->code;
     vm->codeCount = bt->codeCount;
     vm->gc = gc;
 }
-void FreeVm(PVm *vm) { PFree(vm); }
+void FreeVm(PVm *vm) {
+    if (vm == NULL) {
+        return;
+    }
+
+    FreeSymbolTable(vm->globals);
+
+    PFree(vm);
+}
 
 void DebugVMStack(PVm *vm) {
     PanPrint("==== STACK ====\n");
@@ -156,20 +167,31 @@ static finline PValue readConst(PVm *vm) {
     return vm->constPool[readShort(vm)];
 }
 
+static finline PObj *readObjConst(PVm *vm) {
+    return ValueAsObj(vm->constPool[readShort(vm)]);
+}
+
 void VmRun(PVm *vm) {
     while (true) {
         u8 ins;
 
         switch (ins = readByte(vm)) {
+            case OP_RETURN: {
+                return;
+            }
             case OP_DEBUG: {
                 PrintValue(vmPop(vm));
                 PanPrint("\n");
-                return;
+                break;
             }
 
             case OP_CONST: {
                 PValue val = readConst(vm);
                 vmPush(vm, val);
+                break;
+            }
+            case OP_POP: {
+                vmPop(vm);
                 break;
             }
             case OP_TRUE: {
@@ -223,8 +245,52 @@ void VmRun(PVm *vm) {
                 vmPush(vm, MakeNumber(-ValueAsNum(vmPop(vm))));
                 break;
             }
+
             case OP_NOT: {
                 vmPush(vm, MakeBool(!IsValueTruthy(vmPop(vm))));
+                break;
+            }
+            case OP_DEFINE_GLOBAL: {
+                PObj *nameObj = readObjConst(vm);
+                if (nameObj->type != OT_STR) {
+                    break;
+                }
+
+                SymbolTableSet(vm->globals, nameObj, vmPeek(vm, 0));
+                vmPop(vm);
+                break;
+            }
+            case OP_GET_GLOBAL: {
+                PObj *nameObj = readObjConst(vm);
+                bool found = false;
+                PValue val = SymbolTableFind(vm->globals, nameObj, &found);
+                if (!found) {
+                    PanPrint(
+                        "Undefined Variable Found -> %s\n",
+                        nameObj->v.OString.value
+                    );
+                    return;
+                }
+
+                vmPush(vm, val);
+                break;
+            }
+
+            case OP_SET_GLOBAL: {
+                PObj *nameObj = readObjConst(vm);
+                bool found = SymbolTableHasKey(vm->globals, nameObj);
+                if (found) {
+                    SymbolTableSet(vm->globals, nameObj, vmPeek(vm, 0));
+                    vmPop(vm);
+                    break;
+                } else {
+                    PanPrint(
+                        "Undefined Variable Assignment -> %s\n",
+                        nameObj->v.OString.value
+                    );
+                    return;
+                }
+                break;
             }
         }
 

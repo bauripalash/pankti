@@ -963,6 +963,13 @@ static finline ExResult vsBreakStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     return ExBreak();
 }
 
+static finline ExResult vsDebugStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
+    PValue value = evaluate(it, stmt->stmt.SDebug.expr, env);
+    PrintValue(value);
+    PanPrint("\n");
+    return ExSimple(MakeNil());
+}
+
 // Execute function declaration statements
 static finline ExResult vsFuncStmt(PInterpreter *it, PStmt *stmt, PEnv *env) {
     assert(stmt->type == STMT_FUNC);
@@ -1046,6 +1053,7 @@ static ExResult execute(PInterpreter *it, PStmt *stmt, PEnv *env) {
         case STMT_BREAK: return vsBreakStmt(it, stmt, env);
         case STMT_FUNC: return vsFuncStmt(it, stmt, env);
         case STMT_IMPORT: return vsImportStmt(it, stmt, env);
+        case STMT_DEBUG: return vsDebugStmt(it, stmt, env);
         default: error(it, NULL, "Unknown statement found!");
     }
 

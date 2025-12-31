@@ -4,6 +4,7 @@
 #include "object.h"
 #include "opcode.h"
 #include "ptypes.h"
+#include "symtable.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -25,6 +26,7 @@ typedef struct PVm {
     u8 *ip;
 
     Pgc *gc;
+    SymbolTable *globals;
 } PVm;
 
 PVm *NewVm(void);
