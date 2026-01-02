@@ -1,4 +1,6 @@
-let a = "name"
-?a + " what is"
-a = "palash"
-?a
+if 1 == 2 then
+    ?"hello"
+else
+    ?"bye"
+end
+?100

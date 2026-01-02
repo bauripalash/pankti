@@ -23,7 +23,9 @@ static const POpDefinition opDefs[] = {
     {"OpArray", 1, {2}}, // todo: max u64 count
     {"OpMap", 1, {2}},   // todo max u64/2 count;
     {"OpDefineGlobal", 1, {2}}, {"OpGetGlobal", 1, {2}},
-    {"OpSetGlobal", 1, {2}},
+    {"OpSetGlobal", 1, {2}},    {"OpGetLocal", 1, {2}},
+    {"OpSetLocal", 1, {2}},     {"OpJumpIfFalse", 1, {2}},
+    {"OpJump", 1, {2}},
 };
 
 const char *OpCodeToStr(PanOpCode code) { return opDefs[code].name; }
@@ -71,18 +73,19 @@ void FreeBytecode(PBytecode *b) {
 
 static u64 disasmSimpleIns(const char *name, u64 offset) {
     PanPrint("%s\n", name);
-    return 0;
+    return offset + 1;
 }
 
 static u64 disasmConstIns(const char *name, u64 offset, const PBytecode *b) {
-    PanPrint("%s", name);
     u16 constIndex = ReadU16(b, offset + 1);
+
+    PanPrint("%s %d", name, constIndex);
     if (b->constPool != NULL) {
         PanPrint(" : ");
         PrintValue(b->constPool[constIndex]);
     }
     PanPrint("\n");
-    return 2;
+    return offset + 3;
 }
 
 static u64 disasmBytesIns(const char *name, u64 offset, const PBytecode *b) {
@@ -91,54 +94,87 @@ static u64 disasmBytesIns(const char *name, u64 offset, const PBytecode *b) {
 
     PanPrint(" [%d]", itemCount);
     PanPrint("\n");
-    return 2;
+    return offset + 2;
+}
+
+static u64 disasmJumpIns(
+    const char *name, u64 offset, int sign, const PBytecode *b
+) {
+    u16 jump = ReadU16(b, offset + 1);
+    PanPrint("%s : %05d -> %05d\n", name, offset, offset + 3 + sign * jump);
+
+    return offset + 3;
+}
+
+static u64 disasmComplexDSIns(
+    const char *name, u64 offset, const PBytecode *b
+) {
+    u16 count = (u16)b->code[offset + 1] << 8;
+    count |= b->code[offset + 2];
+    PanPrint("%s : %02d\n", name, count);
+    return offset + 2;
+}
+
+u64 DisasmBytecode(const PBytecode *bt, u64 offset) {
+    PanPrint("%05d ", offset);
+    PanOpCode op = (PanOpCode)bt->code[offset];
+    POpDefinition def = GetOpDefinition(op);
+
+    switch (op) {
+        case OP_RETURN:
+        case OP_POP:
+        case OP_TRUE:
+        case OP_FALSE:
+        case OP_NIL:
+        case OP_ADD:
+        case OP_SUB:
+        case OP_MUL:
+        case OP_DIV:
+        case OP_EXPONENT:
+        case OP_EQUAL:
+        case OP_NOTEQUAL:
+        case OP_GT:
+        case OP_GTE:
+        case OP_LT:
+        case OP_LTE:
+        case OP_NEGATE:
+        case OP_DEBUG:
+        case OP_NOT: {
+            return disasmSimpleIns(def.name, offset);
+        }
+
+        case OP_CONST:
+        case OP_DEFINE_GLOBAL:
+        case OP_GET_GLOBAL:
+        case OP_SET_GLOBAL: {
+            return disasmConstIns(def.name, offset, bt);
+        }
+
+        case OP_JUMP_IF_FALSE:
+        case OP_JUMP: {
+            return disasmJumpIns(def.name, offset, 1, bt);
+        }
+
+        case OP_SET_LOCAL:
+        case OP_GET_LOCAL: {
+            return disasmBytesIns(def.name, offset, bt);
+        }
+        case OP_MAP:
+        case OP_ARRAY: {
+            return disasmComplexDSIns(def.name, offset, bt);
+        }
+        default: {
+            return offset + 1;
+        }
+    }
 }
 
 void DebugBytecode(const PBytecode *bt, u64 offset) {
     PanPrint("==== DEBUG BYTECODE ====\n");
-    u64 ofs = offset;
-    while (ofs < bt->codeCount) {
-        PanOpCode op = (PanOpCode)bt->code[ofs];
-        POpDefinition def = GetOpDefinition(op);
 
-        PanPrint("%05d : |%ld| 0x%02x : ", ofs, 0, op);
-        switch (op) {
-            case OP_RETURN:
-            case OP_POP:
-            case OP_TRUE:
-            case OP_FALSE:
-            case OP_NIL:
-            case OP_ADD:
-            case OP_SUB:
-            case OP_MUL:
-            case OP_DIV:
-            case OP_EXPONENT:
-            case OP_EQUAL:
-            case OP_NOTEQUAL:
-            case OP_GT:
-            case OP_GTE:
-            case OP_LT:
-            case OP_LTE:
-            case OP_NEGATE:
-            case OP_DEBUG:
-            case OP_NOT: {
-                ofs += disasmSimpleIns(def.name, ofs);
-                break;
-            }
-            case OP_CONST: {
-                ofs += disasmConstIns(def.name, ofs, bt);
-                break;
-            }
-            case OP_ARRAY:
-            case OP_MAP:
-            case OP_DEFINE_GLOBAL:
-            case OP_GET_GLOBAL:
-            case OP_SET_GLOBAL: {
-                ofs += disasmBytesIns(def.name, ofs, bt);
-                break;
-            }
-        }
-        ofs++;
+    u64 i = 0;
+    while (i < bt->codeCount) {
+        i = DisasmBytecode(bt, i);
     }
 
     PanPrint("====  END BYTECODE  ====\n");

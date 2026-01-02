@@ -292,6 +292,30 @@ void VmRun(PVm *vm) {
                 }
                 break;
             }
+
+            case OP_GET_LOCAL: {
+                u16 localStackIndex = readShort(vm);
+                vmPush(vm, vm->stack[localStackIndex]);
+                break;
+            }
+            case OP_SET_LOCAL: {
+                u16 localStackSlot = readShort(vm);
+                vm->stack[localStackSlot] = vmPeek(vm, 0);
+                break;
+            }
+
+            case OP_JUMP_IF_FALSE: {
+                u16 offset = readShort(vm);
+                if (!IsValueTruthy(vmPeek(vm, 0))) {
+                    vm->ip += offset;
+                }
+                break;
+            }
+            case OP_JUMP: {
+                u16 offset = readShort(vm);
+                vm->ip += offset;
+                break;
+            }
         }
 
         // PanPrint("== %s ==\n", GetOpDefinition(ins).name);

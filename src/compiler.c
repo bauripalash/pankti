@@ -10,6 +10,7 @@
 #include "include/token.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 #include <sys/stat.h>
 
 #define MAX_CONST_COUNT 65535
@@ -24,6 +25,8 @@ PCompiler *NewCompiler(Pgc *gc) {
     c->prog = NULL;
     c->progCount = 0;
     c->gc = gc;
+    c->scopeDepth = 0;
+    c->localCount = 0;
     return c;
 }
 void FreeCompiler(PCompiler *comp) {
@@ -33,6 +36,8 @@ void FreeCompiler(PCompiler *comp) {
 
     PFree(comp);
 }
+
+static PBytecode *getCurBytecode(PCompiler *comp) { return comp->code; }
 
 static u16 addConstant(PCompiler *comp, PValue value) {
     u16 index = AddConstantToPool(comp->code, value);
@@ -45,6 +50,69 @@ static u64 emitBt(PCompiler *comp, Token *tok, PanOpCode op) {
 
 static u64 emitBtU16(PCompiler *comp, Token *tok, PanOpCode op, u16 a) {
     return EmitBytecodeWithOneArg(comp->code, tok, op, a);
+}
+
+static u16 emitJump(PCompiler *comp, Token *tok, PanOpCode op) {
+    emitBtU16(comp, tok, op, 0xffff);
+    return comp->code->codeCount - 2;
+}
+
+static void patchJump(PCompiler *comp, int offset) {
+    int jump = comp->code->codeCount - offset - 2;
+    if (jump > UINT16_MAX) {
+        return; // todo: error
+    }
+
+    comp->code->code[offset] = (jump >> 8) & 0xff;
+    comp->code->code[offset + 1] = jump & 0xff;
+}
+
+// Start a scope
+// Increase a scope depth
+static int startScope(PCompiler *comp) {
+    comp->scopeDepth++;
+    return comp->scopeDepth;
+}
+
+// End a scope
+// Pop all the local variables
+static int endScope(PCompiler *comp) {
+    comp->scopeDepth--;
+
+    while (comp->localCount > 0 &&
+           comp->locals[comp->localCount - 1].depth > comp->scopeDepth) {
+        emitBt(comp, comp->code->tokens[0], OP_POP);
+        comp->localCount--;
+    }
+
+    return comp->scopeDepth;
+}
+
+// Check if token 'a' and 'b' has same lexeme
+static bool isIdentTokenEqual(Token *a, Token *b) {
+    if (a->len != b->len) {
+        return false;
+    }
+
+    return memcmp(a->lexeme, b->lexeme, a->len) == 0;
+}
+
+// Find if a local with name exists
+// Searches all locals. Return the index if found
+// otherwise returns `-1`
+static int findLocal(PCompiler *comp, Token *name) {
+    for (int i = comp->localCount - 1; i >= 0; i--) {
+        PLocal *lcl = &comp->locals[i];
+
+        if (isIdentTokenEqual(name, lcl->name)) {
+            if (lcl->depth == -1) {
+                PanPrint("Cannot read variable in its own init Statement\n");
+                return -2;
+            }
+            return i;
+        }
+    }
+    return -1;
 }
 
 bool CompilerCompile(PCompiler *compiler, PStmt **prog) {
@@ -62,10 +130,7 @@ bool CompilerCompile(PCompiler *compiler, PStmt **prog) {
     return false;
 }
 
-// static u64 emitBtU8s(PCompiler * comp, PanOpCode op, u8 a, u8 b){
-//     return EmitBytecodeWithTwoArgs(comp->code, op, a, b);
-// }
-
+// Compile Literal Expression
 static bool compileLitExpr(PCompiler *comp, PExpr *expr) {
     struct ELiteral *lit = &expr->exp.ELiteral;
 
@@ -132,6 +197,11 @@ static bool compileBinExpr(PCompiler *comp, PExpr *expr) {
     return true;
 }
 
+static bool compileLogicalExpr(PCompiler *comp, PExpr *expr) {
+    struct ELogical *logic = &expr->exp.ELogical;
+    return true;
+}
+
 static bool compileUnaryExpr(PCompiler *comp, PExpr *expr) {
     struct EUnary *unary = &expr->exp.EUnary;
 
@@ -178,6 +248,10 @@ static bool compileMapExpr(PCompiler *comp, PExpr *expr) {
 
     return true;
 }
+
+// Add a String Identifier to Constant Pool
+// Make a string object, Make a value out of it, push the value to constant pool
+// return the constant index
 static u16 addIdentConst(PCompiler *comp, Token *tok) {
     PObj *strObj = NewStrObject(comp->gc, tok, tok->lexeme, false);
     PValue strVal = MakeObject(strObj);
@@ -185,8 +259,16 @@ static u16 addIdentConst(PCompiler *comp, Token *tok) {
     return constIndex;
 }
 
+// Compile a variable expression
 static bool compileVariableExpr(PCompiler *comp, PExpr *expr) {
     struct EVariable *var = &expr->exp.EVariable;
+
+    int localIndex = findLocal(comp, var->name);
+    if (localIndex != -1) {
+        emitBtU16(comp, var->name, OP_GET_LOCAL, localIndex);
+        return true;
+    }
+
     u16 constIndex = addIdentConst(comp, var->name);
     emitBtU16(comp, var->name, OP_GET_GLOBAL, constIndex);
     return true;
@@ -195,8 +277,15 @@ static bool compileVariableExpr(PCompiler *comp, PExpr *expr) {
 static bool compileAssignExpr(PCompiler *comp, PExpr *expr) {
     struct EAssign *assign = &expr->exp.EAssign;
     if (assign->name->type == EXPR_VARIABLE) {
-        u16 constIndex = addIdentConst(comp, assign->name->exp.EVariable.name);
         compileExpr(comp, assign->value);
+
+        int localIndex = findLocal(comp, assign->name->exp.EVariable.name);
+        if (localIndex != -1) {
+            emitBtU16(comp, assign->op, OP_SET_LOCAL, localIndex);
+            return true;
+        }
+
+        u16 constIndex = addIdentConst(comp, assign->name->exp.EVariable.name);
         emitBtU16(comp, assign->op, OP_SET_GLOBAL, constIndex);
         return true;
     }
@@ -237,16 +326,101 @@ static bool compileDebugStmt(PCompiler *comp, PStmt *stmt) {
     return true;
 }
 
+// Check if name exists in current local scope
+// returns index if found otherwise returns -1
+static int doesLocalExists(PCompiler *comp, Token *name) {
+    for (int i = comp->localCount - 1; i >= 0; i--) {
+        PLocal *lcl = &comp->locals[i];
+        if (lcl->depth != -1 && lcl->depth < comp->scopeDepth) {
+            break;
+        }
+
+        if (isIdentTokenEqual(name, lcl->name)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+// Try to Declare a local variable
+// if we are in global scope, do nothing
+// if we have a local variable with same name in the same scope return error
+// otherwise create and add a new local variable
+static void tryLocalDeclare(PCompiler *comp, Token *name) {
+    if (comp->scopeDepth == 0) {
+        return;
+    }
+    if (doesLocalExists(comp, name) != -1) {
+        PanPrint("Same variable exists in this scope -> %s\n", name->lexeme);
+        return;
+    }
+    if (comp->localCount >= MAX_COMPILER_LOCAL_COUNT) {
+        return; // todo error
+    }
+    PLocal *local = &comp->locals[comp->localCount++];
+    local->name = name;
+    local->depth = -1;
+}
+
+// if in global scope, we emit define global opcode to ask the vm to put the
+// value in globals table.
+// Otherwise, we must have added a local already from `tryLocalDeclare`
+// so just mark it as usable
+static void defineVariable(PCompiler *comp, Token *name) {
+    if (comp->scopeDepth > 0) {
+        comp->locals[comp->localCount - 1].depth = comp->scopeDepth;
+        return;
+    }
+    u16 nameIndex = addIdentConst(comp, name);
+    emitBtU16(comp, name, OP_DEFINE_GLOBAL, nameIndex);
+}
+
 static bool compileLetStmt(PCompiler *comp, PStmt *stmt) {
     struct SLet *let = &stmt->stmt.SLet;
-    u16 nameIndex = addIdentConst(comp, let->name);
+
+    tryLocalDeclare(comp, let->name); // try declaring local variable
     if (!compileExpr(comp, let->expr)) {
         return false;
     }
+    defineVariable(comp, let->name);
 
-    emitBtU16(comp, let->name, OP_DEFINE_GLOBAL, nameIndex);
     return true;
 }
+
+static bool compileBlockStmt(PCompiler *comp, PStmt *stmt) {
+    startScope(comp);
+    struct SBlock *block = &stmt->stmt.SBlock;
+    u64 stmtCount = arrlen(block->stmts);
+    for (u64 i = 0; i < stmtCount; i++) {
+        if (!compileStmt(comp, block->stmts[i])) {
+            endScope(comp);
+            return false;
+        }
+    }
+    endScope(comp);
+    return true;
+}
+
+static bool compileIfStmt(PCompiler *comp, PStmt *stmt) {
+    struct SIf *ifstmt = &stmt->stmt.SIf;
+    compileExpr(comp, ifstmt->cond);
+    int thenJump = emitJump(comp, ifstmt->op, OP_JUMP_IF_FALSE);
+    emitBt(comp, ifstmt->op, OP_POP);
+
+    compileStmt(comp, ifstmt->thenBranch);
+
+    int elseJump = emitJump(comp, ifstmt->op, OP_JUMP);
+    patchJump(comp, thenJump);
+    emitBt(comp, ifstmt->op, OP_POP);
+
+    if (ifstmt->elseBranch != NULL) {
+        compileStmt(comp, ifstmt->elseBranch);
+    }
+    patchJump(comp, elseJump);
+
+    return true;
+}
+
 static bool compileStmt(PCompiler *comp, PStmt *stmt) {
     if (comp == NULL || stmt == NULL) {
         return false;
@@ -263,6 +437,14 @@ static bool compileStmt(PCompiler *comp, PStmt *stmt) {
         }
         case STMT_LET: {
             compileLetStmt(comp, stmt);
+            break;
+        }
+        case STMT_BLOCK: {
+            compileBlockStmt(comp, stmt);
+            break;
+        }
+        case STMT_IF: {
+            compileIfStmt(comp, stmt);
             break;
         }
         default: {
