@@ -42,8 +42,16 @@ typedef enum PanOpCode {
     OP_SET_GLOBAL,
     OP_GET_LOCAL,
     OP_SET_LOCAL,
+    // Jump if the previous stack item is false
     OP_JUMP_IF_FALSE,
+    // Jump to a offset
     OP_JUMP,
+    // Jump If False or Pop
+    OP_POP_JUMP_IF_FALSE,
+    // Jump If True or Pop
+    OP_POP_JUMP_IF_TRUE,
+    // Op Jump but Backwards
+    OP_LOOP,
 } PanOpCode;
 
 // OpCode definition
@@ -87,6 +95,9 @@ void FreeBytecode(PBytecode *b);
 
 // Debug and Print Instructions in Bytecode
 void DebugBytecode(const PBytecode *bt, u64 offset);
+
+u64 EmitRawU16(PBytecode *b, u16 a);
+u64 EmitRawU8(PBytecode *b, u8 a);
 
 // Emit and Write a Opcode
 u64 EmitBytecode(PBytecode *b, Token *tok, PanOpCode op);

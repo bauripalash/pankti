@@ -127,7 +127,7 @@ bool CompilerCompile(PCompiler *compiler, PStmt **prog) {
 
     emitBt(compiler, compiler->code->tokens[0], OP_RETURN);
 
-    return false;
+    return true;
 }
 
 // Compile Literal Expression
@@ -199,6 +199,19 @@ static bool compileBinExpr(PCompiler *comp, PExpr *expr) {
 
 static bool compileLogicalExpr(PCompiler *comp, PExpr *expr) {
     struct ELogical *logic = &expr->exp.ELogical;
+
+    compileExpr(comp, logic->left);
+
+    if (logic->op->type == T_AND) {
+        u16 endJump = emitJump(comp, logic->op, OP_POP_JUMP_IF_FALSE);
+        compileExpr(comp, logic->right);
+        patchJump(comp, endJump);
+    } else if (logic->op->type == T_OR) {
+        u16 endJump = emitJump(comp, logic->op, OP_POP_JUMP_IF_TRUE);
+        compileExpr(comp, logic->right);
+        patchJump(comp, endJump);
+    }
+
     return true;
 }
 
@@ -297,6 +310,7 @@ static bool compileExpr(PCompiler *comp, PExpr *expr) {
     switch (expr->type) {
         case EXPR_LITERAL: return compileLitExpr(comp, expr);
         case EXPR_BINARY: return compileBinExpr(comp, expr);
+        case EXPR_LOGICAL: return compileLogicalExpr(comp, expr);
         case EXPR_UNARY: return compileUnaryExpr(comp, expr);
         case EXPR_ARRAY: return compileArrayExpr(comp, expr);
         case EXPR_MAP: return compileMapExpr(comp, expr);
@@ -366,23 +380,27 @@ static void tryLocalDeclare(PCompiler *comp, Token *name) {
 // value in globals table.
 // Otherwise, we must have added a local already from `tryLocalDeclare`
 // so just mark it as usable
-static void defineVariable(PCompiler *comp, Token *name) {
+static void defineVariable(PCompiler *comp, u16 constIndex, Token *name) {
     if (comp->scopeDepth > 0) {
         comp->locals[comp->localCount - 1].depth = comp->scopeDepth;
         return;
     }
-    u16 nameIndex = addIdentConst(comp, name);
-    emitBtU16(comp, name, OP_DEFINE_GLOBAL, nameIndex);
+    emitBtU16(comp, name, OP_DEFINE_GLOBAL, constIndex);
+}
+
+static u16 readVariableName(PCompiler *comp, Token *name) {
+    tryLocalDeclare(comp, name);
+    if (comp->scopeDepth > 0) {
+        return 0;
+    }
+    return addIdentConst(comp, name);
 }
 
 static bool compileLetStmt(PCompiler *comp, PStmt *stmt) {
     struct SLet *let = &stmt->stmt.SLet;
-
-    tryLocalDeclare(comp, let->name); // try declaring local variable
-    if (!compileExpr(comp, let->expr)) {
-        return false;
-    }
-    defineVariable(comp, let->name);
+    u16 globNameIndex = readVariableName(comp, let->name);
+    compileExpr(comp, let->expr);
+    defineVariable(comp, globNameIndex, let->name);
 
     return true;
 }
@@ -421,6 +439,32 @@ static bool compileIfStmt(PCompiler *comp, PStmt *stmt) {
     return true;
 }
 
+static void emitLoop(PCompiler *comp, Token *token, u16 loopStart) {
+    emitBt(comp, token, OP_LOOP);
+    u16 offset = comp->code->codeCount - loopStart + 2;
+
+    EmitRawU16(comp->code, offset);
+}
+
+static bool compileWhileStmt(PCompiler *comp, PStmt *stmt) {
+    struct SWhile *whileStmt = &stmt->stmt.SWhile;
+    u16 loopStart = comp->code->codeCount;
+
+    compileExpr(comp, whileStmt->cond);
+
+    u16 exitJump = emitJump(comp, whileStmt->op, OP_JUMP_IF_FALSE);
+
+    emitBt(comp, whileStmt->op, OP_POP);
+
+    compileStmt(comp, whileStmt->body);
+
+    emitLoop(comp, whileStmt->op, loopStart);
+
+    patchJump(comp, exitJump);
+    emitBt(comp, whileStmt->op, OP_POP);
+    return true;
+}
+
 static bool compileStmt(PCompiler *comp, PStmt *stmt) {
     if (comp == NULL || stmt == NULL) {
         return false;
@@ -445,6 +489,10 @@ static bool compileStmt(PCompiler *comp, PStmt *stmt) {
         }
         case STMT_IF: {
             compileIfStmt(comp, stmt);
+            break;
+        }
+        case STMT_WHILE: {
+            compileWhileStmt(comp, stmt);
             break;
         }
         default: {

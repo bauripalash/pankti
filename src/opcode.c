@@ -1,6 +1,7 @@
 #include "include/opcode.h"
 #include "external/stb/stb_ds.h"
 #include "include/alloc.h"
+#include "include/ansicolors.h"
 #include "include/object.h"
 #include "include/printer.h"
 #include "include/ptypes.h"
@@ -9,23 +10,43 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#define OFFSET_COLOR    TERMC_BLUE
+#define OPNAME_COLOR    TERMC_GREEN
+#define CONST_VAL_COLOR TERMC_PURPLE
+
 static const POpDefinition opDefs[] = {
-    {"OpConst", 1, {2}},        {"OpDebug", 0, {0}},
-    {"OpReturn", 0, {0}},       {"OpTrue", 0, {0}},
-    {"OpFalse", 0, {0}},        {"OpNil", 0, {0}},
-    {"OpPop", 0, {0}},          {"OpAdd", 0, {0}},
-    {"OpSub", 0, {0}},          {"OpMul", 0, {0}},
-    {"OpDiv", 0, {0}},          {"OpExponent", 0, {0}},
-    {"OpEqual", 0, {0}},        {"OpNotEqual", 0, {0}},
-    {"OpGT", 0, {0}},           {"OpGTE", 0, {0}},
-    {"OpLT", 0, {0}},           {"OpLTE", 0, {0}},
-    {"OpNegate", 0, {0}},       {"OpNot", 0, {0}},
-    {"OpArray", 1, {2}}, // todo: max u64 count
-    {"OpMap", 1, {2}},   // todo max u64/2 count;
-    {"OpDefineGlobal", 1, {2}}, {"OpGetGlobal", 1, {2}},
-    {"OpSetGlobal", 1, {2}},    {"OpGetLocal", 1, {2}},
-    {"OpSetLocal", 1, {2}},     {"OpJumpIfFalse", 1, {2}},
-    {"OpJump", 1, {2}},
+    [OP_CONST] = {"OpConst", 1, {2}},
+    [OP_DEBUG] = {"OpDebug", 0, {0}},
+    [OP_RETURN] = {"OpReturn", 0, {0}},
+    [OP_TRUE] = {"OpTrue", 0, {0}},
+    [OP_FALSE] = {"OpFalse", 0, {0}},
+    [OP_NIL] = {"OpNil", 0, {0}},
+    [OP_POP] = {"OpPop", 0, {0}},
+    [OP_ADD] = {"OpAdd", 0, {0}},
+    [OP_SUB] = {"OpSub", 0, {0}},
+    [OP_MUL] = {"OpMul", 0, {0}},
+    [OP_DIV] = {"OpDiv", 0, {0}},
+    [OP_EXPONENT] = {"OpExponent", 0, {0}},
+    [OP_EQUAL] = {"OpEqual", 0, {0}},
+    [OP_NOTEQUAL] = {"OpNotEqual", 0, {0}},
+    [OP_GT] = {"OpGT", 0, {0}},
+    [OP_GTE] = {"OpGTE", 0, {0}},
+    [OP_LT] = {"OpLT", 0, {0}},
+    [OP_LTE] = {"OpLTE", 0, {0}},
+    [OP_NEGATE] = {"OpNegate", 0, {0}},
+    [OP_NOT] = {"OpNot", 0, {0}},
+    [OP_ARRAY] = {"OpArray", 1, {2}}, // todo: max u64 count
+    [OP_MAP] = {"OpMap", 1, {2}},     // todo max u64/2 count;
+    [OP_DEFINE_GLOBAL] = {"OpDefineGlobal", 1, {2}},
+    [OP_GET_GLOBAL] = {"OpGetGlobal", 1, {2}},
+    [OP_SET_GLOBAL] = {"OpSetGlobal", 1, {2}},
+    [OP_GET_LOCAL] = {"OpGetLocal", 1, {2}},
+    [OP_SET_LOCAL] = {"OpSetLocal", 1, {2}},
+    [OP_JUMP_IF_FALSE] = {"OpJumpIfFalse", 1, {2}},
+    [OP_JUMP] = {"OpJump", 1, {2}},
+    [OP_POP_JUMP_IF_FALSE] = {"OpPopJumpIfFalse", 1, {2}},
+    [OP_POP_JUMP_IF_TRUE] = {"OpPopJumpIfTrue", 1, {2}},
+    [OP_LOOP] = {"OpLoop", 1, {2}},
 };
 
 const char *OpCodeToStr(PanOpCode code) { return opDefs[code].name; }
@@ -72,36 +93,40 @@ void FreeBytecode(PBytecode *b) {
 }
 
 static u64 disasmSimpleIns(const char *name, u64 offset) {
-    PanPrint("%s\n", name);
+    PanPrint(OPNAME_COLOR "%s\n" TERMC_RESET, name);
     return offset + 1;
 }
 
 static u64 disasmConstIns(const char *name, u64 offset, const PBytecode *b) {
     u16 constIndex = ReadU16(b, offset + 1);
 
-    PanPrint("%s %d", name, constIndex);
+    PanPrint(OPNAME_COLOR "%s" TERMC_RESET, name);
+    PanPrint(" %d", constIndex);
     if (b->constPool != NULL) {
         PanPrint(" : ");
+        PanPrint(CONST_VAL_COLOR);
         PrintValue(b->constPool[constIndex]);
     }
-    PanPrint("\n");
+    PanPrint("\n" TERMC_RESET);
     return offset + 3;
 }
 
 static u64 disasmBytesIns(const char *name, u64 offset, const PBytecode *b) {
-    PanPrint("%s", name);
+    PanPrint(OPNAME_COLOR "%s" TERMC_RESET, name);
     u16 itemCount = ReadU16(b, offset + 1);
 
     PanPrint(" [%d]", itemCount);
     PanPrint("\n");
-    return offset + 2;
+    return offset + 3;
 }
 
 static u64 disasmJumpIns(
     const char *name, u64 offset, int sign, const PBytecode *b
 ) {
     u16 jump = ReadU16(b, offset + 1);
-    PanPrint("%s : %05d -> %05d\n", name, offset, offset + 3 + sign * jump);
+
+    PanPrint(OPNAME_COLOR "%s" TERMC_RESET, name);
+    PanPrint(" : %05d -> %05d\n", offset, offset + 3 + sign * jump);
 
     return offset + 3;
 }
@@ -111,12 +136,14 @@ static u64 disasmComplexDSIns(
 ) {
     u16 count = (u16)b->code[offset + 1] << 8;
     count |= b->code[offset + 2];
-    PanPrint("%s : %02d\n", name, count);
+
+    PanPrint(OPNAME_COLOR "%s" TERMC_RESET, name);
+    PanPrint(" : %02d\n", count);
     return offset + 2;
 }
 
 u64 DisasmBytecode(const PBytecode *bt, u64 offset) {
-    PanPrint("%05d ", offset);
+    PanPrint(OFFSET_COLOR "%05d " TERMC_RESET, offset);
     PanOpCode op = (PanOpCode)bt->code[offset];
     POpDefinition def = GetOpDefinition(op);
 
@@ -151,8 +178,14 @@ u64 DisasmBytecode(const PBytecode *bt, u64 offset) {
         }
 
         case OP_JUMP_IF_FALSE:
-        case OP_JUMP: {
+        case OP_JUMP:
+        case OP_POP_JUMP_IF_FALSE:
+        case OP_POP_JUMP_IF_TRUE: {
             return disasmJumpIns(def.name, offset, 1, bt);
+        }
+
+        case OP_LOOP: {
+            return disasmJumpIns(def.name, offset, -1, bt);
         }
 
         case OP_SET_LOCAL:
@@ -188,6 +221,22 @@ u64 EmitBytecode(PBytecode *b, Token *tok, PanOpCode op) {
     b->codeCount++;
     return pos;
 }
+
+u64 EmitRawU16(PBytecode *b, u16 a) {
+    u64 pos = b->codeCount;
+    arrput(b->code, (u8)((a >> 8) & 0xFF));
+    arrput(b->code, (u8)(a & 0xFF));
+    b->codeCount += 2;
+    return pos;
+}
+
+u64 EmitRawU8(PBytecode *b, u8 a) {
+    u64 pos = b->codeCount;
+    arrput(b->code, a);
+    b->codeCount++;
+    return pos;
+}
+
 u64 EmitBytecodeWithOneArg(PBytecode *b, Token *tok, PanOpCode op, u16 a) {
     u64 pos = b->codeCount;
     arrput(b->code, op);

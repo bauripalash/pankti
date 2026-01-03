@@ -11,7 +11,6 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 PVm *NewVm(void) {
     PVm *vm = PCreate(PVm);
@@ -101,7 +100,7 @@ static bool vmBinaryOpString(PVm *vm, PanOpCode op, PValue left, PValue right) {
     bool ok = true;
     char *newStr = StrJoin(ls->value, lsLen, rs->value, rsLen, &ok);
     if (!ok) {
-        return MakeNil();
+        return false;
     }
 
     PObj *nsObj = NewStrObject(vm->gc, NULL, newStr, true); // fetch the token
@@ -281,7 +280,6 @@ void VmRun(PVm *vm) {
                 bool found = SymbolTableHasKey(vm->globals, nameObj);
                 if (found) {
                     SymbolTableSet(vm->globals, nameObj, vmPeek(vm, 0));
-                    vmPop(vm);
                     break;
                 } else {
                     PanPrint(
@@ -314,6 +312,32 @@ void VmRun(PVm *vm) {
             case OP_JUMP: {
                 u16 offset = readShort(vm);
                 vm->ip += offset;
+                break;
+            }
+
+            case OP_POP_JUMP_IF_FALSE: {
+                u16 offset = readShort(vm);
+                if (!IsValueTruthy(vmPeek(vm, 0))) {
+                    vm->ip += offset;
+                } else {
+                    vmPop(vm);
+                }
+                break;
+            }
+
+            case OP_POP_JUMP_IF_TRUE: {
+                u16 offset = readShort(vm);
+                if (IsValueTruthy(vmPeek(vm, 0))) {
+                    vm->ip += offset;
+                } else {
+                    vmPop(vm);
+                }
+                break;
+            }
+
+            case OP_LOOP: {
+                u16 offset = readShort(vm);
+                vm->ip -= offset;
                 break;
             }
         }

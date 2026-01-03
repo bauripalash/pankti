@@ -7,6 +7,7 @@
 #include "include/gc.h"
 #include "include/interpreter.h"
 #include "include/lexer.h"
+#include "include/object.h"
 #include "include/opcode.h"
 #include "include/parser.h"
 #include "include/printer.h"
@@ -168,6 +169,13 @@ void RunCore(PanktiCore *core) {
         CompilerCompile(com, prog);
         DebugBytecode(com->code, 0);
 
+        PanPrint("=====   END    =====\n");
+        PanPrint("=====   CON    =====\n");
+        for (u64 i = 0; i < com->code->constCount; i++) {
+            PanPrint("%ld ", i);
+            PrintValue(com->code->constPool[i]);
+            PanPrint("\n");
+        }
         PanPrint("=====   END    =====\n");
 
         PanPrint("=====   VM     =====\n");
