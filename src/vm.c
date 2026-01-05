@@ -155,7 +155,7 @@ static bool vmBinaryOp(PVm *vm, PanOpCode op) {
     } else if (IsValueObjType(left, OT_STR) && IsValueObjType(right, OT_STR)) {
         bool isok = vmBinaryOpString(vm, op, left, right);
         if (!isok) {
-            PanPrint("Failed to binary operation on string\n");
+            vmError(vm, "Failed to binary operation on string");
             return false; // todo handle better
         }
     } else {
@@ -185,15 +185,14 @@ static bool vmCompareOp(PVm *vm, PanOpCode op) {
         vmPush(vm, MakeBool(result));
         return true;
     } else {
-        // PanPrint("Invalid Compare Operation!\n");
-        CoreRuntimeError(vm->core, NULL, "Invalid Compare Operation");
+        vmError(vm, "Invalid Compare Operation");
         return false;
     }
 }
 
 static bool vmCallFunction(PVm *vm, PObj *funcObj, int argCount) {
     if (funcObj->v.OComFunction.paramCount != (u64)argCount) {
-        PanPrint("Function call argument count != function param count\n");
+        vmError(vm, "Function call argument count != function param count");
         return false;
     }
     PCallFrame *frame = &vm->frames[vm->frameCount++];
@@ -349,10 +348,11 @@ void VmRun(PVm *vm) {
                 bool found = false;
                 PValue val = SymbolTableFind(vm->globals, nameObj, &found);
                 if (!found) {
-                    PanPrint(
-                        "Undefined Variable Found -> %s\n",
+                    const char *errorMsg = StrFormat(
+                        "Undefined variable found : %s",
                         nameObj->v.OString.value
                     );
+                    vmError(vm, errorMsg);
                     return;
                 }
 
@@ -367,10 +367,11 @@ void VmRun(PVm *vm) {
                     SymbolTableSet(vm->globals, nameObj, vmPeek(vm, 0));
                     break;
                 } else {
-                    PanPrint(
-                        "Undefined Variable Assignment -> %s\n",
+                    const char *errorMsg = StrFormat(
+                        "Undefined Variable Assignment : %s",
                         nameObj->v.OString.value
                     );
+                    vmError(vm, errorMsg);
                     return;
                 }
                 break;
@@ -430,17 +431,18 @@ void VmRun(PVm *vm) {
                 PValue callee = vmPeek(vm, argCount);
                 if (!IsValueObjType(callee, OT_COMFNC) &&
                     !IsValueObjType(callee, OT_NATIVE)) {
-                    PanPrint("Can only call functions");
+                    vmError(vm, "Can only call functions");
                     return;
                 }
 
                 if (vm->frameCount >= PVM_FRAMESTACK_SIZE) {
-                    PanPrint("Call stack overflow");
+                    vmError(vm, "Call stack overflow");
                     return;
                 }
 
                 if (!vmCallValue(vm, callee, argCount)) {
-                    PanPrint("Failed to call function");
+                    vmError(vm, "Failed to call function");
+
                     return;
                 }
 
@@ -448,8 +450,5 @@ void VmRun(PVm *vm) {
                 break;
             }
         }
-
-        // PanPrint("== %s ==\n", GetOpDefinition(ins).name);
-        // DebugVMStack(vm);
     }
 }

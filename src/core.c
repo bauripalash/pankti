@@ -5,10 +5,8 @@
 #include "include/ast.h"
 #include "include/compiler.h"
 #include "include/gc.h"
-#include "include/interpreter.h"
 #include "include/lexer.h"
 #include "include/object.h"
-#include "include/opcode.h"
 #include "include/parser.h"
 #include "include/printer.h"
 #include "include/ptypes.h"
@@ -16,12 +14,17 @@
 #include "include/utils.h"
 #include "include/vm.h"
 
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+
+#if defined (PANKTI_BUILD_DEBUG)
+#include "include/opcode.h"
+#endif
 
 PanktiCore *NewCore(const char *path) {
     PanktiCore *core = PCreate(PanktiCore);
