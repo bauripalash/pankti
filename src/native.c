@@ -1,11 +1,13 @@
 #include "include/native.h"
 #include "include/env.h"
 #include "include/gc.h"
-#include "include/interpreter.h"
+// #include "include/interpreter.h"
 #include "include/object.h"
 #include "include/printer.h"
 #include "include/ptypes.h"
+#include "include/symtable.h"
 #include "include/utils.h"
+#include "include/vm.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <time.h>
@@ -26,13 +28,13 @@
 #define NAME_APPEND_BN "সংযোগ"
 #define NAME_APPEND_PN "songjog"
 
-static PValue ntvClock(PInterpreter *it, PValue *args, u64 argc) {
+static PValue ntvClock(PVm *vm, PValue *args, u64 argc) {
     clock_t c = clock();
     double sec = (double)c / (double)CLOCKS_PER_SEC;
     return MakeNumber(sec);
 }
 
-static PValue ntvShow(PInterpreter *it, PValue *args, u64 argc) {
+static PValue ntvShow(PVm *vm, PValue *args, u64 argc) {
     for (u64 i = 0; i < argc; i++) {
         PrintValue(args[i]);
         if (i + 1 < argc) {
@@ -42,23 +44,23 @@ static PValue ntvShow(PInterpreter *it, PValue *args, u64 argc) {
     return MakeNil();
 }
 
-static PValue ntvLen(PInterpreter *it, PValue *args, u64 argc) {
+static PValue ntvLen(PVm *vm, PValue *args, u64 argc) {
     PValue target = args[0];
     if (!IsValueObj(target)) {
-        return MakeError(it->gc, "Length can not be calculated for this value");
+        return MakeError(vm->gc, "Length can not be calculated for this value");
     }
     PObj *targetObj = ValueAsObj(target);
     if (!ObjectHasLen(targetObj)) {
-        return MakeError(it->gc, "Length can not be calculated for this value");
+        return MakeError(vm->gc, "Length can not be calculated for this value");
     }
     return MakeNumber(GetObjectLength(targetObj));
 }
 
-static PValue ntvAppend(PInterpreter *it, PValue *args, u64 argc) {
+static PValue ntvAppend(PVm *vm, PValue *args, u64 argc) {
 
     if (argc < 2) {
         return MakeError(
-            it->gc,
+            vm->gc,
             "append(...) needs atleast two arguments, for appending to array"
             " Or 3 arguments for adding new pair to a map"
         );
@@ -75,7 +77,7 @@ static PValue ntvAppend(PInterpreter *it, PValue *args, u64 argc) {
             PValue elm = args[i + 1];
             if (!ArrayObjPushValue(obj, elm)) {
                 return MakeError(
-                    it->gc, "Interenal Error : Failed to append item to array"
+                    vm->gc, "Interenal Error : Failed to append item to array"
                 );
             }
         }
@@ -84,7 +86,7 @@ static PValue ntvAppend(PInterpreter *it, PValue *args, u64 argc) {
     } else if (IsValueObjType(target, OT_MAP)) {
         if (argc != 3) {
             return MakeError(
-                it->gc, "append(...) needs atleast 3 arguments, map and a "
+                vm->gc, "append(...) needs atleast 3 arguments, map and a "
                         "key-value pair"
             );
         }
@@ -93,9 +95,9 @@ static PValue ntvAppend(PInterpreter *it, PValue *args, u64 argc) {
         PValue key = args[1];
         PValue value = args[2];
 
-        if (!MapObjPushPair(obj, key, value, it->gc->timestamp)) {
+        if (!MapObjPushPair(obj, key, value, vm->gc->timestamp)) {
             return MakeError(
-                it->gc,
+                vm->gc,
                 "Interenal Error : Failed to append key-value pair to map"
             );
         }
@@ -104,43 +106,49 @@ static PValue ntvAppend(PInterpreter *it, PValue *args, u64 argc) {
     }
 
     return MakeError(
-        it->gc, "append(...) function only works on arrays and maps"
+        vm->gc, "append(...) function only works on arrays and maps"
     );
 }
 
-#define DefStrHash(s, it) ((StrHash(s, DefStrLen(s), it->gc->timestamp)))
+#define DefStrHash(s, v) ((StrHash(s, DefStrLen(s), v->gc->timestamp)))
 
-void RegisterNatives(PInterpreter *it, PEnv *env) {
-    if (it == NULL) {
+void RegisterNatives(PVm *vm, PEnv *env) {
+    if (vm == NULL) {
         return;
     }
 
-    if (it->gc == NULL) {
+    if (vm->gc == NULL) {
         return;
     }
 
-    if (env == NULL) {
-        return;
-    }
+    PObj *clockFn = NewNativeFnObject(vm->gc, NULL, ntvClock, 0);
+    PObj *showFn = NewNativeFnObject(vm->gc, NULL, ntvShow, -1);
+    PObj *lenFn = NewNativeFnObject(vm->gc, NULL, ntvLen, 1);
+    PObj *appendFn = NewNativeFnObject(vm->gc, NULL, ntvAppend, -1);
 
-    PObj *clockFn = NewNativeFnObject(it->gc, NULL, ntvClock, 0);
-    PObj *showFn = NewNativeFnObject(it->gc, NULL, ntvShow, -1);
-    PObj *lenFn = NewNativeFnObject(it->gc, NULL, ntvLen, 1);
-    PObj *appendFn = NewNativeFnObject(it->gc, NULL, ntvAppend, -1);
+    // todo: fix gc handling
 
-    EnvPutValue(env, DefStrHash(NAME_CLOCK_EN, it), MakeObject(clockFn));
-    EnvPutValue(env, DefStrHash(NAME_CLOCK_BN, it), MakeObject(clockFn));
-    EnvPutValue(env, DefStrHash(NAME_CLOCK_PN, it), MakeObject(clockFn));
+    PObj *showFnEnStr = NewStrObject(vm->gc, NULL, NAME_SHOW_EN, false);
+    PObj *showFnBnStr = NewStrObject(vm->gc, NULL, NAME_SHOW_BN, false);
 
-    EnvPutValue(env, DefStrHash(NAME_SHOW_EN, it), MakeObject(showFn));
-    EnvPutValue(env, DefStrHash(NAME_SHOW_BN, it), MakeObject(showFn));
-    EnvPutValue(env, DefStrHash(NAME_SHOW_PN, it), MakeObject(showFn));
+    SymbolTableSet(vm->globals, showFnEnStr, MakeObject(showFn));
+    SymbolTableSet(vm->globals, showFnBnStr, MakeObject(showFn));
 
-    EnvPutValue(env, DefStrHash(NAME_LEN_EN, it), MakeObject(lenFn));
-    EnvPutValue(env, DefStrHash(NAME_LEN_BN, it), MakeObject(lenFn));
-    EnvPutValue(env, DefStrHash(NAME_LEN_PN, it), MakeObject(lenFn));
+    /*
+    EnvPutValue(env, DefStrHash(NAME_CLOCK_EN, vm), MakeObject(clockFn));
+    EnvPutValue(env, DefStrHash(NAME_CLOCK_BN, vm), MakeObject(clockFn));
+    EnvPutValue(env, DefStrHash(NAME_CLOCK_PN, vm), MakeObject(clockFn));
 
-    EnvPutValue(env, DefStrHash(NAME_APPEND_EN, it), MakeObject(appendFn));
-    EnvPutValue(env, DefStrHash(NAME_APPEND_BN, it), MakeObject(appendFn));
-    EnvPutValue(env, DefStrHash(NAME_APPEND_PN, it), MakeObject(appendFn));
+    EnvPutValue(env, DefStrHash(NAME_SHOW_EN, vm), MakeObject(showFn));
+    EnvPutValue(env, DefStrHash(NAME_SHOW_BN, vm), MakeObject(showFn));
+    EnvPutValue(env, DefStrHash(NAME_SHOW_PN, vm), MakeObject(showFn));
+
+    EnvPutValue(env, DefStrHash(NAME_LEN_EN, vm), MakeObject(lenFn));
+    EnvPutValue(env, DefStrHash(NAME_LEN_BN, vm), MakeObject(lenFn));
+    EnvPutValue(env, DefStrHash(NAME_LEN_PN, vm), MakeObject(lenFn));
+
+    EnvPutValue(env, DefStrHash(NAME_APPEND_EN, vm), MakeObject(appendFn));
+    EnvPutValue(env, DefStrHash(NAME_APPEND_BN, vm), MakeObject(appendFn));
+    EnvPutValue(env, DefStrHash(NAME_APPEND_PN, vm), MakeObject(appendFn));
+    */
 }

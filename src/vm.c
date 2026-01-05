@@ -3,6 +3,7 @@
 #include "include/compiler.h"
 #include "include/core.h"
 #include "include/gc.h"
+#include "include/native.h"
 #include "include/object.h"
 #include "include/opcode.h"
 #include "include/printer.h"
@@ -33,6 +34,7 @@ void SetupVm(PVm *vm, Pgc *gc, PObj *func) {
     frame->f = func;
     frame->ip = func->v.OComFunction.code->code;
     frame->slots = vm->stack;
+    RegisterNatives(vm, NULL);
 }
 void FreeVm(PVm *vm) {
     if (vm == NULL) {
@@ -201,9 +203,24 @@ static bool vmCallFunction(PVm *vm, PObj *funcObj, int argCount) {
     return true;
 }
 
+static bool vmCallNative(PVm *vm, PObj *funcObj, int argc) {
+    struct ONative *native = &funcObj->v.ONative;
+    if (native->arity != -1 && native->arity != argc) {
+        vmError(vm, "Native function arg count != param count");
+        return false;
+    }
+
+    PValue result = native->fn(vm, vm->sp - argc, argc);
+    vm->sp -= argc + 1;
+    vmPush(vm, result);
+    return true;
+}
+
 static bool vmCallValue(PVm *vm, PValue callee, int argCount) {
     if (IsValueObjType(callee, OT_COMFNC)) {
         return vmCallFunction(vm, ValueAsObj(callee), argCount);
+    } else if (IsValueObjType(callee, OT_NATIVE)) {
+        return vmCallNative(vm, ValueAsObj(callee), argCount);
     }
 
     return false;
@@ -411,7 +428,8 @@ void VmRun(PVm *vm) {
             case OP_CALL: {
                 u16 argCount = vmReadU16(vm, frame);
                 PValue callee = vmPeek(vm, argCount);
-                if (!IsValueObjType(callee, OT_COMFNC)) {
+                if (!IsValueObjType(callee, OT_COMFNC) &&
+                    !IsValueObjType(callee, OT_NATIVE)) {
                     PanPrint("Can only call functions");
                     return;
                 }

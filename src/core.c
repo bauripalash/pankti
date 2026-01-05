@@ -86,6 +86,9 @@ void FreeCore(PanktiCore *core) {
 #define DEBUG_PARSER
 // Print time it takes to finish each step
 #define DEBUG_TIMES
+
+// Print Bytecode of Script
+#define DEBUG_BYTECODE
 #endif
 
 PCoreErrorType RunCore(PanktiCore *core) {
@@ -182,34 +185,35 @@ PCoreErrorType RunCore(PanktiCore *core) {
 
     } else {
 */
-    PanPrint("===== COMPILER =====\n");
 
+#if defined(DEBUG_TIMES)
+    clock_t cmpTic = clock();
+#endif
     CompilerCompile(core->compiler, prog);
+#if defined(DEBUG_TIMES)
+    clock_t cmpToc = clock();
+    PanPrint(
+        "[DEBUG] Compiler finished : %f sec.\n",
+        (double)(cmpToc - cmpTic) / CLOCKS_PER_SEC
+    );
+#endif
     PObj *comFn = GetCompiledFunction(core->compiler);
 
-    // PBytecode * bt = core->compiler->func->v.OComFunction.code;
+#if defined(DEBUG_BYTECODE)
     DebugBytecode(comFn->v.OComFunction.code, 0);
-
-    PanPrint("=====   END    =====\n");
-    PanPrint("=====   CON    =====\n");
-    for (u64 i = 0; i < comFn->v.OComFunction.code->constCount; i++) {
-        PanPrint("%ld ", i);
-        PValue conVal = comFn->v.OComFunction.code->constPool[i];
-        PrintValue(conVal);
-        if (IsValueObjType(conVal, OT_COMFNC)) {
-            PanPrint("\n== CFN ==\n");
-            DebugBytecode(ValueAsObj(conVal)->v.OComFunction.code, 0);
-            PanPrint("=========\n");
-        }
-        PanPrint("\n");
-    }
-    PanPrint("=====   END    =====\n");
-
-    PanPrint("=====   VM     =====\n");
+#endif
     SetupVm(core->vm, core->gc, comFn);
+#if defined(DEBUG_TIMES)
+    clock_t vmTic = clock();
+#endif
     VmRun(core->vm);
-    PanPrint("=====   END    =====\n");
-    //    }
+#if defined(DEBUG_TIMES)
+    clock_t vmToc = clock();
+    PanPrint(
+        "[DEBUG] VM finished : %f sec.\n",
+        (double)(vmToc - vmTic) / CLOCKS_PER_SEC
+    );
+#endif
 
     if (core->caughtError) {
         PanPrint("Runtime Error found!\n");

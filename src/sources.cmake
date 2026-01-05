@@ -31,12 +31,12 @@ set(PANKTI_SRC_FILES
   "${CMAKE_CURRENT_LIST_DIR}/gc/gcstmt.c"
 
   # Stdlib
-  "${CMAKE_CURRENT_LIST_DIR}/stdlib/pstdlib.c"
-  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdmap.c"
-  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdarray.c"
-  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdmath.c"
-  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdos.c"
-  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdstring.c"
+  #"${CMAKE_CURRENT_LIST_DIR}/stdlib/pstdlib.c"
+  #"${CMAKE_CURRENT_LIST_DIR}/stdlib/stdmap.c"
+  #"${CMAKE_CURRENT_LIST_DIR}/stdlib/stdarray.c"
+  #"${CMAKE_CURRENT_LIST_DIR}/stdlib/stdmath.c"
+  #"${CMAKE_CURRENT_LIST_DIR}/stdlib/stdos.c"
+  #"${CMAKE_CURRENT_LIST_DIR}/stdlib/stdstring.c"
 
   # External
   "${CMAKE_CURRENT_LIST_DIR}/external/stb/stb_ds_impl.c"

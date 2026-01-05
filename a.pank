@@ -8,5 +8,5 @@ kaj x(b)
     return y(b) + 1
 end
 
-?x(a)
-return 1
+show(x(a))
+

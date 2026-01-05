@@ -7,7 +7,7 @@ extern "C" {
 #include "env.h"
 #include "object.h"
 
-void RegisterNatives(PInterpreter *it, PEnv *env);
+void RegisterNatives(PVm *vm, PEnv *env);
 
 #ifdef __cplusplus
 }
