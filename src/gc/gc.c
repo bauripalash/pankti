@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <time.h>
 
 #if defined(DEBUG_GC)
@@ -270,6 +271,15 @@ static void markObjectChildren(Pgc *gc, PObj *obj) {
 
             if (func->env != NULL) {
                 MarkEnvGC(gc, func->env);
+            }
+
+            break;
+        }
+
+        case OT_COMFNC: {
+            struct OComFunction *func = &obj->v.OComFunction;
+            if (func->strName != NULL) {
+                markObject(gc, func->strName);
             }
 
             break;

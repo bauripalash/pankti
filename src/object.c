@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "external/gb/gb_string.h"
@@ -279,6 +281,15 @@ void PrintObject(const PObj *o) {
             }
             break;
         }
+        case OT_COMFNC: {
+            const struct OComFunction *func = &o->v.OComFunction;
+            if (func->strName != NULL) {
+                PanPrint("<fn %s>", func->strName->v.OString.value);
+            } else {
+                PanPrint("<script>");
+            }
+            break;
+        }
         case OT_ARR: {
             const struct OArray *arr = &o->v.OArray;
             PanPrint("[");
@@ -381,6 +392,20 @@ char *ObjToString(PObj *obj) {
             result = StrDuplicate(temp, strlen(temp));
             break;
         }
+        case OT_COMFNC: {
+            struct OComFunction *fn = &obj->v.OComFunction;
+            if (fn->strName != NULL) {
+                const char *temp = StrFormat(
+                    "<%s '%s'>", KW_BN_FUNC,
+                    fn->strName != NULL ? fn->strName->v.OString.value : "null"
+                );
+                result = StrDuplicate(temp, StrLength(temp));
+            } else {
+                result = StrDuplicate("<script>", StrLength("<script>"));
+            }
+
+            break;
+        }
         case OT_ARR: {
             struct OArray *arr = &obj->v.OArray;
 
@@ -470,6 +495,7 @@ char *ObjTypeToString(PObjType type) {
         case OT_NATIVE: return "Native Func";
         case OT_ERROR: return "Error";
         case OT_UPVAL: return "Upvalue";
+        case OT_COMFNC: return "Function";
     }
     return "Unknown"; // should never reach here
 }
@@ -485,6 +511,7 @@ bool IsObjEqual(const PObj *a, const PObj *b) {
             break;
         }
         case OT_FNC: result = false; break;
+        case OT_COMFNC: result = false; break;
         case OT_ARR: result = false; break; // TODO: fix
         case OT_NATIVE: result = (a->v.ONative.fn == b->v.ONative.fn); break;
         case OT_MAP: result = false; break;

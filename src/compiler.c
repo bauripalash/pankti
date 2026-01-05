@@ -2,69 +2,122 @@
 #include "external/stb/stb_ds.h"
 #include "include/alloc.h"
 #include "include/ast.h"
+#include "include/core.h"
 #include "include/gc.h"
 #include "include/object.h"
 #include "include/opcode.h"
 #include "include/printer.h"
 #include "include/ptypes.h"
 #include "include/token.h"
+#include "include/vm.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include <sys/stat.h>
 
 #define MAX_CONST_COUNT 65535
 
+// Compile and Emit Bytecodes for a Parser Produced Statement
 static bool compileStmt(PCompiler *comp, PStmt *stmt);
+// Compiled and Emit Bytecodes for a Parser Produced Expression
 static bool compileExpr(PCompiler *comp, PExpr *expr);
+// Add a Constant and return its index in constant list
 static u16 addConstant(PCompiler *comp, PValue value);
 
-PCompiler *NewCompiler(Pgc *gc) {
+PCompiler *dummyCompiler(
+    PanktiCore *core, PCompiler *enclosing, PCompFuncType ftype, Token *name
+) {
     PCompiler *c = PCreate(PCompiler);
-    c->code = NewBytecode();
+    c->func = NULL;
+    c->funcType = ftype;
+    c->enclosing = enclosing;
     c->prog = NULL;
     c->progCount = 0;
-    c->gc = gc;
     c->scopeDepth = 0;
     c->localCount = 0;
-    return c;
-}
-void FreeCompiler(PCompiler *comp) {
-    if (comp->code != NULL) {
-        FreeBytecode(comp->code);
+    c->dummyToken = NewToken(T_EOF);
+    if (core != NULL) {
+        c->core = core;
+        c->gc = core->gc;
+
+        if (name != NULL && ftype == COMP_FN_FUNCTION) {
+            c->func = NewComFuncObject(c->gc, name);
+        } else {
+            c->func = NewComFuncObject(c->gc, NULL);
+        }
+
+    } else {
+        c->core = NULL;
+        c->gc = NULL;
+        c->func = NULL;
     }
 
+    PLocal *local = &c->locals[c->localCount++];
+    local->depth = 0;
+    local->name = NULL;
+    return c;
+}
+
+PCompiler *NewCompiler(PanktiCore *core) {
+    PCompiler *c = dummyCompiler(core, NULL, COMP_FN_SCRIPT, NULL);
+
+    return c;
+}
+
+PCompiler *NewEnclosedCompiler(
+    PanktiCore *core, PCompiler *comp, PCompFuncType ftype, Token *name
+) {
+
+    PCompiler *c = dummyCompiler(core, comp, COMP_FN_FUNCTION, name);
+
+    return c;
+}
+
+void FreeCompiler(PCompiler *comp) {
+    if (comp == NULL) {
+        return;
+    }
+    FreeToken(comp->dummyToken);
     PFree(comp);
 }
 
-static PBytecode *getCurBytecode(PCompiler *comp) { return comp->code; }
+// Get Current Compiling Bytecode object
+static finline PBytecode *getbt(PCompiler *comp) {
+    return comp->func->v.OComFunction.code;
+}
 
+// Add a Constant and return its index in constant list
 static u16 addConstant(PCompiler *comp, PValue value) {
-    u16 index = AddConstantToPool(comp->code, value);
+    u16 index = AddConstantToPool(getbt(comp), value);
     return index;
 }
 
+// Emit a single opcode
 static u64 emitBt(PCompiler *comp, Token *tok, PanOpCode op) {
-    return EmitBytecode(comp->code, tok, op);
+    return EmitBytecode(getbt(comp), tok, op);
 }
 
+// Emit a bytecode with a u16 operand
 static u64 emitBtU16(PCompiler *comp, Token *tok, PanOpCode op, u16 a) {
-    return EmitBytecodeWithOneArg(comp->code, tok, op, a);
+    return EmitBytecodeWithOneArg(getbt(comp), tok, op, a);
 }
 
+// Emit a jump type opcode with placeholder which should be patched later
+// returns the position of offset operand
 static u16 emitJump(PCompiler *comp, Token *tok, PanOpCode op) {
     emitBtU16(comp, tok, op, 0xffff);
-    return comp->code->codeCount - 2;
+    return getbt(comp)->codeCount - 2;
 }
 
+// Patch a jump type opcode's operand
+// offset is the position of offset operand in bytecode
 static void patchJump(PCompiler *comp, int offset) {
-    int jump = comp->code->codeCount - offset - 2;
+    int jump = getbt(comp)->codeCount - offset - 2;
     if (jump > UINT16_MAX) {
         return; // todo: error
     }
 
-    comp->code->code[offset] = (jump >> 8) & 0xff;
-    comp->code->code[offset + 1] = jump & 0xff;
+    getbt(comp)->code[offset] = (jump >> 8) & 0xff;
+    getbt(comp)->code[offset + 1] = jump & 0xff;
 }
 
 // Start a scope
@@ -81,7 +134,7 @@ static int endScope(PCompiler *comp) {
 
     while (comp->localCount > 0 &&
            comp->locals[comp->localCount - 1].depth > comp->scopeDepth) {
-        emitBt(comp, comp->code->tokens[0], OP_POP);
+        emitBt(comp, getbt(comp)->tokens[0], OP_POP);
         comp->localCount--;
     }
 
@@ -104,7 +157,7 @@ static int findLocal(PCompiler *comp, Token *name) {
     for (int i = comp->localCount - 1; i >= 0; i--) {
         PLocal *lcl = &comp->locals[i];
 
-        if (isIdentTokenEqual(name, lcl->name)) {
+        if (lcl->name != NULL && isIdentTokenEqual(name, lcl->name)) {
             if (lcl->depth == -1) {
                 PanPrint("Cannot read variable in its own init Statement\n");
                 return -2;
@@ -113,6 +166,37 @@ static int findLocal(PCompiler *comp, Token *name) {
         }
     }
     return -1;
+}
+
+static void markLocalInit(PCompiler *comp) {
+    if (comp->scopeDepth == 0) {
+        return;
+    }
+    comp->locals[comp->localCount - 1].depth = comp->scopeDepth;
+}
+
+// Emit return opcode
+static finline void emitReturn(PCompiler *comp) {
+    // EmitRawU8(getbt(comp), OP_RETURN);
+    emitBt(comp, comp->dummyToken, OP_NIL);
+    emitBt(comp, comp->dummyToken, OP_RETURN);
+}
+
+// Time has come for ending of compiler
+// Emit return and return current compiling function
+static finline PObj *endCompiler(PCompiler *comp) {
+    emitReturn(comp);
+    return comp->func;
+}
+
+// Return current compiling function
+// If the compiling should end, must call endCompiler before this function
+PObj *GetCompiledFunction(PCompiler *comp) {
+    if (comp == NULL || comp->func == NULL) {
+        return NULL;
+    }
+
+    return comp->func;
 }
 
 bool CompilerCompile(PCompiler *compiler, PStmt **prog) {
@@ -124,8 +208,7 @@ bool CompilerCompile(PCompiler *compiler, PStmt **prog) {
             return false;
         }
     }
-
-    emitBt(compiler, compiler->code->tokens[0], OP_RETURN);
+    endCompiler(compiler);
 
     return true;
 }
@@ -168,6 +251,7 @@ static bool compileLitExpr(PCompiler *comp, PExpr *expr) {
     return true;
 }
 
+// Compile a Binary Expression
 static bool compileBinExpr(PCompiler *comp, PExpr *expr) {
     struct EBinary *bin = &expr->exp.EBinary;
 
@@ -197,6 +281,19 @@ static bool compileBinExpr(PCompiler *comp, PExpr *expr) {
     return true;
 }
 
+// Compile a logical type expression such as AND , OR
+//
+// AND Bytecode structure
+// <Left Expression>        [Left] in stack
+// [OP_POP_JUMP_IF_FALSE] -> END  [Left] if is false, so [FALSE] otherwise pop
+// -> [_] <Right Expression>        [Right] (if Left is false, we never reach
+// here) End/Other Expression...  Result -> [TRUE/FALSE]
+//
+// OR Bytecode structure
+// <Left Expression>        [Left] is in stack
+// [OP_POP_JUMP_IF_TRUE] -> END  [Left] if is true, so [TRUE] otherwise pop ->
+// [_] <Right Expression>       [Right] (if left is true, we never reach here)
+// End/Other Expression
 static bool compileLogicalExpr(PCompiler *comp, PExpr *expr) {
     struct ELogical *logic = &expr->exp.ELogical;
 
@@ -306,6 +403,22 @@ static bool compileAssignExpr(PCompiler *comp, PExpr *expr) {
     return false;
 }
 
+static bool compileCallExpr(PCompiler *comp, PExpr *expr) {
+    struct ECall *call = &expr->exp.ECall;
+    if (!compileExpr(comp, call->callee)) {
+        return true;
+    }
+    for (u64 i = 0; i < call->argCount; i++) {
+        if (!compileExpr(comp, call->args[i])) {
+            return false;
+        }
+    }
+
+    emitBtU16(comp, call->op, OP_CALL, (u16)call->argCount); // todo: call arg
+
+    return true;
+}
+
 static bool compileExpr(PCompiler *comp, PExpr *expr) {
     switch (expr->type) {
         case EXPR_LITERAL: return compileLitExpr(comp, expr);
@@ -316,6 +429,7 @@ static bool compileExpr(PCompiler *comp, PExpr *expr) {
         case EXPR_MAP: return compileMapExpr(comp, expr);
         case EXPR_VARIABLE: return compileVariableExpr(comp, expr);
         case EXPR_ASSIGN: return compileAssignExpr(comp, expr);
+        case EXPR_CALL: return compileCallExpr(comp, expr);
         default: break;
     }
 
@@ -382,12 +496,15 @@ static void tryLocalDeclare(PCompiler *comp, Token *name) {
 // so just mark it as usable
 static void defineVariable(PCompiler *comp, u16 constIndex, Token *name) {
     if (comp->scopeDepth > 0) {
-        comp->locals[comp->localCount - 1].depth = comp->scopeDepth;
+        markLocalInit(comp);
         return;
     }
     emitBtU16(comp, name, OP_DEFINE_GLOBAL, constIndex);
 }
 
+// Try setting up variable name.
+// If is local, we create a local
+// otherwise we create a Identifier constant from token
 static u16 readVariableName(PCompiler *comp, Token *name) {
     tryLocalDeclare(comp, name);
     if (comp->scopeDepth > 0) {
@@ -441,14 +558,14 @@ static bool compileIfStmt(PCompiler *comp, PStmt *stmt) {
 
 static void emitLoop(PCompiler *comp, Token *token, u16 loopStart) {
     emitBt(comp, token, OP_LOOP);
-    u16 offset = comp->code->codeCount - loopStart + 2;
+    u16 offset = getbt(comp)->codeCount - loopStart + 2;
 
-    EmitRawU16(comp->code, offset);
+    EmitRawU16(getbt(comp), offset);
 }
 
 static bool compileWhileStmt(PCompiler *comp, PStmt *stmt) {
     struct SWhile *whileStmt = &stmt->stmt.SWhile;
-    u16 loopStart = comp->code->codeCount;
+    u16 loopStart = getbt(comp)->codeCount;
 
     compileExpr(comp, whileStmt->cond);
 
@@ -463,6 +580,67 @@ static bool compileWhileStmt(PCompiler *comp, PStmt *stmt) {
     patchJump(comp, exitJump);
     emitBt(comp, whileStmt->op, OP_POP);
     return true;
+}
+
+static bool compileFuncBody(PCompiler *comp, PStmt **stmts) {
+    u64 stmtCount = arrlen(stmts);
+    for (u64 i = 0; i < stmtCount; i++) {
+        if (!compileStmt(comp, stmts[i])) {
+            return false;
+        }
+    }
+
+    emitReturn(comp);
+    return true;
+}
+
+static bool compileFunc(PCompiler *comp, PStmt *stmt) {
+    struct SFunc *fnStmt = &stmt->stmt.SFunc;
+    PCompiler *fComp =
+        NewEnclosedCompiler(comp->core, comp, COMP_FN_FUNCTION, fnStmt->name);
+
+    startScope(fComp);
+    for (u64 i = 0; i < fnStmt->paramCount; i++) {
+        u16 paramIndex = readVariableName(fComp, fnStmt->params[i]);
+        defineVariable(fComp, paramIndex, fnStmt->params[i]);
+    }
+    // CompilerCompile(fComp, fnStmt->body->stmt.SBlock.stmts);
+    compileFuncBody(fComp, fnStmt->body->stmt.SBlock.stmts);
+    // endCompiler(fComp);
+    PObj *fnObj = GetCompiledFunction(fComp);
+    fnObj->v.OComFunction.paramCount = fnStmt->paramCount;
+    u16 constIndex = addConstant(comp, MakeObject(fnObj));
+    emitBtU16(comp, fnStmt->name, OP_CONST, constIndex);
+    FreeCompiler(fComp);
+    return true;
+}
+
+static bool compileFuncStmt(PCompiler *comp, PStmt *stmt) {
+    struct SFunc *fnStmt = &stmt->stmt.SFunc;
+    u16 identIndex = readVariableName(comp, fnStmt->name);
+    markLocalInit(comp);
+    compileFunc(comp, stmt);
+    // read func
+    defineVariable(comp, identIndex, fnStmt->name);
+    return true;
+}
+
+static bool compileReturnStmt(PCompiler *comp, PStmt *stmt) {
+    struct SReturn *retStmt = &stmt->stmt.SReturn;
+    if (comp->funcType == COMP_FN_SCRIPT) {
+        CoreCompilerError(
+            comp->core, retStmt->op, "Top level script cannot contain return"
+        );
+        return false;
+    }
+    if (retStmt->value != NULL) {
+        compileExpr(comp, retStmt->value);
+    } else {
+        emitBt(comp, retStmt->op, OP_NIL);
+    }
+
+    emitBt(comp, retStmt->op, OP_RETURN);
+    return false;
 }
 
 static bool compileStmt(PCompiler *comp, PStmt *stmt) {
@@ -493,6 +671,14 @@ static bool compileStmt(PCompiler *comp, PStmt *stmt) {
         }
         case STMT_WHILE: {
             compileWhileStmt(comp, stmt);
+            break;
+        }
+        case STMT_FUNC: {
+            compileFuncStmt(comp, stmt);
+            break;
+        }
+        case STMT_RETURN: {
+            compileReturnStmt(comp, stmt);
             break;
         }
         default: {

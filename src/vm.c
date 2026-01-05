@@ -1,6 +1,7 @@
 #include "include/vm.h"
 #include "include/alloc.h"
 #include "include/compiler.h"
+#include "include/core.h"
 #include "include/gc.h"
 #include "include/object.h"
 #include "include/opcode.h"
@@ -12,27 +13,26 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-PVm *NewVm(void) {
+static bool vmPush(PVm *vm, PValue val);
+static PValue vmPop(PVm *vm);
+
+PVm *NewVm(PanktiCore *core) {
     PVm *vm = PCreate(PVm);
-    vm->constPool = NULL;
-    vm->constCount = 0;
     vm->sp = vm->stack;
-    vm->code = NULL;
-    vm->constCount = 0;
-    vm->ip = 0;
-    vm->gc = NULL;
+    vm->gc = core->gc;
+    vm->frameCount = 0;
     vm->globals = NewSymbolTable();
 
     return vm;
 }
 
-void SetupVm(PVm *vm, Pgc *gc, PBytecode *bt) {
-    vm->constPool = bt->constPool;
-    vm->constCount = bt->constCount;
-    vm->code = bt->code;
-    vm->ip = bt->code;
-    vm->codeCount = bt->codeCount;
+void SetupVm(PVm *vm, Pgc *gc, PObj *func) {
     vm->gc = gc;
+    vmPush(vm, MakeObject(func));
+    PCallFrame *frame = &vm->frames[vm->frameCount++];
+    frame->f = func;
+    frame->ip = func->v.OComFunction.code->code;
+    frame->slots = vm->stack;
 }
 void FreeVm(PVm *vm) {
     if (vm == NULL) {
@@ -75,6 +75,29 @@ static PValue vmPeek(const PVm *vm, int index) {
     return val;
 }
 
+static void vmPrintStackTrace(PVm *vm) {
+    for (int i = vm->frameCount - 1; i >= 0; i--) {
+        PCallFrame *frame = &vm->frames[i];
+        struct OComFunction *fn = &frame->f->v.OComFunction;
+        PanPrint("in ");
+        if (fn->strName != NULL) {
+            struct OString *name = &fn->strName->v.OString;
+            PanPrint("%s(...)\n", name->value);
+        } else {
+            PanPrint("<script>\n");
+            ;
+        }
+    }
+}
+
+static void vmError(PVm *vm, const char *msg) {
+    PanPrint("Error occured:\n");
+    vmPrintStackTrace(vm);
+    CoreRuntimeError(
+        vm->core, vm->frames[0].f->v.OComFunction.code->tokens[0], msg
+    );
+}
+
 static bool vmBinaryOpNumber(PVm *vm, PanOpCode op, PValue left, PValue right) {
     double leftVal = ValueAsNum(left);
     double rightVal = ValueAsNum(right);
@@ -83,7 +106,14 @@ static bool vmBinaryOpNumber(PVm *vm, PanOpCode op, PValue left, PValue right) {
         case OP_ADD: result = leftVal + rightVal; break;
         case OP_SUB: result = leftVal - rightVal; break;
         case OP_MUL: result = leftVal * rightVal; break;
-        case OP_DIV: result = leftVal / rightVal; break;
+        case OP_DIV: {
+            if (rightVal == 0.0) {
+                vmError(vm, "Divison by zero");
+                return false;
+            }
+            result = leftVal / rightVal;
+            break;
+        }
         case OP_EXPONENT: result = pow(leftVal, rightVal); break;
         default: return false;
     }
@@ -117,7 +147,7 @@ static bool vmBinaryOp(PVm *vm, PanOpCode op) {
     if (IsValueNum(left) && IsValueNum(right)) {
         bool isok = vmBinaryOpNumber(vm, op, left, right);
         if (!isok) {
-            PanPrint("Failed to binary operation\n");
+            vmError(vm, "Failed to binary operation");
             return false;
         }
     } else if (IsValueObjType(left, OT_STR) && IsValueObjType(right, OT_STR)) {
@@ -126,9 +156,12 @@ static bool vmBinaryOp(PVm *vm, PanOpCode op) {
             PanPrint("Failed to binary operation on string\n");
             return false; // todo handle better
         }
+    } else {
+        vmError(vm, "Invalid Binary Operation");
+        return false;
     }
 
-    return false;
+    return true;
 }
 
 static bool vmCompareOp(PVm *vm, PanOpCode op) {
@@ -150,33 +183,68 @@ static bool vmCompareOp(PVm *vm, PanOpCode op) {
         vmPush(vm, MakeBool(result));
         return true;
     } else {
-        PanPrint("Invalid Compare Operation!\n");
+        // PanPrint("Invalid Compare Operation!\n");
+        CoreRuntimeError(vm->core, NULL, "Invalid Compare Operation");
         return false;
     }
 }
 
-static finline u8 readByte(PVm *vm) { return *vm->ip++; }
-
-static finline u16 readShort(PVm *vm) {
-    vm->ip += 2;
-    return ((u16)(vm->ip[-2] << 8) | (u16)(vm->ip[-1]));
+static bool vmCallFunction(PVm *vm, PObj *funcObj, int argCount) {
+    if (funcObj->v.OComFunction.paramCount != (u64)argCount) {
+        PanPrint("Function call argument count != function param count\n");
+        return false;
+    }
+    PCallFrame *frame = &vm->frames[vm->frameCount++];
+    frame->f = funcObj;
+    frame->ip = funcObj->v.OComFunction.code->code;
+    frame->slots = vm->sp - argCount - 1;
+    return true;
 }
 
-static finline PValue readConst(PVm *vm) {
-    return vm->constPool[readShort(vm)];
+static bool vmCallValue(PVm *vm, PValue callee, int argCount) {
+    if (IsValueObjType(callee, OT_COMFNC)) {
+        return vmCallFunction(vm, ValueAsObj(callee), argCount);
+    }
+
+    return false;
 }
 
-static finline PObj *readObjConst(PVm *vm) {
-    return ValueAsObj(vm->constPool[readShort(vm)]);
+static finline u8 vmReadByte(PVm *vm, PCallFrame *frame) {
+    return *frame->ip++;
+}
+
+static finline u16 vmReadU16(PVm *vm, PCallFrame *frame) {
+    frame->ip += 2;
+    return ((u16)(frame->ip[-2] << 8) | (u16)(frame->ip[-1]));
+}
+
+static finline PValue vmReadConst(PVm *vm, PCallFrame *frame) {
+    return frame->f->v.OComFunction.code->constPool[vmReadU16(vm, frame)];
+}
+
+static finline PObj *vmReadObjConst(PVm *vm, PCallFrame *frame) {
+    return ValueAsObj(
+        frame->f->v.OComFunction.code->constPool[vmReadU16(vm, frame)]
+    );
 }
 
 void VmRun(PVm *vm) {
+    PCallFrame *frame = &vm->frames[vm->frameCount - 1];
     while (true) {
         u8 ins;
 
-        switch (ins = readByte(vm)) {
+        switch (ins = vmReadByte(vm, frame)) {
             case OP_RETURN: {
-                return;
+                PValue result = vmPop(vm);
+                vm->frameCount--;
+                if (vm->frameCount == 0) {
+                    vmPop(vm);
+                    return;
+                }
+                vm->sp = frame->slots;
+                vmPush(vm, result);
+                frame = &vm->frames[vm->frameCount - 1];
+                break;
             }
             case OP_DEBUG: {
                 PrintValue(vmPop(vm));
@@ -185,7 +253,7 @@ void VmRun(PVm *vm) {
             }
 
             case OP_CONST: {
-                PValue val = readConst(vm);
+                PValue val = vmReadConst(vm, frame);
                 vmPush(vm, val);
                 break;
             }
@@ -250,7 +318,7 @@ void VmRun(PVm *vm) {
                 break;
             }
             case OP_DEFINE_GLOBAL: {
-                PObj *nameObj = readObjConst(vm);
+                PObj *nameObj = vmReadObjConst(vm, frame);
                 if (nameObj->type != OT_STR) {
                     break;
                 }
@@ -260,7 +328,7 @@ void VmRun(PVm *vm) {
                 break;
             }
             case OP_GET_GLOBAL: {
-                PObj *nameObj = readObjConst(vm);
+                PObj *nameObj = vmReadObjConst(vm, frame);
                 bool found = false;
                 PValue val = SymbolTableFind(vm->globals, nameObj, &found);
                 if (!found) {
@@ -276,7 +344,7 @@ void VmRun(PVm *vm) {
             }
 
             case OP_SET_GLOBAL: {
-                PObj *nameObj = readObjConst(vm);
+                PObj *nameObj = vmReadObjConst(vm, frame);
                 bool found = SymbolTableHasKey(vm->globals, nameObj);
                 if (found) {
                     SymbolTableSet(vm->globals, nameObj, vmPeek(vm, 0));
@@ -292,33 +360,33 @@ void VmRun(PVm *vm) {
             }
 
             case OP_GET_LOCAL: {
-                u16 localStackIndex = readShort(vm);
-                vmPush(vm, vm->stack[localStackIndex]);
+                u16 localStackIndex = vmReadU16(vm, frame);
+                vmPush(vm, frame->slots[localStackIndex]);
                 break;
             }
             case OP_SET_LOCAL: {
-                u16 localStackSlot = readShort(vm);
-                vm->stack[localStackSlot] = vmPeek(vm, 0);
+                u16 localStackSlot = vmReadU16(vm, frame);
+                frame->slots[localStackSlot] = vmPeek(vm, 0);
                 break;
             }
 
             case OP_JUMP_IF_FALSE: {
-                u16 offset = readShort(vm);
+                u16 offset = vmReadU16(vm, frame);
                 if (!IsValueTruthy(vmPeek(vm, 0))) {
-                    vm->ip += offset;
+                    frame->ip += offset;
                 }
                 break;
             }
             case OP_JUMP: {
-                u16 offset = readShort(vm);
-                vm->ip += offset;
+                u16 offset = vmReadU16(vm, frame);
+                frame->ip += offset;
                 break;
             }
 
             case OP_POP_JUMP_IF_FALSE: {
-                u16 offset = readShort(vm);
+                u16 offset = vmReadU16(vm, frame);
                 if (!IsValueTruthy(vmPeek(vm, 0))) {
-                    vm->ip += offset;
+                    frame->ip += offset;
                 } else {
                     vmPop(vm);
                 }
@@ -326,9 +394,9 @@ void VmRun(PVm *vm) {
             }
 
             case OP_POP_JUMP_IF_TRUE: {
-                u16 offset = readShort(vm);
+                u16 offset = vmReadU16(vm, frame);
                 if (IsValueTruthy(vmPeek(vm, 0))) {
-                    vm->ip += offset;
+                    frame->ip += offset;
                 } else {
                     vmPop(vm);
                 }
@@ -336,8 +404,29 @@ void VmRun(PVm *vm) {
             }
 
             case OP_LOOP: {
-                u16 offset = readShort(vm);
-                vm->ip -= offset;
+                u16 offset = vmReadU16(vm, frame);
+                frame->ip -= offset;
+                break;
+            }
+            case OP_CALL: {
+                u16 argCount = vmReadU16(vm, frame);
+                PValue callee = vmPeek(vm, argCount);
+                if (!IsValueObjType(callee, OT_COMFNC)) {
+                    PanPrint("Can only call functions");
+                    return;
+                }
+
+                if (vm->frameCount >= PVM_FRAMESTACK_SIZE) {
+                    PanPrint("Call stack overflow");
+                    return;
+                }
+
+                if (!vmCallValue(vm, callee, argCount)) {
+                    PanPrint("Failed to call function");
+                    return;
+                }
+
+                frame = &vm->frames[vm->frameCount - 1];
                 break;
             }
         }

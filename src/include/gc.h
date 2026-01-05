@@ -91,6 +91,9 @@ void FreeObject(Pgc *gc, PObj *o);
 // otherwise the owner of the heap allocated string is owned by AST's Literal
 PObj *NewStrObject(Pgc *gc, Token *name, char *value, bool virt);
 
+// Create New Compiled Function Object
+PObj *NewComFuncObject(Pgc *gc, Token *name);
+
 // Create Function Statement Object
 // `name` = Name of the function
 // `params` = Token array of parameters

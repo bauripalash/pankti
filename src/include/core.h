@@ -1,6 +1,8 @@
 #ifndef CORE_H
 #define CORE_H
 
+#include "compiler.h"
+#include "vm.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,7 +21,13 @@ typedef struct PanktiCore {
     // Parser
     Parser *parser;
     // Interpreter
-    PInterpreter *it;
+    // PInterpreter *it;
+
+    // Compiler
+    PCompiler *compiler;
+
+    // VM
+    PVm *vm;
 
     Pgc *gc;
 
@@ -38,6 +46,9 @@ typedef enum PCoreErrorType {
     PCERR_RUNTIME = 0,
     PCERR_LEXER = 1,
     PCERR_PARSER = 2,
+    PCERR_COMPILER = 3,
+    PCERR_CORE = 4,
+    PCERR_OK
 } PCoreErrorType;
 
 // Create New Pankti Core
@@ -46,7 +57,7 @@ PanktiCore *NewCore(const char *path);
 // Free everything Pankti Core allocated
 void FreeCore(PanktiCore *core);
 // Run the script
-void RunCore(PanktiCore *core);
+PCoreErrorType RunCore(PanktiCore *core);
 // Throw Runtime Error and Quit
 // `core` = Interpreter Core
 // `token` = Token where the runtime error occurred; can be NULL if something
@@ -68,6 +79,8 @@ void CoreParserError(PanktiCore *core, Token *token, const char *msg);
 // `col` = Non negative byte based column number. If ambiguous pass U64_MAX.
 // `msg` = Error Message
 void CoreLexerError(PanktiCore *core, u64 line, u64 col, const char *msg);
+
+void CoreCompilerError(PanktiCore *core, Token *token, const char *msg);
 #ifdef __cplusplus
 }
 #endif

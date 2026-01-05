@@ -3,6 +3,7 @@
 #include "../include/env.h"
 #include "../include/gc.h"
 #include "../include/object.h"
+#include "../include/opcode.h"
 #include "../include/utils.h"
 #include <stdbool.h>
 #include <stddef.h>
@@ -49,6 +50,19 @@ PObj *NewFuncObject(
     o->v.OFunction.body = body;
     o->v.OFunction.env = env;
     o->v.OFunction.paramCount = count;
+    return o;
+}
+
+PObj *NewComFuncObject(Pgc *gc, Token *name) {
+    PObj *o = NewObject(gc, OT_COMFNC);
+    o->v.OComFunction.rawName = name;
+    o->v.OComFunction.code = NewBytecode();
+    o->v.OComFunction.paramCount = 0;
+    if (name != NULL) {
+        o->v.OComFunction.strName = NewStrObject(gc, name, name->lexeme, false);
+    } else {
+        o->v.OComFunction.strName = NULL;
+    }
     return o;
 }
 
@@ -128,7 +142,12 @@ void FreeObject(Pgc *gc, PObj *o) {
             freeBaseObj(o);
             break;
         }
-
+        case OT_COMFNC: {
+            struct OComFunction *f = &o->v.OComFunction;
+            FreeBytecode(f->code);
+            freeBaseObj(o);
+            break;
+        }
         case OT_STR: {
             struct OString *s = &o->v.OString;
             if (s->isVirtual) {

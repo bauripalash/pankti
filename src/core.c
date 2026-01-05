@@ -41,9 +41,11 @@ PanktiCore *NewCore(const char *path) {
     core->parser = NULL;
     core->caughtError = false;
     core->runtimeError = false;
-    core->it = NULL;
+    // core->it = NULL;
     core->gc = NewGc();
     core->lexer->timestamp = core->gc->timestamp;
+    core->compiler = NewCompiler(core);
+    core->vm = NewVm(core);
     return core;
 }
 
@@ -62,8 +64,16 @@ void FreeCore(PanktiCore *core) {
         FreeLexer(core->lexer);
     }
 
-    if (core->it != NULL) {
-        FreeInterpreter(core->it);
+    // if (core->it != NULL) {
+    //     FreeInterpreter(core->it);
+    // }
+
+    if (core->compiler != NULL) {
+        FreeCompiler(core->compiler);
+    }
+
+    if (core->vm != NULL) {
+        FreeVm(core->vm);
     }
 
     PFree(core);
@@ -78,14 +88,14 @@ void FreeCore(PanktiCore *core) {
 #define DEBUG_TIMES
 #endif
 
-void RunCore(PanktiCore *core) {
+PCoreErrorType RunCore(PanktiCore *core) {
     if (core == NULL) {
         PanPrint("Internal Error : Failed to create Pankti Core\n");
-        exit(1);
+        return PCERR_CORE;
     }
     if (core->lexer == NULL) {
         PanPrint("Internal Error : Failed to create Pankti Lexer\n");
-        exit(1);
+        return PCERR_CORE;
     }
     stbds_rand_seed((size_t)time(NULL));
     core->lexer->core = core;
@@ -138,12 +148,21 @@ void RunCore(PanktiCore *core) {
         PanPrint("Parser Error(s) found!\n");
     }
 
+    if (core->lexer->hasError) {
+        return PCERR_LEXER;
+    }
+
+    if (core->parser->hasError) {
+        return PCERR_PARSER;
+    }
+
     if (core->lexer->hasError || core->parser->hasError) {
         FreeCore(core);
         exit(1);
     }
 
-    char *useCompiler = getenv("COMPILER");
+    /*
+    char *useCompiler = getenv("PAN_COMPILER");
     if (useCompiler == NULL) {
 
         core->it = NewInterpreter(core->gc, prog);
@@ -162,37 +181,44 @@ void RunCore(PanktiCore *core) {
 #endif
 
     } else {
+*/
+    PanPrint("===== COMPILER =====\n");
 
-        PanPrint("===== COMPILER =====\n");
+    CompilerCompile(core->compiler, prog);
+    PObj *comFn = GetCompiledFunction(core->compiler);
 
-        PCompiler *com = NewCompiler(core->gc);
-        CompilerCompile(com, prog);
-        DebugBytecode(com->code, 0);
+    // PBytecode * bt = core->compiler->func->v.OComFunction.code;
+    DebugBytecode(comFn->v.OComFunction.code, 0);
 
-        PanPrint("=====   END    =====\n");
-        PanPrint("=====   CON    =====\n");
-        for (u64 i = 0; i < com->code->constCount; i++) {
-            PanPrint("%ld ", i);
-            PrintValue(com->code->constPool[i]);
-            PanPrint("\n");
+    PanPrint("=====   END    =====\n");
+    PanPrint("=====   CON    =====\n");
+    for (u64 i = 0; i < comFn->v.OComFunction.code->constCount; i++) {
+        PanPrint("%ld ", i);
+        PValue conVal = comFn->v.OComFunction.code->constPool[i];
+        PrintValue(conVal);
+        if (IsValueObjType(conVal, OT_COMFNC)) {
+            PanPrint("\n== CFN ==\n");
+            DebugBytecode(ValueAsObj(conVal)->v.OComFunction.code, 0);
+            PanPrint("=========\n");
         }
-        PanPrint("=====   END    =====\n");
-
-        PanPrint("=====   VM     =====\n");
-        PVm *vm = NewVm();
-        SetupVm(vm, core->gc, com->code);
-        VmRun(vm);
-        PanPrint("=====   END    =====\n");
-
-        FreeCompiler(com);
-        FreeVm(vm);
+        PanPrint("\n");
     }
+    PanPrint("=====   END    =====\n");
+
+    PanPrint("=====   VM     =====\n");
+    SetupVm(core->vm, core->gc, comFn);
+    VmRun(core->vm);
+    PanPrint("=====   END    =====\n");
+    //    }
 
     if (core->caughtError) {
         PanPrint("Runtime Error found!\n");
         FreeCore(core);
         exit(1);
+        return PCERR_RUNTIME;
     }
+
+    return PCERR_OK;
 }
 
 static inline char *coreErrorToStr(PCoreErrorType errtype) {
@@ -200,6 +226,9 @@ static inline char *coreErrorToStr(PCoreErrorType errtype) {
         case PCERR_LEXER:
         case PCERR_PARSER: return "Syntax";
         case PCERR_RUNTIME: return "Runtime";
+        case PCERR_COMPILER: return "Compiler";
+        case PCERR_CORE: return "Initialization";
+        case PCERR_OK: return "";
     }
 
     return "Unknown";
@@ -243,7 +272,7 @@ void CoreRuntimeError(PanktiCore *core, Token *token, const char *msg) {
     printErrMsg(core, line, col, msg, token != NULL, PCERR_RUNTIME);
     PanPrint("Runtime Error Occured!\n");
     FreeCore(core);
-    exit(3);
+    exit(EXIT_FAILURE);
 }
 
 void CoreParserError(PanktiCore *core, Token *token, const char *msg) {
@@ -272,4 +301,18 @@ void CoreLexerError(PanktiCore *core, u64 line, u64 col, const char *msg) {
     bool dontHavePos = line == UINT64_MAX || col == UINT64_MAX;
 
     printErrMsg(core, _line, _col, msg, !dontHavePos, PCERR_LEXER);
+}
+
+void CoreCompilerError(PanktiCore *core, Token *token, const char *msg) {
+    u64 line = 0;
+    u64 col = 0;
+    if (token != NULL) {
+        line = token->line;
+        col = token->col;
+    }
+
+    printErrMsg(core, line, col, msg, token != NULL, PCERR_COMPILER);
+    PanPrint("Compiler Error Occured!\n");
+    FreeCore(core);
+    exit(EXIT_FAILURE);
 }

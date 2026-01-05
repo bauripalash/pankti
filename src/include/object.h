@@ -18,6 +18,8 @@ extern "C" {
 typedef struct PObj PObj;
 typedef struct PInterpreter PInterpreter;
 typedef struct PEnv PEnv;
+typedef struct PBytecode PBytecode;
+typedef struct PVm PVm;
 
 // Value Type
 typedef enum PValueType { PVAL_NUM, PVAL_OBJ, PVAL_BOOL, PVAL_NIL } PValueType;
@@ -44,14 +46,16 @@ typedef struct PValue {
 } PValue;
 #endif
 
-typedef PValue (*NativeFn)(PInterpreter *it, PValue *args, u64 argc);
-
+// typedef PValue (*NativeFn)(PInterpreter *it, PValue *args, u64 argc);
+typedef PValue (*NativeFn)(PVm *vm, PValue *args, u64 argc);
 // Pankti Object Types
 typedef enum PObjType {
     // String Object
     OT_STR,
     // Function Object. Used by `OFunction`
     OT_FNC,
+    // Compiler Function Object. Used by `OComFunction`
+    OT_COMFNC,
     // Array Object. Used by `OArray`
     OT_ARR,
     // Map Object
@@ -104,6 +108,15 @@ typedef struct PObj {
             // Will always be a Block Statement
             PStmt *body;
         } OFunction;
+
+        // Compiled Function Object. Type : `OT_COMFNC`
+        struct OComFunction {
+            Token *rawName;
+            // Will be OString
+            PObj *strName;
+            u64 paramCount;
+            PBytecode *code;
+        } OComFunction;
 
         struct OArray {
             Token *op;

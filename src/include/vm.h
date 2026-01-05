@@ -9,20 +9,39 @@
 extern "C" {
 #endif
 
-// VM Stack size (can be modified at compile time)
+// VM Per Frame Stack size (can be modified at compile time)
+#ifndef PVM_PERFRAME_STACK_SIZE
+#define PVM_PERFRAME_STACK_SIZE 256
+#endif
+
+// VM Call stack size
+#ifndef PVM_FRAMESTACK_SIZE
+#define PVM_FRAMESTACK_SIZE 64
+#endif
+
 #ifndef PVM_STACK_SIZE
-#define PVM_STACK_SIZE 2048
+#define PVM_STACK_SIZE PVM_PERFRAME_STACK_SIZE *PVM_FRAMESTACK_SIZE
 #endif
 
 // Forward declaration of GC
 typedef struct Pgc Pgc;
+typedef struct PanktiCore PanktiCore;
+
+typedef struct PCallFrame {
+    PObj *f;
+    u8 *ip;
+    PValue *slots;
+} PCallFrame;
 
 // Pankti Virtual Machine Object
 typedef struct PVm {
     // Constants array
-    PValue *constPool;
+    // PValue *constPool;
     // Constants array count
-    u16 constCount;
+    // u16 constCount;
+
+    PCallFrame frames[PVM_FRAMESTACK_SIZE];
+    int frameCount;
 
     // The Stack
     PValue stack[PVM_STACK_SIZE];
@@ -30,22 +49,25 @@ typedef struct PVm {
     PValue *sp;
 
     // Raw bytecode codes
-    u8 *code;
+    // u8 *code;
     // count
-    u64 codeCount;
+    // u64 codeCount;
     // Instruction Pointer
-    u8 *ip;
+    // u8 *ip;
 
     // Garbage Collector
     Pgc *gc;
     // Globals hash table
     SymbolTable *globals;
+
+    // Link to pankti core
+    PanktiCore *core;
 } PVm;
 
 // Create an empty VM Object
-PVm *NewVm(void);
+PVm *NewVm(PanktiCore *core);
 // Setup VM with bytecode, constants, gc etc.
-void SetupVm(PVm *vm, Pgc *gc, PBytecode *bt);
+void SetupVm(PVm *vm, Pgc *gc, PObj *func);
 // Free the VM
 void FreeVm(PVm *vm);
 // Debug VM Stack

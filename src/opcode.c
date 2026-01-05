@@ -47,6 +47,7 @@ static const POpDefinition opDefs[] = {
     [OP_POP_JUMP_IF_FALSE] = {"OpPopJumpIfFalse", 1, {2}},
     [OP_POP_JUMP_IF_TRUE] = {"OpPopJumpIfTrue", 1, {2}},
     [OP_LOOP] = {"OpLoop", 1, {2}},
+    [OP_CALL] = {"OpCall", 1, {2}},
 };
 
 const char *OpCodeToStr(PanOpCode code) { return opDefs[code].name; }
@@ -189,7 +190,8 @@ u64 DisasmBytecode(const PBytecode *bt, u64 offset) {
         }
 
         case OP_SET_LOCAL:
-        case OP_GET_LOCAL: {
+        case OP_GET_LOCAL:
+        case OP_CALL: {
             return disasmBytesIns(def.name, offset, bt);
         }
         case OP_MAP:

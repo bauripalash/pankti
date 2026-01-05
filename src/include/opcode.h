@@ -52,6 +52,7 @@ typedef enum PanOpCode {
     OP_POP_JUMP_IF_TRUE,
     // Op Jump but Backwards
     OP_LOOP,
+    OP_CALL,
 } PanOpCode;
 
 // OpCode definition
