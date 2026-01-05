@@ -1,12 +1,8 @@
-let a = 1
+let a = 0
+{
+    let a = 2
+    show(a, "\n")
+}
 
-kaj x(b)
-    kaj y(c)
-        return c + 1
-    end
-
-    return y(b) + 1
-end
-
-show(x(a))
+show(a)
 

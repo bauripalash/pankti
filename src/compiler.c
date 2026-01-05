@@ -9,6 +9,7 @@
 #include "include/printer.h"
 #include "include/ptypes.h"
 #include "include/token.h"
+#include "include/utils.h"
 #include "include/vm.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -80,6 +81,10 @@ void FreeCompiler(PCompiler *comp) {
     PFree(comp);
 }
 
+static void cmpError(PCompiler * comp, Token * token, const char * msg){
+    CoreCompilerError(comp->core, token, msg);
+}
+
 // Get Current Compiling Bytecode object
 static finline PBytecode *getbt(PCompiler *comp) {
     return comp->func->v.OComFunction.code;
@@ -113,7 +118,9 @@ static u16 emitJump(PCompiler *comp, Token *tok, PanOpCode op) {
 static void patchJump(PCompiler *comp, int offset) {
     int jump = getbt(comp)->codeCount - offset - 2;
     if (jump > UINT16_MAX) {
+        cmpError(comp, NULL, "Conditional Jump is too long");
         return; // todo: error
+        
     }
 
     getbt(comp)->code[offset] = (jump >> 8) & 0xff;
@@ -159,7 +166,7 @@ static int findLocal(PCompiler *comp, Token *name) {
 
         if (lcl->name != NULL && isIdentTokenEqual(name, lcl->name)) {
             if (lcl->depth == -1) {
-                PanPrint("Cannot read variable in its own init Statement\n");
+                cmpError(comp, name, "Cannot read variable in its own init Statement\n");
                 return -2;
             }
             return i;
@@ -168,6 +175,7 @@ static int findLocal(PCompiler *comp, Token *name) {
     return -1;
 }
 
+// Mark latest declared local variable as usable
 static void markLocalInit(PCompiler *comp) {
     if (comp->scopeDepth == 0) {
         return;
@@ -479,7 +487,9 @@ static void tryLocalDeclare(PCompiler *comp, Token *name) {
         return;
     }
     if (doesLocalExists(comp, name) != -1) {
-        PanPrint("Same variable exists in this scope -> %s\n", name->lexeme);
+        //PanPrint("Same variable exists in this scope -> %s\n", name->lexeme);
+        const char * errMsg = StrFormat("Same variable exists in this scope : %s", name->lexeme);
+        cmpError(comp, name, errMsg);
         return;
     }
     if (comp->localCount >= MAX_COMPILER_LOCAL_COUNT) {
@@ -604,9 +614,7 @@ static bool compileFunc(PCompiler *comp, PStmt *stmt) {
         u16 paramIndex = readVariableName(fComp, fnStmt->params[i]);
         defineVariable(fComp, paramIndex, fnStmt->params[i]);
     }
-    // CompilerCompile(fComp, fnStmt->body->stmt.SBlock.stmts);
     compileFuncBody(fComp, fnStmt->body->stmt.SBlock.stmts);
-    // endCompiler(fComp);
     PObj *fnObj = GetCompiledFunction(fComp);
     fnObj->v.OComFunction.paramCount = fnStmt->paramCount;
     u16 constIndex = addConstant(comp, MakeObject(fnObj));
@@ -620,7 +628,6 @@ static bool compileFuncStmt(PCompiler *comp, PStmt *stmt) {
     u16 identIndex = readVariableName(comp, fnStmt->name);
     markLocalInit(comp);
     compileFunc(comp, stmt);
-    // read func
     defineVariable(comp, identIndex, fnStmt->name);
     return true;
 }
@@ -628,8 +635,8 @@ static bool compileFuncStmt(PCompiler *comp, PStmt *stmt) {
 static bool compileReturnStmt(PCompiler *comp, PStmt *stmt) {
     struct SReturn *retStmt = &stmt->stmt.SReturn;
     if (comp->funcType == COMP_FN_SCRIPT) {
-        CoreCompilerError(
-            comp->core, retStmt->op, "Top level script cannot contain return"
+        cmpError(
+            comp, retStmt->op, "Top level script cannot contain return"
         );
         return false;
     }
