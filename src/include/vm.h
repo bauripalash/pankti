@@ -74,6 +74,14 @@ void FreeVm(PVm *vm);
 void DebugVMStack(PVm *vm);
 // Run the VM
 void VmRun(PVm *vm);
+
+// Push Value to VM Stack
+bool VmPush(PVm *vm, PValue val);
+// Pop Value from VM Stack
+PValue VmPop(PVm *vm);
+// Peek at VM Stack
+PValue VmPeek(const PVm *vm, int index);
+
 #ifdef __cplusplus
 }
 #endif

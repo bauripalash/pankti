@@ -14,8 +14,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-static bool vmPush(PVm *vm, PValue val);
-static PValue vmPop(PVm *vm);
 
 PVm *NewVm(PanktiCore *core) {
     PVm *vm = PCreate(PVm);
@@ -29,7 +27,7 @@ PVm *NewVm(PanktiCore *core) {
 
 void SetupVm(PVm *vm, Pgc *gc, PObj *func) {
     vm->gc = gc;
-    vmPush(vm, MakeObject(func));
+    VmPush(vm, MakeObject(func));
     PCallFrame *frame = &vm->frames[vm->frameCount++];
     frame->f = func;
     frame->ip = func->v.OComFunction.code->code;
@@ -60,18 +58,18 @@ void DebugVMStack(PVm *vm) {
 
 PValue VmGetLastPopped(const PVm *vm) { return MakeNil(); }
 
-static bool vmPush(PVm *vm, PValue val) {
+bool VmPush(PVm *vm, PValue val) {
     *vm->sp = val;
     vm->sp++;
     return true;
 }
 
-static PValue vmPop(PVm *vm) {
+PValue VmPop(PVm *vm) {
     vm->sp--;
     return *vm->sp;
 }
 
-static PValue vmPeek(const PVm *vm, int index) {
+PValue VmPeek(const PVm *vm, int index) {
 
     PValue val = vm->sp[-1 - index];
     return val;
@@ -119,9 +117,9 @@ static bool vmBinaryOpNumber(PVm *vm, PanOpCode op, PValue left, PValue right) {
         case OP_EXPONENT: result = pow(leftVal, rightVal); break;
         default: return false;
     }
-    vmPop(vm);
-    vmPop(vm);
-    return vmPush(vm, MakeNumber(result));
+    VmPop(vm);
+    VmPop(vm);
+    return VmPush(vm, MakeNumber(result));
 }
 
 static bool vmBinaryOpString(PVm *vm, PanOpCode op, PValue left, PValue right) {
@@ -136,15 +134,15 @@ static bool vmBinaryOpString(PVm *vm, PanOpCode op, PValue left, PValue right) {
     }
 
     PObj *nsObj = NewStrObject(vm->gc, NULL, newStr, true); // fetch the token
-    vmPop(vm);
-    vmPop(vm);
+    VmPop(vm);
+    VmPop(vm);
 
-    return vmPush(vm, MakeObject(nsObj));
+    return VmPush(vm, MakeObject(nsObj));
 }
 
 static bool vmBinaryOp(PVm *vm, PanOpCode op) {
-    PValue right = vmPeek(vm, 0);
-    PValue left = vmPeek(vm, 1);
+    PValue right = VmPeek(vm, 0);
+    PValue left = VmPeek(vm, 1);
 
     if (IsValueNum(left) && IsValueNum(right)) {
         bool isok = vmBinaryOpNumber(vm, op, left, right);
@@ -167,8 +165,8 @@ static bool vmBinaryOp(PVm *vm, PanOpCode op) {
 }
 
 static bool vmCompareOp(PVm *vm, PanOpCode op) {
-    PValue right = vmPeek(vm, 0);
-    PValue left = vmPeek(vm, 1);
+    PValue right = VmPeek(vm, 0);
+    PValue left = VmPeek(vm, 1);
 
     if (IsValueNum(left) && IsValueNum(right)) {
         bool result = false;
@@ -180,9 +178,9 @@ static bool vmCompareOp(PVm *vm, PanOpCode op) {
             default: break; // should never reach here
         }
 
-        vmPop(vm);
-        vmPop(vm);
-        vmPush(vm, MakeBool(result));
+        VmPop(vm);
+        VmPop(vm);
+        VmPush(vm, MakeBool(result));
         return true;
     } else {
         vmError(vm, "Invalid Compare Operation");
@@ -211,7 +209,7 @@ static bool vmCallNative(PVm *vm, PObj *funcObj, int argc) {
 
     PValue result = native->fn(vm, vm->sp - argc, argc);
     vm->sp -= argc + 1;
-    vmPush(vm, result);
+    VmPush(vm, result);
     return true;
 }
 
@@ -251,42 +249,42 @@ void VmRun(PVm *vm) {
 
         switch (ins = vmReadByte(vm, frame)) {
             case OP_RETURN: {
-                PValue result = vmPop(vm);
+                PValue result = VmPop(vm);
                 vm->frameCount--;
                 if (vm->frameCount == 0) {
-                    vmPop(vm);
+                    VmPop(vm);
                     return;
                 }
                 vm->sp = frame->slots;
-                vmPush(vm, result);
+                VmPush(vm, result);
                 frame = &vm->frames[vm->frameCount - 1];
                 break;
             }
             case OP_DEBUG: {
-                PrintValue(vmPop(vm));
+                PrintValue(VmPop(vm));
                 PanPrint("\n");
                 break;
             }
 
             case OP_CONST: {
                 PValue val = vmReadConst(vm, frame);
-                vmPush(vm, val);
+                VmPush(vm, val);
                 break;
             }
             case OP_POP: {
-                vmPop(vm);
+                VmPop(vm);
                 break;
             }
             case OP_TRUE: {
-                vmPush(vm, MakeBool(true));
+                VmPush(vm, MakeBool(true));
                 break;
             }
             case OP_FALSE: {
-                vmPush(vm, MakeBool(false));
+                VmPush(vm, MakeBool(false));
                 break;
             }
             case OP_NIL: {
-                vmPush(vm, MakeNil());
+                VmPush(vm, MakeNil());
                 break;
             }
 
@@ -301,15 +299,15 @@ void VmRun(PVm *vm) {
 
             case OP_EQUAL:
             case OP_NOTEQUAL: {
-                PValue b = vmPeek(vm, 0);
-                PValue a = vmPeek(vm, 1);
+                PValue b = VmPeek(vm, 0);
+                PValue a = VmPeek(vm, 1);
                 bool result = IsValueEqual(a, b);
                 if (ins == OP_NOTEQUAL) {
                     result = !result;
                 }
-                vmPop(vm);
-                vmPop(vm);
-                vmPush(vm, MakeBool(result));
+                VmPop(vm);
+                VmPop(vm);
+                VmPush(vm, MakeBool(result));
                 break;
             }
             case OP_GT:
@@ -321,16 +319,16 @@ void VmRun(PVm *vm) {
             }
 
             case OP_NEGATE: {
-                if (!IsValueNum(vmPeek(vm, 0))) {
+                if (!IsValueNum(VmPeek(vm, 0))) {
                     break;
                 }
 
-                vmPush(vm, MakeNumber(-ValueAsNum(vmPop(vm))));
+                VmPush(vm, MakeNumber(-ValueAsNum(VmPop(vm))));
                 break;
             }
 
             case OP_NOT: {
-                vmPush(vm, MakeBool(!IsValueTruthy(vmPop(vm))));
+                VmPush(vm, MakeBool(!IsValueTruthy(VmPop(vm))));
                 break;
             }
             case OP_DEFINE_GLOBAL: {
@@ -339,8 +337,8 @@ void VmRun(PVm *vm) {
                     break;
                 }
 
-                SymbolTableSet(vm->globals, nameObj, vmPeek(vm, 0));
-                vmPop(vm);
+                SymbolTableSet(vm->globals, nameObj, VmPeek(vm, 0));
+                VmPop(vm);
                 break;
             }
             case OP_GET_GLOBAL: {
@@ -356,7 +354,7 @@ void VmRun(PVm *vm) {
                     return;
                 }
 
-                vmPush(vm, val);
+                VmPush(vm, val);
                 break;
             }
 
@@ -364,7 +362,7 @@ void VmRun(PVm *vm) {
                 PObj *nameObj = vmReadObjConst(vm, frame);
                 bool found = SymbolTableHasKey(vm->globals, nameObj);
                 if (found) {
-                    SymbolTableSet(vm->globals, nameObj, vmPeek(vm, 0));
+                    SymbolTableSet(vm->globals, nameObj, VmPeek(vm, 0));
                     break;
                 } else {
                     const char *errorMsg = StrFormat(
@@ -379,18 +377,18 @@ void VmRun(PVm *vm) {
 
             case OP_GET_LOCAL: {
                 u16 localStackIndex = vmReadU16(vm, frame);
-                vmPush(vm, frame->slots[localStackIndex]);
+                VmPush(vm, frame->slots[localStackIndex]);
                 break;
             }
             case OP_SET_LOCAL: {
                 u16 localStackSlot = vmReadU16(vm, frame);
-                frame->slots[localStackSlot] = vmPeek(vm, 0);
+                frame->slots[localStackSlot] = VmPeek(vm, 0);
                 break;
             }
 
             case OP_JUMP_IF_FALSE: {
                 u16 offset = vmReadU16(vm, frame);
-                if (!IsValueTruthy(vmPeek(vm, 0))) {
+                if (!IsValueTruthy(VmPeek(vm, 0))) {
                     frame->ip += offset;
                 }
                 break;
@@ -403,20 +401,20 @@ void VmRun(PVm *vm) {
 
             case OP_POP_JUMP_IF_FALSE: {
                 u16 offset = vmReadU16(vm, frame);
-                if (!IsValueTruthy(vmPeek(vm, 0))) {
+                if (!IsValueTruthy(VmPeek(vm, 0))) {
                     frame->ip += offset;
                 } else {
-                    vmPop(vm);
+                    VmPop(vm);
                 }
                 break;
             }
 
             case OP_POP_JUMP_IF_TRUE: {
                 u16 offset = vmReadU16(vm, frame);
-                if (IsValueTruthy(vmPeek(vm, 0))) {
+                if (IsValueTruthy(VmPeek(vm, 0))) {
                     frame->ip += offset;
                 } else {
-                    vmPop(vm);
+                    VmPop(vm);
                 }
                 break;
             }
@@ -428,7 +426,7 @@ void VmRun(PVm *vm) {
             }
             case OP_CALL: {
                 u16 argCount = vmReadU16(vm, frame);
-                PValue callee = vmPeek(vm, argCount);
+                PValue callee = VmPeek(vm, argCount);
                 if (!IsValueObjType(callee, OT_COMFNC) &&
                     !IsValueObjType(callee, OT_NATIVE)) {
                     vmError(vm, "Can only call functions");
