@@ -14,7 +14,6 @@
 #include "include/utils.h"
 #include "include/vm.h"
 
-
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -22,7 +21,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#if defined (PANKTI_BUILD_DEBUG)
+#if defined(PANKTI_BUILD_DEBUG)
 #include "include/opcode.h"
 #endif
 

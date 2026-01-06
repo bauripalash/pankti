@@ -81,7 +81,7 @@ void FreeCompiler(PCompiler *comp) {
     PFree(comp);
 }
 
-static void cmpError(PCompiler * comp, Token * token, const char * msg){
+static void cmpError(PCompiler *comp, Token *token, const char *msg) {
     CoreCompilerError(comp->core, token, msg);
 }
 
@@ -120,7 +120,6 @@ static void patchJump(PCompiler *comp, int offset) {
     if (jump > UINT16_MAX) {
         cmpError(comp, NULL, "Conditional Jump is too long");
         return; // todo: error
-        
     }
 
     getbt(comp)->code[offset] = (jump >> 8) & 0xff;
@@ -166,7 +165,10 @@ static int findLocal(PCompiler *comp, Token *name) {
 
         if (lcl->name != NULL && isIdentTokenEqual(name, lcl->name)) {
             if (lcl->depth == -1) {
-                cmpError(comp, name, "Cannot read variable in its own init Statement\n");
+                cmpError(
+                    comp, name,
+                    "Cannot read variable in its own init Statement\n"
+                );
                 return -2;
             }
             return i;
@@ -487,8 +489,9 @@ static void tryLocalDeclare(PCompiler *comp, Token *name) {
         return;
     }
     if (doesLocalExists(comp, name) != -1) {
-        //PanPrint("Same variable exists in this scope -> %s\n", name->lexeme);
-        const char * errMsg = StrFormat("Same variable exists in this scope : %s", name->lexeme);
+        // PanPrint("Same variable exists in this scope -> %s\n", name->lexeme);
+        const char *errMsg =
+            StrFormat("Same variable exists in this scope : %s", name->lexeme);
         cmpError(comp, name, errMsg);
         return;
     }
@@ -635,9 +638,7 @@ static bool compileFuncStmt(PCompiler *comp, PStmt *stmt) {
 static bool compileReturnStmt(PCompiler *comp, PStmt *stmt) {
     struct SReturn *retStmt = &stmt->stmt.SReturn;
     if (comp->funcType == COMP_FN_SCRIPT) {
-        cmpError(
-            comp, retStmt->op, "Top level script cannot contain return"
-        );
+        cmpError(comp, retStmt->op, "Top level script cannot contain return");
         return false;
     }
     if (retStmt->value != NULL) {

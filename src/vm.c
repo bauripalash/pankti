@@ -1,4 +1,5 @@
 #include "include/vm.h"
+#include "external/stb/stb_ds.h"
 #include "include/alloc.h"
 #include "include/compiler.h"
 #include "include/core.h"
@@ -13,7 +14,6 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
-
 
 PVm *NewVm(PanktiCore *core) {
     PVm *vm = PCreate(PVm);
@@ -46,12 +46,12 @@ void FreeVm(PVm *vm) {
 
 void DebugVMStack(PVm *vm) {
     PanPrint("==== STACK ====\n");
-    int i = 0;
+    int i = vm->sp - vm->stack - 1;
     for (PValue *val = vm->stack; val < vm->sp; val++) {
         PanPrint("[ |%d| ", i);
         PrintValue(*val);
         PanPrint(" ]\n");
-        i++;
+        i--;
     }
     PanPrint("== END STACK ==\n");
 }
@@ -210,6 +210,10 @@ static bool vmCallNative(PVm *vm, PObj *funcObj, int argc) {
     PValue result = native->fn(vm, vm->sp - argc, argc);
     vm->sp -= argc + 1;
     VmPush(vm, result);
+    if (IsValueObjType(result, OT_ERROR)) {
+        vmError(vm, ValueAsObj(result)->v.OError.msg);
+        return false;
+    }
     return true;
 }
 
@@ -445,6 +449,58 @@ void VmRun(PVm *vm) {
                 }
 
                 frame = &vm->frames[vm->frameCount - 1];
+                break;
+            }
+
+            case OP_ARRAY: {
+                u16 itemCount = vmReadU16(vm, frame);
+                PValue *items = NULL;
+                if (itemCount > 0) {
+                    arrsetlen(items, itemCount);
+                }
+                for (u16 i = itemCount; i > 0; i--) {
+                    items[i - 1] = VmPop(vm);
+                }
+                PObj *arrObj = NewArrayObject(vm->gc, NULL, items, itemCount);
+                if (arrObj == NULL) {
+                    arrfree(items);
+                    vmError(vm, "Internal Error : Failed to create array");
+                    return;
+                }
+                VmPush(vm, MakeObject(arrObj));
+                break;
+            }
+
+            case OP_MAP: {
+                u16 pairCount = vmReadU16(vm, frame);
+                MapEntry *entries = NULL;
+                u64 stackItems = pairCount * 2;
+                DebugVMStack(vm);
+                for (u64 i = stackItems - 2; i >= 0 && i < stackItems; i -= 2) {
+                    PValue key = VmPeek(vm, i + 1);
+                    PValue val = VmPeek(vm, i);
+
+                    if (!CanValueBeKey(key)) {
+                        hmfree(entries);
+                        PrintValue(key);
+                        vmError(vm, "value cannot be a key");
+                        return;
+                    }
+
+                    u64 keyHash = GetValueHash(key, vm->gc->timestamp);
+                    hmputs(entries, ((MapEntry){keyHash, key, val}));
+                }
+
+                vm->sp -= stackItems;
+                PObj *mapObj = NewMapObject(vm->gc, NULL);
+                if (mapObj == NULL) {
+                    hmfree(entries);
+                    vmError(vm, "Internal Error : Failed to create map");
+                    return;
+                }
+                mapObj->v.OMap.count = pairCount;
+                mapObj->v.OMap.table = entries;
+                VmPush(vm, MakeObject(mapObj));
                 break;
             }
         }
