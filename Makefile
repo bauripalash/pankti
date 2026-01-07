@@ -165,7 +165,7 @@ run_clangtidy:
 .PHONY: run_benchmarks
 run_benchmarks: build_rls
 	bash run_benchmarks.sh $(CMAKE_OUTPUT)
-	pandoc -f markdown -t html -o benchmarks.html benchmark_results.md
+	pandoc -f markdown -t html -o benchmarks/results/benchmarks.html benchmarks/results/benchmark_results.md
 
 .PHONY: infer
 infer: cmake_clean
