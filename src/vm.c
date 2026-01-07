@@ -266,11 +266,36 @@ static bool vmArraySubscript(PVm *vm, PValue target) {
     return true;
 }
 
+static bool vmMapSubscript(PVm *vm, PValue target) {
+    PValue keyVal = VmPeek(vm, 0);
+
+    if (!CanValueBeKey(keyVal)) {
+        vmError(vm, "Subscript key is invalid as a map key");
+        return false;
+    }
+
+    u64 keyHash = GetValueHash(keyVal, vm->gc->timestamp);
+
+    bool found = false;
+    PValue result = MapObjGetValue(ValueAsObj(target), keyVal, keyHash, &found);
+    if (!found) {
+        vmError(vm, "Key doesn't exist in map");
+        return false;
+    }
+
+    VmPop(vm); // key
+    VmPop(vm); // target
+    VmPush(vm, result);
+    return true;
+}
+
 static bool vmSubscript(PVm *vm) {
     PValue targetVal = VmPeek(vm, 1);
 
     if (IsValueObjType(targetVal, OT_ARR)) {
         return vmArraySubscript(vm, targetVal);
+    } else if (IsValueObjType(targetVal, OT_MAP)) {
+        return vmMapSubscript(vm, targetVal);
     } else {
         vmError(vm, "Invalid Subscript target");
         return false;
@@ -525,7 +550,6 @@ void VmRun(PVm *vm) {
                 u16 pairCount = vmReadU16(vm, frame);
                 MapEntry *entries = NULL;
                 u64 stackItems = pairCount * 2;
-                DebugVMStack(vm);
                 for (u64 i = stackItems - 2; i >= 0 && i < stackItems; i -= 2) {
                     PValue key = VmPeek(vm, i + 1);
                     PValue val = VmPeek(vm, i);

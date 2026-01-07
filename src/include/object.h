@@ -306,7 +306,8 @@ bool MapObjHasKey(PObj *o, PValue key, u64 hash);
 bool MapObjSetValue(PObj *o, PValue key, u64 keyHash, PValue value);
 // Add New Pair or Update existing pair in map
 bool MapObjPushPair(PObj *o, PValue key, PValue value, u64 seed);
-
+// Get Value from Map
+PValue MapObjGetValue(PObj *map, PValue key, u64 keyHash, bool *found);
 bool ArrayObjInsValue(PObj *o, int index, PValue value);
 // Push new item to array. Return false if failed to push value.
 bool ArrayObjPushValue(PObj *o, PValue value);

@@ -258,6 +258,18 @@ bool MapObjHasKey(PObj *o, PValue key, u64 hash) {
     return false;
 }
 
+PValue MapObjGetValue(PObj *map, PValue key, u64 keyHash, bool *found) {
+    assert(map->type == OT_MAP);
+
+    if (hmgeti(map->v.OMap.table, keyHash) >= 0) {
+        *found = true;
+        return hmgets(map->v.OMap.table, keyHash).value;
+    }
+
+    *found = false;
+    return MakeNil();
+}
+
 void PrintObject(const PObj *o) {
     if (o == NULL) {
         return;
