@@ -48,6 +48,7 @@ static const POpDefinition opDefs[] = {
     [OP_POP_JUMP_IF_TRUE] = {"OpPopJumpIfTrue", 1, {2}},
     [OP_LOOP] = {"OpLoop", 1, {2}},
     [OP_CALL] = {"OpCall", 1, {2}},
+    [OP_SUBSCRIPT] = {"OpSubscript", 0, {0}},
 };
 
 const char *OpCodeToStr(PanOpCode code) { return opDefs[code].name; }
@@ -140,7 +141,7 @@ static u64 disasmComplexDSIns(
 
     PanPrint(OPNAME_COLOR "%s" TERMC_RESET, name);
     PanPrint(" : %02d\n", count);
-    return offset + 2;
+    return offset + 3;
 }
 
 u64 DisasmBytecode(const PBytecode *bt, u64 offset) {
@@ -167,7 +168,8 @@ u64 DisasmBytecode(const PBytecode *bt, u64 offset) {
         case OP_LTE:
         case OP_NEGATE:
         case OP_DEBUG:
-        case OP_NOT: {
+        case OP_NOT:
+        case OP_SUBSCRIPT: {
             return disasmSimpleIns(def.name, offset);
         }
 

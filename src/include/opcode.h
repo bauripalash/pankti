@@ -53,6 +53,8 @@ typedef enum PanOpCode {
     // Op Jump but Backwards
     OP_LOOP,
     OP_CALL,
+    // indexing or subscript
+    OP_SUBSCRIPT,
 } PanOpCode;
 
 // OpCode definition

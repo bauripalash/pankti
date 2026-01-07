@@ -130,9 +130,19 @@ void RegisterNatives(PVm *vm, PEnv *env) {
 
     PObj *showFnEnStr = NewStrObject(vm->gc, NULL, NAME_SHOW_EN, false);
     PObj *showFnBnStr = NewStrObject(vm->gc, NULL, NAME_SHOW_BN, false);
+    PObj *showFnPnStr = NewStrObject(vm->gc, NULL, NAME_SHOW_PN, false);
+
+    PObj *appendFnEnStr = NewStrObject(vm->gc, NULL, NAME_APPEND_EN, false);
+    PObj *appendFnBnStr = NewStrObject(vm->gc, NULL, NAME_APPEND_BN, false);
+    PObj *appendFnPnStr = NewStrObject(vm->gc, NULL, NAME_APPEND_PN, false);
 
     SymbolTableSet(vm->globals, showFnEnStr, MakeObject(showFn));
     SymbolTableSet(vm->globals, showFnBnStr, MakeObject(showFn));
+    SymbolTableSet(vm->globals, showFnPnStr, MakeObject(showFn));
+
+    SymbolTableSet(vm->globals, appendFnEnStr, MakeObject(appendFn));
+    SymbolTableSet(vm->globals, appendFnBnStr, MakeObject(appendFn));
+    SymbolTableSet(vm->globals, appendFnPnStr, MakeObject(appendFn));
 
     /*
     EnvPutValue(env, DefStrHash(NAME_CLOCK_EN, vm), MakeObject(clockFn));

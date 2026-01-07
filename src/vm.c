@@ -44,37 +44,6 @@ void FreeVm(PVm *vm) {
     PFree(vm);
 }
 
-void DebugVMStack(PVm *vm) {
-    PanPrint("==== STACK ====\n");
-    int i = vm->sp - vm->stack - 1;
-    for (PValue *val = vm->stack; val < vm->sp; val++) {
-        PanPrint("[ |%d| ", i);
-        PrintValue(*val);
-        PanPrint(" ]\n");
-        i--;
-    }
-    PanPrint("== END STACK ==\n");
-}
-
-PValue VmGetLastPopped(const PVm *vm) { return MakeNil(); }
-
-bool VmPush(PVm *vm, PValue val) {
-    *vm->sp = val;
-    vm->sp++;
-    return true;
-}
-
-PValue VmPop(PVm *vm) {
-    vm->sp--;
-    return *vm->sp;
-}
-
-PValue VmPeek(const PVm *vm, int index) {
-
-    PValue val = vm->sp[-1 - index];
-    return val;
-}
-
 static void vmPrintStackTrace(PVm *vm) {
     for (int i = vm->frameCount - 1; i >= 0; i--) {
         PCallFrame *frame = &vm->frames[i];
@@ -96,6 +65,45 @@ static void vmError(PVm *vm, const char *msg) {
     CoreRuntimeError(
         vm->core, vm->frames[0].f->v.OComFunction.code->tokens[0], msg
     );
+}
+
+void DebugVMStack(PVm *vm) {
+    PanPrint("==== STACK ====\n");
+    int i = vm->sp - vm->stack - 1;
+    for (PValue *val = vm->stack; val < vm->sp; val++) {
+        PanPrint("[ |%d| ", i);
+        PrintValue(*val);
+        PanPrint(" ]\n");
+        i--;
+    }
+    PanPrint("== END STACK ==\n");
+}
+
+PValue VmGetLastPopped(const PVm *vm) { return MakeNil(); }
+
+bool VmPush(PVm *vm, PValue val) {
+    if (vm->sp >= vm->stack + PVM_STACK_SIZE) {
+        vmError(vm, "Pankti VM Stack Overflow!");
+        return false;
+    }
+    *vm->sp = val;
+    vm->sp++;
+    return true;
+}
+
+PValue VmPop(PVm *vm) {
+    if (vm->sp <= vm->stack) {
+        vmError(vm, "Pankti VM Stack Undeflow!");
+        return MakeNil();
+    }
+    vm->sp--;
+    return *vm->sp;
+}
+
+PValue VmPeek(const PVm *vm, int index) {
+
+    PValue val = vm->sp[-1 - index];
+    return val;
 }
 
 static bool vmBinaryOpNumber(PVm *vm, PanOpCode op, PValue left, PValue right) {
@@ -165,10 +173,12 @@ static bool vmBinaryOp(PVm *vm, PanOpCode op) {
 }
 
 static bool vmCompareOp(PVm *vm, PanOpCode op) {
-    PValue right = VmPeek(vm, 0);
-    PValue left = VmPeek(vm, 1);
+    PValue rightVal = VmPeek(vm, 0);
+    PValue leftVal = VmPeek(vm, 1);
 
-    if (IsValueNum(left) && IsValueNum(right)) {
+    if (IsValueNum(leftVal) && IsValueNum(rightVal)) {
+        double left = ValueAsNum(leftVal);
+        double right = ValueAsNum(rightVal);
         bool result = false;
         switch (op) {
             case OP_GT: result = left > right; break;
@@ -225,6 +235,46 @@ static bool vmCallValue(PVm *vm, PValue callee, int argCount) {
     }
 
     return false;
+}
+
+static bool vmArraySubscript(PVm *vm, PValue target) {
+    PValue indexVal = VmPeek(vm, 0);
+    if (!IsValueNum(indexVal)) {
+        vmError(vm, "Arrays can only be indexed with non-negetive integers");
+        return false;
+    }
+
+    double dblIndex = ValueAsNum(indexVal);
+    if (dblIndex < 0 || !IsDoubleInt(dblIndex)) {
+        vmError(vm, "Arrays can only be indexed with non-negetive integers");
+        return false;
+    }
+    u64 index = (u64)floor(dblIndex);
+
+    struct OArray *arrObj = &ValueAsObj(target)->v.OArray;
+
+    if (index >= arrObj->count) {
+        vmError(vm, "Arrays index out of range");
+        return false;
+    }
+
+    PValue result = arrObj->items[index];
+    VmPop(vm); // index
+    VmPop(vm); // target
+    VmPush(vm, result);
+
+    return true;
+}
+
+static bool vmSubscript(PVm *vm) {
+    PValue targetVal = VmPeek(vm, 1);
+
+    if (IsValueObjType(targetVal, OT_ARR)) {
+        return vmArraySubscript(vm, targetVal);
+    } else {
+        vmError(vm, "Invalid Subscript target");
+        return false;
+    }
 }
 
 static finline u8 vmReadByte(PVm *vm, PCallFrame *frame) {
@@ -501,6 +551,10 @@ void VmRun(PVm *vm) {
                 mapObj->v.OMap.count = pairCount;
                 mapObj->v.OMap.table = entries;
                 VmPush(vm, MakeObject(mapObj));
+                break;
+            }
+            case OP_SUBSCRIPT: {
+                vmSubscript(vm);
                 break;
             }
         }

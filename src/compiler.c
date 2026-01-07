@@ -11,6 +11,7 @@
 #include "include/token.h"
 #include "include/utils.h"
 #include "include/vm.h"
+#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -429,6 +430,21 @@ static bool compileCallExpr(PCompiler *comp, PExpr *expr) {
     return true;
 }
 
+static bool compileSubscriptExpr(PCompiler *comp, PExpr *expr) {
+    struct ESubscript *subExpr = &expr->exp.ESubscript;
+    if (!compileExpr(comp, subExpr->value)) {
+        return false;
+    }
+
+    if (!compileExpr(comp, subExpr->index)) {
+        return false;
+    }
+
+    emitBt(comp, subExpr->op, OP_SUBSCRIPT);
+
+    return true;
+}
+
 static bool compileExpr(PCompiler *comp, PExpr *expr) {
     switch (expr->type) {
         case EXPR_LITERAL: return compileLitExpr(comp, expr);
@@ -440,6 +456,7 @@ static bool compileExpr(PCompiler *comp, PExpr *expr) {
         case EXPR_VARIABLE: return compileVariableExpr(comp, expr);
         case EXPR_ASSIGN: return compileAssignExpr(comp, expr);
         case EXPR_CALL: return compileCallExpr(comp, expr);
+        case EXPR_SUBSCRIPT: return compileSubscriptExpr(comp, expr);
         default: break;
     }
 
