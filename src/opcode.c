@@ -49,6 +49,7 @@ static const POpDefinition opDefs[] = {
     [OP_LOOP] = {"OpLoop", 1, {2}},
     [OP_CALL] = {"OpCall", 1, {2}},
     [OP_SUBSCRIPT] = {"OpSubscript", 0, {0}},
+    [OP_SUBS_ASSIGN] = {"OpSubsAssign", 0, {0}},
 };
 
 const char *OpCodeToStr(PanOpCode code) { return opDefs[code].name; }
@@ -169,7 +170,8 @@ u64 DisasmBytecode(const PBytecode *bt, u64 offset) {
         case OP_NEGATE:
         case OP_DEBUG:
         case OP_NOT:
-        case OP_SUBSCRIPT: {
+        case OP_SUBSCRIPT:
+        case OP_SUBS_ASSIGN: {
             return disasmSimpleIns(def.name, offset);
         }
 

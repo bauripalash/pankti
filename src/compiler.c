@@ -395,20 +395,47 @@ static bool compileVariableExpr(PCompiler *comp, PExpr *expr) {
     return true;
 }
 
+static bool cmpVariableAssign(PCompiler *comp, PExpr *expr) {
+    struct EAssign *assign = &expr->exp.EAssign;
+    compileExpr(comp, assign->value);
+
+    int localIndex = findLocal(comp, assign->name->exp.EVariable.name);
+    if (localIndex != -1) {
+        emitBtU16(comp, assign->op, OP_SET_LOCAL, localIndex);
+        return true;
+    }
+
+    u16 constIndex = addIdentConst(comp, assign->name->exp.EVariable.name);
+    emitBtU16(comp, assign->op, OP_SET_GLOBAL, constIndex);
+    return true;
+}
+
+static bool cmpSubsAssign(PCompiler *comp, PExpr *expr) {
+    struct EAssign *assign = &expr->exp.EAssign;
+    struct ESubscript *subExpr = &assign->name->exp.ESubscript;
+    if (!compileExpr(comp, subExpr->value)) {
+        return false;
+    }
+
+    if (!compileExpr(comp, subExpr->index)) {
+        return false;
+    }
+
+    if (!compileExpr(comp, assign->value)) {
+        return false;
+    }
+
+    emitBt(comp, assign->op, OP_SUBS_ASSIGN);
+
+    return true;
+}
+
 static bool compileAssignExpr(PCompiler *comp, PExpr *expr) {
     struct EAssign *assign = &expr->exp.EAssign;
     if (assign->name->type == EXPR_VARIABLE) {
-        compileExpr(comp, assign->value);
-
-        int localIndex = findLocal(comp, assign->name->exp.EVariable.name);
-        if (localIndex != -1) {
-            emitBtU16(comp, assign->op, OP_SET_LOCAL, localIndex);
-            return true;
-        }
-
-        u16 constIndex = addIdentConst(comp, assign->name->exp.EVariable.name);
-        emitBtU16(comp, assign->op, OP_SET_GLOBAL, constIndex);
-        return true;
+        return cmpVariableAssign(comp, expr);
+    } else if (assign->name->type == EXPR_SUBSCRIPT) {
+        return cmpSubsAssign(comp, expr);
     }
 
     return false;

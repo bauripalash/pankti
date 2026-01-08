@@ -237,8 +237,18 @@ static bool vmCallValue(PVm *vm, PValue callee, int argCount) {
     return false;
 }
 
-static bool vmArraySubscript(PVm *vm, PValue target) {
-    PValue indexVal = VmPeek(vm, 0);
+static finline PValue vmGetSubIndex(PVm *vm, bool assign) {
+    if (assign) {
+        return VmPeek(vm, 1);
+    } else {
+        return VmPeek(vm, 0);
+    }
+}
+
+static bool vmArraySubscript(PVm *vm, PValue target, bool assign) {
+
+    PValue indexVal = vmGetSubIndex(vm, assign);
+
     if (!IsValueNum(indexVal)) {
         vmError(vm, "Arrays can only be indexed with non-negetive integers");
         return false;
@@ -258,16 +268,26 @@ static bool vmArraySubscript(PVm *vm, PValue target) {
         return false;
     }
 
-    PValue result = arrObj->items[index];
-    VmPop(vm); // index
-    VmPop(vm); // target
-    VmPush(vm, result);
+    PValue result = MakeNil();
 
+    if (assign) {
+        result = VmPeek(vm, 0);
+        arrObj->items[index] = result;
+        VmPop(vm); // new value
+        VmPop(vm); // index
+        VmPop(vm); // target
+    } else {
+        result = arrObj->items[index];
+        VmPop(vm); // index
+        VmPop(vm); // target
+    }
+
+    VmPush(vm, result);
     return true;
 }
 
-static bool vmMapSubscript(PVm *vm, PValue target) {
-    PValue keyVal = VmPeek(vm, 0);
+static bool vmMapSubscript(PVm *vm, PValue target, bool assign) {
+    PValue keyVal = vmGetSubIndex(vm, assign);
 
     if (!CanValueBeKey(keyVal)) {
         vmError(vm, "Subscript key is invalid as a map key");
@@ -275,16 +295,26 @@ static bool vmMapSubscript(PVm *vm, PValue target) {
     }
 
     u64 keyHash = GetValueHash(keyVal, vm->gc->timestamp);
-
-    bool found = false;
-    PValue result = MapObjGetValue(ValueAsObj(target), keyVal, keyHash, &found);
-    if (!found) {
-        vmError(vm, "Key doesn't exist in map");
-        return false;
+    PObj *mapObj = ValueAsObj(target);
+    PValue result;
+    if (assign) {
+        PValue newValue = VmPeek(vm, 0);
+        MapObjSetValue(mapObj, keyVal, keyHash, newValue);
+        VmPop(vm); // new value
+        VmPop(vm); // key
+        VmPop(vm); // target : map
+        result = newValue;
+    } else {
+        bool found = false;
+        result = MapObjGetValue(ValueAsObj(target), keyVal, keyHash, &found);
+        if (!found) {
+            vmError(vm, "Key doesn't exist in map");
+            return false;
+        }
+        VmPop(vm); // key
+        VmPop(vm); // target
     }
 
-    VmPop(vm); // key
-    VmPop(vm); // target
     VmPush(vm, result);
     return true;
 }
@@ -293,11 +323,24 @@ static bool vmSubscript(PVm *vm) {
     PValue targetVal = VmPeek(vm, 1);
 
     if (IsValueObjType(targetVal, OT_ARR)) {
-        return vmArraySubscript(vm, targetVal);
+        return vmArraySubscript(vm, targetVal, false);
     } else if (IsValueObjType(targetVal, OT_MAP)) {
-        return vmMapSubscript(vm, targetVal);
+        return vmMapSubscript(vm, targetVal, false);
     } else {
         vmError(vm, "Invalid Subscript target");
+        return false;
+    }
+}
+
+static bool vmSubscriptAssign(PVm *vm) {
+    PValue targetVal = VmPeek(vm, 2);
+
+    if (IsValueObjType(targetVal, OT_ARR)) {
+        return vmArraySubscript(vm, targetVal, true);
+    } else if (IsValueObjType(targetVal, OT_MAP)) {
+        return vmMapSubscript(vm, targetVal, true);
+    } else {
+        vmError(vm, "Invalid Subscript Assignment target");
         return false;
     }
 }
@@ -579,6 +622,10 @@ void VmRun(PVm *vm) {
             }
             case OP_SUBSCRIPT: {
                 vmSubscript(vm);
+                break;
+            }
+            case OP_SUBS_ASSIGN: {
+                vmSubscriptAssign(vm);
                 break;
             }
         }
