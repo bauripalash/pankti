@@ -242,7 +242,8 @@ static void markObjectChildren(Pgc *gc, PObj *obj) {
     switch (obj->type) {
         case OT_NATIVE:
         case OT_ERROR:
-        case OT_STR: {
+        case OT_STR:
+        case OT_MODULE: {
             break;
         }
 

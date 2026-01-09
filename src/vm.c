@@ -41,6 +41,21 @@ void FreeVm(PVm *vm) {
 
     FreeSymbolTable(vm->globals);
 
+    if (vm->modProxiesCount > 0 && vm->modProxies != NULL) {
+        hmfree(vm->modProxies);
+    }
+
+    if (vm->modCount > 0 && vm->modules != NULL) {
+        for (int i = 0; i < vm->modCount; i++) {
+            PModule *mod = arrpop(vm->modules);
+            PFree(mod->pathname);
+            FreeSymbolTable(mod->table);
+            PFree(mod);
+        }
+
+        arrfree(vm->modules);
+    }
+
     PFree(vm);
 }
 
@@ -65,6 +80,34 @@ static void vmError(PVm *vm, const char *msg) {
     CoreRuntimeError(
         vm->core, vm->frames[0].f->v.OComFunction.code->tokens[0], msg
     );
+}
+
+static PModule *NewModule(PVm *vm, char *name) {
+    PModule *mod = PCreate(PModule);
+
+    if (mod == NULL) {
+        return NULL;
+    }
+
+    mod->pathname = StrDuplicate(name, StrLength(name));
+    mod->table = NewSymbolTable();
+
+    return mod;
+}
+
+static void PushModule(PVm *vm, PModule *mod) {
+    arrput(vm->modules, mod);
+    vm->modCount = (u64)arrlen(vm->modules);
+}
+
+static void PushProxy(PVm *vm, u64 key, char *name, PModule *mod) {
+    if (mod == NULL) {
+        return; // error check
+    }
+
+    ModProxyEntry s = {.key = key, .name = name, .mod = mod};
+    hmputs(vm->modProxies, s);
+    vm->modProxiesCount = (u64)hmlen(vm->modProxies);
 }
 
 void DebugVMStack(PVm *vm) {
@@ -343,6 +386,37 @@ static bool vmSubscriptAssign(PVm *vm) {
         vmError(vm, "Invalid Subscript Assignment target");
         return false;
     }
+}
+
+static bool vmImportModule(PVm *vm, PValue name) {
+    PValue importPath = VmPeek(vm, 0);
+    if (!IsValueObjType(importPath, OT_STR)) {
+        vmError(vm, "Import Path must be a string");
+        return false;
+    }
+
+    char *pathStr = ValueAsObj(importPath)->v.OString.value;
+    PModule *mod = NewModule(vm, pathStr);
+
+    if (mod == NULL) {
+        vmError(vm, "Failed to create module");
+        return false;
+    }
+
+    PushModule(vm, mod);
+    PObj *nameObj = ValueAsObj(name);
+    u64 key = nameObj->v.OString.hash;
+    PushProxy(vm, key, nameObj->v.OString.name->lexeme, mod);
+    PObj *modObject =
+        NewModuleObject(vm->gc, nameObj->v.OString.value, pathStr);
+    SymbolTableSet(vm->globals, nameObj, MakeObject(modObject));
+
+    PanPrint("Import Module ");
+    PrintValue(name);
+    PanPrint(" from ");
+    PrintValue(importPath);
+    PanPrint("\n");
+    return true;
 }
 
 static finline u8 vmReadByte(PVm *vm, PCallFrame *frame) {
@@ -626,6 +700,44 @@ void VmRun(PVm *vm) {
             }
             case OP_SUBS_ASSIGN: {
                 vmSubscriptAssign(vm);
+                break;
+            }
+            case OP_IMPORT: {
+                PValue name = vmReadConst(vm, frame);
+                vmImportModule(vm, name);
+                break;
+            }
+            case OP_MODGET: {
+                PValue child = vmReadConst(vm, frame);
+                PValue moduleVal = VmPeek(vm, 0);
+                if (!IsValueObjType(moduleVal, OT_MODULE)) {
+                    vmError(vm, "Only modules can provide child values");
+                    return;
+                }
+                if (!IsValueObjType(child, OT_STR)) {
+                    vmError(vm, "Invalid module child");
+                    return;
+                }
+                PObj *childObj = ValueAsObj(child);
+                PObj *modObj = ValueAsObj(moduleVal);
+                u64 nameHash = modObj->v.OModule.nameHash;
+                if (hmgeti(vm->modProxies, nameHash) < 0) {
+                    vmError(vm, "Unknown module found");
+                }
+
+                ModProxyEntry proxy = hmgets(vm->modProxies, nameHash);
+
+                PModule *module = proxy.mod;
+                bool found = false;
+                PValue childResult =
+                    SymbolTableFind(module->table, childObj, &found);
+                if (!found) {
+                    vmError(vm, "Unknown child for module");
+                    break;
+                }
+
+                VmPush(vm, childResult);
+
                 break;
             }
         }

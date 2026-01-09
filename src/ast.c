@@ -195,8 +195,13 @@ void AstPrint(PExpr *expr, int indent) {
             printIndent(indent + 1);
             PanPrint("}\n");
             printIndent(indent + 1);
+            char *childName = NULL;
+            if (mg->child != NULL) {
+                childName = mg->child->lexeme;
+            }
             PanPrint(
-                "Child(" TERMC_GREEN "%s" TERMC_RESET ")\n", mg->child->lexeme
+                "Child(" TERMC_GREEN "%s" TERMC_RESET ")\n",
+                childName != NULL ? childName : "<error>"
             );
             printIndent(indent);
             PanPrint("}\n");

@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 #include "gc.h"
-#include "interpreter.h"
+// #include "interpreter.h"
 #include "lexer.h"
 #include "parser.h"
 #include "ptypes.h"

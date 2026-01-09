@@ -27,6 +27,23 @@ extern "C" {
 typedef struct Pgc Pgc;
 typedef struct PanktiCore PanktiCore;
 
+typedef enum PModType {
+    PMOD_STDLIB,
+    PMOD_SCRIPT,
+} PModType;
+
+typedef struct PModule {
+    PModType type;
+    SymbolTable *table;
+    char *pathname;
+} PModule;
+
+typedef struct ModProxyEntry {
+    u64 key;
+    char *name;
+    PModule *mod;
+} ModProxyEntry;
+
 typedef struct PCallFrame {
     PObj *f;
     u8 *ip;
@@ -54,6 +71,11 @@ typedef struct PVm {
     // u64 codeCount;
     // Instruction Pointer
     // u8 *ip;
+    PModule **modules;
+    u64 modCount;
+
+    ModProxyEntry *modProxies;
+    u64 modProxiesCount;
 
     // Garbage Collector
     Pgc *gc;

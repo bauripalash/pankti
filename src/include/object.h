@@ -64,6 +64,8 @@ typedef enum PObjType {
     OT_NATIVE,
     // Error Object
     OT_ERROR,
+    // Module Object
+    OT_MODULE,
     // UpValue Object
     OT_UPVAL,
 } PObjType;
@@ -145,6 +147,13 @@ typedef struct PObj {
             // Error message
             char *msg;
         } OError;
+
+        // Object Module. Type : `OT_MODULE`
+        struct OModule {
+            char *path;
+            char *customName;
+            u64 nameHash;
+        } OModule;
 
         // UpValue Object. Type : `OT_UPVAL`
         struct OUpval {

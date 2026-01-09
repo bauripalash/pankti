@@ -50,6 +50,8 @@ static const POpDefinition opDefs[] = {
     [OP_CALL] = {"OpCall", 1, {2}},
     [OP_SUBSCRIPT] = {"OpSubscript", 0, {0}},
     [OP_SUBS_ASSIGN] = {"OpSubsAssign", 0, {0}},
+    [OP_IMPORT] = {"OpImport", 1, {2}},
+    [OP_MODGET] = {"OpModGet", 1, {2}},
 };
 
 const char *OpCodeToStr(PanOpCode code) { return opDefs[code].name; }
@@ -178,7 +180,9 @@ u64 DisasmBytecode(const PBytecode *bt, u64 offset) {
         case OP_CONST:
         case OP_DEFINE_GLOBAL:
         case OP_GET_GLOBAL:
-        case OP_SET_GLOBAL: {
+        case OP_SET_GLOBAL:
+        case OP_IMPORT:
+        case OP_MODGET: {
             return disasmConstIns(def.name, offset, bt);
         }
 
@@ -202,10 +206,8 @@ u64 DisasmBytecode(const PBytecode *bt, u64 offset) {
         case OP_ARRAY: {
             return disasmComplexDSIns(def.name, offset, bt);
         }
-        default: {
-            return offset + 1;
-        }
     }
+    return offset + 1;
 }
 
 void DebugBytecode(const PBytecode *bt, u64 offset) {

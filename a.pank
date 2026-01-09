@@ -1,9 +1,3 @@
-let a = {1:2,"name":"palash"}
-?a["name"] = 2
-?a
-
-let b = [0,1,2]
-?b
-?b[2]
-?b[0] = 100
-?b
+import m "math" + "land"
+?m
+?m.pi

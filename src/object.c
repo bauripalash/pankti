@@ -4,7 +4,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "external/gb/gb_string.h"
@@ -29,7 +28,6 @@
 void PrintValue(PValue val) {
     if (IsValueNum(val)) {
         double num = ValueAsNum(val);
-
         if (IsDoubleInt(num)) {
             PanPrint("%0.f", num);
         } else {
@@ -347,6 +345,16 @@ void PrintObject(const PObj *o) {
             if (o->v.OError.msg != NULL) {
                 PanPrint("%s", o->v.OError.msg);
             }
+            break;
+        }
+        case OT_MODULE: {
+            char *name = NULL;
+            const struct OModule *mod = &o->v.OModule;
+            if (mod->customName != NULL) {
+                name = mod->customName;
+            }
+
+            PanPrint("<Module %s>", name != NULL ? name : "null");
             break;
         }
         case OT_UPVAL: {

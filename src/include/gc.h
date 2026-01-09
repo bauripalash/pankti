@@ -117,6 +117,7 @@ PObj *NewNativeFnObject(Pgc *gc, Token *name, NativeFn fn, int arity);
 // `msg` = Error message. It will be duplicated.
 PObj *NewErrorObject(Pgc *gc, char *msg);
 
+PObj *NewModuleObject(Pgc *gc, char *name, char *path);
 PObj *NewUpvalueObject(Pgc *gc, PValue initValue);
 
 // Shortcut for NewErrorObject + MakeObject

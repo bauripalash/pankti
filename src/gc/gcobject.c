@@ -99,6 +99,21 @@ PObj *NewErrorObject(Pgc *gc, char *msg) {
     return o;
 }
 
+PObj *NewModuleObject(Pgc *gc, char *name, char *path) {
+    PObj *o = NewObject(gc, OT_MODULE);
+    o->v.OModule.nameHash = 0;
+    if (name != NULL) {
+        o->v.OModule.customName = StrDuplicate(name, StrLength(name));
+        o->v.OModule.nameHash = StrHash(name, StrLength(name), gc->timestamp);
+    }
+
+    if (path != NULL) {
+        o->v.OModule.path = StrDuplicate(path, StrLength(path));
+    }
+
+    return o;
+}
+
 PObj *NewUpvalueObject(Pgc *gc, PValue initValue) {
     PObj *o = NewObject(gc, OT_UPVAL);
     o->v.OUpval.value = initValue;
@@ -181,6 +196,16 @@ void FreeObject(Pgc *gc, PObj *o) {
         case OT_ERROR: {
             if (o->v.OError.msg != NULL) {
                 PFree(o->v.OError.msg);
+            }
+            freeBaseObj(o);
+            break;
+        }
+        case OT_MODULE: {
+            if (o->v.OModule.customName != NULL) {
+                PFree(o->v.OModule.customName);
+            }
+            if (o->v.OModule.path != NULL) {
+                PFree(o->v.OModule.path);
             }
             freeBaseObj(o);
             break;

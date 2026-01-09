@@ -24,6 +24,10 @@ static bool compileStmt(PCompiler *comp, PStmt *stmt);
 static bool compileExpr(PCompiler *comp, PExpr *expr);
 // Add a Constant and return its index in constant list
 static u16 addConstant(PCompiler *comp, PValue value);
+// Try setting up variable name.
+// If is local, we create a local
+// otherwise we create a Identifier constant from token
+static u16 readVariableName(PCompiler *comp, Token *name);
 
 PCompiler *dummyCompiler(
     PanktiCore *core, PCompiler *enclosing, PCompFuncType ftype, Token *name
@@ -472,6 +476,18 @@ static bool compileSubscriptExpr(PCompiler *comp, PExpr *expr) {
     return true;
 }
 
+static bool compileModgetExpr(PCompiler *comp, PExpr *expr) {
+    struct EModget *modgetExpr = &expr->exp.EModget;
+    if (!compileExpr(comp, modgetExpr->module)) {
+        return false;
+    }
+
+    u64 constIndex = readVariableName(comp, modgetExpr->child);
+    emitBtU16(comp, modgetExpr->op, OP_MODGET, constIndex);
+
+    return true;
+}
+
 static bool compileExpr(PCompiler *comp, PExpr *expr) {
     switch (expr->type) {
         case EXPR_LITERAL: return compileLitExpr(comp, expr);
@@ -484,6 +500,7 @@ static bool compileExpr(PCompiler *comp, PExpr *expr) {
         case EXPR_ASSIGN: return compileAssignExpr(comp, expr);
         case EXPR_CALL: return compileCallExpr(comp, expr);
         case EXPR_SUBSCRIPT: return compileSubscriptExpr(comp, expr);
+        case EXPR_MODGET: return compileModgetExpr(comp, expr);
         default: break;
     }
 
@@ -692,7 +709,18 @@ static bool compileReturnStmt(PCompiler *comp, PStmt *stmt) {
     }
 
     emitBt(comp, retStmt->op, OP_RETURN);
-    return false;
+    return true;
+}
+
+static bool compileImportStmt(PCompiler *comp, PStmt *stmt) {
+    struct SImport *importStmt = &stmt->stmt.SImport;
+    u16 customNameIndex = readVariableName(comp, importStmt->name);
+    if (!compileExpr(comp, importStmt->path)) {
+        return false;
+    }
+
+    emitBtU16(comp, importStmt->op, OP_IMPORT, customNameIndex);
+    return true;
 }
 
 static bool compileStmt(PCompiler *comp, PStmt *stmt) {
@@ -731,6 +759,10 @@ static bool compileStmt(PCompiler *comp, PStmt *stmt) {
         }
         case STMT_RETURN: {
             compileReturnStmt(comp, stmt);
+            break;
+        }
+        case STMT_IMPORT: {
+            compileImportStmt(comp, stmt);
             break;
         }
         default: {

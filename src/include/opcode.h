@@ -56,7 +56,9 @@ typedef enum PanOpCode {
     // indexing or subscript
     OP_SUBSCRIPT,
     // Subscript/index assignment
-    OP_SUBS_ASSIGN
+    OP_SUBS_ASSIGN,
+    OP_IMPORT,
+    OP_MODGET,
 } PanOpCode;
 
 // OpCode definition
