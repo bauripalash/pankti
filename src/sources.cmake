@@ -31,12 +31,12 @@ set(PANKTI_SRC_FILES
   "${CMAKE_CURRENT_LIST_DIR}/gc/gcstmt.c"
 
   # Stdlib
-  #"${CMAKE_CURRENT_LIST_DIR}/stdlib/pstdlib.c"
-  #"${CMAKE_CURRENT_LIST_DIR}/stdlib/stdmap.c"
-  #"${CMAKE_CURRENT_LIST_DIR}/stdlib/stdarray.c"
-  #"${CMAKE_CURRENT_LIST_DIR}/stdlib/stdmath.c"
-  #"${CMAKE_CURRENT_LIST_DIR}/stdlib/stdos.c"
-  #"${CMAKE_CURRENT_LIST_DIR}/stdlib/stdstring.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdlib/pstdlib.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdmap.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdarray.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdmath.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdos.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdstring.c"
 
   # External
   "${CMAKE_CURRENT_LIST_DIR}/external/stb/stb_ds_impl.c"
@@ -58,7 +58,7 @@ set(PANKTI_HEADER_FILES
   "${CMAKE_CURRENT_LIST_DIR}/include/lexer.h"
   "${CMAKE_CURRENT_LIST_DIR}/include/object.h"
   "${CMAKE_CURRENT_LIST_DIR}/include/parser.h"
-  #"${CMAKE_CURRENT_LIST_DIR}/include/pstdlib.h"
+  "${CMAKE_CURRENT_LIST_DIR}/include/pstdlib.h"
   "${CMAKE_CURRENT_LIST_DIR}/include/strescape.h"
   "${CMAKE_CURRENT_LIST_DIR}/include/token.h"
   "${CMAKE_CURRENT_LIST_DIR}/include/ustring.h"

@@ -1,6 +1,7 @@
 #include "../external/stb/stb_ds.h"
-#include "../include/interpreter.h"
+#include "../include/gc.h"
 #include "../include/pstdlib.h"
+#include "../include/vm.h"
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -20,10 +21,10 @@ static finline u64 getArrIndex(PObj *arr, PValue val, bool *found) {
     return UINT64_MAX;
 }
 
-static PValue array_Exists(PInterpreter *it, PValue *args, u64 argc) {
+static PValue array_Exists(PVm *vm, PValue *args, u64 argc) {
     PValue rawArray = args[0];
     if (!IsValueObjType(rawArray, OT_ARR)) {
-        return MakeError(it->gc, "Exists only takes array");
+        return MakeError(vm->gc, "Exists only takes array");
     }
 
     PValue key = args[1];
@@ -32,11 +33,11 @@ static PValue array_Exists(PInterpreter *it, PValue *args, u64 argc) {
     return MakeBool(found);
 }
 
-static PValue array_Add(PInterpreter *it, PValue *args, u64 argc) {
+static PValue array_Add(PVm *vm, PValue *args, u64 argc) {
 
     PValue rawArray = args[0];
     if (!IsValueObjType(rawArray, OT_ARR)) {
-        return MakeError(it->gc, "add only takes array");
+        return MakeError(vm->gc, "add only takes array");
     }
 
     PValue rawIndex = args[1];
@@ -46,20 +47,20 @@ static PValue array_Add(PInterpreter *it, PValue *args, u64 argc) {
 
         if (dblIndex < 0) {
             return MakeError(
-                it->gc, "add(array, index, value) -> index must be a "
+                vm->gc, "add(array, index, value) -> index must be a "
                         "non-negetive integer"
             );
         }
 
         if (!IsDoubleInt(dblIndex)) {
             return MakeError(
-                it->gc, "add(array, index, value) -> index must be a "
+                vm->gc, "add(array, index, value) -> index must be a "
                         "non-negetive integer"
             );
         }
     } else {
         return MakeError(
-            it->gc,
+            vm->gc,
             "add(array, index, value) -> index must be a non-negetive integer"
         );
     }
@@ -67,13 +68,13 @@ static PValue array_Add(PInterpreter *it, PValue *args, u64 argc) {
     struct OArray *arr = &ValueAsObj(rawArray)->v.OArray;
 
     if (arrIndex >= arr->count) {
-        return MakeError(it->gc, "add(....) index out of range");
+        return MakeError(vm->gc, "add(....) index out of range");
     }
 
     if (arrIndex > 0 && arr->items == NULL) {
         // TODO: Error handle on NULL
         return MakeError(
-            it->gc, "Internal Error : Failed to add item at index `<TODO>` as "
+            vm->gc, "Internal Error : Failed to add item at index `<TODO>` as "
                     "the array is null? <TODO>"
         );
     }
@@ -84,10 +85,10 @@ static PValue array_Add(PInterpreter *it, PValue *args, u64 argc) {
     return MakeNumber((double)arr->count);
 }
 
-static PValue array_Index(PInterpreter *it, PValue *args, u64 argc) {
+static PValue array_Index(PVm *vm, PValue *args, u64 argc) {
     PValue rawArray = args[0];
     if (!IsValueObjType(rawArray, OT_ARR)) {
-        return MakeError(it->gc, "Index only takes array");
+        return MakeError(vm->gc, "Index only takes array");
     }
 
     PValue key = args[1];
@@ -100,16 +101,16 @@ static PValue array_Index(PInterpreter *it, PValue *args, u64 argc) {
     }
 }
 
-static PValue array_Delete(PInterpreter *it, PValue *args, u64 argc) {
+static PValue array_Delete(PVm *vm, PValue *args, u64 argc) {
     if (argc != 1 && argc != 2) {
         return MakeError(
-            it->gc, "pop functions can take either 1 or two arguments"
+            vm->gc, "pop functions can take either 1 or two arguments"
         );
     }
 
     PValue rawArray = args[0];
     if (!IsValueObjType(rawArray, OT_ARR)) {
-        return MakeError(it->gc, "delete only works on arrays");
+        return MakeError(vm->gc, "delete only works on arrays");
     }
     bool hasIndex = false;
     double rawIndex = 0.0;
@@ -119,7 +120,7 @@ static PValue array_Delete(PInterpreter *it, PValue *args, u64 argc) {
             rawIndex = ValueAsNum(args[1]);
         } else {
             return MakeError(
-                it->gc, "delete(array, index) -> index must be a number"
+                vm->gc, "delete(array, index) -> index must be a number"
             );
         }
     }
@@ -129,14 +130,14 @@ static PValue array_Delete(PInterpreter *it, PValue *args, u64 argc) {
     if (hasIndex) {
         if (rawIndex < 0) {
             return MakeError(
-                it->gc,
+                vm->gc,
                 "delete(array, index) -> index must be a non-negetive integer"
             );
         }
 
         if (!IsDoubleInt(rawIndex)) {
             return MakeError(
-                it->gc,
+                vm->gc,
                 "delete(array, index) -> index must be a non-negetive integer"
             );
         }
@@ -144,7 +145,7 @@ static PValue array_Delete(PInterpreter *it, PValue *args, u64 argc) {
         u64 index = (u64)floor(rawIndex);
 
         if (index >= arr->count) {
-            return MakeError(it->gc, "delete(....) index out of range");
+            return MakeError(vm->gc, "delete(....) index out of range");
         }
 
         // TODO: Null Check when null and index is greater than 0
@@ -169,7 +170,7 @@ static PValue array_Delete(PInterpreter *it, PValue *args, u64 argc) {
 #define ARRAY_STD_ADD    "সংযোগ"
 #define ARRAY_STD_DELETE "বিয়োগ"
 
-void PushStdlibArray(PInterpreter *it, PEnv *env) {
+void PushStdlibArray(PVm *vm, SymbolTable *table) {
     StdlibEntry entries[] = {
         MakeStdlibEntry(ARRAY_STD_EXISTS, array_Exists, 2),
         MakeStdlibEntry(ARRAY_STD_INDEX, array_Index, 2),
@@ -178,12 +179,6 @@ void PushStdlibArray(PInterpreter *it, PEnv *env) {
     };
 
     int count = ArrCount(entries);
-    for (int i = 0; i < count; i++) {
-        const StdlibEntry *entry = &entries[i];
-        PObj *stdFn = NewNativeFnObject(it->gc, NULL, entry->fn, entry->arity);
-        EnvPutValue(
-            env, StrHash(entry->name, entry->nlen, it->gc->timestamp),
-            MakeObject(stdFn)
-        );
-    }
+
+    PushStdlibEntries(vm, table, entries, count);
 }

@@ -1,17 +1,17 @@
 #include "../external/stb/stb_ds.h"
-#include "../include/env.h"
-#include "../include/interpreter.h"
+#include "../include/gc.h"
 #include "../include/pstdlib.h"
 #include "../include/unicode.h"
+#include "../include/vm.h"
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
 
-static PValue str_Index(PInterpreter *it, PValue *args, u64 argc) {
+static PValue str_Index(PVm *vm, PValue *args, u64 argc) {
     PValue rawStr = args[0];
     if (!IsValueObjType(rawStr, OT_STR)) {
         return MakeError(
-            it->gc, "Index(...) function's first argument must be a string"
+            vm->gc, "Index(...) function's first argument must be a string"
         );
     }
 
@@ -20,13 +20,13 @@ static PValue str_Index(PInterpreter *it, PValue *args, u64 argc) {
     if (!IsValueNum(rawIndex)) {
 
         return MakeError(
-            it->gc, "Index(...) index argument must be a non-negetive intger"
+            vm->gc, "Index(...) index argument must be a non-negetive intger"
         );
     } else {
         double dIndex = ValueAsNum(rawIndex);
         if (!IsDoubleInt(dIndex)) {
             return MakeError(
-                it->gc,
+                vm->gc,
                 "Index(...) index argument must be a non-negetive intger"
             );
         }
@@ -42,18 +42,18 @@ static PValue str_Index(PInterpreter *it, PValue *args, u64 argc) {
 
     switch (err) {
         case GR_ERR_INDEX_OUT_RANGE: {
-            return MakeError(it->gc, "Index(...) index is out of range");
+            return MakeError(vm->gc, "Index(...) index is out of range");
         }; // error
         case GR_ERR_MEM: {
             return MakeError(
-                it->gc, "Internal Error : Index(...) failed due to memory error"
+                vm->gc, "Internal Error : Index(...) failed due to memory error"
             );
         }; // error
         case GR_ERR_EMPTY: {
             return MakeNil(); // return empty string
         }; // empty string
         case GR_ERR_OK: {
-            PObj *obj = NewStrObject(it->gc, NULL, result, true);
+            PObj *obj = NewStrObject(vm->gc, NULL, result, true);
             // todo: null check
             return MakeObject(obj);
         }
@@ -62,12 +62,12 @@ static PValue str_Index(PInterpreter *it, PValue *args, u64 argc) {
     return MakeNil(); // should never reach here
 }
 
-static PValue str_Split(PInterpreter *it, PValue *args, u64 argc) {
+static PValue str_Split(PVm *vm, PValue *args, u64 argc) {
     PValue rawStr = args[0];
     PValue rawDelim = args[1];
     if (!IsValueObjType(rawStr, OT_STR) || !IsValueObjType(rawDelim, OT_STR)) {
         return MakeError(
-            it->gc, "Split(...) function's both arguments must be string"
+            vm->gc, "Split(...) function's both arguments must be string"
         );
     }
 
@@ -82,7 +82,7 @@ static PValue str_Split(PInterpreter *it, PValue *args, u64 argc) {
 
         PValue *items = NULL;
         for (u64 i = 0; i < count; i++) {
-            PObj *tempStr = NewStrObject(it->gc, NULL, result[i], true);
+            PObj *tempStr = NewStrObject(vm->gc, NULL, result[i], true);
             if (tempStr == NULL) {
                 return MakeNil(); // memory error //todo
             }
@@ -90,7 +90,7 @@ static PValue str_Split(PInterpreter *it, PValue *args, u64 argc) {
             arrput(items, MakeObject(tempStr));
         }
 
-        PObj *arr = NewArrayObject(it->gc, NULL, items, count);
+        PObj *arr = NewArrayObject(vm->gc, NULL, items, count);
         arrfree(
             result
         ); // we don't need to free the substrings, arr items now own them
@@ -98,14 +98,14 @@ static PValue str_Split(PInterpreter *it, PValue *args, u64 argc) {
 
     } else {
         return MakeError(
-            it->gc, "Internal Error : Split(...) failed due to memory error"
+            vm->gc, "Internal Error : Split(...) failed due to memory error"
         );
     }
 
     return MakeNil(); // should never reach here
 }
 
-static PValue str_String(PInterpreter *it, PValue *args, u64 argc) {
+static PValue str_String(PVm *vm, PValue *args, u64 argc) {
     PValue target = args[0];
     char *str = ValueToString(target); // we don't need to free this
     // as ownership is given to string object crated below
@@ -113,7 +113,7 @@ static PValue str_String(PInterpreter *it, PValue *args, u64 argc) {
         return MakeNil(); // error
     }
 
-    PObj *strObj = NewStrObject(it->gc, NULL, str, true);
+    PObj *strObj = NewStrObject(vm->gc, NULL, str, true);
     return MakeObject(strObj);
 }
 
@@ -121,7 +121,7 @@ static PValue str_String(PInterpreter *it, PValue *args, u64 argc) {
 #define STR_STD_SPLIT  "split"
 #define STR_STD_STRING "string"
 
-void PushStdlibString(PInterpreter *it, PEnv *env) {
+void PushStdlibString(PVm *vm, SymbolTable *table) {
     StdlibEntry entries[] = {
         MakeStdlibEntry(STR_STD_INDEX, str_Index, 2),
         MakeStdlibEntry(STR_STD_SPLIT, str_Split, 2),
@@ -129,12 +129,5 @@ void PushStdlibString(PInterpreter *it, PEnv *env) {
     };
 
     int count = ArrCount(entries);
-    for (int i = 0; i < count; i++) {
-        const StdlibEntry *entry = &entries[i];
-        PObj *stdFn = NewNativeFnObject(it->gc, NULL, entry->fn, entry->arity);
-        EnvPutValue(
-            env, StrHash(entry->name, entry->nlen, it->gc->timestamp),
-            MakeObject(stdFn)
-        );
-    }
+    PushStdlibEntries(vm, table, entries, count);
 }

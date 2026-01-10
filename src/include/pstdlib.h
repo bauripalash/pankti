@@ -1,8 +1,8 @@
 #ifndef P_STDLIB_H
 #define P_STDLIB_H
 
-#include "env.h"
 #include "object.h"
+#include "symtable.h"
 #include "utils.h"
 #include <stdbool.h>
 #include <stddef.h>
@@ -37,7 +37,7 @@ typedef struct StdlibEntry {
         .name = sname, .nlen = (u64)strlen(sname), .fn = nfn, .arity = ar      \
     })
 
-typedef struct PInterpreter PInterpreter;
+typedef struct PVm PVm;
 
 static inline StdlibMod GetStdlibMod(const char *name) {
     if (StrEqual(name, OS_STDLIB_NAME)) {
@@ -54,12 +54,15 @@ static inline StdlibMod GetStdlibMod(const char *name) {
     return STDLIB_NONE;
 }
 
-void PushStdlib(PInterpreter *it, PEnv *env, const char *name, StdlibMod mod);
-void PushStdlibOs(PInterpreter *it, PEnv *env);
-void PushStdlibMath(PInterpreter *it, PEnv *env);
-void PushStdlibMap(PInterpreter *it, PEnv *env);
-void PushStdlibArray(PInterpreter *it, PEnv *env);
-void PushStdlibString(PInterpreter *it, PEnv *env);
+void PushStdlib(PVm *vm, SymbolTable *table, const char *name, StdlibMod mod);
+void PushStdlibOs(PVm *vm, SymbolTable *table);
+void PushStdlibMath(PVm *vm, SymbolTable *table);
+void PushStdlibMap(PVm *vm, SymbolTable *table);
+void PushStdlibArray(PVm *vm, SymbolTable *table);
+void PushStdlibString(PVm *vm, SymbolTable *table);
+void PushStdlibEntries(
+    PVm *vm, SymbolTable *table, StdlibEntry *entries, u64 count
+);
 
 #ifdef __cplusplus
 }

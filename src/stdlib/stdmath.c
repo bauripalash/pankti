@@ -1,7 +1,7 @@
-#include "../include/env.h"
-#include "../include/interpreter.h"
+#include "../include/gc.h"
 #include "../include/pstdlib.h"
 #include "../include/ptypes.h"
+#include "../include/vm.h"
 #include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -21,17 +21,17 @@ static inline double getGcd(double a, double b) {
     return x;
 }
 
-static PValue math_Sqrt(PInterpreter *it, PValue *args, u64 argc) {
+static PValue math_Sqrt(PVm *vm, PValue *args, u64 argc) {
     PValue rawVal = args[0];
     if (!IsValueNum(rawVal)) {
         // MakeError
-        return MakeError(it->gc, "Square root can only calculated for numbers");
+        return MakeError(vm->gc, "Square root can only calculated for numbers");
     }
     double result = sqrt(ValueAsNum(rawVal));
     return MakeNumber(result);
 }
 
-static PValue math_Log10(PInterpreter *it, PValue *args, u64 argc) {
+static PValue math_Log10(PVm *vm, PValue *args, u64 argc) {
     PValue rawVal = args[0];
     if (!IsValueNum(rawVal)) {
         // MakeError
@@ -40,7 +40,7 @@ static PValue math_Log10(PInterpreter *it, PValue *args, u64 argc) {
     double result = log10(ValueAsNum(rawVal));
     return MakeNumber(result);
 }
-static PValue math_Log(PInterpreter *it, PValue *args, u64 argc) {
+static PValue math_Log(PVm *vm, PValue *args, u64 argc) {
     PValue rawVal = args[0];
     if (!IsValueNum(rawVal)) {
         // MakeError
@@ -49,7 +49,7 @@ static PValue math_Log(PInterpreter *it, PValue *args, u64 argc) {
     double result = log(ValueAsNum(rawVal));
     return MakeNumber(result);
 }
-static PValue math_LogBase(PInterpreter *it, PValue *args, u64 argc) {
+static PValue math_LogBase(PVm *vm, PValue *args, u64 argc) {
     PValue rawBase = args[0];
     PValue rawNum = args[1];
 
@@ -60,7 +60,7 @@ static PValue math_LogBase(PInterpreter *it, PValue *args, u64 argc) {
     double result = log(ValueAsNum(rawNum)) / log(ValueAsNum(rawBase));
     return MakeNumber(result);
 }
-static PValue math_GCD(PInterpreter *it, PValue *args, u64 argc) {
+static PValue math_GCD(PVm *vm, PValue *args, u64 argc) {
     PValue rawA = args[0];
     PValue rawB = args[1];
 
@@ -72,7 +72,7 @@ static PValue math_GCD(PInterpreter *it, PValue *args, u64 argc) {
     double result = getGcd(ValueAsNum(rawA), ValueAsNum(rawB));
     return MakeNumber(result);
 }
-static PValue math_LCM(PInterpreter *it, PValue *args, u64 argc) {
+static PValue math_LCM(PVm *vm, PValue *args, u64 argc) {
     PValue rawA = args[0];
     PValue rawB = args[1];
 
@@ -86,7 +86,7 @@ static PValue math_LCM(PInterpreter *it, PValue *args, u64 argc) {
     double result = (numA * numB) / getGcd(numA, numB);
     return MakeNumber(result);
 }
-static PValue math_Sine(PInterpreter *it, PValue *args, u64 argc) {
+static PValue math_Sine(PVm *vm, PValue *args, u64 argc) {
     PValue raw = args[0];
     if (!IsValueNum(raw)) {
         return MakeNil(); // error
@@ -94,7 +94,7 @@ static PValue math_Sine(PInterpreter *it, PValue *args, u64 argc) {
     double result = sin(ValueAsNum(raw));
     return MakeNumber(result);
 }
-static PValue math_Cosine(PInterpreter *it, PValue *args, u64 argc) {
+static PValue math_Cosine(PVm *vm, PValue *args, u64 argc) {
     PValue raw = args[0];
     if (!IsValueNum(raw)) {
         return MakeNil(); // error
@@ -102,7 +102,7 @@ static PValue math_Cosine(PInterpreter *it, PValue *args, u64 argc) {
     double result = cos(ValueAsNum(raw));
     return MakeNumber(result);
 }
-static PValue math_Tangent(PInterpreter *it, PValue *args, u64 argc) {
+static PValue math_Tangent(PVm *vm, PValue *args, u64 argc) {
     PValue raw = args[0];
     if (!IsValueNum(raw)) {
         return MakeNil(); // error
@@ -110,7 +110,7 @@ static PValue math_Tangent(PInterpreter *it, PValue *args, u64 argc) {
     double result = tan(ValueAsNum(raw));
     return MakeNumber(result);
 }
-static PValue math_Degree(PInterpreter *it, PValue *args, u64 argc) {
+static PValue math_Degree(PVm *vm, PValue *args, u64 argc) {
     PValue raw = args[0];
     if (!IsValueNum(raw)) {
         return MakeNil(); // error
@@ -118,7 +118,7 @@ static PValue math_Degree(PInterpreter *it, PValue *args, u64 argc) {
     double result = ValueAsNum(raw) * (180.0 / CONST_PI);
     return MakeNumber(result);
 }
-static PValue math_Radians(PInterpreter *it, PValue *args, u64 argc) {
+static PValue math_Radians(PVm *vm, PValue *args, u64 argc) {
     PValue raw = args[0];
     if (!IsValueNum(raw)) {
         return MakeNil(); // error
@@ -126,11 +126,11 @@ static PValue math_Radians(PInterpreter *it, PValue *args, u64 argc) {
     double result = ValueAsNum(raw) * (CONST_PI / 180.0);
     return MakeNumber(result);
 }
-static PValue math_Number(PInterpreter *it, PValue *args, u64 argc) {
+static PValue math_Number(PVm *vm, PValue *args, u64 argc) {
     PValue rawStr = args[0];
 
     if (!IsValueObjType(rawStr, OT_STR)) {
-        return MakeError(it->gc, "Only string can be converted to numbers");
+        return MakeError(vm->gc, "Only string can be converted to numbers");
     }
 
     struct OString *strObj = &ValueAsObj(rawStr)->v.OString;
@@ -143,12 +143,12 @@ static PValue math_Number(PInterpreter *it, PValue *args, u64 argc) {
     }
 
     if (!isok) {
-        return MakeError(it->gc, "Failed to convert string to number");
+        return MakeError(vm->gc, "Failed to convert string to number");
     }
 
     return MakeNumber(result);
 }
-static PValue math_Abs(PInterpreter *it, PValue *args, u64 argc) {
+static PValue math_Abs(PVm *vm, PValue *args, u64 argc) {
     PValue raw = args[0];
     if (!IsValueNum(raw)) {
         return MakeNil(); // error
@@ -156,7 +156,7 @@ static PValue math_Abs(PInterpreter *it, PValue *args, u64 argc) {
     double result = fabs(ValueAsNum(raw));
     return MakeNumber(result);
 }
-static PValue math_Round(PInterpreter *it, PValue *args, u64 argc) {
+static PValue math_Round(PVm *vm, PValue *args, u64 argc) {
     PValue raw = args[0];
     if (!IsValueNum(raw)) {
         return MakeNil(); // error
@@ -164,7 +164,7 @@ static PValue math_Round(PInterpreter *it, PValue *args, u64 argc) {
     double result = round(ValueAsNum(raw));
     return MakeNumber(result);
 }
-static PValue math_Floor(PInterpreter *it, PValue *args, u64 argc) {
+static PValue math_Floor(PVm *vm, PValue *args, u64 argc) {
     PValue raw = args[0];
     if (!IsValueNum(raw)) {
         return MakeNil(); // error
@@ -172,7 +172,7 @@ static PValue math_Floor(PInterpreter *it, PValue *args, u64 argc) {
     double result = floor(ValueAsNum(raw));
     return MakeNumber(result);
 }
-static PValue math_Ceil(PInterpreter *it, PValue *args, u64 argc) {
+static PValue math_Ceil(PVm *vm, PValue *args, u64 argc) {
     PValue raw = args[0];
     if (!IsValueNum(raw)) {
         return MakeNil(); // error
@@ -199,7 +199,7 @@ static PValue math_Ceil(PInterpreter *it, PValue *args, u64 argc) {
 #define MATH_STD_PI      "পাই"
 #define MATH_STD_E       "ই"
 
-void PushStdlibMath(PInterpreter *it, PEnv *env) {
+void PushStdlibMath(PVm *vm, SymbolTable *table) {
     StdlibEntry entries[] = {
         MakeStdlibEntry(MATH_STD_SQRT, math_Sqrt, 1),
         MakeStdlibEntry(MATH_STD_LOGTEN, math_Log10, 1),
@@ -220,21 +220,14 @@ void PushStdlibMath(PInterpreter *it, PEnv *env) {
 
     };
     int count = ArrCount(entries);
-    for (int i = 0; i < count; i++) {
-        const StdlibEntry *entry = &entries[i];
-        PObj *stdFn = NewNativeFnObject(it->gc, NULL, entry->fn, entry->arity);
-        EnvPutValue(
-            env, StrHash(entry->name, entry->nlen, it->gc->timestamp),
-            MakeObject(stdFn)
-        );
-    }
 
-    EnvPutValue(
-        env, StrHash(MATH_STD_PI, StrLength(MATH_STD_PI), it->gc->timestamp),
-        MakeNumber(CONST_PI)
-    );
-    EnvPutValue(
-        env, StrHash(MATH_STD_E, StrLength(MATH_STD_E), it->gc->timestamp),
-        MakeNumber(CONST_E)
-    );
+    PushStdlibEntries(vm, table, entries, count);
+    PObj *piNameObj = NewStrObject(vm->gc, NULL, MATH_STD_PI, false);
+    VmPush(vm, MakeObject(piNameObj));
+    PObj *eNameObj = NewStrObject(vm->gc, NULL, MATH_STD_E, false);
+    VmPush(vm, MakeObject(eNameObj));
+    SymbolTableSet(table, piNameObj, MakeNumber(CONST_PI));
+    SymbolTableSet(table, eNameObj, MakeNumber(CONST_E));
+    VmPop(vm);
+    VmPop(vm);
 }

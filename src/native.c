@@ -1,11 +1,10 @@
 #include "include/native.h"
 #include "include/env.h"
 #include "include/gc.h"
-// #include "include/interpreter.h"
 #include "include/object.h"
 #include "include/printer.h"
+#include "include/pstdlib.h"
 #include "include/ptypes.h"
-#include "include/symtable.h"
 #include "include/utils.h"
 #include "include/vm.h"
 #include <stddef.h>
@@ -121,44 +120,21 @@ void RegisterNatives(PVm *vm, PEnv *env) {
         return;
     }
 
-    PObj *clockFn = NewNativeFnObject(vm->gc, NULL, ntvClock, 0);
-    PObj *showFn = NewNativeFnObject(vm->gc, NULL, ntvShow, -1);
-    PObj *lenFn = NewNativeFnObject(vm->gc, NULL, ntvLen, 1);
-    PObj *appendFn = NewNativeFnObject(vm->gc, NULL, ntvAppend, -1);
+    StdlibEntry nativeEntries[] = {
+        MakeStdlibEntry(NAME_CLOCK_EN, ntvClock, 0),
+        MakeStdlibEntry(NAME_CLOCK_BN, ntvClock, 0),
+        MakeStdlibEntry(NAME_CLOCK_PN, ntvClock, 0),
+        MakeStdlibEntry(NAME_SHOW_EN, ntvShow, -1),
+        MakeStdlibEntry(NAME_SHOW_BN, ntvShow, -1),
+        MakeStdlibEntry(NAME_SHOW_PN, ntvShow, -1),
+        MakeStdlibEntry(NAME_LEN_EN, ntvLen, 1),
+        MakeStdlibEntry(NAME_LEN_BN, ntvLen, 1),
+        MakeStdlibEntry(NAME_LEN_PN, ntvLen, 1),
+        MakeStdlibEntry(NAME_APPEND_EN, ntvAppend, -1),
+        MakeStdlibEntry(NAME_APPEND_BN, ntvAppend, -1),
+        MakeStdlibEntry(NAME_APPEND_PN, ntvAppend, -1),
+    };
 
-    // todo: fix gc handling
-
-    PObj *showFnEnStr = NewStrObject(vm->gc, NULL, NAME_SHOW_EN, false);
-    PObj *showFnBnStr = NewStrObject(vm->gc, NULL, NAME_SHOW_BN, false);
-    PObj *showFnPnStr = NewStrObject(vm->gc, NULL, NAME_SHOW_PN, false);
-
-    PObj *appendFnEnStr = NewStrObject(vm->gc, NULL, NAME_APPEND_EN, false);
-    PObj *appendFnBnStr = NewStrObject(vm->gc, NULL, NAME_APPEND_BN, false);
-    PObj *appendFnPnStr = NewStrObject(vm->gc, NULL, NAME_APPEND_PN, false);
-
-    SymbolTableSet(vm->globals, showFnEnStr, MakeObject(showFn));
-    SymbolTableSet(vm->globals, showFnBnStr, MakeObject(showFn));
-    SymbolTableSet(vm->globals, showFnPnStr, MakeObject(showFn));
-
-    SymbolTableSet(vm->globals, appendFnEnStr, MakeObject(appendFn));
-    SymbolTableSet(vm->globals, appendFnBnStr, MakeObject(appendFn));
-    SymbolTableSet(vm->globals, appendFnPnStr, MakeObject(appendFn));
-
-    /*
-    EnvPutValue(env, DefStrHash(NAME_CLOCK_EN, vm), MakeObject(clockFn));
-    EnvPutValue(env, DefStrHash(NAME_CLOCK_BN, vm), MakeObject(clockFn));
-    EnvPutValue(env, DefStrHash(NAME_CLOCK_PN, vm), MakeObject(clockFn));
-
-    EnvPutValue(env, DefStrHash(NAME_SHOW_EN, vm), MakeObject(showFn));
-    EnvPutValue(env, DefStrHash(NAME_SHOW_BN, vm), MakeObject(showFn));
-    EnvPutValue(env, DefStrHash(NAME_SHOW_PN, vm), MakeObject(showFn));
-
-    EnvPutValue(env, DefStrHash(NAME_LEN_EN, vm), MakeObject(lenFn));
-    EnvPutValue(env, DefStrHash(NAME_LEN_BN, vm), MakeObject(lenFn));
-    EnvPutValue(env, DefStrHash(NAME_LEN_PN, vm), MakeObject(lenFn));
-
-    EnvPutValue(env, DefStrHash(NAME_APPEND_EN, vm), MakeObject(appendFn));
-    EnvPutValue(env, DefStrHash(NAME_APPEND_BN, vm), MakeObject(appendFn));
-    EnvPutValue(env, DefStrHash(NAME_APPEND_PN, vm), MakeObject(appendFn));
-    */
+    u64 count = ArrCount(nativeEntries);
+    PushStdlibEntries(vm, vm->globals, nativeEntries, count);
 }

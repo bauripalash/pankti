@@ -8,6 +8,7 @@
 #include "include/object.h"
 #include "include/opcode.h"
 #include "include/printer.h"
+#include "include/pstdlib.h"
 #include "include/ptypes.h"
 #include "include/symtable.h"
 #include "include/utils.h"
@@ -396,6 +397,13 @@ static bool vmImportModule(PVm *vm, PValue name) {
     }
 
     char *pathStr = ValueAsObj(importPath)->v.OString.value;
+
+    StdlibMod stdmod = GetStdlibMod(pathStr);
+    if (stdmod == STDLIB_NONE) {
+        vmError(vm, "Currently only stdlib imports are supported");
+        return false;
+    }
+
     PModule *mod = NewModule(vm, pathStr);
 
     if (mod == NULL) {
@@ -407,15 +415,13 @@ static bool vmImportModule(PVm *vm, PValue name) {
     PObj *nameObj = ValueAsObj(name);
     u64 key = nameObj->v.OString.hash;
     PushProxy(vm, key, nameObj->v.OString.name->lexeme, mod);
+
+    PushStdlib(vm, mod->table, mod->pathname, stdmod);
+
     PObj *modObject =
         NewModuleObject(vm->gc, nameObj->v.OString.value, pathStr);
     SymbolTableSet(vm->globals, nameObj, MakeObject(modObject));
 
-    PanPrint("Import Module ");
-    PrintValue(name);
-    PanPrint(" from ");
-    PrintValue(importPath);
-    PanPrint("\n");
     return true;
 }
 
@@ -735,6 +741,7 @@ void VmRun(PVm *vm) {
                     vmError(vm, "Unknown child for module");
                     break;
                 }
+                VmPop(vm);
 
                 VmPush(vm, childResult);
 

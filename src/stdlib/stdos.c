@@ -1,7 +1,8 @@
 #include "../include/alloc.h"
-#include "../include/interpreter.h"
+#include "../include/gc.h"
 #include "../include/pstdlib.h"
 #include "../include/system.h"
+#include "../include/vm.h"
 #include <stdbool.h>
 
 #define OS_NAME_LINUX  "লিনাক্স"
@@ -15,7 +16,7 @@
 #define OS_WEB         "ওয়েব"
 #define OS_UNKNOWN     "অজানা"
 
-static PValue os_Name(PInterpreter *it, PValue *args, u64 argc) {
+static PValue os_Name(PVm *vm, PValue *args, u64 argc) {
 #if defined(PANKTI_OS_LINUX)
     char *name = OS_NAME_LINUX;
 #elif defined(PANKTI_OS_WIN)
@@ -28,10 +29,10 @@ static PValue os_Name(PInterpreter *it, PValue *args, u64 argc) {
     char *name = OS_UNKNOWN;
 #endif
     PObj *nameStrObj =
-        NewStrObject(it->gc, NULL, StrDuplicate(name, StrLength(name)), true);
+        NewStrObject(vm->gc, NULL, StrDuplicate(name, StrLength(name)), true);
     return MakeObject(nameStrObj);
 }
-static PValue os_Arch(PInterpreter *it, PValue *args, u64 argc) {
+static PValue os_Arch(PVm *vm, PValue *args, u64 argc) {
 #if defined(PANKTI_ARCH_X86_64)
     char *arch = OS_ARCH_X86_64;
 #elif defined(PANKTI_ARCH_X86)
@@ -44,10 +45,10 @@ static PValue os_Arch(PInterpreter *it, PValue *args, u64 argc) {
     char *arch = OS_UNKNOWN;
 #endif
     PObj *archStrObj =
-        NewStrObject(it->gc, NULL, StrDuplicate(arch, StrLength(arch)), true);
+        NewStrObject(vm->gc, NULL, StrDuplicate(arch, StrLength(arch)), true);
     return MakeObject(archStrObj);
 }
-static PValue os_Username(PInterpreter *it, PValue *args, u64 argc) {
+static PValue os_Username(PVm *vm, PValue *args, u64 argc) {
 #if defined(PANKTI_OS_WEB)
     char *username = OS_WEB;
 #else
@@ -55,16 +56,16 @@ static PValue os_Username(PInterpreter *it, PValue *args, u64 argc) {
 #endif
     if (username != NULL) {
         PObj *usernameStrObj = NewStrObject(
-            it->gc, NULL, StrDuplicate(username, StrLength(username)), true
+            vm->gc, NULL, StrDuplicate(username, StrLength(username)), true
         );
         return MakeObject(usernameStrObj);
     }
     PObj *unknownUserStrObj = NewStrObject(
-        it->gc, NULL, StrDuplicate(OS_UNKNOWN, StrLength(OS_UNKNOWN)), true
+        vm->gc, NULL, StrDuplicate(OS_UNKNOWN, StrLength(OS_UNKNOWN)), true
     );
     return MakeObject(unknownUserStrObj);
 }
-static PValue os_HomeDir(PInterpreter *it, PValue *args, u64 argc) {
+static PValue os_HomeDir(PVm *vm, PValue *args, u64 argc) {
 #if defined(PANKTI_OS_WEB)
     char *homedir = OS_WEB;
 #else
@@ -72,16 +73,16 @@ static PValue os_HomeDir(PInterpreter *it, PValue *args, u64 argc) {
 #endif
     if (homedir != NULL) {
         PObj *usernameStrObj = NewStrObject(
-            it->gc, NULL, StrDuplicate(homedir, StrLength(homedir)), true
+            vm->gc, NULL, StrDuplicate(homedir, StrLength(homedir)), true
         );
         return MakeObject(usernameStrObj);
     }
     PObj *unknownUserStrObj = NewStrObject(
-        it->gc, NULL, StrDuplicate(OS_UNKNOWN, StrLength(OS_UNKNOWN)), true
+        vm->gc, NULL, StrDuplicate(OS_UNKNOWN, StrLength(OS_UNKNOWN)), true
     );
     return MakeObject(unknownUserStrObj);
 }
-static PValue os_CurDir(PInterpreter *it, PValue *args, u64 argc) {
+static PValue os_CurDir(PVm *vm, PValue *args, u64 argc) {
 #if defined(PANKTI_OS_WEB)
     char *curdir = OS_WEB;
 #else
@@ -89,13 +90,13 @@ static PValue os_CurDir(PInterpreter *it, PValue *args, u64 argc) {
 #endif
     if (curdir != NULL) {
         PObj *usernameStrObj = NewStrObject(
-            it->gc, NULL, StrDuplicate(curdir, StrLength(curdir)), true
+            vm->gc, NULL, StrDuplicate(curdir, StrLength(curdir)), true
         );
         PFree(curdir);
         return MakeObject(usernameStrObj);
     }
     PObj *unknownUserStrObj = NewStrObject(
-        it->gc, NULL, StrDuplicate(OS_UNKNOWN, StrLength(OS_UNKNOWN)), true
+        vm->gc, NULL, StrDuplicate(OS_UNKNOWN, StrLength(OS_UNKNOWN)), true
     );
     return MakeObject(unknownUserStrObj);
 }
@@ -106,7 +107,7 @@ static PValue os_CurDir(PInterpreter *it, PValue *args, u64 argc) {
 #define OS_STD_HOMEDIR  "ঘর"
 #define OS_STD_CURDIR   "বর্তমান"
 
-void PushStdlibOs(PInterpreter *it, PEnv *env) {
+void PushStdlibOs(PVm *vm, SymbolTable *table) {
     StdlibEntry entries[] = {
         MakeStdlibEntry(OS_STD_NAME, os_Name, 0),
         MakeStdlibEntry(OS_STD_ARCH, os_Arch, 0),
@@ -116,12 +117,5 @@ void PushStdlibOs(PInterpreter *it, PEnv *env) {
     };
 
     int count = ArrCount(entries);
-    for (int i = 0; i < count; i++) {
-        const StdlibEntry *entry = &entries[i];
-        PObj *stdFn = NewNativeFnObject(it->gc, NULL, entry->fn, entry->arity);
-        EnvPutValue(
-            env, StrHash(entry->name, entry->nlen, it->gc->timestamp),
-            MakeObject(stdFn)
-        );
-    }
+    PushStdlibEntries(vm, table, entries, count);
 }

@@ -496,6 +496,18 @@ char *ObjToString(PObj *obj) {
             result = StrDuplicate(temp, strlen(temp));
             break;
         }
+        case OT_MODULE: {
+            const char *name = NULL;
+            bool hasName = false;
+            if (obj->v.OModule.customName != NULL) {
+                name = obj->v.OModule.customName;
+                hasName = true;
+            }
+            const char *temp =
+                StrFormat("<Module '%s'>", hasName ? name : "null");
+            result = StrDuplicate(temp, StrLength(temp));
+            break;
+        }
         case OT_UPVAL: {
             const char *temp = StrFormat("<UpValue '%s'>", "<todo>");
             result = StrDuplicate(temp, strlen(temp));
@@ -514,6 +526,7 @@ char *ObjTypeToString(PObjType type) {
         case OT_MAP: return "HashMap";
         case OT_NATIVE: return "Native Func";
         case OT_ERROR: return "Error";
+        case OT_MODULE: return "Module";
         case OT_UPVAL: return "Upvalue";
         case OT_COMFNC: return "Function";
     }
@@ -541,6 +554,15 @@ bool IsObjEqual(const PObj *a, const PObj *b) {
             } else {
                 result = false;
             }
+            break;
+        }
+        case OT_MODULE: {
+            if (a->v.OModule.path != NULL && b->v.OModule.path != NULL) {
+                result = StrEqual(a->v.OModule.path, b->v.OModule.path);
+            } else {
+                result = false;
+            }
+
             break;
         }
         case OT_UPVAL: {

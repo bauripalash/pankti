@@ -1,3 +1,3 @@
-import m "math" + "land"
-?m
-?m.pi
+import m "গণিত"
+import os "ওএস"
+?os.আর্চ()
