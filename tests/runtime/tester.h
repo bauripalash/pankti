@@ -12,9 +12,12 @@ extern "C" {
 #include <stdlib.h>
 #include <sys/stat.h>
 #include "../include/utest.h"
+#include "../../src/include/system.h"
 
 #ifdef PANKTI_OS_WIN
 #define stat _stat
+#define popen _popen
+#define pclose _pclose
 #endif
 
 #define READ_BUFFER 2048

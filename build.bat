@@ -7,12 +7,16 @@ set ZIG_BUILD_DIR=zig-out
 set FILE=.\a.pank
 set PERFFILE=.\benchmarks\fib.pank
 set TEST_BIN=pankti_tests
+set RUNTIME_TEST_BIN=pankti_runtime_test
+set RUNTIME_SAMPLES_DIR=tests\runtime\samples
 set TEST_ARGS=
+set RUNTIME_TEST_ARGS=
 set BUILD_CONFIG=Debug
 
 set CMAKE_OUTPUT=%CMAKE_BUILD_DIR%\%BIN%.exe
 set ZIG_OUTPUT=%ZIG_BUILD_DIR%\bin\%BIN%.exe
 set TEST_OUTPUT=%CMAKE_BUILD_DIR%\%TEST_BIN%.exe
+set RUNTIME_TEST_OUTPUT=%CMAKE_BUILD_DIR%\%RUNTIME_TEST_BIN%.exe
 set ZIG_TEST_OUTPUT=%ZIG_BUILD_DIR%\bin\%TEST_BIN%.exe
 
 if "%1"=="" goto:run
@@ -65,7 +69,8 @@ echo ==== Running Frontend Tests ====
 echo ==== Finished Frontend Tests ====
 echo ==== Running Runtime Tests ====
 set PANKTI_BIN=%CMAKE_OUTPUT%
-python -m unittest discover -s tests --verbose
+set SAMPLES_DIR=%RUNTIME_SAMPLES_DIR%
+%RUNTIME_TEST_OUTPUT% %RUNTIME_TEST_ARGS%
 echo ==== Finished Runtime Tests ====
 exit /b %errorlevel%
 
@@ -94,6 +99,7 @@ echo "==== Finished Frontend Tests ===="
 echo "==== Running Runtime Tests ===="
 zig build -Doptimize=ReleaseFast
 set PANKTI_BIN=%ZIG_OUTPUT%
+set SAMPLES_DIR=%RUNTIME_SAMPLES_DIR%
 python -m unittest discover -s tests --verbose
 echo "==== Finished Runtime Tests ===="
 exit /b %errorlevel%

@@ -18,11 +18,16 @@
 
 PVm *NewVm(PanktiCore *core) {
     PVm *vm = PCreate(PVm);
+    vm->core = core;
     vm->sp = vm->stack;
     vm->gc = core->gc;
     vm->frameCount = 0;
     vm->globals = NewSymbolTable();
-
+    vm->modCount = 0;
+    vm->modules = NULL;
+    vm->modProxiesCount = 0;
+    vm->modProxies = NULL;
+    vm->sp = vm->stack;
     return vm;
 }
 

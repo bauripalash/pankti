@@ -65,7 +65,7 @@ pub fn build(b: *std.Build) void {
         "src/bengali.c",
         "src/core.c",
         "src/env.c",
-        "src/interpreter.c",
+        // "src/interpreter.c",
         "src/lexer.c",
         "src/native.c",
         "src/object.c",
@@ -76,6 +76,12 @@ pub fn build(b: *std.Build) void {
         "src/ustring.c",
         "src/unicode.c",
         "src/utils.c",
+
+        //Compiler/VM
+        "src/opcode.c",
+        "src/compiler.c",
+        "src/symtable.c",
+        "src/vm.c",
 
         // Stdlib
         "src/stdlib/pstdlib.c",
