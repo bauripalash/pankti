@@ -226,7 +226,9 @@ static void readString(Lexer *lx) {
         advance(lx);
     }
 
-    advance(lx);
+    if (!atEnd(lx)) {
+        advance(lx); // somehow if we get malformed unterminated string
+    }
 
     char *lexeme = SubString(lx->source, lx->start + 1, lx->current - 1);
     addStringToken(lx, lexeme, line, column, lx->current - lx->start);

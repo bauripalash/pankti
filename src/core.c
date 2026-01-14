@@ -166,28 +166,6 @@ PCoreErrorType RunCore(PanktiCore *core) {
         exit(1);
     }
 
-    /*
-    char *useCompiler = getenv("PAN_COMPILER");
-    if (useCompiler == NULL) {
-
-        core->it = NewInterpreter(core->gc, prog);
-        core->it->core = core;
-#if defined DEBUG_TIMES
-        clock_t inTic = clock();
-#endif
-
-        Interpret(core->it);
-#if defined DEBUG_TIMES
-        clock_t inToc = clock();
-        PanPrint(
-            "[DEBUG] Interpreter finished : %f sec.\n",
-            (double)(inToc - inTic) / CLOCKS_PER_SEC
-        );
-#endif
-
-    } else {
-*/
-
 #if defined(DEBUG_TIMES)
     clock_t cmpTic = clock();
 #endif
@@ -281,7 +259,9 @@ void CoreRuntimeError(PanktiCore *core, Token *token, const char *msg) {
     exit(EXIT_FAILURE);
 }
 
-void CoreParserError(PanktiCore *core, Token *token, const char *msg) {
+void CoreParserError(
+    PanktiCore *core, Token *token, const char *msg, bool fatal
+) {
     u64 line = 0;
     u64 col = 0;
     if (token != NULL) {
@@ -290,6 +270,10 @@ void CoreParserError(PanktiCore *core, Token *token, const char *msg) {
     }
 
     printErrMsg(core, line, col, msg, token != NULL, PCERR_PARSER);
+    if (fatal) {
+        FreeCore(core);
+        exit(EXIT_FAILURE);
+    }
 }
 
 void CoreLexerError(PanktiCore *core, u64 line, u64 col, const char *msg) {

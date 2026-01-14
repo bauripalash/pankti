@@ -27,10 +27,11 @@ static inline StrEscapeErr parseNHex(
     u32 val = 0;
     for (u64 k = 0; k < n; k++) {
         char c = input[*ri + 1 + k];
-        u32 digit = (u32)hexToInt(c);
-        if (digit == -1) {
+        int rawDigit = hexToInt(c);
+        if (rawDigit == -1) {
             return SESC_INVALID_HEX_CHAR; // Invalid Hex Digits
         }
+        u32 digit = (u32)rawDigit;
 
         val = (val << 4) | digit;
     }

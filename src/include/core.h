@@ -3,6 +3,7 @@
 
 #include "compiler.h"
 #include "vm.h"
+#include <stdbool.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -70,7 +71,9 @@ void CoreRuntimeError(PanktiCore *core, Token *token, const char *msg);
 // `token` = Token where the runtime error occurred; can be NULL if something
 // out of the world or something ambiguous happened.
 // `msg` = Error Message
-void CoreParserError(PanktiCore *core, Token *token, const char *msg);
+void CoreParserError(
+    PanktiCore *core, Token *token, const char *msg, bool fatal
+);
 
 // Throw Lexer/Syntax Error and Continue scanning for tokens to catch as many as
 // errors as we can find.
