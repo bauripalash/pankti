@@ -10,20 +10,13 @@ option(
 	ON
 )
 
+option(BUILD_GFX "Build with graphics features enabled" ON)
+
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE 
 		"Debug" 
-		CACHE STRING 
-		"Set Build Type (Debug, Release, RelWithDebInfo, MinSizeRel)" 
-		FORCE)
+		)
 endif()
-
-set_property(CACHE 
-	CMAKE_BUILD_TYPE 
-	PROPERTY STRINGS 
-	"Debug" "Release" "RelWithDebInfo" "MinSizeRel"
-)
-
 
 
 set(GIT_COMMIT_HASH "_")
@@ -41,6 +34,11 @@ set(IS_EMCC FALSE)
 
 set(IS_DEBUG_BUILD FALSE)
 set(IS_RELEASE_BUILD FALSE)
+set(IS_GFX_BUILD FALSE)
+
+if(BUILD_GFX)
+    set(IS_GFX_BUILD TRUE)
+endif()
 
 
 # ================== CROSS PLATFORM OUTPUT SETUP ==================
@@ -126,7 +124,12 @@ if (IS_GCC)
 endif()
 #target_link_options(${PROJECT_NAME} PRIVATE "-static")
 
-
+if (IS_OS_LINUX)
+    find_program(MOLD_PROG mold)
+    if(MOLD_PROG)
+        set(CMAKE_LINKER_TYPE MOLD)
+    endif()
+endif()
 
 
 # ================== COMPILER FLAGS ==================
@@ -211,6 +214,11 @@ if(IS_MSVC)
 		${PANKTI_RELEASE_LINKER_FLAGS}
 	)
 endif()
+if(IS_OS_WIN AND NOT IS_MSVC)
+    list(APPEND PANKTI_DEBUG_LINKER_FLAGS "-static")
+    list(APPEND PANKTI_RELEASE_LINKER_FLAGS "-static")
+    list(APPEND PANKTI_REL_WITH_DINFO_LINKER_FLAGS "-static")
+endif()
 # ================== END LINKER FLAGS ==================
 
 add_executable(${PROJECT_NAME})
@@ -231,6 +239,17 @@ target_link_options(${PROJECT_NAME} PRIVATE
     $<$<CONFIG:RelWithDebInfo>:${PANKTI_REL_WITH_DINFO_LINKER_FLAGS}>
     $<$<CONFIG:MinSizeRel>:${PANKTI_RELEASE_LINKER_FLAGS}>
 )
+
+if(IS_GFX_BUILD)
+    add_subdirectory(src/external/raylib)
+    target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
+    add_compile_definitions(HAS_GFX_SUPPORT)
+    #if(IS_OS_LINUX)
+    #    target_link_libraries(${PROJECT_NAME} PRIVATE GLU GL X11)
+    #elseif(IS_OS_WIN)
+    #    target_link_libraries(${PROJECT_NAME} PRIVATE opengl32 gdi32)
+    #endif()
+endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE libgrapheme)
 
@@ -273,9 +292,15 @@ if(USE_NAN_BOXING)
 else()
 	message(STATUS "NaN-Boxing : Disabled")
 endif()
+if(IS_GFX_BUILD)
+    message(STATUS "GFX Support : Enabled")
+else()
+    message(STATUS "GFX Support : Disabled")
+endif()
 message(STATUS "Build Type : ${CMAKE_BUILD_TYPE}")
 message(STATUS "OS :  ${CMAKE_SYSTEM_NAME}")
 message(STATUS "Compiler :  ${CMAKE_C_COMPILER_ID}")
+message(STATUS "Linker : ${CMAKE_LINKER_TYPE}")
 
 message(STATUS "==========================================")
 message(STATUS "")

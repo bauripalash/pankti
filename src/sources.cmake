@@ -68,5 +68,11 @@ set(PANKTI_HEADER_FILES
   "${CMAKE_CURRENT_LIST_DIR}/external/stb/stb_ds.h"
 )
 
+set(PANKTI_GFX_SRC_FILES
+  "${CMAKE_CURRENT_LIST_DIR}/external/kb/kbts_impl.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdgfx.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdlib/gfxhelper/gfxfont.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdlib/gfxhelper/gfxhelper.c"
+)
 
 set(PANKTI_MAIN_FILE "${CMAKE_CURRENT_LIST_DIR}/main.c")

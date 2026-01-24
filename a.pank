@@ -1,1 +1,33 @@
-?1 + 2
+import g "gfx"
+import s "string"
+
+let banglalekha = "হ্যালো পঙক্তি"
+let englishlekha = "Hello Pankti"
+
+let winw = 640
+let winh = 480
+
+let rectw = 30
+let recth = 50
+
+g.new(winw, winh, "hello")
+
+let x = 0
+let y = winh / 2
+while g.running() do
+    g.start()
+    g.clear()
+    g.rect(x, y, rectw, recth)
+    g.text(x, y, banglalekha + " " + s.string(x), "red")
+    g.finish()
+    x = x + 0.5
+    //y = y + 1
+    if x >= winw then
+        x = 0
+    end
+    if y >= winh then
+        y = 0
+    end
+end
+
+g.stop()

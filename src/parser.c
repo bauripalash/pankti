@@ -182,6 +182,7 @@ static PExpr *rAssignment(Parser *p) {
                 );
                 return NULL;
             }
+            return assignExpr;
         }
 
         error(p, NULL, "Invalid assignment");

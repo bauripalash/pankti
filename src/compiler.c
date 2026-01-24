@@ -482,7 +482,8 @@ static bool compileModgetExpr(PCompiler *comp, PExpr *expr) {
         return false;
     }
 
-    u64 constIndex = readVariableName(comp, modgetExpr->child);
+
+    u16 constIndex = addIdentConst(comp, modgetExpr->child);
     emitBtU16(comp, modgetExpr->op, OP_MODGET, constIndex);
 
     return true;

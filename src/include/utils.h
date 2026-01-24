@@ -32,6 +32,10 @@ extern "C" {
 // `path` = Path to the file
 char *ReadFile(const char *path);
 
+
+// Check if `str` starts with `substr`
+bool StrStartsWith(const char * str, const char * substr);
+
 // Create a substring from `str` which is str[start...end];
 // (must free the returned string)
 // `str` = String which the substring will be created from
@@ -80,6 +84,8 @@ char32_t U8ToU32(const unsigned char *str);
 char *BoolToString(bool v);
 
 double NumberFromStr(const char *lexeme, u64 len, bool *ok);
+
+double ClampDouble(double value, double min, double max);
 
 // Check if double is integer
 bool IsDoubleInt(double d);

@@ -370,12 +370,13 @@ char *ValueToString(PValue val) {
         gbString str;
         double dblNum = ValueAsNum(val);
         if (IsDoubleInt(dblNum)) {
-            str = gb_make_string(StrFormat("%d", (int)floor(val)));
+            str = gb_make_string(StrFormat("%d", (int)floor(dblNum)));
         } else {
             str = gb_make_string(StrFormat("%f", ValueAsNum(val)));
         }
         result = StrDuplicate(str, (u64)gb_string_length(str));
         gb_free_string(str);
+        return result;
 
     } else if (IsValueBool(val)) {
         if (ValueAsBool(val) == true) { // just make it more verbose

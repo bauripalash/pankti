@@ -15,6 +15,7 @@ extern "C" {
 #define MAP_STDLIB_NAME    "ম্যাপ"
 #define STRING_STDLIB_NAME "string"
 #define ARRAY_STDLIB_NAME  "তালিকা"
+#define GFX_STDLIB_NAME    "gfx"
 
 typedef enum StdlibMod {
     STDLIB_NONE = 0,
@@ -23,6 +24,7 @@ typedef enum StdlibMod {
     STDLIB_MAP,
     STDLIB_ARRAY,
     STDLIB_STRING,
+    STDLIB_GRAPHICS,
 } StdlibMod;
 
 typedef struct StdlibEntry {
@@ -50,6 +52,12 @@ static inline StdlibMod GetStdlibMod(const char *name) {
         return STDLIB_ARRAY;
     } else if (StrEqual(name, STRING_STDLIB_NAME)) {
         return STDLIB_STRING;
+    } else if (StrEqual(name, GFX_STDLIB_NAME)) {
+#if defined (HAS_GFX_SUPPORT)
+        return STDLIB_GRAPHICS;
+#else
+        return STDLIB_NONE;
+#endif
     }
     return STDLIB_NONE;
 }
@@ -60,6 +68,13 @@ void PushStdlibMath(PVm *vm, SymbolTable *table);
 void PushStdlibMap(PVm *vm, SymbolTable *table);
 void PushStdlibArray(PVm *vm, SymbolTable *table);
 void PushStdlibString(PVm *vm, SymbolTable *table);
+#if defined (HAS_GFX_SUPPORT)
+void PushStdlibGraphics(PVm *vm, SymbolTable *table);
+#else
+static inline void PushStdlibGraphics(PVm *vm, SymbolTable *table){
+    return;
+}
+#endif
 void PushStdlibEntries(
     PVm *vm, SymbolTable *table, StdlibEntry *entries, u64 count
 );

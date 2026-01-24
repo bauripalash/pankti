@@ -55,6 +55,14 @@ char *ReadFile(const char *path) {
     return text;
 }
 
+bool StrStartsWith(const char * str, const char * substr){
+    if (strncmp(str, substr, strlen(substr)) == 0) {
+        return true;
+    }
+
+    return false;
+}
+
 char *SubString(const char *str, u64 start, u64 end) {
     if (str == NULL) {
         return NULL;
@@ -285,6 +293,17 @@ double NumberFromStr(const char *lexeme, u64 len, bool *ok) {
     *ok = true;
     FreeUIterator(iter);
     PFree(buf);
+    return value;
+}
+
+double ClampDouble(double value, double min, double max){
+    if (value <= min) {
+        return min;
+    }
+    if (value >= max) {
+        return max;
+    }
+
     return value;
 }
 
