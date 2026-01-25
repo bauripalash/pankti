@@ -426,6 +426,7 @@ static bool vmImportModule(PVm *vm, PValue name) {
     PObj *modObject =
         NewModuleObject(vm->gc, nameObj->v.OString.value, pathStr);
     SymbolTableSet(vm->globals, nameObj, MakeObject(modObject));
+    VmPop(vm); // remove the importPath
 
     return true;
 }
