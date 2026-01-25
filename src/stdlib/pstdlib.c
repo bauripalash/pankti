@@ -18,7 +18,7 @@ void PushStdlib(PVm *vm, SymbolTable *table, const char *name, StdlibMod mod) {
         case STDLIB_MAP: PushStdlibMap(vm, table); break;
         case STDLIB_STRING: PushStdlibString(vm, table); break;
         case STDLIB_ARRAY: PushStdlibArray(vm, table); break;
-        case STDLIB_GRAPHICS: PushStdlibGraphics(vm, table);break;
+        case STDLIB_GRAPHICS: PushStdlibGraphics(vm, table); break;
         case STDLIB_NONE: break;
     }
 }

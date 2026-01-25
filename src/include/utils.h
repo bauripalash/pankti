@@ -32,9 +32,8 @@ extern "C" {
 // `path` = Path to the file
 char *ReadFile(const char *path);
 
-
 // Check if `str` starts with `substr`
-bool StrStartsWith(const char * str, const char * substr);
+bool StrStartsWith(const char *str, const char *substr);
 
 // Create a substring from `str` which is str[start...end];
 // (must free the returned string)

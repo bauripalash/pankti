@@ -75,7 +75,7 @@ extern "C" {
 #define GFX_COLOR_SAFFRON_BN   "গেরুয়া"
 #define GFX_COLOR_SAFFRON_EN   "saffron"
 
-#define GFX_COLOR_BLANK_CODE (Color){0,0,0,0}
+#define GFX_COLOR_BLANK_CODE   (Color){0, 0, 0, 0}
 
 typedef enum ColorStrError {
     CLRSTR_OK = 0,

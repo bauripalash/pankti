@@ -55,7 +55,7 @@ char *ReadFile(const char *path) {
     return text;
 }
 
-bool StrStartsWith(const char * str, const char * substr){
+bool StrStartsWith(const char *str, const char *substr) {
     if (strncmp(str, substr, strlen(substr)) == 0) {
         return true;
     }
@@ -296,7 +296,7 @@ double NumberFromStr(const char *lexeme, u64 len, bool *ok) {
     return value;
 }
 
-double ClampDouble(double value, double min, double max){
+double ClampDouble(double value, double min, double max) {
     if (value <= min) {
         return min;
     }

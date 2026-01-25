@@ -1,9 +1,9 @@
 #ifndef PANKTI_BRLKB_H
 #define PANKTI_BRLKB_H
 
+#include "../external/raylib/raylib.h"
 #include <stdbool.h>
 #include <stddef.h>
-#include "../external/raylib/raylib.h"
 
 #include "../external/kb/kb_text_shape.h"
 #include "../external/stb/stb_truetype.h"
@@ -22,14 +22,12 @@ typedef struct PanKbCtx {
     // File size of font file
     size_t fontFileSize;
 
-
-    //kb_text_shape context
-    kbts_shape_context * kbCtx;
+    // kb_text_shape context
+    kbts_shape_context *kbCtx;
 
     // stb_truetype font
     stbtt_fontinfo sFontInfo;
 } PanKbCtx;
-
 
 // Create a new Raylib+kb_text_shape integration context Font Context
 PanKbCtx *NewPanKbCtxFontContext(void);
@@ -42,7 +40,7 @@ bool PanKbCtxDrawText(
     PanKbCtx *ctx, int xpos, int ypos, const char *text, Color color
 );
 // Load default font (Noto Serif Bengali Regular)
-bool PanKbLoadDefaultNotoFont(PanKbCtx * ctx);
+bool PanKbLoadDefaultNotoFont(PanKbCtx *ctx);
 
 #ifdef __cplusplus
 }
