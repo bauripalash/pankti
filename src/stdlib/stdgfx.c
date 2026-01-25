@@ -29,6 +29,7 @@ static void startGfx(void) {
     }
 
     winRunning = true;
+    SetTraceLogLevel(LOG_WARNING);
     InitWindow(winWidth, winHeight, winTitle);
     SetTargetFPS(60);
 }
@@ -78,6 +79,19 @@ static PValue gfx_DrawFinish(PVm *vm, PValue *args, u64 argc) {
     return MakeNil();
 }
 
+static PValue gfx_DrawPixel(PVm *vm, PValue *args, u64 argc) {
+    double xVal = ValueAsNum(args[0]);
+    double yVal = ValueAsNum(args[1]);
+    char *colorStr = ValueAsObj(args[2])->v.OString.value;
+    ColorStrError err = CLRSTR_OK;
+    Color clr = PanStrToColor(colorStr, &err);
+    if (err != CLRSTR_OK) {
+        return MakeError(vm->gc, "Invalid Color");
+    }
+    DrawPixel((int)xVal, (int)yVal, clr);
+    return MakeNil();
+}
+
 static PValue gfx_DrawRectangle(PVm *vm, PValue *args, u64 argc) {
     double xVal = ValueAsNum(args[0]);
     double yVal = ValueAsNum(args[1]);
@@ -94,7 +108,13 @@ static PValue gfx_DrawCircle(PVm *vm, PValue *args, u64 argc) {
     double xVal = ValueAsNum(args[0]);
     double yVal = ValueAsNum(args[1]);
     double rVal = ValueAsNum(args[2]);
-    DrawCircle((int)xVal, (int)yVal, (float)rVal, (Color){0, 0, 0, 255 / 2});
+    char *colorStr = ValueAsObj(args[3])->v.OString.value;
+    ColorStrError err = CLRSTR_OK;
+    Color clr = PanStrToColor(colorStr, &err);
+    if (err != CLRSTR_OK) {
+        return MakeError(vm->gc, "Invalid Color");
+    }
+    DrawCircle((int)xVal, (int)yVal, (float)rVal, clr);
     return MakeNil();
 }
 
@@ -122,6 +142,7 @@ static PValue gfx_Clear(PVm *vm, PValue *args, u64 argc) {
 #define GFX_STD_RUNNING    "running"
 #define GFX_STD_DRAWSTART  "start"
 #define GFX_STD_DRAWFINISH "finish"
+#define GFX_STD_PIXEL      "pixel"
 #define GFX_STD_RECT       "rect"
 #define GFX_STD_CIRCLE     "circle"
 #define GFX_STD_CLEAR      "clear"
@@ -134,8 +155,9 @@ void PushStdlibGraphics(PVm *vm, SymbolTable *table) {
         MakeStdlibEntry(GFX_STD_RUNNING, gfx_Running, 0),
         MakeStdlibEntry(GFX_STD_DRAWSTART, gfx_DrawStart, 0),
         MakeStdlibEntry(GFX_STD_DRAWFINISH, gfx_DrawFinish, 0),
+        MakeStdlibEntry(GFX_STD_PIXEL, gfx_DrawPixel, 3),
         MakeStdlibEntry(GFX_STD_RECT, gfx_DrawRectangle, 4),
-        MakeStdlibEntry(GFX_STD_CIRCLE, gfx_DrawCircle, 3),
+        MakeStdlibEntry(GFX_STD_CIRCLE, gfx_DrawCircle, 4),
         MakeStdlibEntry(GFX_STD_CLEAR, gfx_Clear, 0),
         MakeStdlibEntry(GFX_STD_TEXT, gfx_DrawText, 4),
     };

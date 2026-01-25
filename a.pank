@@ -14,11 +14,22 @@ g.new(winw, winh, "hello")
 
 let x = 0
 let y = winh / 2
+let z = 0.0
+let zz = 0.0
 while g.running() do
     g.start()
     g.clear()
     g.rect(x, y, rectw, recth)
     g.text(x, y, banglalekha + " " + s.string(x), "red")
+    g.circle(x,y, x, "color=0,0,255,100")
+
+    z = 0.0
+    zz = 0.0
+    while z <= x and zz <= y do
+        g.pixel(z,zz,"red")
+        zz = zz + 1
+        z = z + 1
+    end
     g.finish()
     x = x + 0.5
     //y = y + 1
@@ -31,3 +42,4 @@ while g.running() do
 end
 
 g.stop()
+show("end", "\n")

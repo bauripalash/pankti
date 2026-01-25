@@ -35,8 +35,8 @@
 #if !defined(EXTERNAL_CONFIG_FLAGS)
     #define SUPPORT_MODULE_RSHAPES          1
     #define SUPPORT_MODULE_RTEXTURES        1
-    #define SUPPORT_MODULE_RTEXT            1       // WARNING: It requires SUPPORT_MODULE_RTEXTURES to load sprite font textures
-    #define SUPPORT_MODULE_RMODELS          1
+//    #define SUPPORT_MODULE_RTEXT            1       // WARNING: It requires SUPPORT_MODULE_RTEXTURES to load sprite font textures
+//    #define SUPPORT_MODULE_RMODELS          1
     #define SUPPORT_MODULE_RAUDIO           1
 #endif
 
