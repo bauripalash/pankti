@@ -1,5 +1,7 @@
+set(IS_GFX_BUILD FALSE)
 set(RUNTIME_TEST_SRC test_runtime.c)
 set(RUNTIME_TEST_EXE pankti_runtime_tests)
+
 add_executable(${RUNTIME_TEST_EXE}
     ${RUNTIME_TEST_SRC}
 )

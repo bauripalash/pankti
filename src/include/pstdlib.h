@@ -53,7 +53,7 @@ static inline StdlibMod GetStdlibMod(const char *name) {
     } else if (StrEqual(name, STRING_STDLIB_NAME)) {
         return STDLIB_STRING;
     } else if (StrEqual(name, GFX_STDLIB_NAME)) {
-#if defined (HAS_GFX_SUPPORT)
+#if defined (HAS_GFX_SUPPORT) && !defined(NO_GFX_SUPPORT)
         return STDLIB_GRAPHICS;
 #else
         return STDLIB_NONE;
@@ -68,7 +68,7 @@ void PushStdlibMath(PVm *vm, SymbolTable *table);
 void PushStdlibMap(PVm *vm, SymbolTable *table);
 void PushStdlibArray(PVm *vm, SymbolTable *table);
 void PushStdlibString(PVm *vm, SymbolTable *table);
-#if defined (HAS_GFX_SUPPORT)
+#if defined (HAS_GFX_SUPPORT) && !defined(NO_GFX_SUPPORT)
 void PushStdlibGraphics(PVm *vm, SymbolTable *table);
 #else
 static inline void PushStdlibGraphics(PVm *vm, SymbolTable *table){

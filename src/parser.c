@@ -283,6 +283,7 @@ static PExpr *rUnary(Parser *p) {
             );
             return NULL;
         }
+        return unaryExpr;
     }
 
     return rExponent(p);

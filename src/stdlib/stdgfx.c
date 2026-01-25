@@ -30,7 +30,7 @@ static void startGfx(void){
 
     winRunning = true;
     InitWindow(winWidth, winHeight, winTitle);
-    SetTargetFPS(60);
+    //SetTargetFPS(60);
     
 }
 
@@ -75,6 +75,7 @@ static PValue gfx_Running(PVm *vm, PValue *args, u64 argc) {
 
 static PValue gfx_DrawStart(PVm *vm, PValue *args, u64 argc) {
     BeginDrawing();
+    DrawFPS(1, 1);
     return MakeNil();
 }
 
