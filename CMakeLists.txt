@@ -124,7 +124,7 @@ if (IS_GCC)
 endif()
 #target_link_options(${PROJECT_NAME} PRIVATE "-static")
 
-if (IS_OS_LINUX)
+if (IS_OS_LINUX AND (IS_GCC OR IS_CLANG))
     find_program(MOLD_PROG mold)
     if(MOLD_PROG)
         set(CMAKE_LINKER_TYPE MOLD)

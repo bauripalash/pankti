@@ -123,6 +123,10 @@ cmake_tcc:
 cmake_setup:
 	cmake -S . -B build -DCMAKE_C_COMPILER=clang
 
+.PHONY: cmake_ninja
+cmake_ninja:
+	cmake -S . -B build -DCMAKE_C_COMPILER=clang -G "Ninja"
+
 .PHONY: cmake_clang
 cmake_cc:
 	cmake -S . -B build -DCMAKE_C_COMPILER=clang
