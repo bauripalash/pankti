@@ -1,0 +1,28 @@
+import g "gfx"
+let lekha = "পঙক্তি প্রোগ্রামিং ভাষা"
+show("start gui","\n")
+g.new(500,500,"hello")
+
+let direction = 1
+let x = 0
+let y = 100
+while g.running() do
+    g.start()
+    g.clear()
+    g.rect(x,y, x + y,30)
+    g.text(x + 30, y + 30, lekha, "red")
+    g.finish()
+    x = x + direction
+    if x + x + y >= 500 then
+        direction = -1
+    end
+
+    if x <= 0 then
+        direction = 1
+    end
+
+end
+
+g.stop()
+
+show("end gui","\n")

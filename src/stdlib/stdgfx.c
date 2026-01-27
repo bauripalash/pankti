@@ -32,6 +32,7 @@ static void startGfx(void) {
     SetTraceLogLevel(LOG_WARNING);
     InitWindow(winWidth, winHeight, winTitle);
     SetTargetFPS(60);
+    LoadGuiAppIcon();
 }
 
 static void ensureGfx(void) {

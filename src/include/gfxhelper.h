@@ -92,7 +92,7 @@ typedef enum ColorStrError {
 Color ParseColorString(const char *str, ColorStrError *err);
 
 Color PanStrToColor(const char *str, ColorStrError *err);
-
+void LoadGuiAppIcon(void);
 #ifdef __cplusplus
 }
 #endif
