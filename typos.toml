@@ -1,0 +1,10 @@
+[files]
+extend-exclude = ["src/external", "tests/include", "src/gen"]
+
+[default.extend-words]
+OT = "OT"
+PN = "PN"
+IST = "IST"
+pankti = "pankti"
+palash = "palash"
+bauri = "bauri"
