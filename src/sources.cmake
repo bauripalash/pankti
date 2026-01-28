@@ -73,6 +73,7 @@ set(PANKTI_GFX_SRC_FILES
   "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdgfx.c"
   "${CMAKE_CURRENT_LIST_DIR}/stdlib/gfxhelper/gfxfont.c"
   "${CMAKE_CURRENT_LIST_DIR}/stdlib/gfxhelper/gfxhelper.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdlib/gfxhelper/gfxkeyboard.c"
 )
 
 set(PANKTI_MAIN_FILE "${CMAKE_CURRENT_LIST_DIR}/main.c")

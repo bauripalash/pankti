@@ -11,6 +11,9 @@ while g.running() do
     g.clear()
     g.rect(x,y, x + y,30)
     g.text(x + 30, y + 30, lekha, "red")
+    if g.pressed("left") then
+        x = x - 5
+    end
     g.finish()
     x = x + direction
     if x + x + y >= 500 then

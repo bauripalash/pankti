@@ -2,6 +2,7 @@
 #include "../include/gc.h"
 #include "../include/gfxfont.h"
 #include "../include/gfxhelper.h"
+#include "../include/printer.h"
 #include "../include/pstdlib.h"
 #include "../include/symtable.h"
 #include "../include/vm.h"
@@ -138,6 +139,16 @@ static PValue gfx_Clear(PVm *vm, PValue *args, u64 argc) {
     return MakeNil();
 }
 
+static PValue gfx_KeyPress(PVm *vm, PValue *args, u64 argc) {
+    char *keyStr = ValueAsObj(args[0])->v.OString.value;
+    KeyboardKey kbKey = PanStrToKeyboardKey(keyStr, -1);
+    if (kbKey == KEY_NULL) {
+        return MakeError(vm->gc, "Invalid key");
+    }
+    PanPrint("Key -> %d | Pressed -> %d\n", kbKey, GetKeyPressed());
+    return MakeBool(IsKeyPressed(kbKey));
+}
+
 #define GFX_STD_NEW        "new"
 #define GFX_STD_STOP       "stop"
 #define GFX_STD_RUNNING    "running"
@@ -148,6 +159,7 @@ static PValue gfx_Clear(PVm *vm, PValue *args, u64 argc) {
 #define GFX_STD_CIRCLE     "circle"
 #define GFX_STD_CLEAR      "clear"
 #define GFX_STD_TEXT       "text"
+#define GFX_STD_PRESSED    "pressed"
 
 void PushStdlibGraphics(PVm *vm, SymbolTable *table) {
     StdlibEntry entries[] = {
@@ -161,6 +173,7 @@ void PushStdlibGraphics(PVm *vm, SymbolTable *table) {
         MakeStdlibEntry(GFX_STD_CIRCLE, gfx_DrawCircle, 4),
         MakeStdlibEntry(GFX_STD_CLEAR, gfx_Clear, 0),
         MakeStdlibEntry(GFX_STD_TEXT, gfx_DrawText, 4),
+        MakeStdlibEntry(GFX_STD_PRESSED, gfx_KeyPress, 1),
     };
     int count = ArrCount(entries);
 

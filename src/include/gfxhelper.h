@@ -1,6 +1,7 @@
 #ifndef PANKTI_RL_HELPER_H
 #define PANKTI_RL_HELPER_H
 
+#include "ptypes.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -89,10 +90,166 @@ typedef enum ColorStrError {
     CLRSTR_UNKNOWN_CLR_NAME,
 } ColorStrError;
 
+#define GFX_KEY_ESCAPE_1      "ইস্কেপ"
+#define GFX_KEY_ESCAPE_2      "esc"
+#define GFX_KEY_ESCAPE_3      "escape"
+
+#define GFX_KEY_ENTER_1       "এন্টার"
+#define GFX_KEY_ENTER_2       "enter"
+#define GFX_KEY_ENTER_3       "enter"
+
+#define GFX_KEY_TAB_1         "ট্যাব"
+#define GFX_KEY_TAB_2         "tab"
+#define GFX_KEY_TAB_3         "tab"
+
+#define GFX_KEY_BACKSPACE_1   "ব্যাকস্পেস"
+#define GFX_KEY_BACKSPACE_2   "backspace"
+#define GFX_KEY_BACKSPACE_3   "backspace"
+
+#define GFX_KEY_INSERT_1      "ইনসার্ট"
+#define GFX_KEY_INSERT_2      "insert"
+
+#define GFX_KEY_DELETE_1      "ডিলিট"
+#define GFX_KEY_DELETE_2      "delete"
+
+#define GFX_KEY_RIGHT_1       "ডান"
+#define GFX_KEY_RIGHT_2       "right"
+#define GFX_KEY_RIGHT_3       "dan"
+
+#define GFX_KEY_LEFT_1        "বাম"
+#define GFX_KEY_LEFT_2        "left"
+#define GFX_KEY_LEFT_3        "bam"
+
+#define GFX_KEY_DOWN_1        "নীচে"
+#define GFX_KEY_DOWN_2        "down"
+#define GFX_KEY_DOWN_3        "niche"
+#define GFX_KEY_DOWN_4        "নীচ"
+#define GFX_KEY_DOWN_5        "nich"
+
+#define GFX_KEY_UP_1          "উপরে"
+#define GFX_KEY_UP_2          "up"
+#define GFX_KEY_UP_3          "upore"
+#define GFX_KEY_UP_4          "উপর"
+#define GFX_KEY_UP_5          "upor"
+
+#define GFX_KEY_PAGEUP_1      "পেজ উপর"
+#define GFX_KEY_PAGEUP_2      "page up"
+#define GFX_KEY_PAGEUP_3      "page upor"
+#define GFX_KEY_PAGEUP_4      "পেজ উপরে"
+#define GFX_KEY_PAGEUP_5      "page upore"
+
+#define GFX_KEY_PAGEDOWN_1    "পেজ নীচ" // TODO: Check spelling
+#define GFX_KEY_PAGEDOWN_2    "page down"
+#define GFX_KEY_PAGEDOWN_3    "page nich"
+#define GFX_KEY_PAGEDOWN_4    "পেজ নীচে"
+#define GFX_KEY_PAGEDOWN_5    "page niche"
+
+#define GFX_KEY_HOME_1        "হোম"
+#define GFX_KEY_HOME_2        "home"
+
+#define GFX_KEY_END_1         "এন্ড"
+#define GFX_KEY_END_2         "end"
+
+#define GFX_KEY_CAPSLOCK_1    "ক্যাপস লক"
+#define GFX_KEY_CAPSLOCK_2    "caps lock"
+
+#define GFX_KEY_SCROLLLOCK_1  "স্ক্রোল লক"
+#define GFX_KEY_SCROLLLOCK_2  "scroll lock"
+
+#define GFX_KEY_NUMLOCKS_1    "নাম লক"
+#define GFX_KEY_NUMLOCKS_2    "num lock"
+
+#define GFX_KEY_PRINTSCRN_1   "প্রিন্ট স্ক্রিন"
+#define GFX_KEY_PRINTSCRN_2   "print screen"
+
+#define GFX_KEY_PAUSE_1       "pause"
+
+#define GFX_KEY_LEFT_SHIFT_1  "লেফট শিফট"
+#define GFX_KEY_LEFT_SHIFT_2  "left shift"
+#define GFX_KEY_LEFT_SHIFT_3  "বাম শিফট"
+#define GFX_KEY_LEFT_SHIFT_4  "bam shift"
+
+#define GFX_KEY_LEFT_CTRL_1   "লেফট কন্ট্রোল"
+#define GFX_KEY_LEFT_CTRL_2   "left control"
+#define GFX_KEY_LEFT_CTRL_3   "left ctrl"
+#define GFX_KEY_LEFT_CTRL_4   "বাম কন্ট্রোল"
+#define GFX_KEY_LEFT_CTRL_5   "bam control"
+
+#define GFX_KEY_LEFT_ALT_1    "লেফট অল্ট"
+#define GFX_KEY_LEFT_ALT_2    "left alt"
+#define GFX_KEY_LEFT_ALT_3    "বাম অল্ট"
+#define GFX_KEY_LEFT_ALT_4    "bam alt"
+
+#define GFX_KEY_LEFT_SUPER_1  "লেফট সুপার"
+#define GFX_KEY_LEFT_SUPER_2  "left super"
+#define GFX_KEY_LEFT_SUPER_3  "লেফট উইন্ডোজ"
+#define GFX_KEY_LEFT_SUPER_4  "left windows"
+#define GFX_KEY_LEFT_SUPER_5  "বাম সুপার"
+#define GFX_KEY_LEFT_SUPER_6  "bam super"
+#define GFX_KEY_LEFT_SUPER_7  "বাম উইন্ডোজ"
+#define GFX_KEY_LEFT_SUPER_8  "bam windows"
+
+#define GFX_KEY_RIGHT_SHIFT_1 "রাইট শিফট"
+#define GFX_KEY_RIGHT_SHIFT_2 "right shift"
+#define GFX_KEY_RIGHT_SHIFT_3 "ডান শিফট"
+#define GFX_KEY_RIGHT_SHIFT_4 "dan shift"
+
+#define GFX_KEY_RIGHT_CTRL_1  "রাইট কন্ট্রোল"
+#define GFX_KEY_RIGHT_CTRL_2  "right control"
+#define GFX_KEY_RIGHT_CTRL_3  "right ctrl"
+#define GFX_KEY_RIGHT_CTRL_4  "ডান কন্ট্রোল"
+#define GFX_KEY_RIGHT_CTRL_5  "dan control"
+
+#define GFX_KEY_RIGHT_ALT_1   "রাইট অল্ট"
+#define GFX_KEY_RIGHT_ALT_2   "right alt"
+#define GFX_KEY_RIGHT_ALT_3   "ডান অল্ট"
+#define GFX_KEY_RIGHT_ALT_4   "dan alt"
+
+#define GFX_KEY_RIGHT_SUPER_1 "রাইট সুপার"
+#define GFX_KEY_RIGHT_SUPER_2 "right super"
+#define GFX_KEY_RIGHT_SUPER_3 "রাইট উইন্ডোজ"
+#define GFX_KEY_RIGHT_SUPER_4 "right windows"
+#define GFX_KEY_RIGHT_SUPER_5 "ডান সুপার"
+#define GFX_KEY_RIGHT_SUPER_6 "dan super"
+#define GFX_KEY_RIGHT_SUPER_7 "ডান উইন্ডোজ"
+#define GFX_KEY_RIGHT_SUPER_8 "dan windows"
+
+#define GFX_KEY_MENU_1        "menu"
+#define GFX_KEY_MENU_2        "মেনু"
+
+#define GFX_KEY_KP_DECIMAL_1  "কীপ্যাড ."
+#define GFX_KEY_KP_DECIMAL_2  "keypad ."
+#define GFX_KEY_KP_DECIMAL_3  "kp ."
+
+#define GFX_KEY_KP_DIVIDE_1   "কীপ্যাড /"
+#define GFX_KEY_KP_DIVIDE_2   "keypad /"
+#define GFX_KEY_KP_DIVIDE_3   "kp /"
+
+#define GFX_KEY_KP_MULTIPLY_1 "কীপ্যাড *"
+#define GFX_KEY_KP_MULTIPLY_2 "keypad *"
+#define GFX_KEY_KP_MULTIPLY_3 "kp *"
+
+#define GFX_KEY_KP_SUBTRACT_1 "কীপ্যাড -"
+#define GFX_KEY_KP_SUBTRACT_2 "keypad -"
+#define GFX_KEY_KP_SUBTRACT_3 "kp -"
+
+#define GFX_KEY_KP_ADD_1      "কীপ্যাড +"
+#define GFX_KEY_KP_ADD_2      "keypad +"
+#define GFX_KEY_KP_ADD_3      "kp +"
+
+#define GFX_KEY_KP_ENTER_1    "কীপ্যাড এন্টার"
+#define GFX_KEY_KP_ENTER_2    "keypad enter"
+#define GFX_KEY_KP_ENTER_3    "kp enter"
+
+#define GFX_KEY_KP_EQUAL_1    "কীপ্যাড ="
+#define GFX_KEY_KP_EQUAL_2    "keypad ="
+#define GFX_KEY_KP_EQUAL_3    "kp ="
+
 Color ParseColorString(const char *str, ColorStrError *err);
 
 Color PanStrToColor(const char *str, ColorStrError *err);
 void LoadGuiAppIcon(void);
+KeyboardKey PanStrToKeyboardKey(const char *keyStr, i64 len);
 #ifdef __cplusplus
 }
 #endif
