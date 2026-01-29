@@ -217,25 +217,65 @@ typedef enum ColorStrError {
 #define GFX_KEY_MENU_1        "menu"
 #define GFX_KEY_MENU_2        "মেনু"
 
+#define GFX_KEY_KP_ZERO_1     "কীপ্যাড ০"
+#define GFX_KEY_KP_ZERO_2     "keypad 0"
+#define GFX_KEY_KP_ZERO_3     "kp 0"
+
+#define GFX_KEY_KP_ONE_1      "কীপ্যাড ১"
+#define GFX_KEY_KP_ONE_2      "keypad 0"
+#define GFX_KEY_KP_ONE_3      "kp1"
+
+#define GFX_KEY_KP_TWO_1      "কীপ্যাড ২"
+#define GFX_KEY_KP_TWO_2      "keypad 2"
+#define GFX_KEY_KP_TWO_3      "kp2"
+
+#define GFX_KEY_KP_THREE_1    "কীপ্যাড ৩"
+#define GFX_KEY_KP_THREE_2    "keypad 3"
+#define GFX_KEY_KP_THREE_3    "kp3"
+
+#define GFX_KEY_KP_FOUR_1     "কীপ্যাড ৪"
+#define GFX_KEY_KP_FOUR_2     "keypad 4"
+#define GFX_KEY_KP_FOUR_3     "kp4"
+
+#define GFX_KEY_KP_FIVE_1     "কীপ্যাড ৫"
+#define GFX_KEY_KP_FIVE_2     "keypad 5"
+#define GFX_KEY_KP_FIVE_3     "kp5"
+
+#define GFX_KEY_KP_SIX_1      "কীপ্যাড ৬"
+#define GFX_KEY_KP_SIX_2      "keypad 6"
+#define GFX_KEY_KP_SIX_3      "kp6"
+
+#define GFX_KEY_KP_SEVEN_1    "কীপ্যাড ৭"
+#define GFX_KEY_KP_SEVEN_2    "keypad 7"
+#define GFX_KEY_KP_SEVEN_3    "kp7"
+
+#define GFX_KEY_KP_EIGHT_1    "কীপ্যাড ৮"
+#define GFX_KEY_KP_EIGHT_2    "keypad 8"
+#define GFX_KEY_KP_EIGHT_3    "kp8"
+
+#define GFX_KEY_KP_NINE_1     "কীপ্যাড ৯"
+#define GFX_KEY_KP_NINE_2     "keypad 9"
+#define GFX_KEY_KP_NINE_3     "kp9"
+
 #define GFX_KEY_KP_DECIMAL_1  "কীপ্যাড ."
 #define GFX_KEY_KP_DECIMAL_2  "keypad ."
-#define GFX_KEY_KP_DECIMAL_3  "kp ."
+#define GFX_KEY_KP_DECIMAL_3  "kp."
 
 #define GFX_KEY_KP_DIVIDE_1   "কীপ্যাড /"
 #define GFX_KEY_KP_DIVIDE_2   "keypad /"
-#define GFX_KEY_KP_DIVIDE_3   "kp /"
+#define GFX_KEY_KP_DIVIDE_3   "kp/"
 
 #define GFX_KEY_KP_MULTIPLY_1 "কীপ্যাড *"
 #define GFX_KEY_KP_MULTIPLY_2 "keypad *"
-#define GFX_KEY_KP_MULTIPLY_3 "kp *"
+#define GFX_KEY_KP_MULTIPLY_3 "kp*"
 
 #define GFX_KEY_KP_SUBTRACT_1 "কীপ্যাড -"
 #define GFX_KEY_KP_SUBTRACT_2 "keypad -"
-#define GFX_KEY_KP_SUBTRACT_3 "kp -"
+#define GFX_KEY_KP_SUBTRACT_3 "kp-"
 
 #define GFX_KEY_KP_ADD_1      "কীপ্যাড +"
 #define GFX_KEY_KP_ADD_2      "keypad +"
-#define GFX_KEY_KP_ADD_3      "kp +"
+#define GFX_KEY_KP_ADD_3      "kp+"
 
 #define GFX_KEY_KP_ENTER_1    "কীপ্যাড এন্টার"
 #define GFX_KEY_KP_ENTER_2    "keypad enter"
@@ -243,12 +283,14 @@ typedef enum ColorStrError {
 
 #define GFX_KEY_KP_EQUAL_1    "কীপ্যাড ="
 #define GFX_KEY_KP_EQUAL_2    "keypad ="
-#define GFX_KEY_KP_EQUAL_3    "kp ="
+#define GFX_KEY_KP_EQUAL_3    "kp="
+
+#define GFX_IMAGE_STR_PREFIX  "ছবি:"
 
 Color ParseColorString(const char *str, ColorStrError *err);
 
 Color PanStrToColor(const char *str, ColorStrError *err);
-void LoadGuiAppIcon(void);
+Image LoadGuiAppIcon(void);
 KeyboardKey PanStrToKeyboardKey(const char *keyStr, i64 len);
 #ifdef __cplusplus
 }

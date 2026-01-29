@@ -6,22 +6,28 @@ g.new(500,500,"hello")
 let direction = 1
 let x = 0
 let y = 100
+let img = g.load_image("images/pankti-logo.png")
 while g.running() do
     g.start()
     g.clear()
     g.rect(x,y, x + y,30)
     g.text(x + 30, y + 30, lekha, "red")
-    if g.pressed("left") then
-        x = x - 5
+    if g.pressed("left") or g.pressed("a") then
+        direction = -1
     end
+    if g.pressed("right") or g.pressed("d") then
+        direction = 1
+    end
+
+    g.draw_image(x,y,img)
     g.finish()
     x = x + direction
     if x + x + y >= 500 then
-        direction = -1
+        direction = 0
     end
 
     if x <= 0 then
-        direction = 1
+        direction = 0
     end
 
 end

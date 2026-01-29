@@ -1,12 +1,13 @@
 #include "../external/raylib/raylib.h"
+#include "../external/stb/stb_ds.h"
 #include "../include/gc.h"
 #include "../include/gfxfont.h"
 #include "../include/gfxhelper.h"
-#include "../include/printer.h"
 #include "../include/pstdlib.h"
 #include "../include/symtable.h"
 #include "../include/vm.h"
 #include "raylib.h"
+#include <math.h>
 #include <stdbool.h>
 #include <string.h>
 #include <time.h>
@@ -22,6 +23,73 @@ static int winHeight = DEFAULT_GFX_WIN_HEIGHT;
 static char winTitle[1024];
 static bool winRunning = false;
 
+static Image *imageList = NULL;
+
+static void unloadImageList(void) {
+    i64 count = arrlen(imageList);
+    for (i64 i = count; i > 0; i--) {
+        UnloadImage(arrpop(imageList));
+    }
+
+    arrfree(imageList);
+    imageList = NULL;
+}
+
+static u64 addToImageList(Image img) {
+    u64 len = arrlen(imageList);
+    arrput(imageList, img);
+    return len;
+}
+
+static i64 getImgIndexFromStr(const char *str, i64 len) {
+    u64 slen = 0;
+    if (len == -1) {
+        slen = StrLength(str);
+    } else {
+        slen = (u64)len;
+    }
+    if (StrStartsWith(str, GFX_IMAGE_STR_PREFIX)) {
+        const char *ptr = str;
+
+        ptr += sizeof(GFX_IMAGE_STR_PREFIX) - 1;
+        bool ok = false;
+        double rawNum =
+            NumberFromStr(ptr, slen - (sizeof(GFX_IMAGE_STR_PREFIX) - 1), &ok);
+
+        if (IsDoubleInt(rawNum) && rawNum >= 0) {
+            return (i64)floor(rawNum);
+        }
+    }
+    return -1;
+}
+
+static Image getImageFromIndex(i64 index, bool *ok) {
+    if (index < 0 || index >= arrlen(imageList)) {
+        *ok = false;
+        return (Image){0};
+    }
+
+    *ok = true;
+    return imageList[index];
+}
+
+static char *makeImageStr(u64 index, bool *ok) {
+    if (index < 0 || index >= arrlen(imageList)) {
+        *ok = false;
+        return NULL;
+    }
+
+    const char *fmtStr = StrFormat("%s%zu", GFX_IMAGE_STR_PREFIX, index);
+    char *result = StrDuplicate(fmtStr, strlen(fmtStr));
+
+    if (result == NULL) {
+        *ok = false;
+        return NULL;
+    }
+    *ok = true;
+    return result;
+}
+
 static void startGfx(void) {
     if (fontCtx == NULL) {
         fontCtx = NewPanKbCtxFontContext();
@@ -33,7 +101,8 @@ static void startGfx(void) {
     SetTraceLogLevel(LOG_WARNING);
     InitWindow(winWidth, winHeight, winTitle);
     SetTargetFPS(60);
-    LoadGuiAppIcon();
+    Image winIcon = LoadGuiAppIcon();
+    arrput(imageList, winIcon);
 }
 
 static void ensureGfx(void) {
@@ -47,7 +116,10 @@ static void updateStatus(void) {
     return;
 }
 
-static void stopGfx(void) { CloseWindow(); }
+static void stopGfx(void) {
+    unloadImageList();
+    CloseWindow();
+}
 
 static PValue gfx_New(PVm *vm, PValue *args, u64 argc) {
     double winW = ValueAsNum(args[0]);
@@ -145,8 +217,47 @@ static PValue gfx_KeyPress(PVm *vm, PValue *args, u64 argc) {
     if (kbKey == KEY_NULL) {
         return MakeError(vm->gc, "Invalid key");
     }
-    PanPrint("Key -> %d | Pressed -> %d\n", kbKey, GetKeyPressed());
     return MakeBool(IsKeyPressed(kbKey));
+}
+
+static PValue gfx_LoadImage(PVm *vm, PValue *args, u64 argc) {
+    char *pathStr = ValueAsObj(args[0])->v.OString.value;
+    if (!FileExists(pathStr)) {
+        return MakeError(vm->gc, "Image file cannot be found");
+    }
+    Image img = LoadImage(pathStr);
+    i64 index = addToImageList(img);
+    bool ok = false;
+    char *str = makeImageStr(index, &ok);
+    if (!ok) {
+        return MakeError(vm->gc, "Internal Error : Failed to load image");
+    }
+    PObj *obj = NewStrObject(vm->gc, NULL, str, true);
+
+    if (obj == NULL) {
+        return MakeError(vm->gc, "Internal Error : Failed to load image");
+    }
+
+    return MakeObject(obj);
+}
+
+static PValue gfx_DrawImage(PVm *vm, PValue *args, u64 argc) {
+    double xVal = ValueAsNum(args[0]);
+    double yVal = ValueAsNum(args[1]);
+    struct OString *imgStrObj = &ValueAsObj(args[2])->v.OString;
+
+    i64 index = getImgIndexFromStr(imgStrObj->value, -1);
+    if (index == -1) {
+        return MakeError(vm->gc, "Invalid image to draw");
+    }
+    bool ok = false;
+    Image img = getImageFromIndex(index, &ok);
+    if (!ok) {
+        return MakeError(vm->gc, "Invalid image to draw");
+    }
+    Texture2D imgTxt = LoadTextureFromImage(img);
+    DrawTexture(imgTxt, (int)xVal, (int)yVal, WHITE);
+    return MakeNil();
 }
 
 #define GFX_STD_NEW        "new"
@@ -160,6 +271,8 @@ static PValue gfx_KeyPress(PVm *vm, PValue *args, u64 argc) {
 #define GFX_STD_CLEAR      "clear"
 #define GFX_STD_TEXT       "text"
 #define GFX_STD_PRESSED    "pressed"
+#define GFX_STD_LOAD_IMAGE "load_image"
+#define GFX_STD_DRAW_IMAGE "draw_image"
 
 void PushStdlibGraphics(PVm *vm, SymbolTable *table) {
     StdlibEntry entries[] = {
@@ -174,6 +287,8 @@ void PushStdlibGraphics(PVm *vm, SymbolTable *table) {
         MakeStdlibEntry(GFX_STD_CLEAR, gfx_Clear, 0),
         MakeStdlibEntry(GFX_STD_TEXT, gfx_DrawText, 4),
         MakeStdlibEntry(GFX_STD_PRESSED, gfx_KeyPress, 1),
+        MakeStdlibEntry(GFX_STD_LOAD_IMAGE, gfx_LoadImage, 1),
+        MakeStdlibEntry(GFX_STD_DRAW_IMAGE, gfx_DrawImage, 3),
     };
     int count = ArrCount(entries);
 

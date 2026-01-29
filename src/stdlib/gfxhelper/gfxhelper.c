@@ -145,9 +145,10 @@ Color PanStrToColor(const char *str, ColorStrError *err) {
     return GFX_COLOR_BLANK_CODE;
 }
 
-void LoadGuiAppIcon(void) {
+Image LoadGuiAppIcon(void) {
     Image iconImg = LoadImageFromMemory(
         ".png", IMAGES_PANKTI_LOGO_PNG, IMAGES_PANKTI_LOGO_PNG_LEN
     );
     SetWindowIcon(iconImg);
+    return iconImg;
 }

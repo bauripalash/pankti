@@ -56,10 +56,6 @@ static KeyboardKey fKeyToKeyboardKey(const char *numStr, u64 len) {
     return KEY_NULL;
 }
 
-static KeyboardKey kbKeyToKeyboardKey(const char *keyStr, u64 len) {
-    return KEY_NULL;
-}
-
 #define m(n) (StrEqual(keyStr, n))
 
 KeyboardKey strMatchKeyName(const char *keyStr, i64 len) {
@@ -141,6 +137,57 @@ KeyboardKey strMatchKeyName(const char *keyStr, i64 len) {
         return KEY_RIGHT_SUPER;
     } else if (m(GFX_KEY_MENU_1) || m(GFX_KEY_MENU_2)) {
         return KEY_KB_MENU;
+    } else if (m(GFX_KEY_KP_ZERO_1) || m(GFX_KEY_KP_ZERO_2) ||
+               m(GFX_KEY_KP_ZERO_3)) {
+        return KEY_KP_0;
+    } else if (m(GFX_KEY_KP_ONE_1) || m(GFX_KEY_KP_ONE_2) ||
+               m(GFX_KEY_KP_ONE_3)) {
+        return KEY_KP_1;
+    } else if (m(GFX_KEY_KP_TWO_1) || m(GFX_KEY_KP_TWO_2) ||
+               m(GFX_KEY_KP_TWO_3)) {
+        return KEY_KP_2;
+    } else if (m(GFX_KEY_KP_THREE_1) || m(GFX_KEY_KP_THREE_2) ||
+               m(GFX_KEY_KP_THREE_3)) {
+        return KEY_KP_3;
+    } else if (m(GFX_KEY_KP_FOUR_1) || m(GFX_KEY_KP_FOUR_2) ||
+               m(GFX_KEY_KP_FOUR_3)) {
+        return KEY_KP_4;
+    } else if (m(GFX_KEY_KP_FIVE_1) || m(GFX_KEY_KP_FIVE_2) ||
+               m(GFX_KEY_KP_FIVE_3)) {
+        return KEY_KP_5;
+    } else if (m(GFX_KEY_KP_SIX_1) || m(GFX_KEY_KP_SIX_2) ||
+               m(GFX_KEY_KP_SIX_3)) {
+        return KEY_KP_6;
+    } else if (m(GFX_KEY_KP_SEVEN_1) || m(GFX_KEY_KP_SEVEN_2) ||
+               m(GFX_KEY_KP_SEVEN_3)) {
+        return KEY_KP_7;
+    } else if (m(GFX_KEY_KP_EIGHT_1) || m(GFX_KEY_KP_EIGHT_2) ||
+               m(GFX_KEY_KP_EIGHT_3)) {
+        return KEY_KP_8;
+    } else if (m(GFX_KEY_KP_NINE_1) || m(GFX_KEY_KP_NINE_2) ||
+               m(GFX_KEY_KP_NINE_3)) {
+        return KEY_KP_9;
+    } else if (m(GFX_KEY_KP_DECIMAL_1) || m(GFX_KEY_KP_DECIMAL_2) ||
+               m(GFX_KEY_KP_DECIMAL_3)) {
+        return KEY_KP_DECIMAL;
+    } else if (m(GFX_KEY_KP_DIVIDE_1) || m(GFX_KEY_KP_DIVIDE_2) ||
+               m(GFX_KEY_KP_DIVIDE_3)) {
+        return KEY_KP_DIVIDE;
+    } else if (m(GFX_KEY_KP_MULTIPLY_1) || m(GFX_KEY_KP_MULTIPLY_2) ||
+               m(GFX_KEY_KP_MULTIPLY_3)) {
+        return KEY_KP_MULTIPLY;
+    } else if (m(GFX_KEY_KP_SUBTRACT_1) || m(GFX_KEY_KP_SUBTRACT_2) ||
+               m(GFX_KEY_KP_SUBTRACT_3)) {
+        return KEY_KP_SUBTRACT;
+    } else if (m(GFX_KEY_KP_ADD_1) || m(GFX_KEY_KP_ADD_2) ||
+               m(GFX_KEY_KP_ADD_3)) {
+        return KEY_KP_ADD;
+    } else if (m(GFX_KEY_KP_ENTER_1) || m(GFX_KEY_KP_ENTER_2) ||
+               m(GFX_KEY_KP_ENTER_3)) {
+        return KEY_KP_ENTER;
+    } else if (m(GFX_KEY_KP_EQUAL_1) || m(GFX_KEY_KP_EQUAL_2) ||
+               m(GFX_KEY_KP_EQUAL_3)) {
+        return KEY_KP_EQUAL;
     }
     return KEY_NULL;
 }
@@ -162,10 +209,6 @@ KeyboardKey PanStrToKeyboardKey(const char *keyStr, i64 len) {
     if (keyStr[0] == 'f' || keyStr[0] == 'F') {
         const char *ptr = ++keyStr;
         return fKeyToKeyboardKey(ptr, keyLen - 1);
-    }
-
-    if (keyStr[0] == 'k' || keyStr[0] == 'K') {
-        const char *ptr = ++keyStr;
     }
 
     return strMatchKeyName(keyStr, len);
