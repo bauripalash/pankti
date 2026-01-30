@@ -10,7 +10,7 @@ option(
 	ON
 )
 
-option(BUILD_GFX "Build with graphics features enabled" ON)
+option(BUILD_GFX "Build with graphics features enabled" OFF)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE 
