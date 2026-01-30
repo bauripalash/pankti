@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-#define PANKB_DEFAULT_FONT_SIZE 72
+#define PANKB_DEFAULT_FONT_SIZE 28
 
 // Raylib+kb_text_shape Integration Context
 typedef struct PanKbCtx {

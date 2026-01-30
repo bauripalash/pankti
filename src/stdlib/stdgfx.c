@@ -15,7 +15,7 @@
 #define DEFAULT_GFX_WIN_WIDTH  640
 #define DEFAULT_GFX_WIN_HEIGHT 480
 #define DEFAULT_GFX_WIN_TITLE  "Pankti Graphics"
-#define DEFAULT_GFX_FONT_SIZE  72
+#define DEFAULT_GFX_FONT_SIZE  PANKB_DEFAULT_FONT_SIZE
 
 static PanKbCtx *fontCtx = NULL;
 static int winWidth = DEFAULT_GFX_WIN_WIDTH;
