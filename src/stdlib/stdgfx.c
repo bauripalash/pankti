@@ -9,6 +9,7 @@
 #include "raylib.h"
 #include <math.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 #include <time.h>
 
@@ -260,19 +261,78 @@ static PValue gfx_DrawImage(PVm *vm, PValue *args, u64 argc) {
     return MakeNil();
 }
 
-#define GFX_STD_NEW        "new"
-#define GFX_STD_STOP       "stop"
-#define GFX_STD_RUNNING    "running"
-#define GFX_STD_DRAWSTART  "start"
-#define GFX_STD_DRAWFINISH "finish"
-#define GFX_STD_PIXEL      "pixel"
-#define GFX_STD_RECT       "rect"
-#define GFX_STD_CIRCLE     "circle"
-#define GFX_STD_CLEAR      "clear"
-#define GFX_STD_TEXT       "text"
-#define GFX_STD_PRESSED    "pressed"
-#define GFX_STD_LOAD_IMAGE "load_image"
-#define GFX_STD_DRAW_IMAGE "draw_image"
+static PValue gfx_GetMousePos(PVm *vm, PValue *args, u64 argc) {
+    Vector2 mpos = GetMousePosition();
+    PValue *arrItems = NULL;
+    arrput(arrItems, MakeNumber((double)mpos.x));
+    arrput(arrItems, MakeNumber((double)mpos.y));
+    PObj *arrObj = NewArrayObject(vm->gc, NULL, arrItems, 2);
+    arrObj->marked = true;
+    return MakeObject(arrObj);
+}
+
+static PValue gfx_IsMouseButtonPressed(PVm *vm, PValue *args, u64 argc) {
+    char *keyStr = ValueAsObj(args[0])->v.OString.value;
+    int btnInt = PanStrToMouseKey(keyStr, -1);
+    if (btnInt == -1) {
+        return MakeError(vm->gc, "Invalid mouse key name");
+    }
+
+    bool result = IsMouseButtonPressed(btnInt);
+    return MakeBool(result);
+}
+
+static PValue gfx_IsMouseButtonDown(PVm *vm, PValue *args, u64 argc) {
+    char *keyStr = ValueAsObj(args[0])->v.OString.value;
+    int btnInt = PanStrToMouseKey(keyStr, -1);
+    if (btnInt == -1) {
+        return MakeError(vm->gc, "Invalid mouse key name");
+    }
+
+    bool result = IsMouseButtonDown(btnInt);
+    return MakeBool(result);
+}
+
+static PValue gfx_IsMouseButtonReleased(PVm *vm, PValue *args, u64 argc) {
+    char *keyStr = ValueAsObj(args[0])->v.OString.value;
+    int btnInt = PanStrToMouseKey(keyStr, -1);
+    if (btnInt == -1) {
+        return MakeError(vm->gc, "Invalid mouse key name");
+    }
+
+    bool result = IsMouseButtonReleased(btnInt);
+    return MakeBool(result);
+}
+
+static PValue gfx_IsMouseButtonUp(PVm *vm, PValue *args, u64 argc) {
+    char *keyStr = ValueAsObj(args[0])->v.OString.value;
+    int btnInt = PanStrToMouseKey(keyStr, -1);
+    if (btnInt == -1) {
+        return MakeError(vm->gc, "Invalid mouse key name");
+    }
+
+    bool result = IsMouseButtonUp(btnInt);
+    return MakeBool(result);
+}
+
+#define GFX_STD_NEW            "new"
+#define GFX_STD_STOP           "stop"
+#define GFX_STD_RUNNING        "running"
+#define GFX_STD_DRAWSTART      "start"
+#define GFX_STD_DRAWFINISH     "finish"
+#define GFX_STD_PIXEL          "pixel"
+#define GFX_STD_RECT           "rect"
+#define GFX_STD_CIRCLE         "circle"
+#define GFX_STD_CLEAR          "clear"
+#define GFX_STD_TEXT           "text"
+#define GFX_STD_PRESSED        "pressed"
+#define GFX_STD_LOAD_IMAGE     "load_image"
+#define GFX_STD_DRAW_IMAGE     "draw_image"
+#define GFX_STD_MOUSE          "mouse"
+#define GFX_STD_MOUSE_PRESSED  "mouse_pressed"
+#define GFX_STD_MOUSE_DOWN     "mouse_down"
+#define GFX_STD_MOUSE_RELEASED "mouse_released"
+#define GFX_STD_MOUSE_UP       "mouse_up"
 
 void PushStdlibGraphics(PVm *vm, SymbolTable *table) {
     StdlibEntry entries[] = {
@@ -289,6 +349,11 @@ void PushStdlibGraphics(PVm *vm, SymbolTable *table) {
         MakeStdlibEntry(GFX_STD_PRESSED, gfx_KeyPress, 1),
         MakeStdlibEntry(GFX_STD_LOAD_IMAGE, gfx_LoadImage, 1),
         MakeStdlibEntry(GFX_STD_DRAW_IMAGE, gfx_DrawImage, 3),
+        MakeStdlibEntry(GFX_STD_MOUSE, gfx_GetMousePos, 0),
+        MakeStdlibEntry(GFX_STD_MOUSE_PRESSED, gfx_IsMouseButtonPressed, 1),
+        MakeStdlibEntry(GFX_STD_MOUSE_DOWN, gfx_IsMouseButtonDown, 1),
+        MakeStdlibEntry(GFX_STD_MOUSE_RELEASED, gfx_IsMouseButtonReleased, 1),
+        MakeStdlibEntry(GFX_STD_MOUSE_UP, gfx_IsMouseButtonUp, 1),
     };
     int count = ArrCount(entries);
 

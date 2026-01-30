@@ -5,6 +5,23 @@
 #include <ctype.h>
 #include <stdbool.h>
 
+#define m(n) (StrEqual(keyStr, n))
+int PanStrToMouseKey(const char *keyStr, i64 len) {
+    (void)len;
+    if (m(GFX_KEY_LEFT_1) || m(GFX_KEY_LEFT_2) || m(GFX_KEY_LEFT_3)) {
+        return MOUSE_BUTTON_LEFT;
+    } else if (m(GFX_KEY_RIGHT_1) || m(GFX_KEY_RIGHT_2) || m(GFX_KEY_RIGHT_3)) {
+        return MOUSE_BUTTON_RIGHT;
+
+    } else if (m(GFX_MOUSE_KEY_MIDDLE_1) || m(GFX_MOUSE_KEY_MIDDLE_2) ||
+               m(GFX_MOUSE_KEY_MIDDLE_3) || m(GFX_MOUSE_KEY_MIDDLE_3) ||
+               m(GFX_MOUSE_KEY_MIDDLE_4) || m(GFX_MOUSE_KEY_MIDDLE_5)) {
+        return MOUSE_BUTTON_MIDDLE;
+    }
+
+    return -1;
+}
+
 static KeyboardKey asciiCharToKeyboardKey(char keyChar) {
     if (isalpha(keyChar)) {
         // Key A to key Z
@@ -55,8 +72,6 @@ static KeyboardKey fKeyToKeyboardKey(const char *numStr, u64 len) {
     }
     return KEY_NULL;
 }
-
-#define m(n) (StrEqual(keyStr, n))
 
 KeyboardKey strMatchKeyName(const char *keyStr, i64 len) {
 

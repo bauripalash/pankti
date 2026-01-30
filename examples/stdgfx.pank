@@ -17,6 +17,7 @@ let x = 50
 let y = 50
 let img = g.load_image("images/pankti-logo.png")
 let d = 1
+let rpos = [0,0]
 while g.running() do
     g.start()
     g.clear()
@@ -39,6 +40,10 @@ while g.running() do
 
     g.draw_image(x,y,img)
     g.rect(rect_x, rect_y, rect_w, rect_h)
+    g.rect(rpos[0] - 25, rpos[1] - 25, 50,50)
+    if g.mouse_pressed("left") then
+        rpos = g.mouse()
+    end
     g.finish()
 
     rect_w = rect_w + d
