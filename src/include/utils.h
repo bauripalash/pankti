@@ -32,6 +32,10 @@ extern "C" {
 // `path` = Path to the file
 char *ReadFile(const char *path);
 
+// Check if file exists
+// `path` = Path to the file
+bool DoesFileExists(const char *filepath);
+
 // Check if `str` starts with `substr`
 bool StrStartsWith(const char *str, const char *substr);
 

@@ -1,7 +1,9 @@
 #include "include/core.h"
 #include "include/printer.h"
+#include "include/utils.h"
 #include "include/version.h"
 #include <locale.h>
+#include <stdlib.h>
 
 #ifdef PANKTI_OS_WIN
 #include <fcntl.h>
@@ -30,13 +32,18 @@ int main(int argc, char **argv) {
     if (argc < 2) {
         PanPrint("Pankti Programming Language v%s\n", PANKTI_VERSION);
         PanPrint("Usage: pankti [FILENAME]\n");
-        return 1;
+        return EXIT_FAILURE;
     } else {
         char *filepath = argv[1];
+        if (!DoesFileExists(filepath)) {
+            PanPrint("Failed to open file : '%s'\n", filepath);
+            return EXIT_FAILURE;
+        }
+
         PanktiCore *core = NewCore(filepath);
         if (core == NULL) {
             PanPrint("Error: Failed to initialize Pankti Runtime\n");
-            return 2;
+            return EXIT_FAILURE;
         }
         RunCore(core);
         FreeCore(core);

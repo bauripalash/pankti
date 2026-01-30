@@ -13,7 +13,6 @@ set(PANKTI_SRC_FILES
   "${CMAKE_CURRENT_LIST_DIR}/token.c"
   "${CMAKE_CURRENT_LIST_DIR}/unicode.c"
   "${CMAKE_CURRENT_LIST_DIR}/ustring.c"
-  "${CMAKE_CURRENT_LIST_DIR}/utils.c"
 
   # Compiler Stuff
 
@@ -23,6 +22,11 @@ set(PANKTI_SRC_FILES
   "${CMAKE_CURRENT_LIST_DIR}/vm.c"
   
 
+  # Utilities
+
+  "${CMAKE_CURRENT_LIST_DIR}/utils/utilfiles.c"
+  "${CMAKE_CURRENT_LIST_DIR}/utils/utilnums.c"
+  "${CMAKE_CURRENT_LIST_DIR}/utils/utilstr.c"
   
 
   "${CMAKE_CURRENT_LIST_DIR}/gc/gc.c"
