@@ -9,7 +9,6 @@
 #include "raylib.h"
 #include <math.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <string.h>
 #include <time.h>
 
@@ -221,6 +220,33 @@ static PValue gfx_KeyPress(PVm *vm, PValue *args, u64 argc) {
     return MakeBool(IsKeyPressed(kbKey));
 }
 
+static PValue gfx_KeyDown(PVm *vm, PValue *args, u64 argc) {
+    char *keyStr = ValueAsObj(args[0])->v.OString.value;
+    KeyboardKey kbKey = PanStrToKeyboardKey(keyStr, -1);
+    if (kbKey == KEY_NULL) {
+        return MakeError(vm->gc, "Invalid key");
+    }
+    return MakeBool(IsKeyDown(kbKey));
+}
+
+static PValue gfx_KeyUp(PVm *vm, PValue *args, u64 argc) {
+    char *keyStr = ValueAsObj(args[0])->v.OString.value;
+    KeyboardKey kbKey = PanStrToKeyboardKey(keyStr, -1);
+    if (kbKey == KEY_NULL) {
+        return MakeError(vm->gc, "Invalid key");
+    }
+    return MakeBool(IsKeyUp(kbKey));
+}
+
+static PValue gfx_KeyReleased(PVm *vm, PValue *args, u64 argc) {
+    char *keyStr = ValueAsObj(args[0])->v.OString.value;
+    KeyboardKey kbKey = PanStrToKeyboardKey(keyStr, -1);
+    if (kbKey == KEY_NULL) {
+        return MakeError(vm->gc, "Invalid key");
+    }
+    return MakeBool(IsKeyReleased(kbKey));
+}
+
 static PValue gfx_LoadImage(PVm *vm, PValue *args, u64 argc) {
     char *pathStr = ValueAsObj(args[0])->v.OString.value;
     if (!FileExists(pathStr)) {
@@ -326,6 +352,9 @@ static PValue gfx_IsMouseButtonUp(PVm *vm, PValue *args, u64 argc) {
 #define GFX_STD_CLEAR          "clear"
 #define GFX_STD_TEXT           "text"
 #define GFX_STD_PRESSED        "pressed"
+#define GFX_STD_DOWN           "down"
+#define GFX_STD_RELEASED       "released"
+#define GFX_STD_UP             "up"
 #define GFX_STD_LOAD_IMAGE     "load_image"
 #define GFX_STD_DRAW_IMAGE     "draw_image"
 #define GFX_STD_MOUSE          "mouse"
@@ -347,6 +376,9 @@ void PushStdlibGraphics(PVm *vm, SymbolTable *table) {
         MakeStdlibEntry(GFX_STD_CLEAR, gfx_Clear, 0),
         MakeStdlibEntry(GFX_STD_TEXT, gfx_DrawText, 4),
         MakeStdlibEntry(GFX_STD_PRESSED, gfx_KeyPress, 1),
+        MakeStdlibEntry(GFX_STD_DOWN, gfx_KeyDown, 1),
+        MakeStdlibEntry(GFX_STD_RELEASED, gfx_KeyReleased, 1),
+        MakeStdlibEntry(GFX_STD_UP, gfx_KeyUp, 1),
         MakeStdlibEntry(GFX_STD_LOAD_IMAGE, gfx_LoadImage, 1),
         MakeStdlibEntry(GFX_STD_DRAW_IMAGE, gfx_DrawImage, 3),
         MakeStdlibEntry(GFX_STD_MOUSE, gfx_GetMousePos, 0),

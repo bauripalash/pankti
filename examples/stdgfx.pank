@@ -21,21 +21,21 @@ let rpos = [0,0]
 while g.running() do
     g.start()
     g.clear()
-    g.text(10, 10, lekha + string.string(x) + " : " + string.string(y), "red")
+    g.text(10, 10, lekha + " " + string.string(x) + " : " + string.string(y), "red")
 
-    if g.pressed("left") or g.pressed("a") then
-        x = x - 5
+    if g.down("left") or g.down("a") then
+        x = x - 1
     end
-    if g.pressed("right") or g.pressed("d") then
-        x = x + 5
-    end
-
-    if g.pressed("up") or g.pressed("w") then
-        y = y - 5
+    if g.down("right") or g.down("d") then
+        x = x + 1
     end
 
-    if g.pressed("down") or g.pressed("s") then
-        y = y + 5
+    if g.down("up") or g.down("w") then
+        y = y - 1
+    end
+
+    if g.down("down") or g.down("s") then
+        y = y + 1
     end
 
     g.draw_image(x,y,img)
