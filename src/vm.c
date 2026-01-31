@@ -262,6 +262,7 @@ static bool vmCallFunction(PVm *vm, PObj *funcObj, int argCount) {
 static bool vmCallNative(PVm *vm, PObj *funcObj, int argc) {
     struct ONative *native = &funcObj->v.ONative;
     if (native->arity != -1 && native->arity != argc) {
+        PanPrint("%d != %d", argc, native->arity);
         vmError(vm, "Native function arg count != param count");
         return false;
     }
@@ -744,6 +745,8 @@ void VmRun(PVm *vm) {
                 PValue childResult =
                     SymbolTableFind(module->table, childObj, &found);
                 if (!found) {
+
+                    PrintObject(childObj);
                     vmError(vm, "Unknown child for module");
                     break;
                 }

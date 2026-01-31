@@ -117,9 +117,9 @@ static PValue str_String(PVm *vm, PValue *args, u64 argc) {
     return MakeObject(strObj);
 }
 
-#define STR_STD_INDEX  "index"
-#define STR_STD_SPLIT  "split"
-#define STR_STD_STRING "string"
+#define STR_STD_INDEX  "সূচক"
+#define STR_STD_SPLIT  "ভাগ"
+#define STR_STD_STRING "স্ট্রিং"
 
 void PushStdlibString(PVm *vm, SymbolTable *table) {
     StdlibEntry entries[] = {

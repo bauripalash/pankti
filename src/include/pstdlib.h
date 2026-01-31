@@ -13,9 +13,9 @@ extern "C" {
 #define OS_STDLIB_NAME     "ওএস"
 #define MATH_STDLIB_NAME   "গণিত"
 #define MAP_STDLIB_NAME    "ম্যাপ"
-#define STRING_STDLIB_NAME "string"
+#define STRING_STDLIB_NAME "স্ট্রিং"
 #define ARRAY_STDLIB_NAME  "তালিকা"
-#define GFX_STDLIB_NAME    "gfx"
+#define GFX_STDLIB_NAME    "গ্রাফিক্স"
 
 typedef enum StdlibMod {
     STDLIB_NONE = 0,
