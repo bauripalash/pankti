@@ -1,7 +1,7 @@
-#include "../../include/gfxhelper.h"
-#include "../../external/raylib/raylib.h"
-#include "../../gen/panktilogo.h"
-#include "../../include/utils.h"
+#include "../include/gfxhelper.h"
+#include "../external/raylib/raylib.h"
+#include "../gen/panktilogo.h"
+#include "../include/utils.h"
 #include "raylib.h"
 #include <math.h>
 #include <stdbool.h>

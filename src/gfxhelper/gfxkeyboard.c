@@ -1,7 +1,7 @@
-#include "../../external/raylib/raylib.h"
-#include "../../include/gfxhelper.h"
-#include "../../include/ptypes.h"
-#include "../../include/utils.h"
+#include "../external/raylib/raylib.h"
+#include "../include/gfxhelper.h"
+#include "../include/ptypes.h"
+#include "../include/utils.h"
 #include <ctype.h>
 #include <stdbool.h>
 

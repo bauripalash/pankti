@@ -1,6 +1,6 @@
-#include "../../include/gfxfont.h"
-#include "../../external/kb/kb_text_shape.h"
-#include "../../gen/fonts/notoserifbn.h"
+#include "../include/gfxfont.h"
+#include "../external/kb/kb_text_shape.h"
+#include "../gen/fonts/notoserifbn.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
