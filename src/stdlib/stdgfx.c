@@ -22,7 +22,6 @@ static int winWidth = DEFAULT_GFX_WIN_WIDTH;
 static int winHeight = DEFAULT_GFX_WIN_HEIGHT;
 static char winTitle[1024];
 static bool winRunning = false;
-
 static Image *imageList = NULL;
 
 static void unloadImageList(void) {
@@ -344,24 +343,24 @@ static PValue gfx_IsMouseButtonUp(PVm *vm, PValue *args, u64 argc) {
 #define GFX_STD_NEW            "নতুন"
 #define GFX_STD_STOP           "বন্ধ"
 #define GFX_STD_RUNNING        "চলমান"
-#define GFX_STD_DRAWSTART      "অঙ্কন_শুরু"
-#define GFX_STD_DRAWFINISH     "অঙ্কন_শেষ"
+#define GFX_STD_DRAWSTART      "আঁকা_শুরু"
+#define GFX_STD_DRAWFINISH     "আঁকা_শেষ"
 #define GFX_STD_PIXEL          "বিন্দু"
 #define GFX_STD_RECT           "আয়তক্ষেত্র"
 #define GFX_STD_CIRCLE         "বৃত্ত"
 #define GFX_STD_CLEAR          "পরিষ্কার"
 #define GFX_STD_TEXT           "লেখা"
-#define GFX_STD_PRESSED        "বোতাম"
-#define GFX_STD_DOWN           "বোতাম_টেপা"
+#define GFX_STD_PRESSED        "বোতাম_চাপা"
+#define GFX_STD_DOWN           "বোতাম_নীচে"
 #define GFX_STD_RELEASED       "বোতাম_ছাড়া"
 #define GFX_STD_UP             "বোতাম_উপরে"
 #define GFX_STD_LOAD_IMAGE     "ছবি_আনয়ন"
-#define GFX_STD_DRAW_IMAGE     "ছবি_অঙ্কন"
+#define GFX_STD_DRAW_IMAGE     "ছবি_আঁকো"
 #define GFX_STD_MOUSE          "মাউস_অবস্থান"
-#define GFX_STD_MOUSE_PRESSED  "মাউস_বোতাম_টেপা"
-#define GFX_STD_MOUSE_DOWN     "মাউস_বোতাম_নীচে"
-#define GFX_STD_MOUSE_RELEASED "মাউস_বোতাম_ছাড়া"
-#define GFX_STD_MOUSE_UP       "মাউস_বোতাম_উপরে"
+#define GFX_STD_MOUSE_PRESSED  "মাউস_চাপা"
+#define GFX_STD_MOUSE_DOWN     "মাউস_নীচে"
+#define GFX_STD_MOUSE_RELEASED "মাউস_ছাড়া"
+#define GFX_STD_MOUSE_UP       "মাউস_উপরে"
 
 void PushStdlibGraphics(PVm *vm, SymbolTable *table) {
     StdlibEntry entries[] = {
