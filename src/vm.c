@@ -81,7 +81,7 @@ static void vmPrintStackTrace(PVm *vm) {
 }
 
 static void vmError(PVm *vm, const char *msg) {
-    PanPrint("Error occured:\n");
+    PanPrint("Error occurred:\n");
     vmPrintStackTrace(vm);
     CoreRuntimeError(
         vm->core, vm->frames[0].f->v.OComFunction.code->tokens[0], msg
@@ -142,7 +142,7 @@ bool VmPush(PVm *vm, PValue val) {
 
 PValue VmPop(PVm *vm) {
     if (vm->sp <= vm->stack) {
-        vmError(vm, "Pankti VM Stack Undeflow!");
+        vmError(vm, "Pankti VM Stack Underflow!");
         return MakeNil();
     }
     vm->sp--;
@@ -165,7 +165,7 @@ static bool vmBinaryOpNumber(PVm *vm, PanOpCode op, PValue left, PValue right) {
         case OP_MUL: result = leftVal * rightVal; break;
         case OP_DIV: {
             if (rightVal == 0.0) {
-                vmError(vm, "Divison by zero");
+                vmError(vm, "Division by zero");
                 return false;
             }
             result = leftVal / rightVal;
@@ -300,13 +300,13 @@ static bool vmArraySubscript(PVm *vm, PValue target, bool assign) {
     PValue indexVal = vmGetSubIndex(vm, assign);
 
     if (!IsValueNum(indexVal)) {
-        vmError(vm, "Arrays can only be indexed with non-negetive integers");
+        vmError(vm, "Arrays can only be indexed with non-negative integers");
         return false;
     }
 
     double dblIndex = ValueAsNum(indexVal);
     if (dblIndex < 0 || !IsDoubleInt(dblIndex)) {
-        vmError(vm, "Arrays can only be indexed with non-negetive integers");
+        vmError(vm, "Arrays can only be indexed with non-negative integers");
         return false;
     }
     u64 index = (u64)floor(dblIndex);

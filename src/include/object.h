@@ -14,7 +14,7 @@ extern "C" {
 #include "ptypes.h"
 #include "token.h"
 
-// Forward declration for PObj
+// Forward declaration for PObj
 typedef struct PObj PObj;
 typedef struct PInterpreter PInterpreter;
 typedef struct PEnv PEnv;

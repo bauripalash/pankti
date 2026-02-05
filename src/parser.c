@@ -256,7 +256,7 @@ static PExpr *rFactor(Parser *p) {
         Token *op = previous(p);
         PExpr *right = rUnary(p);
         if (right == NULL) {
-            error(p, NULL, "Invaid expression found in factor expression");
+            error(p, NULL, "Invalid expression found in factor expression");
         }
         expr = NewBinaryExpr(p->gc, expr, op, right);
         if (expr == NULL) {
@@ -865,8 +865,8 @@ static PStmt *rFuncStmt(Parser *p) {
     u64 paramCount = 0;
     if (!check(p, T_RIGHT_PAREN)) {
         do {
-            Token *parm = eat(p, T_IDENT, "Expected param");
-            arrput(params, parm);
+            Token *param = eat(p, T_IDENT, "Expected param");
+            arrput(params, param);
             paramCount++;
         } while (matchOne(p, T_COMMA));
     }

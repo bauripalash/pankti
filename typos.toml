@@ -1,5 +1,12 @@
 [files]
-extend-exclude = ["src/external", "tests/include", "src/gen"]
+extend-exclude = [
+    "src/external", 
+    "tests/include", 
+    "tests/frontend/test_*.c",
+    "src/gen",
+    "src/include/keywords.h"
+]
+
 
 [default.extend-words]
 OT = "OT"

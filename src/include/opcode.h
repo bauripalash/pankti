@@ -15,7 +15,7 @@ extern "C" {
 typedef enum PanOpCode {
     // Make Constant
     OP_CONST = 0,
-    // Temporary debug statment
+    // Temporary debug statement
     OP_DEBUG,
     OP_RETURN,
     OP_TRUE,

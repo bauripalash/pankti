@@ -45,7 +45,7 @@ typedef struct Lexer {
     // Timestamp seed for hashing
     u64 timestamp;
 
-    // Lexer Error occured
+    // Lexer Error occurred
     bool hasError;
 
     // Reference to Pankti Core

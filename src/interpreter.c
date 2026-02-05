@@ -190,7 +190,7 @@ static finline PValue vLiteral(PInterpreter *it, PExpr *expr, PEnv *env) {
 }
 
 // Evaluate Binary Expression
-// Basic Math: Addition, Substraction, Multiplication, Division
+// Basic Math: Addition, Subtraction, Multiplication, Division
 // Comparison: Equality Check, Not Equal,
 // Greater Than, Greater than or Equal, Less Than, Less Than or Equal
 static finline PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
@@ -254,7 +254,7 @@ static finline PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
         case T_MINUS: {
             if (!IsValueNum(l) || !IsValueNum(r)) {
                 error(
-                    it, expr->op, "Substraction can only be done with numbers"
+                    it, expr->op, "Subtraction can only be done with numbers"
                 );
                 return MakeNil();
             }
@@ -326,7 +326,7 @@ static finline PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
 }
 
 // Evaluate a variable
-// Returns the value of the variable from the `env` enviornment
+// Returns the value of the variable from the `env` environment
 static finline PValue vVariable(PInterpreter *it, PExpr *expr, PEnv *env) {
     assert(expr->type == EXPR_VARIABLE);
     bool found = false;
@@ -440,9 +440,9 @@ static finline PValue subAssignment(
 }
 
 // Assignment Operation
-// Setting new value to prexisting variable
+// Setting new value to preexisting variable
 // Replace items inside array
-// Put New Key-Value pair to map or replace prexisting one, if key exists
+// Put New Key-Value pair to map or replace preexisting one, if key exists
 static finline PValue vAssignment(PInterpreter *it, PExpr *expr, PEnv *env) {
     assert(expr->type == EXPR_ASSIGN);
 

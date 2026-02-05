@@ -119,7 +119,7 @@ or without mimalloc for fib(35).
 > Friday, November 28, 2025 6:11 PM (IST)
 
 I made some radical changes to the implementation, which I believe will be
-benificial in the long run.
+beneficial in the long run.
 
 I replaced usage of size_t with uint64_t types. The type size_t is platform
 dependent, thus array capacity, map capacity will be different on 64bit and 

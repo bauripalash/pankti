@@ -20,14 +20,14 @@ static PValue str_Index(PVm *vm, PValue *args, u64 argc) {
     if (!IsValueNum(rawIndex)) {
 
         return MakeError(
-            vm->gc, "Index(...) index argument must be a non-negetive intger"
+            vm->gc, "Index(...) index argument must be a non-negative integer"
         );
     } else {
         double dIndex = ValueAsNum(rawIndex);
         if (!IsDoubleInt(dIndex)) {
             return MakeError(
                 vm->gc,
-                "Index(...) index argument must be a non-negetive intger"
+                "Index(...) index argument must be a non-negative integer"
             );
         }
 

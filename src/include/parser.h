@@ -20,12 +20,12 @@ typedef struct Parser {
     void *core;
     // Reference to GC
     Pgc *gc;
-    // Reading Postion of token from token array
+    // Reading Position of token from token array
     int pos;
 
     // Array of Statements
     PStmt **stmts;
-    // Flag to check if error has occured
+    // Flag to check if error has occurred
     bool hasError;
 } Parser;
 

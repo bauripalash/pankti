@@ -48,20 +48,20 @@ static PValue array_Add(PVm *vm, PValue *args, u64 argc) {
         if (dblIndex < 0) {
             return MakeError(
                 vm->gc, "add(array, index, value) -> index must be a "
-                        "non-negetive integer"
+                        "non-negative integer"
             );
         }
 
         if (!IsDoubleInt(dblIndex)) {
             return MakeError(
                 vm->gc, "add(array, index, value) -> index must be a "
-                        "non-negetive integer"
+                        "non-negative integer"
             );
         }
     } else {
         return MakeError(
             vm->gc,
-            "add(array, index, value) -> index must be a non-negetive integer"
+            "add(array, index, value) -> index must be a non-negative integer"
         );
     }
     u64 arrIndex = (u64)floor(dblIndex);
@@ -131,14 +131,14 @@ static PValue array_Delete(PVm *vm, PValue *args, u64 argc) {
         if (rawIndex < 0) {
             return MakeError(
                 vm->gc,
-                "delete(array, index) -> index must be a non-negetive integer"
+                "delete(array, index) -> index must be a non-negative integer"
             );
         }
 
         if (!IsDoubleInt(rawIndex)) {
             return MakeError(
                 vm->gc,
-                "delete(array, index) -> index must be a non-negetive integer"
+                "delete(array, index) -> index must be a non-negative integer"
             );
         }
 

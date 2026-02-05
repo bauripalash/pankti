@@ -254,7 +254,7 @@ void CoreRuntimeError(PanktiCore *core, Token *token, const char *msg) {
     }
 
     printErrMsg(core, line, col, msg, token != NULL, PCERR_RUNTIME);
-    PanPrint("Runtime Error Occured!\n");
+    PanPrint("Runtime Error Occurred!\n");
     FreeCore(core);
     exit(EXIT_FAILURE);
 }
@@ -302,7 +302,7 @@ void CoreCompilerError(PanktiCore *core, Token *token, const char *msg) {
     }
 
     printErrMsg(core, line, col, msg, token != NULL, PCERR_COMPILER);
-    PanPrint("Compiler Error Occured!\n");
+    PanPrint("Compiler Error Occurred!\n");
     FreeCore(core);
     exit(EXIT_FAILURE);
 }
