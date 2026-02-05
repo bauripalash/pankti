@@ -1,17 +1,24 @@
 ![Pankti Programming Language](./images/pankti_header.png)
 # The Pankti Programming Language
 
-
 ## Introduction
-Pankti is a dynamically typed programming language for programming in Bengali,
-English, Bengali phonetic as well as Combination of both. Pankti is an easy to 
-learn programming language but it was also powerful language to create useful 
-and fast programs.
+Pankti is a dynamically typed programming language for programming in Bengali.
+Pankti lets you program in Bengali, English and also Bengali words in English
+letters. Pankti is easy to learn yet aims to be a powerful language similar to
+other popular languages such as Python or JavaScript. The syntax is designed in
+such a way that it feels familiar to how Bengali is spoken in daily life yet it
+keeps resemblance to common programming syntax.
+
+## পরিচিতি
+পঙক্তি হল একটি প্রোগ্রামিং ভাষা যা দিয়ে বাংলা, ইংরেজি তে কম্পিউটার প্রোগ্রাম তৈরি করা যায়। পঙক্তি শেখা খুব সহজ হলেও এটি অন্যান্য প্রচলিত প্রোগ্রামিং ভাষার যেমন পাইথন, জাভাস্ক্রিপ্টের মতই শক্তিশালী।
+এটি এমন ভাবে তৈরি করা হয়েছে যাতে সাধারণ জীবনে ব্যবহৃত বাচনভঙ্গির সাথে সাদৃশ্যতা বজায় থাকে সাথে সাথে অন্যান্য প্রোগ্রামিং ভাষাতে ব্যবহৃত রীতির সাথেও সাদৃশ্যতা বজায় রাখে। 
 
 ## Why
-My mother tongue is Bengali. Previously there have been few attempts to build 
-a Bengali programming language but most of them have no practical usage, so I 
-ventured into the dark world of language design.
+My native language or mother tongue as they say, is Bengali. Till date there has been multiple attempts to build Bengali Programming Languages. Most of them never crossed the boundaries of being just a toy or education tool. 
+But I wanted to do something different, I wanted to build something is much more than a education toy, I wanted to build a powerful yet easy to learn programming, thus Pankti was born. 
+While we have computer related courses in High Schools, but they are only limited to only final two classes of High Schools in most cases. 
+But National Education Policy 2020 aims to introduce coding way earlier, but Sudden shift from learn basic grammars of English to jumping to English only environment can challenging, thus learning basic of programming in their native language can make the shift smoother.
+
 
 ## Language Features
 ### Data Types:
