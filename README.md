@@ -1,12 +1,13 @@
 ![Pankti Programming Language](./images/pankti_header.png)
+
 # The Pankti Programming Language
 
 ## Introduction
 Pankti is a dynamically typed programming language for programming in Bengali.
-Pankti lets you program in Bengali, English and also Bengali words in English
+Pankti lets you program in Bengali, English, and also Bengali words in English
 letters. Pankti is easy to learn yet aims to be a powerful language similar to
-other popular languages such as Python or JavaScript. The syntax is designed in
-such a way that it feels familiar to how Bengali is spoken in daily life yet it
+other popular languages, such as Python or JavaScript. The syntax is designed in
+such a way that it feels familiar to how Bengali is spoken in daily life, yet it
 keeps resemblance to common programming syntax.
 
 ## পরিচিতি
@@ -14,10 +15,10 @@ keeps resemblance to common programming syntax.
 এটি এমন ভাবে তৈরি করা হয়েছে যাতে সাধারণ জীবনে ব্যবহৃত বাচনভঙ্গির সাথে সাদৃশ্যতা বজায় থাকে সাথে সাথে অন্যান্য প্রোগ্রামিং ভাষাতে ব্যবহৃত রীতির সাথেও সাদৃশ্যতা বজায় রাখে। 
 
 ## Why
-My native language or mother tongue as they say, is Bengali. Till date there has been multiple attempts to build Bengali Programming Languages. Most of them never crossed the boundaries of being just a toy or education tool. 
-But I wanted to do something different, I wanted to build something is much more than a education toy, I wanted to build a powerful yet easy to learn programming, thus Pankti was born. 
-While we have computer related courses in High Schools, but they are only limited to only final two classes of High Schools in most cases. 
-But National Education Policy 2020 aims to introduce coding way earlier, but Sudden shift from learn basic grammars of English to jumping to English only environment can challenging, thus learning basic of programming in their native language can make the shift smoother.
+My native language, or mother tongue as they say, is Bengali. To date, there have been multiple attempts to build Bengali Programming Languages. Most of them never crossed the boundaries of being just a toy or an educational tool. 
+But I wanted to do something different, I wanted to build something much more than an educational toy, I wanted to build a powerful yet easy to learn programming, thus Pankti was born. 
+While we have computer-related courses in High Schools, they are limited to only the final two classes of High Schools in most cases. 
+But National Education Policy 2020 aims to introduce coding way earlier, but a sudden shift from learn basic grammar of English to jumping to an English-only environment can be challenging, thus learning the basics of programming in their native language can make the shift smoother.
 
 
 ## Language Features
@@ -38,10 +39,10 @@ But National Education Policy 2020 aims to introduce coding way earlier, but Sud
 
 ## Functions:
 ```go
-    কাজ ঘুমানো(নায়ক)
-        দেখাও(নায়ক + " এখন ঘুমোচ্ছে!")
-    শেষ
-    ঘুমানো("পলাশ")
+কাজ ঘুমানো(নায়ক)
+    দেখাও(নায়ক + " এখন ঘুমোচ্ছে!")
+শেষ
+ঘুমানো("পলাশ")
 ```
 
 ```go
@@ -54,15 +55,11 @@ Output: পলাশ এখন ঘুমোচ্ছে
 ## Project Status
 > Pre-alpha. Under heavy development
 
-## Related Projects
-[![](https://github-readme-stats.vercel.app/api/pin/?username=bauripalash&repo=panktikhata)](https://github.com/bauripalash/panktikhata)
-[![](https://github-readme-stats.vercel.app/api/pin/?username=bauripalash&repo=pankti-web)](https://github.com/bauripalash/pankti-web)
-
 ## LICENSE
 > MPL v2
 
->Note: Buno the Heron, the mascot is created by Me, Palash Bauri and are
+>Note: Buno the Heron, the mascot is created by me, Palash Bauri, and is
 licensed under [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International](https://creativecommons.org/licenses/by-nc-nd/4.0/?ref=chooser-v1)
 
 ## Special Thanks:
-Thorsten Ball for writing these amazing book "Writing An Interpreter In Go" and "Writing A Compiler In Go" and Robert Nystrom for writing his awesome book "Crafting Interpreters"
+Thorsten Ball for writing these amazing books, "Writing An Interpreter In Go" and "Writing A Compiler In Go", and Robert Nystrom for writing his awesome book, "Crafting Interpreters."
