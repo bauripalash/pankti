@@ -152,6 +152,24 @@ static PValue gfx_DrawFinish(PVm *vm, PValue *args, u64 argc) {
     return MakeNil();
 }
 
+static PValue gfx_DrawLine(PVm *vm, PValue *args, u64 argc) {
+    double x1Val = ValueAsNum(args[0]);
+    double y1Val = ValueAsNum(args[1]);
+    double x2Val = ValueAsNum(args[2]);
+    double y2Val = ValueAsNum(args[3]);
+
+    char *colorStr = ValueAsObj(args[4])->v.OString.value;
+    ColorStrError err = CLRSTR_OK;
+    Color clr = PanStrToColor(colorStr, &err);
+    if (err != CLRSTR_OK) {
+        return MakeError(vm->gc, "Invalid Color");
+    }
+
+    DrawLine((int)x1Val, (int)y1Val, (int)x2Val, (int)y2Val, clr);
+
+    return MakeNil();
+}
+
 static PValue gfx_DrawPixel(PVm *vm, PValue *args, u64 argc) {
     double xVal = ValueAsNum(args[0]);
     double yVal = ValueAsNum(args[1]);
@@ -345,6 +363,7 @@ static PValue gfx_IsMouseButtonUp(PVm *vm, PValue *args, u64 argc) {
 #define GFX_STD_RUNNING        "চলমান"
 #define GFX_STD_DRAWSTART      "আঁকা_শুরু"
 #define GFX_STD_DRAWFINISH     "আঁকা_শেষ"
+#define GFX_STD_LINE           "রেখা"
 #define GFX_STD_PIXEL          "বিন্দু"
 #define GFX_STD_RECT           "আয়তক্ষেত্র"
 #define GFX_STD_CIRCLE         "বৃত্ত"
@@ -369,6 +388,7 @@ void PushStdlibGraphics(PVm *vm, SymbolTable *table) {
         MakeStdlibEntry(GFX_STD_RUNNING, gfx_Running, 0),
         MakeStdlibEntry(GFX_STD_DRAWSTART, gfx_DrawStart, 0),
         MakeStdlibEntry(GFX_STD_DRAWFINISH, gfx_DrawFinish, 0),
+        MakeStdlibEntry(GFX_STD_LINE, gfx_DrawLine, 5),
         MakeStdlibEntry(GFX_STD_PIXEL, gfx_DrawPixel, 3),
         MakeStdlibEntry(GFX_STD_RECT, gfx_DrawRectangle, 4),
         MakeStdlibEntry(GFX_STD_CIRCLE, gfx_DrawCircle, 4),
