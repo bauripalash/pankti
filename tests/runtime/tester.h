@@ -110,19 +110,19 @@ static inline bool RunGolden(const char * script){
     char scriptPath[COMMAND_BUFF_SIZE];
     char goldenPath[COMMAND_BUFF_SIZE];
     if (stat(dir, &dirInfo) == 0) { 
-        int written = snprintf(scriptPath, COMMAND_BUFF_SIZE, "%s/%s.pank", dir, script);
+        int written = snprintf(scriptPath, COMMAND_BUFF_SIZE, "%s/%s.pn", dir, script);
         if (written < 0 || written >= COMMAND_BUFF_SIZE) {
             printf("[ERROR] Failed to create script path string\n");
             return false; //todo
         }
         written = 0;
-        written = snprintf(command, COMMAND_BUFF_SIZE, "%s %s/%s.pank", panktiPath, dir, script);
+        written = snprintf(command, COMMAND_BUFF_SIZE, "%s %s/%s.pn", panktiPath, dir, script);
         if (written < 0 || written >= COMMAND_BUFF_SIZE) {
             printf("[ERROR] Failed to create command string\n");
             return false; //todo
         }
         written = 0;
-        written = snprintf(goldenPath, COMMAND_BUFF_SIZE, "%s/%s.golden.pank", dir, script);
+        written = snprintf(goldenPath, COMMAND_BUFF_SIZE, "%s/%s.golden.pn", dir, script);
         if (written < 0 || written >= COMMAND_BUFF_SIZE) {
             printf("[ERROR] Failed to create golden path string\n");
             return false; //todo

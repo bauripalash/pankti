@@ -4,8 +4,8 @@ REM Pankti Build Helper for Windows (matches `make [command]` structure in Makef
 set BIN=pankti
 set CMAKE_BUILD_DIR=build
 set ZIG_BUILD_DIR=zig-out
-set FILE=.\a.pank
-set PERFFILE=.\benchmarks\fib.pank
+set FILE=.\a.pn
+set PERFFILE=.\benchmarks\fib.pn
 set TEST_BIN=pankti_tests
 set RUNTIME_TEST_BIN=pankti_runtime_test
 set RUNTIME_SAMPLES_DIR=tests\runtime\samples

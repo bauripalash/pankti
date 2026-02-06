@@ -26,10 +26,10 @@ PERFCC=clang
 RELEASE_CC=clang
 
 # File to Run on `run` step
-FILE=./a.pank
+FILE=./a.pn
 
 # File to Run for benchmark
-PERFFILE=./benchmarks/fib.pank
+PERFFILE=./benchmarks/fib.pn
 
 # The Native Frontend Test Binary
 FRONTEND_TEST_BIN=pankti_tests
