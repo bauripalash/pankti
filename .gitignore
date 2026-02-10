@@ -13,6 +13,17 @@ _temp*.png
 cachegrind.out.*
 *callgrind.out.*
 benchmarks.html
+
+##### Emacs Stuff #####
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
 ##### C.gitignore #####
 # Prerequisites
 *.d

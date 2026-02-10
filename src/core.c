@@ -103,6 +103,7 @@ PCoreErrorType RunCore(PanktiCore *core) {
         return PCERR_CORE;
     }
     stbds_rand_seed((size_t)time(NULL));
+    srand(time(NULL));
     core->lexer->core = core;
 #if defined DEBUG_TIMES
     clock_t lxTic = clock();

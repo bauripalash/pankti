@@ -5,6 +5,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdlib.h>
 
 static inline double getGcd(double a, double b) {
     double x = (a > 0) ? a : -a;
@@ -19,6 +20,11 @@ static inline double getGcd(double a, double b) {
     }
 
     return x;
+}
+
+static inline double getRandNumRange(double min, double max) {
+    double scale = (double)rand() / (double)RAND_MAX;
+    return min + scale * (max - min);
 }
 
 static PValue math_Sqrt(PVm *vm, PValue *args, u64 argc) {
@@ -180,6 +186,19 @@ static PValue math_Ceil(PVm *vm, PValue *args, u64 argc) {
     double result = ceil(ValueAsNum(raw));
     return MakeNumber(result);
 }
+
+static PValue math_Random(PVm *vm, PValue *args, u64 argc) {
+    PValue rawMin = args[0];
+    PValue rawMax = args[1];
+
+    if (!IsValueNum(rawMin) || !IsValueNum(rawMax)) {
+        return MakeNil();
+    }
+
+    double result = getRandNumRange(ValueAsNum(rawMin), ValueAsNum(rawMax));
+    return MakeNumber(result);
+}
+
 #define MATH_STD_SQRT    "বর্গমূল"
 #define MATH_STD_LOGTEN  "লগদশ"
 #define MATH_STD_LOG     "লগ"
@@ -198,6 +217,7 @@ static PValue math_Ceil(PVm *vm, PValue *args, u64 argc) {
 #define MATH_STD_CEIL    "সিল"
 #define MATH_STD_PI      "পাই"
 #define MATH_STD_E       "ই"
+#define MATH_STD_RANDOM  "এলোমেলো"
 
 void PushStdlibMath(PVm *vm, SymbolTable *table) {
     StdlibEntry entries[] = {
@@ -216,7 +236,8 @@ void PushStdlibMath(PVm *vm, SymbolTable *table) {
         MakeStdlibEntry(MATH_STD_ABS, math_Abs, 1),
         MakeStdlibEntry(MATH_STD_ROUND, math_Round, 1),
         MakeStdlibEntry(MATH_STD_FLOOR, math_Floor, 1),
-        MakeStdlibEntry(MATH_STD_CEIL, math_Ceil, 1)
+        MakeStdlibEntry(MATH_STD_CEIL, math_Ceil, 1),
+        MakeStdlibEntry(MATH_STD_RANDOM, math_Random, 2)
 
     };
     int count = ArrCount(entries);
