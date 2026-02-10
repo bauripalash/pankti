@@ -358,28 +358,72 @@ static PValue gfx_IsMouseButtonUp(PVm *vm, PValue *args, u64 argc) {
     return MakeBool(result);
 }
 
-#define GFX_STD_NEW            "নতুন"
-#define GFX_STD_STOP           "বন্ধ"
-#define GFX_STD_RUNNING        "চলমান"
-#define GFX_STD_DRAWSTART      "আঁকা_শুরু"
-#define GFX_STD_DRAWFINISH     "আঁকা_শেষ"
-#define GFX_STD_LINE           "রেখা"
-#define GFX_STD_PIXEL          "বিন্দু"
-#define GFX_STD_RECT           "আয়তক্ষেত্র"
-#define GFX_STD_CIRCLE         "বৃত্ত"
-#define GFX_STD_CLEAR          "পরিষ্কার"
-#define GFX_STD_TEXT           "লেখা"
-#define GFX_STD_PRESSED        "বোতাম_চাপা"
-#define GFX_STD_DOWN           "বোতাম_নীচে"
-#define GFX_STD_RELEASED       "বোতাম_ছাড়া"
-#define GFX_STD_UP             "বোতাম_উপরে"
-#define GFX_STD_LOAD_IMAGE     "ছবি_আনয়ন"
-#define GFX_STD_DRAW_IMAGE     "ছবি_আঁকো"
-#define GFX_STD_MOUSE          "মাউস_অবস্থান"
-#define GFX_STD_MOUSE_PRESSED  "মাউস_চাপা"
-#define GFX_STD_MOUSE_DOWN     "মাউস_নীচে"
-#define GFX_STD_MOUSE_RELEASED "মাউস_ছাড়া"
-#define GFX_STD_MOUSE_UP       "মাউস_উপরে"
+static PValue gfx_Is2RectCollison(PVm *vm, PValue *args, u64 argc) {
+    double r1x = ValueAsNum(args[0]);
+    double r1y = ValueAsNum(args[1]);
+    double r1w = ValueAsNum(args[2]);
+    double r1h = ValueAsNum(args[3]);
+
+    double r2x = ValueAsNum(args[4]);
+    double r2y = ValueAsNum(args[5]);
+    double r2w = ValueAsNum(args[6]);
+    double r2h = ValueAsNum(args[7]);
+
+    Rectangle rect1 = (Rectangle){r1x, r1y, r1w, r1h};
+    Rectangle rect2 = (Rectangle){r2x, r2y, r2w, r2h};
+
+    bool collide = CheckCollisionRecs(rect1, rect2);
+
+    return MakeBool(collide);
+}
+
+static PValue gfx_IsPointRectCollison(PVm *vm, PValue *args, u64 argc) {
+    double px = ValueAsNum(args[0]);
+    double py = ValueAsNum(args[1]);
+
+    double rx = ValueAsNum(args[2]);
+    double ry = ValueAsNum(args[3]);
+    double rw = ValueAsNum(args[4]);
+    double rh = ValueAsNum(args[5]);
+
+    Vector2 point = (Vector2){px, py};
+    Rectangle rect = (Rectangle){rx, ry, rw, rh};
+
+    bool collide = CheckCollisionPointRec(point, rect);
+
+    return MakeBool(collide);
+}
+
+static PValue gfx_GetDelta(PVm *vm, PValue *args, u64 argc) {
+    return MakeNumber(GetFrameTime());
+}
+
+#define GFX_STD_NEW               "নতুন"
+#define GFX_STD_STOP              "বন্ধ"
+#define GFX_STD_RUNNING           "চলমান"
+#define GFX_STD_DRAWSTART         "আঁকা_শুরু"
+#define GFX_STD_DRAWFINISH        "আঁকা_শেষ"
+#define GFX_STD_LINE              "রেখা"
+#define GFX_STD_PIXEL             "বিন্দু"
+#define GFX_STD_RECT              "আয়তক্ষেত্র"
+#define GFX_STD_CIRCLE            "বৃত্ত"
+#define GFX_STD_CLEAR             "পরিষ্কার"
+#define GFX_STD_TEXT              "লেখা"
+#define GFX_STD_PRESSED           "বোতাম_চাপা"
+#define GFX_STD_DOWN              "বোতাম_নীচে"
+#define GFX_STD_RELEASED          "বোতাম_ছাড়া"
+#define GFX_STD_UP                "বোতাম_উপরে"
+#define GFX_STD_LOAD_IMAGE        "ছবি_আনয়ন"
+#define GFX_STD_DRAW_IMAGE        "ছবি_আঁকো"
+#define GFX_STD_MOUSE             "মাউস_অবস্থান"
+#define GFX_STD_MOUSE_PRESSED     "মাউস_চাপা"
+#define GFX_STD_MOUSE_DOWN        "মাউস_নীচে"
+#define GFX_STD_MOUSE_RELEASED    "মাউস_ছাড়া"
+#define GFX_STD_MOUSE_UP          "মাউস_উপরে"
+
+#define GFX_STD_COLLIDE_RECT      "স্পর্শ_আয়তক্ষেত্র"
+#define GFX_STD_COLLIDE_POINTRECT "স্পর্শ_বিন্দু_আয়তক্ষেত্র"
+#define GFX_STD_DELTA             "ডেল্টা"
 
 void PushStdlibGraphics(PVm *vm, SymbolTable *table) {
     StdlibEntry entries[] = {
@@ -405,6 +449,9 @@ void PushStdlibGraphics(PVm *vm, SymbolTable *table) {
         MakeStdlibEntry(GFX_STD_MOUSE_DOWN, gfx_IsMouseButtonDown, 1),
         MakeStdlibEntry(GFX_STD_MOUSE_RELEASED, gfx_IsMouseButtonReleased, 1),
         MakeStdlibEntry(GFX_STD_MOUSE_UP, gfx_IsMouseButtonUp, 1),
+        MakeStdlibEntry(GFX_STD_COLLIDE_RECT, gfx_Is2RectCollison, 8),
+        MakeStdlibEntry(GFX_STD_COLLIDE_POINTRECT, gfx_IsPointRectCollison, 6),
+        MakeStdlibEntry(GFX_STD_DELTA, gfx_GetDelta, 0)
     };
     int count = ArrCount(entries);
 
