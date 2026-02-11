@@ -14,43 +14,45 @@
 
   ;; Keywords (Bengali, Bengali Phonetic, English)
   '(
-    "ধরি" "dhori" "let"
-    "কাজ" "kaj" "func"
-    "যদি" "jodi" "if"
-    "তাহলে" "tahole" "then"
-    "নাহলে" "nahole" "else"
-    "যতক্ষণ" "jotokhon" "while"
-    "করো" "koro" "do"
-    "শেষ" "sesh" "end"
-    "ফেরাও" "ferao" "return"
-    "আনয়ন" "anoyon" "import"
-    "এবং" "ebong" "and"
-    "বা" "ba" "or"
-    "সত্যি" "sotti" "true"
-    "মিথ্যা" "mittha" "false"
-    "নিল" "nil"
-    "ভাঙো" "bhango" "break"
-    "গোলমাল" "golmal" "panic"
+    "dhori" "let"
+    "kaj" "func"
+    "jodi" "if"
+    "tahole" "then"
+    "nahole" "else"
+    "jotokhon" "while"
+    "koro" "do"
+    "sesh" "end"
+    "ferao" "return"
+    "anoyon" "import"
+    "ebong" "and"
+    "ba" "or"
+    "sotti" "true"
+    "mittha" "false"
+    "nil"
+    "bhango" "break"
+    "golmal" "panic"
     )
 
-    '(;; Built-in Function (Bengali)
-      ("\\<\\(দেখাও\\|আয়তন\\|সংযোগ\\|সময়\\)\\s-*(" 1 font-lock-builtin-face)
+  '(
+    ("ধরি\\|কাজ\\|যদি\\|তাহলে\\|নাহলে\\|যতক্ষণ\\|করো\\|শেষ\\|ফেরাও\\|আনয়ন\\|এবং\\|বা\\|সত্যি\\|মিথ্যা\\|নিল\\|ভাঙো\\|গোলমাল" . font-lock-keyword-face)
+    ;; Built-in Function (Bengali)
+      ("\\(দেখাও\\|আয়তন\\|সংযোগ\\|সময়\\)\\s-*(" 1 font-lock-builtin-face)
       ;; Built-in Function (Phonetic)
-      ("\\<\\(dekhao\\|ayoton\\|songjog\\|somoy\\)\\s-*(" 1 font-lock-builtin-face)
+      ("\\(dekhao\\|ayoton\\|songjog\\|somoy\\)\\s-*(" 1 font-lock-builtin-face)
       ;; Built-in Function (English)
-      ("\\<\\(show\\|len\\|append\\|clock\\)\\s-*(" 1 font-lock-builtin-face)
+      ("\\(show\\|len\\|append\\|clock\\)\\s-*(" . font-lock-builtin-face)
 
       ;; Function definitions
-      ("\\<(কাজ\\|kaj\\|func\\)\\s-+\\([[:alnum:]_\u0980-\u09FF]+\\)" 2 font-lock-function-name-face)
+      ("\\(কাজ\\|kaj\\|func\\)\\s-+\\([[:alnum:]_\u0980-\u09FF]+\\)" 2 font-lock-function-name-face)
 
       ;; Variable declarations
-      ("\\<(ধরি\\|dhori\\|flet\\)\\s-+\\([[:alnum:]_\u0980-\u09FF]+\\)" 2 font-lock-variable-name-face)
+      ("\\(ধরি\\|dhori\\|flet\\)\\s-+\\([[:alnum:]_\u0980-\u09FF]+\\)" 2 font-lock-variable-name-face)
 
       ;; Numbers
-      ("\\<[০-৯0-9]+\\(?:\\.[০-৯0-9]+\\)?\\>" . font-lock-number-face)
+      ("[0-9০-৯]+\\(\\.[0-9০-৯]+\\)?" . font-lock-constant-face)
 
       ;; Operators
-      ("\\(\\*\\*\\|==\\|!=\\|>=\\|<=\\|[+\\-*/><]\\)" . font-lock-operator)
+      ("\\(\\*\\*\\|==\\|!=\\|>=\\|<=\\|[+\\-*/><]\\)" . font-lock-operator-face)
 
       ;; String literals
       ("\"[^\"]*\"" . font-lock-string-face))
