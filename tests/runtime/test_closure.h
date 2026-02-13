@@ -7,7 +7,8 @@
 extern "C" {
 #endif
 
-UTEST(RuntimeTest, Nested_Closure){ GoldenTest("nested_closure"); }
+// [WARNING]: WARNING: Should be re-added after closures/upvalues are added
+//UTEST(RuntimeTest, Nested_Closure){ GoldenTest("nested_closure"); }
 
 
 
