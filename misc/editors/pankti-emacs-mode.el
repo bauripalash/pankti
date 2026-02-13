@@ -46,7 +46,7 @@
       ("\\(কাজ\\|kaj\\|func\\)\\s-+\\([[:alnum:]_\u0980-\u09FF]+\\)" 2 font-lock-function-name-face)
 
       ;; Variable declarations
-      ("\\(ধরি\\|dhori\\|flet\\)\\s-+\\([[:alnum:]_\u0980-\u09FF]+\\)" 2 font-lock-variable-name-face)
+      ("\\(ধরি\\|dhori\\|let\\)\\s-+\\([[:alnum:]_\u0980-\u09FF]+\\)" 2 font-lock-variable-name-face)
 
       ;; Numbers
       ("[0-9০-৯]+\\(\\.[0-9০-৯]+\\)?" . font-lock-constant-face)
