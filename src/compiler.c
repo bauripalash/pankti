@@ -501,7 +501,10 @@ static bool compileExpr(PCompiler *comp, PExpr *expr) {
         case EXPR_CALL: return compileCallExpr(comp, expr);
         case EXPR_SUBSCRIPT: return compileSubscriptExpr(comp, expr);
         case EXPR_MODGET: return compileModgetExpr(comp, expr);
-        default: break;
+        case EXPR_GROUPING: {
+            struct EGrouping *grouping = &expr->exp.EGrouping;
+            return compileExpr(comp, grouping->expr);
+        }
     }
 
     return true;
