@@ -364,7 +364,7 @@ static PValue gfx_IsMouseButtonUp(PVm *vm, PValue *args, u64 argc) {
     return MakeBool(result);
 }
 
-static PValue gfx_Is2RectCollison(PVm *vm, PValue *args, u64 argc) {
+static PValue gfx_Is2RectCollision(PVm *vm, PValue *args, u64 argc) {
     double r1x = ValueAsNum(args[0]);
     double r1y = ValueAsNum(args[1]);
     double r1w = ValueAsNum(args[2]);
@@ -383,7 +383,7 @@ static PValue gfx_Is2RectCollison(PVm *vm, PValue *args, u64 argc) {
     return MakeBool(collide);
 }
 
-static PValue gfx_IsPointRectCollison(PVm *vm, PValue *args, u64 argc) {
+static PValue gfx_IsPointRectCollision(PVm *vm, PValue *args, u64 argc) {
     double px = ValueAsNum(args[0]);
     double py = ValueAsNum(args[1]);
 
@@ -455,8 +455,8 @@ void PushStdlibGraphics(PVm *vm, SymbolTable *table) {
         MakeStdlibEntry(GFX_STD_MOUSE_DOWN, gfx_IsMouseButtonDown, 1),
         MakeStdlibEntry(GFX_STD_MOUSE_RELEASED, gfx_IsMouseButtonReleased, 1),
         MakeStdlibEntry(GFX_STD_MOUSE_UP, gfx_IsMouseButtonUp, 1),
-        MakeStdlibEntry(GFX_STD_COLLIDE_RECT, gfx_Is2RectCollison, 8),
-        MakeStdlibEntry(GFX_STD_COLLIDE_POINTRECT, gfx_IsPointRectCollison, 6),
+        MakeStdlibEntry(GFX_STD_COLLIDE_RECT, gfx_Is2RectCollision, 8),
+        MakeStdlibEntry(GFX_STD_COLLIDE_POINTRECT, gfx_IsPointRectCollision, 6),
         MakeStdlibEntry(GFX_STD_DELTA, gfx_GetDelta, 0)
     };
     int count = ArrCount(entries);

@@ -236,7 +236,7 @@ src/
         system.h            # OS Detection and Other OS related utilities
         printer.h           # Writing to output device interface
         ustring.h           # Codepoint Iterator interface
-        env.h               # Enviornment for Tree-Walking Interpreter (Deprecated)
+        env.h               # Environment for Tree-Walking Interpreter (Deprecated)
         pstdlib.h           # Pankti Standard Library definition
         vm.h                # Virtual Machine 
         ptypes.h            # Type definitions (u8, u16, u32, u64)
