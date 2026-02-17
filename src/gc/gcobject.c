@@ -83,9 +83,15 @@ PObj *NewMapObject(Pgc *gc, Token *op) {
     return o;
 }
 
-PObj *NewNativeFnObject(Pgc *gc, Token *name, NativeFn fn, int arity) {
+PObj *NewNativeFnObject(Pgc *gc, const char *name, NativeFn fn, int arity) {
     PObj *o = NewObject(gc, OT_NATIVE);
-    o->v.ONative.name = name;
+    char *nameStr = NULL;
+
+    if (name != NULL) {
+        nameStr = StrDuplicate(name, StrLength(name));
+    }
+
+    o->v.ONative.name = nameStr;
     o->v.ONative.fn = fn;
     o->v.ONative.arity = arity;
     return o;
@@ -189,6 +195,10 @@ void FreeObject(Pgc *gc, PObj *o) {
             break;
         }
         case OT_NATIVE: {
+            struct ONative *nativeFn = &o->v.ONative;
+            if (nativeFn->name != NULL) {
+                PFree(nativeFn->name);
+            }
             freeBaseObj(o);
             break;
         }

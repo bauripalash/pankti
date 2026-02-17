@@ -74,7 +74,11 @@ void PushStdlibGraphics(PVm *vm, SymbolTable *table);
 static inline void PushStdlibGraphics(PVm *vm, SymbolTable *table) { return; }
 #endif
 void PushStdlibEntries(
-    PVm *vm, SymbolTable *table, StdlibEntry *entries, u64 count
+    PVm *vm,
+    SymbolTable *table,
+    const char *module,
+    StdlibEntry *entries,
+    u64 count
 );
 
 #ifdef __cplusplus

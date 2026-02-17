@@ -180,5 +180,5 @@ void PushStdlibArray(PVm *vm, SymbolTable *table) {
 
     int count = ArrCount(entries);
 
-    PushStdlibEntries(vm, table, entries, count);
+    PushStdlibEntries(vm, table, ARRAY_STDLIB_NAME, entries, count);
 }

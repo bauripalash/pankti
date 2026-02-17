@@ -138,8 +138,8 @@ typedef struct PObj {
             NativeFn fn;
             // How many args the function needs
             int arity;
-            // Function name (Raw Token)
-            Token *name;
+            // Function name
+            char *name;
         } ONative;
 
         // Error Object. Type : `OT_ERROR`

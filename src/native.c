@@ -11,21 +11,23 @@
 #include <stdint.h>
 #include <time.h>
 
-#define NAME_CLOCK_EN  "clock"
-#define NAME_CLOCK_BN  "সময়"
-#define NAME_CLOCK_PN  "somoy"
+#define NAME_CLOCK_EN      "clock"
+#define NAME_CLOCK_BN      "সময়"
+#define NAME_CLOCK_PN      "somoy"
 
-#define NAME_SHOW_EN   "show"
-#define NAME_SHOW_BN   "দেখাও"
-#define NAME_SHOW_PN   "dekhao"
+#define NAME_SHOW_EN       "show"
+#define NAME_SHOW_BN       "দেখাও"
+#define NAME_SHOW_PN       "dekhao"
 
-#define NAME_LEN_EN    "len"
-#define NAME_LEN_BN    "আয়তন"
-#define NAME_LEN_PN    "ayoton"
+#define NAME_LEN_EN        "len"
+#define NAME_LEN_BN        "আয়তন"
+#define NAME_LEN_PN        "ayoton"
 
-#define NAME_APPEND_EN "append"
-#define NAME_APPEND_BN "সংযোগ"
-#define NAME_APPEND_PN "songjog"
+#define NAME_APPEND_EN     "append"
+#define NAME_APPEND_BN     "সংযোগ"
+#define NAME_APPEND_PN     "songjog"
+
+#define NATIVE_MODULE_NAME "সাধারণ"
 
 static PValue ntvClock(PVm *vm, PValue *args, u64 argc) {
     clock_t c = clock();
@@ -136,5 +138,7 @@ void RegisterNatives(PVm *vm, PEnv *env) {
     };
 
     u64 count = ArrCount(nativeEntries);
-    PushStdlibEntries(vm, vm->globals, nativeEntries, count);
+    PushStdlibEntries(
+        vm, vm->globals, NATIVE_MODULE_NAME, nativeEntries, count
+    );
 }

@@ -111,7 +111,7 @@ PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, u64 count);
 PObj *NewMapObject(Pgc *gc, Token *op);
 
 // Create New Native Function Object
-PObj *NewNativeFnObject(Pgc *gc, Token *name, NativeFn fn, int arity);
+PObj *NewNativeFnObject(Pgc *gc, const char *name, NativeFn fn, int arity);
 
 // Create New Error Object
 // `msg` = Error message. It will be duplicated.

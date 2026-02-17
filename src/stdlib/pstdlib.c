@@ -2,6 +2,7 @@
 #include "../include/gc.h"
 #include "../include/vm.h"
 #include <stdbool.h>
+#include <stdio.h>
 #include <time.h>
 
 void PushStdlib(PVm *vm, SymbolTable *table, const char *name, StdlibMod mod) {
@@ -24,14 +25,21 @@ void PushStdlib(PVm *vm, SymbolTable *table, const char *name, StdlibMod mod) {
 }
 
 void PushStdlibEntries(
-    PVm *vm, SymbolTable *table, StdlibEntry *entries, u64 count
+    PVm *vm,
+    SymbolTable *table,
+    const char *module,
+    StdlibEntry *entries,
+    u64 count
 ) {
     for (u64 i = 0; i < count; i++) {
         const StdlibEntry *entry = &entries[i];
         PObj *stdNameObj = NewStrObject(vm->gc, NULL, entry->name, false);
         VmPush(vm, MakeObject(stdNameObj));
+        const char *entryName = StrFormat(
+            "<%s>.%s", module != NULL ? module : "unknown", entry->name
+        );
         PObj *stdFnObj =
-            NewNativeFnObject(vm->gc, NULL, entry->fn, entry->arity);
+            NewNativeFnObject(vm->gc, entryName, entry->fn, entry->arity);
         VmPush(vm, MakeObject(stdFnObj));
         SymbolTableSet(table, stdNameObj, VmPop(vm));
         VmPop(vm);

@@ -3,7 +3,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <string.h>
 
 #include "external/gb/gb_string.h"
@@ -318,7 +317,7 @@ void PrintObject(const PObj *o) {
         case OT_NATIVE: {
             PanPrint(
                 "<native %s>",
-                o->v.ONative.name != NULL ? o->v.ONative.name->lexeme : "'Null'"
+                o->v.ONative.name != NULL ? o->v.ONative.name : "unknown"
             );
             break;
         }
@@ -488,7 +487,10 @@ char *ObjToString(PObj *obj) {
             break;
         }
         case OT_NATIVE: {
-            const char *temp = StrFormat("<Native '%s'>", "<todo>");
+            struct ONative *nfn = &obj->v.ONative;
+            const char *temp = StrFormat(
+                "<Native '%s'>", nfn->name != NULL ? nfn->name : "unknown"
+            );
             result = StrDuplicate(temp, strlen(temp));
             break;
         }

@@ -262,8 +262,14 @@ static bool vmCallFunction(PVm *vm, PObj *funcObj, int argCount) {
 static bool vmCallNative(PVm *vm, PObj *funcObj, int argc) {
     struct ONative *native = &funcObj->v.ONative;
     if (native->arity != -1 && native->arity != argc) {
-        PanPrint("%d != %d", argc, native->arity);
-        vmError(vm, "Native function arg count != param count");
+        // PanPrint("%d != %d", argc, native->arity);
+        vmError(
+            vm, StrFormat(
+                    "%s wanted %d arguments but got %d", native->name,
+                    native->arity, argc
+                )
+        );
+        // vmError(vm, "Native function arg count != param count");
         return false;
     }
 

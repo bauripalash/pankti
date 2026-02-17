@@ -117,5 +117,5 @@ void PushStdlibOs(PVm *vm, SymbolTable *table) {
     };
 
     int count = ArrCount(entries);
-    PushStdlibEntries(vm, table, entries, count);
+    PushStdlibEntries(vm, table, OS_STDLIB_NAME, entries, count);
 }
