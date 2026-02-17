@@ -30,7 +30,7 @@ extern "C" {
 
 // Read file to string (must free the returned string)
 // `path` = Path to the file
-char *ReadFile(const char *path);
+char *PanReadFile(const char *path);
 
 // Check if file exists
 // `path` = Path to the file

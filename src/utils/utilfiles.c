@@ -18,7 +18,7 @@
 #endif
 
 // Potential bug: handling of non-seekable file
-char *ReadFile(const char *path) {
+char *PanReadFile(const char *path) {
     char *text = NULL;
 
     if (path != NULL) {

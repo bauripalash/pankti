@@ -28,7 +28,7 @@
 PanktiCore *NewCore(const char *path) {
     PanktiCore *core = PCreate(PanktiCore);
     core->path = path;
-    core->source = ReadFile(core->path);
+    core->source = PanReadFile(core->path);
     if (core->source == NULL) {
         PanPrint("Failed to Read Source Code\n");
         PFree(core);
