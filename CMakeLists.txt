@@ -167,20 +167,19 @@ if(IS_MSVC)
 	# Put MSVC CFLAGS overrides
 	set(PANKTI_DEBUG_CFLAGS
 		"/Od"
-		"/Wall"
-		"_CRT_SECURE_NO_WARNINGS"
+		"/W4"
 	)
 	set(PANKTI_RELEASE_CFLAGS
 		"/GL"
 		"/Ox"
 		"/GF"
 		"/Gy"
-		"_CRT_SECURE_NO_WARNINGS"
 	)
 	set (PANKTI_REL_WITH_DINFO_CFLAGS
 		"-g3"
 		${PANKTI_RELEASE_CFLAGS}
 	)
+    add_compile_definitions("_CRT_SECURE_NO_WARNINGS")
 endif()
 
 # ================== END COMPILER FLAGS ==================
