@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 3.14)
 # Setup the project and settings
 project(raylib C)
 set(PROJECT_VERSION 5.5.0)

@@ -1719,10 +1719,10 @@ void DrawMeshInstanced(Mesh mesh, Material material, const Matrix *transforms, i
     if (material.shader.locs[SHADER_LOC_COLOR_SPECULAR] != -1)
     {
         float values[4] = {
-            (float)material.maps[SHADER_LOC_COLOR_SPECULAR].color.r/255.0f,
-            (float)material.maps[SHADER_LOC_COLOR_SPECULAR].color.g/255.0f,
-            (float)material.maps[SHADER_LOC_COLOR_SPECULAR].color.b/255.0f,
-            (float)material.maps[SHADER_LOC_COLOR_SPECULAR].color.a/255.0f
+            (float)material.maps[MATERIAL_MAP_SPECULAR].color.r/255.0f,
+            (float)material.maps[MATERIAL_MAP_SPECULAR].color.g/255.0f,
+            (float)material.maps[MATERIAL_MAP_SPECULAR].color.b/255.0f,
+            (float)material.maps[MATERIAL_MAP_SPECULAR].color.a/255.0f
         };
 
         rlSetUniform(material.shader.locs[SHADER_LOC_COLOR_SPECULAR], values, SHADER_UNIFORM_VEC4, 1);
@@ -2358,11 +2358,12 @@ void UpdateModelAnimation(Model model, ModelAnimation anim, int frame)
         Mesh mesh = model.meshes[m];
         Vector3 animVertex = { 0 };
         Vector3 animNormal = { 0 };
+        const int vValues = mesh.vertexCount*3;
+        
         int boneId = 0;
         int boneCounter = 0;
-        float boneWeight = 0.0;
+        float boneWeight = 0.0f;
         bool updated = false; // Flag to check when anim vertex information is updated
-        const int vValues = mesh.vertexCount*3;
 
         // Skip if missing bone data, causes segfault without on some models
         if ((mesh.boneWeights == NULL) || (mesh.boneIds == NULL)) continue;
@@ -2388,7 +2389,7 @@ void UpdateModelAnimation(Model model, ModelAnimation anim, int frame)
                 // Early stop when no transformation will be applied
                 if (boneWeight == 0.0f) continue;
                 animVertex = (Vector3){ mesh.vertices[vCounter], mesh.vertices[vCounter + 1], mesh.vertices[vCounter + 2] };
-                animVertex = Vector3Transform(animVertex,model.meshes[m].boneMatrices[boneId]);
+                animVertex = Vector3Transform(animVertex, model.meshes[m].boneMatrices[boneId]);
                 mesh.animVertices[vCounter] += animVertex.x*boneWeight;
                 mesh.animVertices[vCounter+1] += animVertex.y*boneWeight;
                 mesh.animVertices[vCounter+2] += animVertex.z*boneWeight;
@@ -5372,6 +5373,7 @@ static Model LoadGLTF(const char *fileName)
         if (result != cgltf_result_success) TRACELOG(LOG_INFO, "MODEL: [%s] Failed to load mesh/material buffers", fileName);
 
         int primitivesCount = 0;
+        bool dracoCompression = false;
 
         // NOTE: We will load every primitive in the glTF as a separate raylib Mesh
         // Determine total number of meshes needed from the node hierarchy
@@ -5383,9 +5385,22 @@ static Model LoadGLTF(const char *fileName)
 
             for (unsigned int p = 0; p < mesh->primitives_count; p++)
             {
-                if (mesh->primitives[p].type == cgltf_primitive_type_triangles) primitivesCount++;
+                if (mesh->primitives[p].has_draco_mesh_compression)
+                {
+                    dracoCompression = true;
+                    TRACELOG(LOG_WARNING, "MODEL: [%s] Failed to load mesh data, Draco compression not supported", fileName);
+                    break;
+                }
+                else if (mesh->primitives[p].type == cgltf_primitive_type_triangles) primitivesCount++;
             }
         }
+
+        if (dracoCompression)
+        {
+            return model;
+            TRACELOG(LOG_WARNING, "MODEL: [%s] Failed to load glTF data", fileName);
+        }
+
         TRACELOG(LOG_DEBUG, "    > Primitives (triangles only) count based on hierarchy : %i", primitivesCount);
 
         // Load our model data: meshes and materials
@@ -6243,7 +6258,10 @@ static bool GetPoseAtTimeGLTF(cgltf_interpolation_type interpolationType, cgltf_
     }
 
     // Constant animation, no need to interpolate
-    if (FloatEquals(tend, tstart)) return true;
+    if (FloatEquals(tend, tstart))
+    {
+        interpolationType = cgltf_interpolation_type_step;
+    }
 
     float duration = fmaxf((tend - tstart), EPSILON);
     float t = (time - tstart)/duration;
@@ -6517,7 +6535,7 @@ static ModelAnimation *LoadModelAnimationsGLTF(const char *fileName, int *animCo
                         };
                     }
 
-                    Transform* root = &animations[i].framePoses[j][0];
+                    Transform *root = &animations[i].framePoses[j][0];
                     root->rotation = QuaternionMultiply(worldTransform.rotation, root->rotation);
                     root->scale = Vector3Multiply(root->scale, worldTransform.scale);
                     root->translation = Vector3Multiply(root->translation, worldTransform.scale);

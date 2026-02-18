@@ -164,13 +164,19 @@ typedef struct Matrix {
 #endif
 
 // NOTE: Helper types to be used instead of array return types for *ToFloat functions
+#if !defined(RL_FLOAT3_TYPE)
 typedef struct float3 {
     float v[3];
 } float3;
+#define RL_FLOAT3_TYPE
+#endif
 
+#if !defined(RL_FLOAT16_TYPE)
 typedef struct float16 {
     float v[16];
 } float16;
+#define RL_FLOAT16_TYPE
+#endif
 
 #include <math.h>       // Required for: sinf(), cosf(), tan(), atan2f(), sqrtf(), floor(), fminf(), fmaxf(), fabsf()
 
@@ -2363,13 +2369,13 @@ RMAPI Quaternion QuaternionFromVector3ToVector3(Vector3 from, Vector3 to)
 {
     Quaternion result = { 0 };
 
-    float cos2Theta = (from.x*to.x + from.y*to.y + from.z*to.z);    // Vector3DotProduct(from, to)
+    float cos2Theta = (from.x*to.x + from.y*to.y + from.z*to.z); // Vector3DotProduct(from, to)
     Vector3 cross = { from.y*to.z - from.z*to.y, from.z*to.x - from.x*to.z, from.x*to.y - from.y*to.x }; // Vector3CrossProduct(from, to)
 
     result.x = cross.x;
     result.y = cross.y;
     result.z = cross.z;
-    result.w = 1.0f + cos2Theta;
+    result.w = sqrtf(cross.x*cross.x + cross.y*cross.y + cross.z*cross.z + cos2Theta*cos2Theta) + cos2Theta;
 
     // QuaternionNormalize(q);
     // NOTE: Normalize to essentially nlerp the original and identity to 0.5

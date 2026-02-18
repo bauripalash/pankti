@@ -280,15 +280,16 @@ void ToggleBorderlessWindowed(void)
         // 2. The style unset handles the possibility of a width="value%" like on the default shell.html file
         EM_ASM
         (
+            const canvasId = UTF8ToString($0);
             setTimeout(function()
             {
                 Module.requestFullscreen(false, true);
                 setTimeout(function()
                 {
-                    canvas.style.width="unset";
+                    document.querySelector(canvasId).style.width="unset";
                 }, 100);
             }, 100);
-        );
+        , platform.canvasId);
         FLAG_SET(CORE.Window.flags, FLAG_BORDERLESS_WINDOWED_MODE);
     }
 }
@@ -874,7 +875,8 @@ void SwapScreenBuffer(void)
         //const canvas = Module['canvas'];
         const ctx = canvas.getContext('2d');
 
-        if (!Module.__img || (Module.__img.width !== width) || (Module.__img.height !== height)) {
+        if (!Module.__img || (Module.__img.width !== width) || (Module.__img.height !== height))
+        {
             Module.__img = ctx.createImageData(width, height);
         }
 
@@ -906,9 +908,9 @@ double GetTime(void)
 }
 
 // Open URL with default system browser (if available)
-// NOTE: This function is only safe to use if you control the URL given
+// NOTE: This function is only safe to use if the provided URL is safe
 // A user could craft a malicious string performing another action
-// Only call this function yourself not with user input or make sure to check the string yourself
+// Avoid calling this function with user input non-validated strings
 void OpenURL(const char *url)
 {
     // Security check to (partially) avoid malicious code on target platform
