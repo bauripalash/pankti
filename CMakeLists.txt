@@ -168,12 +168,14 @@ if(IS_MSVC)
 	set(PANKTI_DEBUG_CFLAGS
 		"/Od"
 		"/Wall"
+		"_CRT_SECURE_NO_WARNINGS"
 	)
 	set(PANKTI_RELEASE_CFLAGS
 		"/GL"
 		"/Ox"
 		"/GF"
 		"/Gy"
+		"_CRT_SECURE_NO_WARNINGS"
 	)
 	set (PANKTI_REL_WITH_DINFO_CFLAGS
 		"-g3"
