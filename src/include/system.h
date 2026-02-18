@@ -7,7 +7,7 @@ extern "C" {
 
 #include <stdlib.h>
 // Operating System Detection
-#if !defined(USING_CMAKE_BUILD) && !defined(USING_ZIG_BUILD)
+#if !defined(USING_CMAKE_BUILD)
 // Build system didn't provide OS info, so we use compile time flags
 #if defined(__linux) || defined(__linux__) || defined(linux) ||                \
     defined(__gnu_linux__)

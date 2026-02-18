@@ -4,14 +4,8 @@ BIN=pankti
 # Build Directory of CMake
 CMAKE_BUILD_DIR=build
 
-# Zig Out Directory
-ZIG_BUILD_DIR=zig-out
-
 # CMake built binary
 CMAKE_OUTPUT=$(CMAKE_BUILD_DIR)/$(BIN)
-
-# Zig built binary
-ZIG_OUTPUT=$(ZIG_BUILD_DIR)/bin/$(BIN)
 
 # CC
 CC=cc
@@ -42,9 +36,6 @@ RUNTIME_TEST_BIN=pankti_runtime_tests
 # Runtime Test Binary Output path for CMake build
 RUNTIME_TEST_OUTPUT=$(CMAKE_BUILD_DIR)/$(RUNTIME_TEST_BIN)
 SAMPLES_DIR=tests/runtime/samples
-
-# Test Binary Output path for Zig build
-ZIG_TEST_OUTPUT=$(ZIG_BUILD_DIR)/bin/$(FRONTEND_TEST_BIN)
 
 # Arguments to pass to the testing binary
 FRONTEND_TEST_ARGS=
@@ -81,24 +72,6 @@ test: build_rls
 	@echo "==== Finished Runtime Tests ===="
 
 
-.PHONY: zbuild
-zbuild:
-	zig build
-
-.PHONY: zrun
-zrun: zbuild
-	./$(ZIG_OUTPUT) $(FILE)
-
-.PHONY: ztest
-ztest:
-	@zig build ntests -Doptimize=ReleaseFast
-	@echo "==== Running Frontend Tests ===="
-	@./$(ZIG_TEST_OUTPUT) $(FRONTEND_TEST_ARGS)
-	@echo "==== Finished Frontend Tests ===="
-	@echo "==== Running Runtime Tests ===="
-	@zig build -Doptimize=ReleaseFast
-	@PANKTI_BIN=$(ZIG_OUTPUT) python -m unittest discover -s tests --verbose
-	@echo "==== Finished Runtime Tests ===="
 
 .PHONY: runtime_tests
 runtime_tests:
@@ -177,8 +150,6 @@ infer: cmake_clean
 
 .PHONY: clean
 clean: cmake_clean
-	rm -rf .zig-cache
 	rm -rf .cache
-	rm -rf zig-out
 
 

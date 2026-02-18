@@ -3,7 +3,6 @@ setlocal enabledelayedexpansion
 REM Pankti Build Helper for Windows (matches `make [command]` structure in Makefile)
 set BIN=pankti
 set CMAKE_BUILD_DIR=build
-set ZIG_BUILD_DIR=zig-out
 set FILE=.\a.pn
 set PERFFILE=.\benchmarks\fib.pn
 set TEST_BIN=pankti_tests
@@ -14,19 +13,13 @@ set RUNTIME_TEST_ARGS=
 set BUILD_CONFIG=Debug
 
 set CMAKE_OUTPUT=%CMAKE_BUILD_DIR%\%BIN%.exe
-set ZIG_OUTPUT=%ZIG_BUILD_DIR%\bin\%BIN%.exe
 set TEST_OUTPUT=%CMAKE_BUILD_DIR%\%TEST_BIN%.exe
 set RUNTIME_TEST_OUTPUT=%CMAKE_BUILD_DIR%\%RUNTIME_TEST_BIN%.exe
-set ZIG_TEST_OUTPUT=%ZIG_BUILD_DIR%\bin\%TEST_BIN%.exe
 
 if "%1"=="" goto:run
 if "%1"=="build" goto:build
 if "%1"=="run" goto:run
 if "%1"=="test" goto:test
-
-if "%1"=="zbuild" goto:zbuild
-if "%1"=="ztest" goto:ztest
-if "%1"=="zrun" goto:zrun
 
 if "%1"=="cmake_setup" goto:cmake_setup
 if "%1"=="cmake_clang" goto:cmake_clang
@@ -72,36 +65,6 @@ set PANKTI_BIN=%CMAKE_OUTPUT%
 set SAMPLES_DIR=%RUNTIME_SAMPLES_DIR%
 %RUNTIME_TEST_OUTPUT% %RUNTIME_TEST_ARGS%
 echo ==== Finished Runtime Tests ====
-exit /b %errorlevel%
-
-:zbuild
-echo "Building with Zig"
-zig build
-if errorlevel 1 (
-	echo Build failed!
-	exit /b 1
-)
-echo Build successful!
-exit /b 0
-
-:zrun
-call :zbuild
-if errorlevel 1 exit /b 1
-echo Running file %FILE%
-%ZIG_OUTPUT% %FILE%
-exit /b %errorlevel%
-
-:ztest
-zig build ntests -Doptimize=ReleaseFast
-echo "==== Running Frontend Tests ===="
-%ZIG_TEST_OUTPUT% %TEST_ARGS%
-echo "==== Finished Frontend Tests ===="
-echo "==== Running Runtime Tests ===="
-zig build -Doptimize=ReleaseFast
-set PANKTI_BIN=%ZIG_OUTPUT%
-set SAMPLES_DIR=%RUNTIME_SAMPLES_DIR%
-python -m unittest discover -s tests --verbose
-echo "==== Finished Runtime Tests ===="
 exit /b %errorlevel%
 
 :runtime_tests
