@@ -15,7 +15,7 @@ extern "C" {
 #define MAP_STDLIB_NAME    "ছক"
 #define STRING_STDLIB_NAME "লেখা"
 #define ARRAY_STDLIB_NAME  "তালিকা"
-#define GFX_STDLIB_NAME    "গ্রাফিক্স"
+#define GFX_STDLIB_NAME    "পট"
 
 typedef enum StdlibMod {
     STDLIB_NONE = 0,
