@@ -119,7 +119,7 @@ static PValue str_String(PVm *vm, PValue *args, u64 argc) {
 
 #define STR_STD_INDEX  "সূচক"
 #define STR_STD_SPLIT  "ভাগ"
-#define STR_STD_STRING "স্ট্রিং"
+#define STR_STD_STRING "পরিবর্তন"
 
 void PushStdlibString(PVm *vm, SymbolTable *table) {
     StdlibEntry entries[] = {

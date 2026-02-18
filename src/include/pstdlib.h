@@ -12,8 +12,8 @@ extern "C" {
 
 #define OS_STDLIB_NAME     "ওএস"
 #define MATH_STDLIB_NAME   "গণিত"
-#define MAP_STDLIB_NAME    "ম্যাপ"
-#define STRING_STDLIB_NAME "স্ট্রিং"
+#define MAP_STDLIB_NAME    "ছক"
+#define STRING_STDLIB_NAME "লেখা"
 #define ARRAY_STDLIB_NAME  "তালিকা"
 #define GFX_STDLIB_NAME    "গ্রাফিক্স"
 
