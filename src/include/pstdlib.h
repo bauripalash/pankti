@@ -16,6 +16,7 @@ extern "C" {
 #define STRING_STDLIB_NAME "লেখা"
 #define ARRAY_STDLIB_NAME  "তালিকা"
 #define GFX_STDLIB_NAME    "পট"
+#define FILE_STDLIB_NAME   "file"
 
 typedef enum StdlibMod {
     STDLIB_NONE = 0,
@@ -25,6 +26,7 @@ typedef enum StdlibMod {
     STDLIB_ARRAY,
     STDLIB_STRING,
     STDLIB_GRAPHICS,
+    STDLIB_FILE,
 } StdlibMod;
 
 typedef struct StdlibEntry {
@@ -58,6 +60,8 @@ static inline StdlibMod GetStdlibMod(const char *name) {
 #else
         return STDLIB_NONE;
 #endif
+    } else if (StrEqual(name, FILE_STDLIB_NAME)) {
+        return STDLIB_FILE;
     }
     return STDLIB_NONE;
 }
@@ -73,6 +77,7 @@ void PushStdlibGraphics(PVm *vm, SymbolTable *table);
 #else
 static inline void PushStdlibGraphics(PVm *vm, SymbolTable *table) { return; }
 #endif
+void PushStdlibFile(PVm *vm, SymbolTable *table);
 void PushStdlibEntries(
     PVm *vm,
     SymbolTable *table,

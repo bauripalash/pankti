@@ -201,6 +201,26 @@ static PValue gfx_DrawRectangle(PVm *vm, PValue *args, u64 argc) {
     return MakeNil();
 }
 
+static PValue gfx_DrawRectangleLines(PVm *vm, PValue *args, u64 argc) {
+    double xVal = ValueAsNum(args[0]);
+    double yVal = ValueAsNum(args[1]);
+    double wVal = ValueAsNum(args[2]);
+    double hVal = ValueAsNum(args[3]);
+    double thickVal = ValueAsNum(args[4]);
+    char *colorStr = ValueAsObj(args[5])->v.OString.value;
+    ColorStrError err = CLRSTR_OK;
+    Color clr = PanStrToColor(colorStr, &err);
+    if (err != CLRSTR_OK) {
+        return MakeError(vm->gc, "Invalid Color");
+    }
+
+    DrawRectangleLinesEx(
+        (Rectangle){(int)xVal, (int)yVal, (int)wVal, (int)hVal}, (int)thickVal,
+        clr
+    );
+    return MakeNil();
+}
+
 static PValue gfx_DrawCircle(PVm *vm, PValue *args, u64 argc) {
     double xVal = ValueAsNum(args[0]);
     double yVal = ValueAsNum(args[1]);
@@ -212,6 +232,23 @@ static PValue gfx_DrawCircle(PVm *vm, PValue *args, u64 argc) {
         return MakeError(vm->gc, "Invalid Color");
     }
     DrawCircle((int)xVal, (int)yVal, (float)rVal, clr);
+    return MakeNil();
+}
+
+static PValue gfx_DrawCircleLines(PVm *vm, PValue *args, u64 argc) {
+    double xVal = ValueAsNum(args[0]);
+    double yVal = ValueAsNum(args[1]);
+    double rVal = ValueAsNum(args[2]);
+    double thickVal = ValueAsNum(args[3]);
+    char *colorStr = ValueAsObj(args[4])->v.OString.value;
+    ColorStrError err = CLRSTR_OK;
+    Color clr = PanStrToColor(colorStr, &err);
+    if (err != CLRSTR_OK) {
+        return MakeError(vm->gc, "Invalid Color");
+    }
+    // DrawCircle((int)xVal, (int)yVal, (float)rVal, clr);
+    //[TODO]: Make Circle Line
+
     return MakeNil();
 }
 
@@ -412,20 +449,22 @@ static PValue gfx_GetDelta(PVm *vm, PValue *args, u64 argc) {
 #define GFX_STD_LINE              "রেখা"
 #define GFX_STD_PIXEL             "বিন্দু"
 #define GFX_STD_RECT              "আয়তক্ষেত্র"
+#define GFX_STD_RECT_LINE         "আয়তক্ষেত্র_রেখা"
 #define GFX_STD_CIRCLE            "বৃত্ত"
+#define GFX_STD_CIRCLE_LINE       "বৃত্ত_রেখা"
 #define GFX_STD_CLEAR             "পরিষ্কার"
 #define GFX_STD_TEXT              "লেখা"
 #define GFX_STD_PRESSED           "বোতাম_চাপা"
-#define GFX_STD_DOWN              "বোতাম_নীচে"
+#define GFX_STD_DOWN              "বোতাম_চাপা_আছে"
 #define GFX_STD_RELEASED          "বোতাম_ছাড়া"
-#define GFX_STD_UP                "বোতাম_উপরে"
+#define GFX_STD_UP                "বোতাম_ছাড়া_আছে"
 #define GFX_STD_LOAD_IMAGE        "ছবি_আনয়ন"
 #define GFX_STD_DRAW_IMAGE        "ছবি_আঁকো"
 #define GFX_STD_MOUSE             "মাউস_অবস্থান"
 #define GFX_STD_MOUSE_PRESSED     "মাউস_চাপা"
-#define GFX_STD_MOUSE_DOWN        "মাউস_নীচে"
+#define GFX_STD_MOUSE_DOWN        "মাউস_চাপা_আছে"
 #define GFX_STD_MOUSE_RELEASED    "মাউস_ছাড়া"
-#define GFX_STD_MOUSE_UP          "মাউস_উপরে"
+#define GFX_STD_MOUSE_UP          "মাউস_ছাড়া_আছে"
 
 #define GFX_STD_COLLIDE_RECT      "স্পর্শ_আয়তক্ষেত্র"
 #define GFX_STD_COLLIDE_POINTRECT "স্পর্শ_বিন্দু_আয়তক্ষেত্র"
@@ -441,7 +480,9 @@ void PushStdlibGraphics(PVm *vm, SymbolTable *table) {
         MakeStdlibEntry(GFX_STD_LINE, gfx_DrawLine, 5),
         MakeStdlibEntry(GFX_STD_PIXEL, gfx_DrawPixel, 3),
         MakeStdlibEntry(GFX_STD_RECT, gfx_DrawRectangle, 5),
+        MakeStdlibEntry(GFX_STD_RECT_LINE, gfx_DrawRectangleLines, 6),
         MakeStdlibEntry(GFX_STD_CIRCLE, gfx_DrawCircle, 4),
+        // MakeStdlibEntry(GFX_STD_CIRCLE_LINE, gfx_DrawCircleLines, 5),
         MakeStdlibEntry(GFX_STD_CLEAR, gfx_Clear, 0),
         MakeStdlibEntry(GFX_STD_TEXT, gfx_DrawText, 4),
         MakeStdlibEntry(GFX_STD_PRESSED, gfx_KeyPress, 1),

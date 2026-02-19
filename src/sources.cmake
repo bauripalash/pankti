@@ -41,6 +41,7 @@ set(PANKTI_SRC_FILES
   "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdmath.c"
   "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdos.c"
   "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdstring.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdfile.c"
 
   # External
   "${CMAKE_CURRENT_LIST_DIR}/external/stb/stb_ds_impl.c"

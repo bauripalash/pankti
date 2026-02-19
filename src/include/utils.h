@@ -36,6 +36,22 @@ char *PanReadFile(const char *path);
 // `path` = Path to the file
 bool DoesFileExists(const char *filepath);
 
+// Check if path is a directory
+bool PanIsPathDir(const char *filepath);
+
+// Check if path is a file
+bool PanIsPathFile(const char *filepath);
+
+// Write string to file
+// no extra checks done
+bool PanWriteFile(const char *filepath, const char *str);
+
+// Create new file
+bool PanCreateFile(const char *filepath);
+
+// Create a new directory
+bool PanCreateDir(const char *filepath);
+
 // Check if `str` starts with `substr`
 bool StrStartsWith(const char *str, const char *substr);
 

@@ -1,1 +1,8 @@
-?(1+2+3)*3/4
+import f "file"
+
+?f.exists("build/pankti")
+let s = f.read("a.pn")
+?s
+//f.newdir("mango")
+//f.newfile("mango/a.x")
+//f.write("mango/a.x", "hello\u0980\n")
