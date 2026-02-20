@@ -6,7 +6,7 @@ set CMAKE_BUILD_DIR=build
 set FILE=.\a.pn
 set PERFFILE=.\benchmarks\fib.pn
 set TEST_BIN=pankti_tests
-set RUNTIME_TEST_BIN=pankti_runtime_test
+set RUNTIME_TEST_BIN=pankti_runtime_tests
 set RUNTIME_SAMPLES_DIR=tests\runtime\samples
 set TEST_ARGS=
 set RUNTIME_TEST_ARGS=
@@ -31,7 +31,7 @@ if "%1"=="build_dbg" goto:build_dbg
 if "%1"=="build_rld" goto:build_rld
 
 echo Unknown command %1
-echo Usage "winbuild.bat [COMMAND]"
+echo Usage "build.bat [COMMAND]"
 exit /b 1
 
 
@@ -61,14 +61,15 @@ echo ==== Running Frontend Tests ====
 %TEST_OUTPUT% %TEST_ARGS%
 echo ==== Finished Frontend Tests ====
 echo ==== Running Runtime Tests ====
-set PANKTI_BIN=%CMAKE_OUTPUT%
-set SAMPLES_DIR=%RUNTIME_SAMPLES_DIR%
-%RUNTIME_TEST_OUTPUT% %RUNTIME_TEST_ARGS%
+call :runtime_tests
 echo ==== Finished Runtime Tests ====
 exit /b %errorlevel%
 
 :runtime_tests
-python -m unittest discover -s tests --verbose
+cmake --build build --target %RUNTIME_TEST_BIN%
+set PANKTI_BIN=%CMAKE_OUTPUT%
+set SAMPLES_DIR=%RUNTIME_SAMPLES_DIR%
+%RUNTIME_TEST_OUTPUT%
 exit /b %errorlevel%
 
 :cmake_setup

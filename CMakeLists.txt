@@ -169,7 +169,9 @@ if(IS_MSVC)
 	# Put MSVC CFLAGS overrides
 	set(PANKTI_DEBUG_CFLAGS
 		"/Od"
-		"/W4"
+		"/W2"
+		"/wd4127"
+		"/wd4100"
 	)
 	set(PANKTI_RELEASE_CFLAGS
 		"/GL"
