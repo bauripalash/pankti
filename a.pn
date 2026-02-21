@@ -1,8 +1,8 @@
-import f "file"
-
-?f.exists("build/pankti")
-let s = f.read("a.pn")
-?s
-//f.newdir("mango")
-//f.newfile("mango/a.x")
-//f.write("mango/a.x", "hello\u0980\n")
+আনয়ন প "পট"
+প.নতুন(১০০, ১০০, "নতুন")
+যতক্ষণ প.চলমান() করো
+    প.আঁকা_শুরু()
+    প.পরিষ্কার()
+    প.আঁকা_শেষ()
+শেষ
+প.বন্ধ()

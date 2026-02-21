@@ -1,12 +1,12 @@
 #include "../external/raylib/raylib.h"
 #include "../external/stb/stb_ds.h"
+#include "../external/tigr/tigr.h"
 #include "../include/gc.h"
 #include "../include/gfxfont.h"
 #include "../include/gfxhelper.h"
 #include "../include/pstdlib.h"
 #include "../include/symtable.h"
 #include "../include/vm.h"
-#include "raylib.h"
 #include <math.h>
 #include <stdbool.h>
 #include <string.h>
@@ -23,6 +23,8 @@ static int winHeight = DEFAULT_GFX_WIN_HEIGHT;
 static char winTitle[1024];
 static bool winRunning = false;
 static Image *imageList = NULL;
+
+static Tigr *gui = NULL;
 
 static void unloadImageList(void) {
     i64 count = arrlen(imageList);
@@ -100,8 +102,9 @@ static void startGfx(void) {
     SetTraceLogLevel(LOG_WARNING);
     InitWindow(winWidth, winHeight, winTitle);
     SetTargetFPS(60);
-    Image winIcon = LoadGuiAppIcon();
-    arrput(imageList, winIcon);
+    gui = tigrWindow(winWidth, winHeight, winTitle, TIGR_AUTO);
+    // Image winIcon = LoadGuiAppIcon();
+    // arrput(imageList, winIcon);
 }
 
 static void ensureGfx(void) {
@@ -111,13 +114,14 @@ static void ensureGfx(void) {
 }
 
 static void updateStatus(void) {
-    winRunning = !WindowShouldClose();
+    winRunning = !tigrClosed(gui) && !WindowShouldClose();
     return;
 }
 
 static void stopGfx(void) {
     unloadImageList();
     CloseWindow();
+    tigrFree(gui);
 }
 
 static PValue gfx_New(PVm *vm, PValue *args, u64 argc) {
@@ -149,6 +153,7 @@ static PValue gfx_DrawStart(PVm *vm, PValue *args, u64 argc) {
 
 static PValue gfx_DrawFinish(PVm *vm, PValue *args, u64 argc) {
     EndDrawing();
+    tigrUpdate(gui);
     return MakeNil();
 }
 
@@ -268,6 +273,7 @@ static PValue gfx_DrawText(PVm *vm, PValue *args, u64 argc) {
 static PValue gfx_Clear(PVm *vm, PValue *args, u64 argc) {
     ensureGfx();
     ClearBackground(GFX_COLOR_WHITE_CODE);
+    tigrClear(gui, tigrRGB(0xff, 0xff, 0xff));
     return MakeNil();
 }
 
