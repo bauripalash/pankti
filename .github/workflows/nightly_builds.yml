@@ -18,7 +18,7 @@ jobs:
       - name: Check for [nightly] in commit message
         id: check
         run: |
-          MSG=${{ github.event.head_commit.message }}"
+          MSG="${{ github.event.head_commit.message }}"
           echo "Commit Message : $MSG"
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] || echo "$MSG" | grep -qF '[nightly]'; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
