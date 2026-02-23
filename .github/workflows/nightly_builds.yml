@@ -24,7 +24,7 @@ jobs:
             echo "should_run=true" >> "$GITHUB_OUTPUT"
             echo "Build Nightly = YES"
           else
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
             echo "Build Nightly = NO"
           fi
   
@@ -73,7 +73,7 @@ jobs:
           libxkbcommon-dev
       - name: Setup CMake
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_GFX=OFF
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_GFX=ON
       - name: Build
         run: |
           cmake --build build --target pankti --parallel
@@ -85,5 +85,5 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: pankti-linux
+          name: pankti-linux.zip
           path: ${{ env.ZIP_NAME }}
