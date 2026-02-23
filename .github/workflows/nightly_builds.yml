@@ -1,0 +1,89 @@
+name: Nightly Pre-Release Build
+on:
+  push:
+    branches: 
+      -  main
+  workflow_dispatch: #manual mode
+permissions:
+  contents: write
+jobs:
+  check-trigger:
+    name: Check Commit Message for [nightly]
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Check for [nightly] in commit message
+        id: check
+        run: |
+          MSG=${{ github.event.head_commit.message }}"
+          echo "Commit Message : $MSG"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || echo "$MSG" | grep -qF '[nightly]'; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            echo "Build Nightly = YES"
+          else
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            echo "Build Nightly = NO"
+          fi
+  
+  get-commit-count:
+    name: Check Commit Count
+    runs-on: ubuntu-latest
+    needs: check-trigger
+    if: needs.check-trigger.outputs.should_run == 'true'
+    outputs:
+      commit-count: ${{ steps.count.outputs.commit_count }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Get Commit Count [Exec]
+        id: count
+        run: |
+          COUNT=$(git rev-list --count HEAD)
+          echo "commit_count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "Commit Count: $COUNT"
+  
+  build-linux:
+    name: Build Linux (64bit)
+    runs-on: ubuntu-latest
+    needs: [check-trigger, get-commit-count]
+    if: needs.check-trigger.outputs.should_run == 'true'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install deps
+        run: |
+          sudo apt update
+          sudo apt install build-essential \
+          libasound2-dev \
+          libx11-dev \
+          libxrandr-dev \
+          libxi-dev \
+          libgl1-mesa-dev \
+          libglu1-mesa-dev \
+          libxcursor-dev \
+          libxinerama-dev \
+          libwayland-dev \
+          libxkbcommon-dev
+      - name: Setup CMake
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_GFX=OFF
+      - name: Build
+        run: |
+          cmake --build build --target pankti --parallel
+      - name: Package to ZIP
+        run: |
+          ZIP_NAME="pankti-linux-${COUNT}.zip"
+          zip $ZIP_NAME build/pankti
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pankti-linux
+          path: ${{ env.ZIP_NAME }}
