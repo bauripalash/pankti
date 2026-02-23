@@ -121,7 +121,7 @@ jobs:
         run: |
           $COUNT = "${{ needs.get-commit-count.outputs.commit-count }}"
           $ZIP_NAME = "pankti-${{ matrix.label }}-${COUNT}.zip"
-          Compress-Archive -Path build\Release\pankti.exe -DestinationPath $ZIP_NAME
+          Compress-Archive -Path build\pankti.exe -DestinationPath $ZIP_NAME
           echo "ZIP_NAME=$ZIP_NAME" >> $env:GITHUB_ENV
       - name: Upload artifact
         uses: actions/upload-artifact@v4
