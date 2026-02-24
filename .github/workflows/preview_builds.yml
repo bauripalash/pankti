@@ -24,7 +24,7 @@ jobs:
           EVENT: ${{ github.event_name }}
           COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
-          set -quo pipefail
+          set -euo pipefail
           echo "Event      : $EVENT"
           echo "Actor      : $ACTOR"
           echo "SHA        : $GITHUB_SHA"
