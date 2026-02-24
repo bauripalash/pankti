@@ -64,6 +64,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+      
+      - name: Fetch tags
+        run: git fetch --tags --unshallow
+      
       - name: Install deps
         run: |
           sudo apt update
@@ -78,14 +82,18 @@ jobs:
           libxinerama-dev \
           libwayland-dev \
           libxkbcommon-dev
+      
       - name: Setup CMake
         run: |
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_GFX=ON
+      
       - name: Build
         run: |
           cmake --build build --target pankti --parallel
+      
       - name: Run Tests
         run: make test_only
+      
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -110,6 +118,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Fetch tags
+        run: git fetch --tags --unshallow
+      
       - name: Setup CMake
         run: |
           cmake -S . -B build `
@@ -118,6 +130,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release `
           -DBUILD_GFX=ON `
           -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+      
       - name: Build
         run: cmake --build build --target pankti --config Release --parallel
 
@@ -160,12 +173,14 @@ jobs:
         with:
           name: pankti-win32
           path: artifacts/win32
+      
       - name: Zip Artifacts
         run: |
           zip -j pankti-linux64-preview.zip artifacts/linux/pankti
           zip -j pankti-win64-preview.zip artifacts/win64/pankti.exe
           zip -j pankti-win32-preview.zip artifacts/win32/pankti.exe
           git archive --format=zip --output=pankti-source-preview.zip HEAD
+      
       - name: Ensure Preview Pre-Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

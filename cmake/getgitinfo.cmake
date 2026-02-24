@@ -2,7 +2,7 @@ function(GetGitInfo GitHash GitCount)
 	find_package(Git QUIET)
 	if(GIT_FOUND)
 		execute_process(
-			COMMAND ${GIT_EXECUTABLE} describe --tags --abbrev=0
+			COMMAND ${GIT_EXECUTABLE} describe --tags --abbrev=0 --exclude=preview --exclude=nightly
 			WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 			OUTPUT_VARIABLE GIT_LAST_TAG
 			OUTPUT_STRIP_TRAILING_WHITESPACE
