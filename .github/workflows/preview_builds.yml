@@ -8,24 +8,50 @@ permissions:
   contents: write
 jobs:
   check-trigger:
-    name: Check Commit Message for [update-preview]
+    name: Check Eligibility of Commit
     runs-on: ubuntu-latest
     outputs:
       should_run: ${{ steps.check.outputs.should_run }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: Check for [update-preview] in commit message
+        with:
+          fetch-depth: 2
+      - name: Check whether to run
         id: check
+        env:
+          ACTOR: ${{ github.actor }}
+          EVENT: ${{ github.event_name }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
-          MSG="${{ github.event.head_commit.message }}"
-          echo "Commit Message : $MSG"
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || echo "$MSG" | grep -qF '[update-preview]'; then
+          set -quo pipefail
+          echo "Event      : $EVENT"
+          echo "Actor      : $ACTOR"
+          echo "SHA        : $GITHUB_SHA"
+          echo "COMMIT_MSG : ${COMMIT_MSG:-<none>}"
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            if [ "$ACTOR" = "bauripalash" ]; then
+              echo "should_run=true" >> "$GITHUB_OUTPUT"
+              echo "[+] Manual Run : RUN"
+            else
+              echo "should_run=false" >> "$GITHUB_OUTPUT"
+              echo "[-] Manual Run : SKIP"
+            fi
+            exit 0
+          fi
+          PARENTS="$(git show -s --format=%P "$GITHUB_SHA" | wc -w | tr -d ' ')"
+          if [ "$PARENTS" -ge 2 ]; then
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "[-] Merge Commit Detected : SKIP"
+            exit 0
+          fi
+
+          if [ "$ACTOR" = "bauripalash" ] && echo "${COMMIT_MSG:-}" | grep -qF '[update-preview]'; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
-            echo "Build Preview = YES"
+            echo "[+] Push by Palash Bauri with [update-preview] : RUN"
           else
             echo "should_run=false" >> "$GITHUB_OUTPUT"
-            echo "Build Preview = NO"
+            echo "[-] Push Not Eligible for Preview Update : SKIP"
           fi
   
   build-linux:
@@ -111,6 +137,12 @@ jobs:
     needs: [check-trigger, build-linux, build-windows]
     if: needs.check-trigger.outputs.should_run == 'true'
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
       - name: Fetch Linux Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -133,6 +165,7 @@ jobs:
           zip -j pankti-linux64-preview.zip artifacts/linux/pankti
           zip -j pankti-win64-preview.zip artifacts/win64/pankti.exe
           zip -j pankti-win32-preview.zip artifacts/win32/pankti.exe
+          git archive --format=zip --output=pankti-source-preview.zip HEAD
       - name: Ensure Preview Pre-Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -140,7 +173,7 @@ jobs:
           gh release view preview --repo ${{ github.repository }} 2>/dev/null \
           || gh release create preview \
             --repo ${{ github.repository }} \
-            --title "Pankti Development Build" \
+            --title "Pankti Preview Build" \
             --notes "Latest automated preview builds." \
             --prerelease \
             --target main
@@ -149,10 +182,28 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          DATE=$(date +'%d-%m-%Y')
+          DATE="$(TZ='Asia/Kolkata' date +"%d-%m-%Y %H:%M:%S IST")"
+          SHA="${GITHUB_SHA}"
+          COMMIT_URL="https://github.com/${GITHUB_REPOSITORY}/commit/${SHA}"
+          BASE="https://github.com/${GITHUB_REPOSITORY}/releases/download/preview"
+          NOTES="$(cat <<EOF
+          #### Pankti Preview Build
+          Date: ${DATE}
+          Commit: ${COMMIT_URL}
+          Author: Palash Bauri
+
+          Download Links:
+          * Windows 32bit: 
+          * Windows 64bit:
+          * Linux 64bit:
+          * Source Code:
+          
+          [NOTE: Do not download the files SourceCode.zip/SourceCode.tar.gz, they are not latest code, instead download from above link]
+          )"
           gh release edit preview \
             --repo ${{ github.repository }} \
-            --notes "Pankti built on $DATE"
+            --title "Pankti Preview Build ${DATE}" \
+            --notes "$NOTES"
       
       - name: Upload Zips to Preview Release
         env:
@@ -162,6 +213,7 @@ jobs:
             pankti-linux64-preview.zip \
             pankti-win64-preview.zip \
             pankti-win32-preview.zip \
+            pankti-source-preview.zip \
             --repo ${{ github.repository }} \
             --clobber
         
