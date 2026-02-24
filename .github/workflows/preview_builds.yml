@@ -203,17 +203,18 @@ jobs:
           BASE="https://github.com/${GITHUB_REPOSITORY}/releases/download/preview"
           NOTES="$(cat <<EOF
           #### Pankti Preview Build
+          
           Date: ${DATE}
           Commit: ${COMMIT_URL}
           Author: Palash Bauri
 
           Download Links:
-          * Windows 32bit: ${BASE}/pankti-win32-preview.zip
-          * Windows 64bit: ${BASE}/pankti-win64-preview.zip
-          * Linux 64bit: ${BASE}/pankti-linux64-preview.zip
-          * Source Code: ${BASE}/pankti-source-preview.zip
+          * Windows 32bit: [pankti-win32-preview.zip](${BASE}/pankti-win32-preview.zip)
+          * Windows 64bit: [pankti-win64-preview.zip](${BASE}/pankti-win64-preview.zip)
+          * Linux 64bit: [pankti-linux64-preview.zip](${BASE}/pankti-linux64-preview.zip)
+          * Source Code: [pankti-source-preview.zip](${BASE}/pankti-source-preview.zip)
           
-          [NOTE: Do not download the files SourceCode.zip/SourceCode.tar.gz, they are not latest code, instead download from above link]
+          [NOTE: Do not download the files SourceCode.zip/SourceCode.tar.gz from assets list. They are not latest code, instead download from the above link or the pankti-source-preview.zip file]
           EOF
           )"
           gh release edit preview \
