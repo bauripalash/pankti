@@ -1,4 +1,4 @@
-name: Nightly Pre-Release Build
+name: Preview Pre-Release Build
 on:
   push:
     branches: 
@@ -8,24 +8,24 @@ permissions:
   contents: write
 jobs:
   check-trigger:
-    name: Check Commit Message for [nightly]
+    name: Check Commit Message for [update-preview]
     runs-on: ubuntu-latest
     outputs:
       should_run: ${{ steps.check.outputs.should_run }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: Check for [nightly] in commit message
+      - name: Check for [update-preview] in commit message
         id: check
         run: |
           MSG="${{ github.event.head_commit.message }}"
           echo "Commit Message : $MSG"
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || echo "$MSG" | grep -qF '[nightly]'; then
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || echo "$MSG" | grep -qF '[update-preview]'; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
-            echo "Build Nightly = YES"
+            echo "Build Preview = YES"
           else
             echo "should_run=false" >> "$GITHUB_OUTPUT"
-            echo "Build Nightly = NO"
+            echo "Build Preview = NO"
           fi
   
   build-linux:
@@ -105,8 +105,8 @@ jobs:
           name: pankti-${{ matrix.label }}
           path: build/pankti.exe
 
-  release-nightly:
-    name: Upload to Nightly Pre-Release
+  release-preview:
+    name: Upload to Preview Pre-Release
     runs-on: ubuntu-latest
     needs: [check-trigger, build-linux, build-windows]
     if: needs.check-trigger.outputs.should_run == 'true'
@@ -130,18 +130,18 @@ jobs:
           path: artifacts/win32
       - name: Zip Artifacts
         run: |
-          zip -j pankti-linux64-nightly.zip artifacts/linux/pankti
-          zip -j pankti-win64-nightly.zip artifacts/win64/pankti.exe
-          zip -j pankti-win32-nightly.zip artifacts/win32/pankti.exe
-      - name: Ensure Nightly Pre-Release
+          zip -j pankti-linux64-preview.zip artifacts/linux/pankti
+          zip -j pankti-win64-preview.zip artifacts/win64/pankti.exe
+          zip -j pankti-win32-preview.zip artifacts/win32/pankti.exe
+      - name: Ensure Preview Pre-Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release view nightly --repo ${{ github.repository }} 2>/dev/null \
-          || gh release create nightly \
+          gh release view preview --repo ${{ github.repository }} 2>/dev/null \
+          || gh release create preview \
             --repo ${{ github.repository }} \
             --title "Pankti Development Build" \
-            --notes "Latest automated nightly builds. Continuously updated." \
+            --notes "Latest automated preview builds." \
             --prerelease \
             --target main
 
@@ -150,18 +150,18 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           DATE=$(date +'%d-%m-%Y')
-          gh release edit nightly \
+          gh release edit preview \
             --repo ${{ github.repository }} \
             --notes "Pankti built on $DATE"
       
-      - name: Upload Zips to Nightly Release
+      - name: Upload Zips to Preview Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload nightly \
-            pankti-linux64-nightly.zip \
-            pankti-win64-nightly.zip \
-            pankti-win32-nightly.zip \
+          gh release upload preview \
+            pankti-linux64-preview.zip \
+            pankti-win64-preview.zip \
+            pankti-win32-preview.zip \
             --repo ${{ github.repository }} \
             --clobber
         
