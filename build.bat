@@ -29,6 +29,7 @@ if "%1"=="runtime_tests" goto:runtime_tests
 if "%1"=="build_rls" goto:build_rls
 if "%1"=="build_dbg" goto:build_dbg
 if "%1"=="build_rld" goto:build_rld
+if "%1"=="test_only" goto:test_only
 
 echo Unknown command %1
 echo Usage "build.bat [COMMAND]"
@@ -62,6 +63,23 @@ echo ==== Running Frontend Tests ====
 echo ==== Finished Frontend Tests ====
 echo ==== Running Runtime Tests ====
 call :runtime_tests
+echo ==== Finished Runtime Tests ====
+exit /b %errorlevel%
+
+:test_only
+cmake --build build --target %TEST_BIN%
+if errorlevel 1 exit /b 1
+cmake --build build --target %RUNTIME_TEST_BIN%
+if errorlevel 1 exit /b 1
+echo ==== Running Frontend Tests ====
+%TEST_OUTPUT% %TEST_ARGS%
+if errorlevel 1 exit /b 1
+echo ==== Finished Frontend Tests ====
+echo ==== Running Runtime Tests ====
+set PANKTI_BIN=%CMAKE_OUTPUT%
+set SAMPLES_DIR=%RUNTIME_SAMPLES_DIR%
+%RUNTIME_TEST_OUTPUT%
+if errorlevel 1 exit /b 1
 echo ==== Finished Runtime Tests ====
 exit /b %errorlevel%
 

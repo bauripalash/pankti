@@ -71,7 +71,16 @@ test: build_rls
 	@PANKTI_BIN=${CMAKE_OUTPUT} SAMPLES_DIR=${SAMPLES_DIR} ./${RUNTIME_TEST_OUTPUT}
 	@echo "==== Finished Runtime Tests ===="
 
-
+.PHONY: test_only
+test_only:
+	@cmake --build build --target $(FRONTEND_TEST_BIN)
+	@cmake --build build --target $(RUNTIME_TEST_BIN)
+	@echo "==== Running Frontend Tests ===="
+	@./$(FRONTEND_TEST_OUTPUT) $(FRONTEND_TEST_ARGS)
+	@echo "==== Finished Frontend Tests ===="
+	@echo "==== Running Runtime Tests ===="
+	@PANKTI_BIN=${CMAKE_OUTPUT} SAMPLES_DIR=${SAMPLES_DIR} ./${RUNTIME_TEST_OUTPUT}
+	@echo "==== Finished Runtime Tests ===="
 
 .PHONY: runtime_tests
 runtime_tests:
