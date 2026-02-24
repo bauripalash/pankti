@@ -58,6 +58,8 @@ jobs:
       - name: Build
         run: |
           cmake --build build --target pankti --parallel
+      - name: Run Tests
+        run: make test_only
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -92,6 +94,10 @@ jobs:
           -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
       - name: Build
         run: cmake --build build --target pankti --config Release --parallel
+
+      - name: Run Tests
+        shell: cmd
+        run: build.bat test_only
       
       - name: Upload artifact
         uses: actions/upload-artifact@v4
