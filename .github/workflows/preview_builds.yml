@@ -193,10 +193,10 @@ jobs:
           Author: Palash Bauri
 
           Download Links:
-          * Windows 32bit: 
-          * Windows 64bit:
-          * Linux 64bit:
-          * Source Code:
+          * Windows 32bit: ${BASE}/pankti-win32-preview.zip
+          * Windows 64bit: ${BASE}/pankti-win64-preview.zip
+          * Linux 64bit: ${BASE}/pankti-linux64-preview.zip
+          * Source Code: ${BASE}/pankti-source-preview.zip
           
           [NOTE: Do not download the files SourceCode.zip/SourceCode.tar.gz, they are not latest code, instead download from above link]
           EOF
