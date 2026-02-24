@@ -199,6 +199,7 @@ jobs:
           * Source Code:
           
           [NOTE: Do not download the files SourceCode.zip/SourceCode.tar.gz, they are not latest code, instead download from above link]
+          EOF
           )"
           gh release edit preview \
             --repo ${{ github.repository }} \
