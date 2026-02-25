@@ -1,0 +1,49 @@
+baseURL = 'https://pankti.palashbauri.in/'
+languageCode = 'en-us'
+title = 'Pankti Programming Language'
+enableEmoji = true
+
+[module]
+[[module.imports]]
+path = 'github.com/alex-shpak/hugo-book'
+
+[languages]
+[languages.bn]
+	title = "পঙক্তি প্রোগ্রামিং ভাষা"
+	languageName = 'Bengali'
+	contentDir = 'bengali'
+[languages.bn.params]
+	weigth = 2
+[languages.en]
+	languageName = 'English'
+	contentDir = 'english'
+[languages.en.params]
+	weigth = 1
+
+[markup]
+[markup.goldmark.renderer]
+  unsafe = true
+
+[markup.highlight]
+    codeFences = false
+  #style = 'base16-snazzy'
+
+[menu]
+[[menu.home]]
+  name = 'Documentation'
+  url = '/bn/docs/'
+  weight = 1
+
+[[menu.home]]
+  name = 'Github'
+  url = 'https://github.com/bauripalash/pankti'
+  weight = 2
+
+
+[params]
+    BookTheme = 'light'
+    BookLogo = "panktilogo.png"
+    BookFavicon = "panktilogo.png"
+
+    [params.pankti]
+    DefaultTheme = 'dark'
