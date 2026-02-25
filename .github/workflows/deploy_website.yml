@@ -1,0 +1,72 @@
+name: Build and Deploy Website
+on:
+  push:
+    branches: 
+      -  main
+  workflow_dispatch: #manual mode
+permissions:
+  contents: read
+concurrency:
+  group: cf-deploy
+  cancel-in-progress: true
+jobs:
+  check-trigger:
+    name: Check Eligibility of Commit for Deploy
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Check Whether to Deploy
+        id: check
+        env:
+          ACTOR: ${{ github.actor }}
+          EVENT: ${{ github.event_name }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          set -euo pipefail
+          echo "Event      : $EVENT"
+          echo "Actor      : $ACTOR"
+          echo "SHA        : $GITHUB_SHA"
+          echo "COMMIT_MSG : ${COMMIT_MSG:-<none>}"
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            if [ "$ACTOR" = "bauripalash" ]; then
+              echo "should_run=true" >> "$GITHUB_OUTPUT"
+              echo "[+] Manual Deploy : RUN"
+            else
+              echo "should_run=false" >> "$GITHUB_OUTPUT"
+              echo "[-] Manual Deploy : SKIP"
+            fi
+            exit 0
+          fi
+          PARENTS="$(git show -s --format=%P "$GITHUB_SHA" | wc -w | tr -d ' ')"
+          if [ "$PARENTS" -ge 2 ]; then
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "[-] Merge Commit Detected : SKIP"
+            exit 0
+          fi
+
+          if [ "$ACTOR" = "bauripalash" ] && echo "${COMMIT_MSG:-}" | grep -qF '[update-website]'; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            echo "[+] Push by Palash Bauri with [update-website] : RUN"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "[-] Push Not Eligible for Website Deploy : SKIP"
+          fi
+  deploy-page:
+    name: Deploy Page
+    runs-on: ubuntu-latest
+    needs: [check-trigger]
+    if: needs.check-trigger.outputs.should_run == 'true'
+    steps:
+      - name: Call Deploy Hook
+        env:
+          WEB_DEPLOY_HOOK: ${{ secrets.WEB_DEPLOY_HOOK }}
+        run: |
+          echo "Triggering page deploy hook..."
+          status=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$WEB_DEPLOY_HOOK")
+
+
