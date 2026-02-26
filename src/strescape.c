@@ -124,6 +124,7 @@ StrEscapeErr ProcessStringEscape(
             case 'r': output[wi++] = '\r'; break;
             case 't': output[wi++] = '\t'; break;
             case 'v': output[wi++] = '\v'; break;
+            case '\\': output[wi++] = '\\'; break;
             case 'x': {
                 u32 val = 0;
                 err = parseNHex(input, inlen, &ri, 2, &val);
