@@ -1,18 +1,9 @@
-?"symbol ->  \\n"
-?"hello\nworld"
-?""
-?"symbol -> \\a"
-?"hello\aworld"
-?""
-?"symbol -> \\b"
-?"hello\bworld"
-?""
-?"symbol -> \\f"
-?"hello\fworld"
-?""
-?"symbol -> \\r"
-?"hello\rworld"
-?""
-?"hello\tworld"
-
-?"hello\vworld"
+let a = 0
+while a < 10 do
+    ?a
+    a = a + 1
+    if a == 5 then
+        break
+    end
+end
+?a

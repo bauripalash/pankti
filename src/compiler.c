@@ -56,6 +56,7 @@ PCompiler *dummyCompiler(
         c->gc = NULL;
         c->func = NULL;
     }
+    c->loopCtx = NULL;
 
     PLocal *local = &c->locals[c->localCount++];
     local->depth = 0;
@@ -81,6 +82,9 @@ PCompiler *NewEnclosedCompiler(
 void FreeCompiler(PCompiler *comp) {
     if (comp == NULL) {
         return;
+    }
+    if (comp->loopCtx != NULL) {
+        PFree(comp->loopCtx);
     }
     FreeToken(comp->dummyToken);
     PFree(comp);
@@ -640,8 +644,43 @@ static void emitLoop(PCompiler *comp, Token *token, u16 loopStart) {
     EmitRawU16(getbt(comp), offset);
 }
 
+static PCompLoopCtx *enterLoop(PCompiler *comp) {
+    PCompLoopCtx *loopCtx = PCreate(PCompLoopCtx);
+    if (loopCtx == NULL) {
+        return NULL;
+    }
+    loopCtx->breakCount = 0;
+    loopCtx->breakJumps = NULL;
+    loopCtx->enclosing = comp->loopCtx;
+    comp->loopCtx = loopCtx;
+    return loopCtx;
+}
+
+static void exitLoop(PCompiler *comp) {
+    if (comp->loopCtx == NULL) {
+        return;
+    }
+
+    PCompLoopCtx *loopCtx = comp->loopCtx;
+    i64 count = arrlen(loopCtx->breakJumps);
+    for (i64 i = 0; i < count; i++) {
+        patchJump(comp, loopCtx->breakJumps[i]);
+    }
+
+    arrfree(loopCtx->breakJumps);
+    comp->loopCtx = loopCtx->enclosing;
+    PFree(loopCtx);
+}
+
 static bool compileWhileStmt(PCompiler *comp, PStmt *stmt) {
     struct SWhile *whileStmt = &stmt->stmt.SWhile;
+
+    PCompLoopCtx *loopCtx = enterLoop(comp);
+    if (loopCtx == NULL) {
+        cmpError(comp, whileStmt->op, "Failed to create loop context");
+        return false;
+    }
+
     u16 loopStart = getbt(comp)->codeCount;
 
     compileExpr(comp, whileStmt->cond);
@@ -656,6 +695,19 @@ static bool compileWhileStmt(PCompiler *comp, PStmt *stmt) {
 
     patchJump(comp, exitJump);
     emitBt(comp, whileStmt->op, OP_POP);
+    exitLoop(comp);
+    return true;
+}
+
+static bool compileBreakStmt(PCompiler *comp, PStmt *stmt) {
+    struct SBreak *breakStmt = &stmt->stmt.SBreak;
+
+    if (comp->loopCtx == NULL) {
+        cmpError(comp, breakStmt->op, "Cannot use `break` outside of loops");
+    }
+    u16 jumpPos = emitJump(comp, breakStmt->op, OP_JUMP);
+    arrput(comp->loopCtx->breakJumps, jumpPos);
+    comp->loopCtx->breakCount++;
     return true;
 }
 
@@ -768,8 +820,8 @@ static bool compileStmt(PCompiler *comp, PStmt *stmt) {
             compileImportStmt(comp, stmt);
             break;
         }
-        default: {
-            PanPrint("Unsupported Statement (Yet)\n");
+        case STMT_BREAK: {
+            compileBreakStmt(comp, stmt);
             break;
         }
     }

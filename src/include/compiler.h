@@ -33,6 +33,13 @@ typedef enum PCompFuncType {
     COMP_FN_SCRIPT,
 } PCompFuncType;
 
+// Loop Context for Break and Continue[todo] statements
+typedef struct PCompLoopCtx {
+    u16 *breakJumps;
+    i64 breakCount;
+    struct PCompLoopCtx *enclosing;
+} PCompLoopCtx;
+
 // Pankti Compiler Object
 typedef struct PCompiler {
     // Parser passed AST
@@ -63,6 +70,7 @@ typedef struct PCompiler {
     PCompFuncType funcType;
     // Enclosing compiler
     struct PCompiler *enclosing;
+    PCompLoopCtx *loopCtx;
 } PCompiler;
 
 // Create a new compiler object
