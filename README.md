@@ -105,6 +105,9 @@ But National Education Policy 2020 aims to introduce coding way earlier, but a s
 // এটি একটি মন্তব্য 
 ```
 
+## Download
+* Pre-Release: <https://pankti.palashbauri.in/bn/docs/download/>
+
 ## Documentation
 * <https://pankti.palashbauri.in>
 
