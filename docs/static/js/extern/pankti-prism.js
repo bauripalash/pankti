@@ -1,7 +1,7 @@
 // Define keyword lists
-var keywords_en = 'let|func|if|then|else|end|while|do|return|import|panic|break|len|and|or';
-var keywords_pn = 'dhori|kaj|jodi|tahole|nahole|sesh|jotokhon|koro|ferao|anoyon|golmal|bhango|ayoton|ebong|ba';
-var keywords_bn = 'ধরি|কাজ|যদি|তাহলে|নাহলে|শেষ|যতক্ষণ|করো|ফেরাও|আনয়ন|গোলমাল|ভাঙো|আয়তন|এবং|বা';
+var keywords_en = 'let|func|if|then|else|end|while|do|return|import|panic|break|continue|len|and|or';
+var keywords_pn = 'dhori|kaj|jodi|tahole|nahole|sesh|jotokhon|koro|ferao|anoyon|golmal|bhango|chalao|ayoton|ebong|ba';
+var keywords_bn = 'ধরি|কাজ|যদি|তাহলে|নাহলে|শেষ|যতক্ষণ|করো|ফেরাও|আনয়ন|গোলমাল|ভাঙো|চালাও|আয়তন|এবং|বা';
 
 var booleans_en = 'true|false';
 var booleans_pn = 'sotti|mittha';

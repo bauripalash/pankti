@@ -644,13 +644,13 @@ static void emitLoop(PCompiler *comp, Token *token, u16 loopStart) {
     EmitRawU16(getbt(comp), offset);
 }
 
-static PCompLoopCtx *enterLoop(PCompiler *comp) {
+static PCompLoopCtx *enterLoop(PCompiler *comp, u16 loopStart) {
     PCompLoopCtx *loopCtx = PCreate(PCompLoopCtx);
     if (loopCtx == NULL) {
         return NULL;
     }
-    loopCtx->breakCount = 0;
     loopCtx->breakJumps = NULL;
+    loopCtx->loopStart = loopStart;
     loopCtx->enclosing = comp->loopCtx;
     comp->loopCtx = loopCtx;
     return loopCtx;
@@ -662,26 +662,30 @@ static void exitLoop(PCompiler *comp) {
     }
 
     PCompLoopCtx *loopCtx = comp->loopCtx;
-    i64 count = arrlen(loopCtx->breakJumps);
-    for (i64 i = 0; i < count; i++) {
+
+    i64 breakCount = arrlen(loopCtx->breakJumps);
+    for (i64 i = 0; i < breakCount; i++) {
         patchJump(comp, loopCtx->breakJumps[i]);
     }
 
     arrfree(loopCtx->breakJumps);
+    loopCtx->breakJumps = NULL;
+    loopCtx->loopStart = 0;
     comp->loopCtx = loopCtx->enclosing;
+
     PFree(loopCtx);
 }
 
 static bool compileWhileStmt(PCompiler *comp, PStmt *stmt) {
     struct SWhile *whileStmt = &stmt->stmt.SWhile;
 
-    PCompLoopCtx *loopCtx = enterLoop(comp);
+    u16 loopStart = getbt(comp)->codeCount;
+
+    PCompLoopCtx *loopCtx = enterLoop(comp, loopStart);
     if (loopCtx == NULL) {
         cmpError(comp, whileStmt->op, "Failed to create loop context");
         return false;
     }
-
-    u16 loopStart = getbt(comp)->codeCount;
 
     compileExpr(comp, whileStmt->cond);
 
@@ -704,10 +708,21 @@ static bool compileBreakStmt(PCompiler *comp, PStmt *stmt) {
 
     if (comp->loopCtx == NULL) {
         cmpError(comp, breakStmt->op, "Cannot use `break` outside of loops");
+        return false;
     }
     u16 jumpPos = emitJump(comp, breakStmt->op, OP_JUMP);
     arrput(comp->loopCtx->breakJumps, jumpPos);
-    comp->loopCtx->breakCount++;
+    return true;
+}
+
+static bool compileContinueStmt(PCompiler *comp, PStmt *stmt) {
+    struct SContinue *contStmt = &stmt->stmt.SContinue;
+
+    if (comp->loopCtx == NULL) {
+        cmpError(comp, contStmt->op, "Cannot use `continue` outside of loops");
+        return false;
+    }
+    emitLoop(comp, contStmt->op, comp->loopCtx->loopStart);
     return true;
 }
 
@@ -822,6 +837,10 @@ static bool compileStmt(PCompiler *comp, PStmt *stmt) {
         }
         case STMT_BREAK: {
             compileBreakStmt(comp, stmt);
+            break;
+        }
+        case STMT_CONTINUE: {
+            compileContinueStmt(comp, stmt);
             break;
         }
     }

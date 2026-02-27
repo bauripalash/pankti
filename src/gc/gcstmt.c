@@ -116,6 +116,15 @@ PStmt *NewBreakStmt(Pgc *gc, Token *op) {
     return s;
 }
 
+PStmt *NewContinueStmt(Pgc *gc, Token *op) {
+    PStmt *s = NewStmt(gc, STMT_CONTINUE, op);
+    if (s == NULL) {
+        return NULL;
+    }
+    s->stmt.SContinue.op = op;
+    return s;
+}
+
 PStmt *NewFuncStmt(
     Pgc *gc, Token *name, Token **params, PStmt *body, u64 count
 ) {
@@ -210,6 +219,11 @@ void FreeStmt(Pgc *gc, PStmt *s) {
         }
 
         case STMT_BREAK: {
+            freeBaseStmt(gc, s);
+            break;
+        }
+
+        case STMT_CONTINUE: {
             freeBaseStmt(gc, s);
             break;
         }

@@ -30,11 +30,12 @@
     "mittha" "false"
     "nil"
     "bhango" "break"
+    "chalao", "continue"
     "golmal" "panic"
     )
 
   '(
-    ("ধরি\\|কাজ\\|যদি\\|তাহলে\\|নাহলে\\|যতক্ষণ\\|করো\\|শেষ\\|ফেরাও\\|আনয়ন\\|এবং\\|বা\\|সত্যি\\|মিথ্যা\\|নিল\\|ভাঙো\\|গোলমাল" . font-lock-keyword-face)
+    ("ধরি\\|কাজ\\|যদি\\|তাহলে\\|নাহলে\\|যতক্ষণ\\|করো\\|শেষ\\|ফেরাও\\|আনয়ন\\|এবং\\|বা\\|সত্যি\\|মিথ্যা\\|নিল\\|ভাঙো\\|গোলমাল\\|চালাও" . font-lock-keyword-face)
     ;; Built-in Function (Bengali)
       ("\\(দেখাও\\|আয়তন\\|সংযোগ\\|সময়\\)\\s-*(" 1 font-lock-builtin-face)
       ;; Built-in Function (Phonetic)

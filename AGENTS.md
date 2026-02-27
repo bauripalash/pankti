@@ -30,6 +30,7 @@ Pankti supports three syntax modes that can be mixed freely.
 | False                | `মিথ্যা` | `mittha`   | `false`  |
 | Nil (null)           | `নিল`    | `nil`      | `nil`    |
 | Break                | `ভাঙো`   | `bhango`   | `break`  |
+| Continue             | `চালাও`   | `chalao`   | `continue`  |
 | Length/Size          | `আয়তন`   | `ayoton`   | `len`    |
 | Panic/Error          | `গোলযোগ` | `golmal`   | `panic`  |
 

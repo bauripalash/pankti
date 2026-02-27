@@ -244,6 +244,12 @@ PStmt *NewReturnStmt(Pgc *gc, Token *op, PExpr *value);
 // Return => New Break Statement as Statement pointer or NULL
 PStmt *NewBreakStmt(Pgc *gc, Token *op);
 
+// New Continue Statement
+// `op` = The `CONTINUE` token
+// Only usable in While loops
+// Return => New Continue Statement as Statement pointer or NULL
+PStmt *NewContinueStmt(Pgc *gc, Token *op);
+
 // New Function Statement
 // `name` = The name token of the function
 // `params` = Token array of parameters

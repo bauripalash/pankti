@@ -214,6 +214,8 @@ typedef enum PStmtType {
     STMT_IMPORT,
     // Debug (for internal usage)
     STMT_DEBUG,
+    // Continue Statement : Used only inside While Statements
+    STMT_CONTINUE,
 } PStmtType;
 
 // Pankti Statement
@@ -299,11 +301,17 @@ typedef struct PStmt {
 
         // Break Statement : Used only in while loop
         // Type: `STMT_BREAK`
-        // Does nothing when used anywhere else
         struct SBreak {
             // The `BREAK` token
             Token *op;
         } SBreak;
+
+        // Continue Statement : Used only in while loop
+        // Type: `STMT_CONTINUE`
+        struct SContinue {
+            // The `CONTINUE` token
+            Token *op;
+        } SContinue;
 
         // Function Statement : Function Declaration
         // Type: `STMT_FUNC`

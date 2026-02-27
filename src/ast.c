@@ -304,6 +304,10 @@ void AstStmtPrint(PStmt *stmt, int indent) {
             PanPrint("Break []\n");
             break;
         }
+        case STMT_CONTINUE: {
+            PanPrint("Continue []\n");
+            break;
+        }
         case STMT_FUNC: {
             struct SFunc *fn = &stmt->stmt.SFunc;
 

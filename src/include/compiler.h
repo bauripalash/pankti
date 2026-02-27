@@ -36,7 +36,7 @@ typedef enum PCompFuncType {
 // Loop Context for Break and Continue[todo] statements
 typedef struct PCompLoopCtx {
     u16 *breakJumps;
-    i64 breakCount;
+    u16 loopStart;
     struct PCompLoopCtx *enclosing;
 } PCompLoopCtx;
 

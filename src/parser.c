@@ -858,6 +858,23 @@ static PStmt *rBreakStmt(Parser *p) {
     return breakStmt;
 }
 
+static PStmt *rContinueStmt(Parser *p) {
+    Token *op = previous(p);
+    if (check(p, T_SEMICOLON)) {
+        eat(p, T_SEMICOLON, "Expected ';'");
+    }
+
+    PStmt *contStmt = NewContinueStmt(p->gc, op);
+    if (contStmt == NULL) {
+        fatalError(
+            p, op, "Internal Memory Error : Failed to create continue statement"
+        );
+        return NULL;
+    }
+
+    return contStmt;
+}
+
 static PStmt *rFuncStmt(Parser *p) {
     Token *name = eat(p, T_IDENT, "Expected function name");
     eat(p, T_LEFT_PAREN, "Expected '(' after function name");
@@ -921,6 +938,8 @@ static PStmt *rStmt(Parser *p) {
         return rImportStmt(p);
     } else if (matchOne(p, T_DEBUG)) {
         return rDebugStmt(p);
+    } else if (matchOne(p, T_CONTINUE)) {
+        return rContinueStmt(p);
     }
     return rExprStmt(p);
 }
