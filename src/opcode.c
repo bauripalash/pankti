@@ -7,6 +7,7 @@
 #include "include/ptypes.h"
 #include "include/token.h"
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -64,8 +65,7 @@ PBytecode *NewBytecode(void) {
     b->codeCount = 0;
     b->constPool = NULL;
     b->constCount = 0;
-    b->lines = NULL;
-    b->tokens = NULL;
+    b->posTable = NULL;
     return b;
 }
 
@@ -84,14 +84,9 @@ void FreeBytecode(PBytecode *b) {
         b->constCount = 0;
     }
 
-    if (b->lines != NULL) {
-        arrfree(b->lines);
-        b->lines = NULL;
-    }
-
-    if (b->tokens != NULL) {
-        arrfree(b->tokens);
-        b->tokens = NULL;
+    if (b->posTable != NULL) {
+        arrfree(b->posTable);
+        b->posTable = NULL;
     }
 
     PFree(b);
@@ -221,11 +216,45 @@ void DebugBytecode(const PBytecode *bt, u64 offset) {
     PanPrint("====  END BYTECODE  ====\n");
 }
 
+static bool shouldRecordPos(PBytecode *b, Token *tok) {
+    u64 tableCount = (u64)arrlen(b->posTable);
+    if (tableCount == 0) {
+        return true;
+    } else {
+        PBtPosInfo *last = &b->posTable[tableCount - 1];
+        if (last->col != tok->col || last->line != tok->line ||
+            last->len != tok->len) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static bool recordPos(PBytecode *b, Token *tok) {
+    bool shouldRecord = shouldRecordPos(b, tok);
+    if (!shouldRecord) {
+        return false;
+    }
+
+    PBtPosInfo entry = {
+        .startOffset = b->codeCount,
+        .line = tok->line,
+        .col = tok->col,
+        .len = tok->len,
+        .token = tok
+    };
+
+    arrput(b->posTable, entry);
+    return true;
+}
+
 u64 EmitBytecode(PBytecode *b, Token *tok, PanOpCode op) {
+    if (tok != NULL) {
+        recordPos(b, tok);
+    }
     u64 pos = b->codeCount;
     arrput(b->code, op);
-    arrput(b->tokens, tok);
-    arrput(b->lines, tok->line);
     b->codeCount++;
     return pos;
 }
@@ -246,6 +275,9 @@ u64 EmitRawU8(PBytecode *b, u8 a) {
 }
 
 u64 EmitBytecodeWithOneArg(PBytecode *b, Token *tok, PanOpCode op, u16 a) {
+    if (tok != NULL) {
+        recordPos(b, tok);
+    }
     u64 pos = b->codeCount;
     arrput(b->code, op);
     b->codeCount++;
@@ -253,13 +285,16 @@ u64 EmitBytecodeWithOneArg(PBytecode *b, Token *tok, PanOpCode op, u16 a) {
     b->codeCount++;
     arrput(b->code, (u8)(a & 0xFF));
     b->codeCount++;
-    arrput(b->tokens, tok);
-    arrput(b->lines, tok->line);
+    // arrput(b->tokens, tok);
+    // arrput(b->lines, tok->line);
     return pos;
 }
 u64 EmitBytecodeWithTwoArgs(
     PBytecode *b, Token *tok, PanOpCode op, u8 one, u8 two
 ) {
+    if (tok != NULL) {
+        recordPos(b, tok);
+    }
     u64 pos = b->codeCount;
     arrput(b->code, op);
     b->codeCount++;
@@ -267,8 +302,8 @@ u64 EmitBytecodeWithTwoArgs(
     b->codeCount++;
     arrput(b->code, two);
     b->codeCount++;
-    arrput(b->tokens, tok);
-    arrput(b->lines, tok->line);
+    // arrput(b->tokens, tok);
+    // arrput(b->lines, tok->line);
     return pos;
 }
 

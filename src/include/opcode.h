@@ -77,6 +77,15 @@ const char *OpCodeToStr(PanOpCode code);
 // Get definition of the opcocde
 POpDefinition GetOpDefinition(PanOpCode code);
 
+// Position, Line Information for Error handling in runtime
+typedef struct PBtPosInfo {
+    u64 startOffset;
+    u64 line;
+    u64 col;
+    u64 len;
+    Token *token;
+} PBtPosInfo;
+
 // Bytecode Object
 typedef struct PBytecode {
     // Raw bytes
@@ -87,11 +96,7 @@ typedef struct PBytecode {
     PValue *constPool;
     // How many Constants are there
     u16 constCount;
-    // Token array with each array being linked for the each opcode
-    // `tokens` count will be equal to how many opcodes are there
-    Token **tokens;
-    // Direct link to token's line number
-    u64 *lines;
+    PBtPosInfo *posTable;
 } PBytecode;
 
 // Create a new Bytecode Object

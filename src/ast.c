@@ -351,6 +351,7 @@ char *StmtTypeToStr(PStmtType type) {
         case STMT_LET: return "Let Stmt";
         case STMT_EXPR: return "Expr Stmt";
         case STMT_BREAK: return "Break Stmt";
+        case STMT_CONTINUE: return "Continue Stmt";
         case STMT_FUNC: return "Func Stmt";
         case STMT_IMPORT: return "Import Stmt";
         case STMT_DEBUG: return "Debug Stmt";

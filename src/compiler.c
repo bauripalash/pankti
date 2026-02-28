@@ -149,7 +149,7 @@ static int endScope(PCompiler *comp) {
 
     while (comp->localCount > 0 &&
            comp->locals[comp->localCount - 1].depth > comp->scopeDepth) {
-        emitBt(comp, getbt(comp)->tokens[0], OP_POP);
+        emitBt(comp, NULL, OP_POP);
         comp->localCount--;
     }
 

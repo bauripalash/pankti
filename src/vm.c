@@ -65,6 +65,52 @@ void FreeVm(PVm *vm) {
     PFree(vm);
 }
 
+typedef struct VmPosInfo {
+    bool found;
+    u64 line;
+    u64 col;
+    u64 len;
+    Token *token;
+} VmPosInfo;
+
+static VmPosInfo vmGetPosInfo(PVm *vm, PCallFrame *frame) {
+    if (vm == NULL || frame == NULL) {
+        return (VmPosInfo){.found = false};
+    }
+    PBytecode *bt = frame->f->v.OComFunction.code;
+    u64 errOffset = (frame->ip - bt->code) - 1;
+    u64 posCount = (u64)arrlen(bt->posTable);
+    if (posCount == 0) {
+        return (VmPosInfo){.found = false};
+    }
+
+    // Binary search : largest startOffset <= errOffset
+    i64 lo = 0;
+    i64 hi = (i64)posCount - 1;
+    i64 best = 0;
+
+    while (lo <= hi) {
+        i64 mid = (lo + hi) / 2;
+        if (bt->posTable[mid].startOffset <= errOffset) {
+            best = mid;
+            lo = mid + 1;
+        } else {
+            hi = mid - 1;
+        }
+    }
+
+    PBtPosInfo *bestPos = &bt->posTable[best];
+
+    return (VmPosInfo){
+        .found = true,
+        .line = bestPos->line,
+        .col = bestPos->col,
+        .len = bestPos->len,
+        .token = bestPos->token,
+
+    };
+}
+
 static void vmPrintStackTrace(PVm *vm) {
     for (int i = vm->frameCount - 1; i >= 0; i--) {
         PCallFrame *frame = &vm->frames[i];
@@ -83,9 +129,14 @@ static void vmPrintStackTrace(PVm *vm) {
 static void vmError(PVm *vm, const char *msg) {
     PanPrint("Error occurred:\n");
     vmPrintStackTrace(vm);
-    CoreRuntimeError(
-        vm->core, vm->frames[0].f->v.OComFunction.code->tokens[0], msg
-    );
+
+    PCallFrame *frame = &vm->frames[vm->frameCount - 1];
+    VmPosInfo posInfo = vmGetPosInfo(vm, frame);
+    if (posInfo.found) {
+        CoreRuntimeError(vm->core, posInfo.token, msg);
+    } else {
+        CoreRuntimeError(vm->core, NULL, msg);
+    }
 }
 
 static PModule *NewModule(PVm *vm, char *name) {

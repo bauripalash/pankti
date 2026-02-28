@@ -1,7 +1,7 @@
 let a = 0
 while a < 10 do
 
-    a = a + 1
+    a = a + 1 / 0
     if a == 5 then
         continue
     end
