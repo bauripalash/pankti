@@ -106,10 +106,7 @@ static inline void error(Lexer *lx, u64 line, u64 col, const char *msg) {
         CoreLexerError(lx->core, line, col, msg);
     } else {
         // Should never reach here
-        PanPrint(
-            "Invalid character found at line %zu column %zu", lx->line,
-            lx->column
-        );
+        PanPrint(LEXER_ERR_INVALID_CHAR_NOCORE, lx->line, lx->column);
     }
 }
 
@@ -393,7 +390,7 @@ static void scanToken(Lexer *lx) {
                 U32ToU8(c, rawChar);
                 error(
                     lx, lx->line, lx->column,
-                    StrFormat("Invalid character found '%s'", rawChar)
+                    StrFormat(LEXER_ERR_INVALID_CHAR, rawChar)
                 );
                 break;
             }

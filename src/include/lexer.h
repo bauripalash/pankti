@@ -72,6 +72,11 @@ void FreeLexer(Lexer *lexer);
 // Returns pointer to internal token list; (Must not free)
 Token **ScanTokens(Lexer *lexer);
 
+// Lexer Error Messages
+#define LEXER_ERR_INVALID_CHAR "অপরিচিত অক্ষর পাওয়া গেছে `%s`"
+#define LEXER_ERR_INVALID_CHAR_NOCORE                                          \
+    "অপরিচিত অক্ষর পাওয়া গেছে এই অবস্থানেঃ %zu নং লাইনে %zu নং স্তম্ভে"
+
 #ifdef __cplusplus
 }
 #endif
