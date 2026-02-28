@@ -144,12 +144,12 @@ static int startScope(PCompiler *comp) {
 
 // End a scope
 // Pop all the local variables
-static int endScope(PCompiler *comp) {
+static int endScope(PCompiler *comp, Token * op) {
     comp->scopeDepth--;
 
     while (comp->localCount > 0 &&
            comp->locals[comp->localCount - 1].depth > comp->scopeDepth) {
-        emitBt(comp, NULL, OP_POP);
+        emitBt(comp, op, OP_POP);
         comp->localCount--;
     }
 
@@ -609,11 +609,11 @@ static bool compileBlockStmt(PCompiler *comp, PStmt *stmt) {
     u64 stmtCount = arrlen(block->stmts);
     for (u64 i = 0; i < stmtCount; i++) {
         if (!compileStmt(comp, block->stmts[i])) {
-            endScope(comp);
+            endScope(comp, block->op);
             return false;
         }
     }
-    endScope(comp);
+    endScope(comp, block->op);
     return true;
 }
 
