@@ -144,7 +144,7 @@ static int startScope(PCompiler *comp) {
 
 // End a scope
 // Pop all the local variables
-static int endScope(PCompiler *comp, Token * op) {
+static int endScope(PCompiler *comp, Token *op) {
     comp->scopeDepth--;
 
     while (comp->localCount > 0 &&

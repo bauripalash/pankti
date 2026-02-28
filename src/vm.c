@@ -114,8 +114,13 @@ static VmPosInfo vmGetPosInfo(PVm *vm, PCallFrame *frame) {
 static void vmPrintStackTrace(PVm *vm) {
     for (int i = vm->frameCount - 1; i >= 0; i--) {
         PCallFrame *frame = &vm->frames[i];
+        VmPosInfo posInfo = vmGetPosInfo(vm, frame);
         struct OComFunction *fn = &frame->f->v.OComFunction;
-        PanPrint("in ");
+        if (posInfo.found) {
+            PanPrint("[line %llu, col %llu] in ", posInfo.line, posInfo.col);
+        } else {
+            PanPrint("in ");
+        }
         if (fn->strName != NULL) {
             struct OString *name = &fn->strName->v.OString;
             PanPrint("%s(...)\n", name->value);
