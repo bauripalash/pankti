@@ -17,7 +17,8 @@ ContentPages : list[str] = [
     "docs/stdlib/os.md",
     "docs/stdlib/map.md",
     "docs/stdlib/string.md",
-    "docs/stdlib/big.md",
+    "docs/stdlib/array.md",
+    "docs/stdlib/graphics.md",
 ]
 
 OutputName = "output"
@@ -38,6 +39,8 @@ def strip_front_matter(content : str) -> str:
     front_pattern_yaml = r"^(\-\-\-\n.*?\n\-\-\-\n)"
     result = re.sub(front_pattern_toml, '', content, flags=re.DOTALL | re.MULTILINE)
     result = re.sub(front_pattern_yaml, '', result, flags=re.DOTALL | re.MULTILINE)
+    # temporary solution : remote images
+    result = re.sub(r'!\[.*?\]\(https?://.*?\)', '', result, flags=re.DOTALL | re.MULTILINE)
     return result.strip()
 
 def process_file(filepath: str) -> str:
