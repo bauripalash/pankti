@@ -2,6 +2,7 @@
 #include "external/stb/stb_ds.h"
 #include "include/alloc.h"
 #include "include/ast.h"
+#include "include/compiler_errors.h"
 #include "include/core.h"
 #include "include/gc.h"
 #include "include/object.h"
@@ -127,7 +128,7 @@ static u16 emitJump(PCompiler *comp, Token *tok, PanOpCode op) {
 static void patchJump(PCompiler *comp, int offset) {
     int jump = getbt(comp)->codeCount - offset - 2;
     if (jump > UINT16_MAX) {
-        cmpError(comp, NULL, "Conditional Jump is too long");
+        cmpError(comp, NULL, CMP_ERR_JUMP_TOO_BIG);
         return; // todo: error
     }
 
@@ -174,10 +175,7 @@ static int findLocal(PCompiler *comp, Token *name) {
 
         if (lcl->name != NULL && isIdentTokenEqual(name, lcl->name)) {
             if (lcl->depth == -1) {
-                cmpError(
-                    comp, name,
-                    "Cannot read variable in its own init Statement\n"
-                );
+                cmpError(comp, name, CMP_ERR_VAR_OWN_INIT);
                 return -2;
             }
             return i;
@@ -557,9 +555,7 @@ static void tryLocalDeclare(PCompiler *comp, Token *name) {
         return;
     }
     if (doesLocalExists(comp, name) != -1) {
-        // PanPrint("Same variable exists in this scope -> %s\n", name->lexeme);
-        const char *errMsg =
-            StrFormat("Same variable exists in this scope : %s", name->lexeme);
+        const char *errMsg = StrFormat(CMP_ERR_VAR_EXIST_SCOPE, name->lexeme);
         cmpError(comp, name, errMsg);
         return;
     }
@@ -683,7 +679,7 @@ static bool compileWhileStmt(PCompiler *comp, PStmt *stmt) {
 
     PCompLoopCtx *loopCtx = enterLoop(comp, loopStart);
     if (loopCtx == NULL) {
-        cmpError(comp, whileStmt->op, "Failed to create loop context");
+        cmpError(comp, whileStmt->op, CMP_ERR_IME_FAIL_LOOPCTX);
         return false;
     }
 
@@ -707,7 +703,7 @@ static bool compileBreakStmt(PCompiler *comp, PStmt *stmt) {
     struct SBreak *breakStmt = &stmt->stmt.SBreak;
 
     if (comp->loopCtx == NULL) {
-        cmpError(comp, breakStmt->op, "Cannot use `break` outside of loops");
+        cmpError(comp, breakStmt->op, CMP_ERR_BREAK_OUT_LOOP);
         return false;
     }
     u16 jumpPos = emitJump(comp, breakStmt->op, OP_JUMP);
@@ -719,7 +715,7 @@ static bool compileContinueStmt(PCompiler *comp, PStmt *stmt) {
     struct SContinue *contStmt = &stmt->stmt.SContinue;
 
     if (comp->loopCtx == NULL) {
-        cmpError(comp, contStmt->op, "Cannot use `continue` outside of loops");
+        cmpError(comp, contStmt->op, CMP_ERR_CONTINUE_OUT_LOOP);
         return false;
     }
     emitLoop(comp, contStmt->op, comp->loopCtx->loopStart);
@@ -769,7 +765,7 @@ static bool compileFuncStmt(PCompiler *comp, PStmt *stmt) {
 static bool compileReturnStmt(PCompiler *comp, PStmt *stmt) {
     struct SReturn *retStmt = &stmt->stmt.SReturn;
     if (comp->funcType == COMP_FN_SCRIPT) {
-        cmpError(comp, retStmt->op, "Top level script cannot contain return");
+        cmpError(comp, retStmt->op, CMP_ERR_TOP_RETURN);
         return false;
     }
     if (retStmt->value != NULL) {
