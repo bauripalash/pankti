@@ -27,6 +27,7 @@ static const POpDefinition opDefs[] = {
     [OP_SUB] = {"OpSub", 0, {0}},
     [OP_MUL] = {"OpMul", 0, {0}},
     [OP_DIV] = {"OpDiv", 0, {0}},
+    [OP_MOD] = {"OpMod", 0, {0}},
     [OP_EXPONENT] = {"OpExponent", 0, {0}},
     [OP_EQUAL] = {"OpEqual", 0, {0}},
     [OP_NOTEQUAL] = {"OpNotEqual", 0, {0}},
@@ -157,6 +158,7 @@ u64 DisasmBytecode(const PBytecode *bt, u64 offset) {
         case OP_SUB:
         case OP_MUL:
         case OP_DIV:
+        case OP_MOD:
         case OP_EXPONENT:
         case OP_EQUAL:
         case OP_NOTEQUAL:

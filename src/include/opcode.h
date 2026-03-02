@@ -27,6 +27,7 @@ typedef enum PanOpCode {
     OP_MUL,
     OP_DIV,
     OP_EXPONENT,
+    OP_MOD,
     OP_EQUAL,
     OP_NOTEQUAL,
     OP_GT,

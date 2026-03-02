@@ -227,6 +227,14 @@ static bool vmBinaryOpNumber(PVm *vm, PanOpCode op, PValue left, PValue right) {
             result = leftVal / rightVal;
             break;
         }
+        case OP_MOD:{
+            if (rightVal == 0.0) {
+                vmError(vm, "Division by zero");
+                return false;
+            }
+            result = fmod(leftVal, rightVal);
+            break;
+        }
         case OP_EXPONENT: result = pow(leftVal, rightVal); break;
         default: return false;
     }
@@ -563,6 +571,7 @@ void VmRun(PVm *vm) {
             case OP_SUB:
             case OP_MUL:
             case OP_DIV:
+            case OP_MOD:
             case OP_EXPONENT: {
                 vmBinaryOp(vm, ins);
                 break;

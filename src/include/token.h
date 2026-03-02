@@ -40,7 +40,7 @@ typedef enum PTokenType {
     T_MINUS = 10,
     // Token `:`
     T_COLON = 11,
-    // Token `<Undecided>`
+    // Token `%`
     T_MOD = 12,
     // Token `;`
     T_SEMICOLON = 13,
@@ -109,7 +109,9 @@ typedef enum PTokenType {
     T_IMPORT = 43,
     // Token : Keyword `panic/golmal`
     T_PANIC = 44,
+    // Token : Debug `?`
     T_DEBUG = 45,
+    // Token : Keyword `continue/chalao`
     T_CONTINUE = 46,
     // Token : End of File
     T_EOF = 47

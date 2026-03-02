@@ -310,6 +310,7 @@ static bool compileBinExpr(PCompiler *comp, PExpr *expr) {
         case T_MINUS: emitBt(comp, bin->op, OP_SUB); break;
         case T_ASTR: emitBt(comp, bin->op, OP_MUL); break;
         case T_SLASH: emitBt(comp, bin->op, OP_DIV); break;
+        case T_MOD: emitBt(comp, bin->op, OP_MOD); break;
         case T_EXPONENT: emitBt(comp, bin->op, OP_EXPONENT); break;
         case T_EQEQ: emitBt(comp, bin->op, OP_EQUAL); break;
         case T_BANG_EQ: emitBt(comp, bin->op, OP_NOTEQUAL); break;

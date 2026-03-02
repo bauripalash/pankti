@@ -229,7 +229,7 @@ static PExpr *rTerm(Parser *p) {
 
 static PExpr *rFactor(Parser *p) {
     PExpr *expr = rUnary(p);
-    while (matchMany(p, (PTokenType[]){T_SLASH, T_ASTR}, 2)) {
+    while (matchMany(p, (PTokenType[]){T_SLASH, T_ASTR, T_MOD}, 3)) {
         Token *op = previous(p);
         PExpr *right = rUnary(p);
         if (right == NULL) {
