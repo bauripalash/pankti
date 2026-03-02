@@ -15,8 +15,17 @@
 #include "../include/ansicolors.h"
 #endif
 
+#define GcPopObj(gc, o)                                                        \
+    do {                                                                       \
+        (gc)->objects = (o)->next;                                             \
+        FreeObject((gc), (o));                                                 \
+    } while (0)
+
 PObj *NewObject(Pgc *gc, PObjType type) {
     PObj *o = PCreate(PObj);
+    if (o == NULL) {
+        return NULL;
+    }
     o->type = type;
     o->next = gc->objects;
     gc->objects = o;
@@ -33,6 +42,9 @@ PObj *NewObject(Pgc *gc, PObjType type) {
 
 PObj *NewStrObject(Pgc *gc, Token *name, char *value, bool virt) {
     PObj *o = NewObject(gc, OT_STR);
+    if (o == NULL) {
+        return NULL;
+    }
     o->v.OString.name = name;
     o->v.OString.value = value;
     o->v.OString.isVirtual = virt;
@@ -45,6 +57,9 @@ PObj *NewFuncObject(
     Pgc *gc, Token *name, Token **params, PStmt *body, void *env, u64 count
 ) {
     PObj *o = NewObject(gc, OT_FNC);
+    if (o == NULL) {
+        return NULL;
+    }
     o->v.OFunction.name = name;
     o->v.OFunction.params = params;
     o->v.OFunction.body = body;
@@ -55,20 +70,37 @@ PObj *NewFuncObject(
 
 PObj *NewComFuncObject(Pgc *gc, Token *name) {
     PObj *o = NewObject(gc, OT_COMFNC);
+    if (o == NULL) {
+        return NULL;
+    }
     o->v.OComFunction.rawName = name;
-    o->v.OComFunction.code = NewBytecode();
+
+    PBytecode *btCode = NewBytecode();
+    if (btCode == NULL) {
+        GcPopObj(gc, o);
+        return NULL;
+    }
+
+    o->v.OComFunction.code = btCode;
     o->v.OComFunction.paramCount = 0;
+    o->v.OComFunction.strName = NULL;
+
     if (name != NULL) {
-        o->v.OComFunction.strName = NewStrObject(gc, name, name->lexeme, false);
-    } else {
-        o->v.OComFunction.strName = NULL;
+        PObj *strName = NewStrObject(gc, name, name->lexeme, false);
+        if (strName == NULL) {
+            GcPopObj(gc, o);
+            return NULL;
+        }
+        o->v.OComFunction.strName = strName;
     }
     return o;
 }
 
 PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, u64 count) {
     PObj *o = NewObject(gc, OT_ARR);
-
+    if (o == NULL) {
+        return NULL;
+    }
     o->v.OArray.items = items;
     o->v.OArray.count = count;
     o->v.OArray.op = op;
@@ -77,6 +109,9 @@ PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, u64 count) {
 
 PObj *NewMapObject(Pgc *gc, Token *op) {
     PObj *o = NewObject(gc, OT_MAP);
+    if (o == NULL) {
+        return NULL;
+    }
     o->v.OMap.table = NULL;
     o->v.OMap.op = op;
     o->v.OMap.count = 0;
@@ -85,10 +120,17 @@ PObj *NewMapObject(Pgc *gc, Token *op) {
 
 PObj *NewNativeFnObject(Pgc *gc, const char *name, NativeFn fn, int arity) {
     PObj *o = NewObject(gc, OT_NATIVE);
+    if (o == NULL) {
+        return NULL;
+    }
     char *nameStr = NULL;
 
     if (name != NULL) {
         nameStr = StrDuplicate(name, StrLength(name));
+        if (nameStr == NULL) {
+            GcPopObj(gc, o);
+            return NULL;
+        }
     }
 
     o->v.ONative.name = nameStr;
@@ -99,22 +141,49 @@ PObj *NewNativeFnObject(Pgc *gc, const char *name, NativeFn fn, int arity) {
 
 PObj *NewErrorObject(Pgc *gc, char *msg) {
     PObj *o = NewObject(gc, OT_ERROR);
+    if (o == NULL) {
+        return NULL;
+    }
+    o->v.OError.msg = NULL;
     if (msg != NULL) {
-        o->v.OError.msg = StrDuplicate(msg, strlen(msg));
+        char *msgStr = StrDuplicate(msg, strlen(msg));
+        if (msgStr == NULL) {
+            GcPopObj(gc, o);
+            return NULL;
+        }
+        o->v.OError.msg = msgStr;
     }
     return o;
 }
 
 PObj *NewModuleObject(Pgc *gc, char *name, char *path) {
     PObj *o = NewObject(gc, OT_MODULE);
+    if (o == NULL) {
+        return NULL;
+    }
     o->v.OModule.nameHash = 0;
+    o->v.OModule.customName = NULL;
+    o->v.OModule.path = NULL;
+
     if (name != NULL) {
-        o->v.OModule.customName = StrDuplicate(name, StrLength(name));
+        char *customName = StrDuplicate(name, StrLength(name));
+        if (customName == NULL) {
+            GcPopObj(gc, o);
+            return NULL;
+        }
+
+        o->v.OModule.customName = customName;
         o->v.OModule.nameHash = StrHash(name, StrLength(name), gc->timestamp);
     }
 
     if (path != NULL) {
-        o->v.OModule.path = StrDuplicate(path, StrLength(path));
+        char *pathStr = StrDuplicate(path, StrLength(path));
+        if (pathStr == NULL) {
+            GcPopObj(gc, o);
+            return NULL;
+        }
+
+        o->v.OModule.path = pathStr;
     }
 
     return o;
@@ -122,6 +191,9 @@ PObj *NewModuleObject(Pgc *gc, char *name, char *path) {
 
 PObj *NewUpvalueObject(Pgc *gc, PValue initValue) {
     PObj *o = NewObject(gc, OT_UPVAL);
+    if (o == NULL) {
+        return NULL;
+    }
     o->v.OUpval.value = initValue;
     return o;
 }

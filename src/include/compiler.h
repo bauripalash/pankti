@@ -12,8 +12,8 @@ extern "C" {
 #endif
 
 // Maximum number of locals compiler can hold
-// Maximum range of u16
-#define MAX_COMPILER_LOCAL_COUNT 65535
+// Maximum range of u8
+#define MAX_COMPILER_LOCAL_COUNT 255
 
 // Forward declaration for GC
 typedef struct Pgc Pgc;
