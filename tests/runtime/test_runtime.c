@@ -10,5 +10,6 @@
 #include "test_bench.h"
 #include "test_arithmetic.h"
 #include "test_closure.h"
+#include "test_while.h"
 
 UTEST_MAIN();
