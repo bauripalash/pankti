@@ -5,6 +5,7 @@
 #include "include/core.h"
 #include "include/gc.h"
 #include "include/lexer.h"
+#include "include/parser_errors.h"
 #include "include/strescape.h"
 #include "include/token.h"
 #include "include/utils.h"
@@ -137,11 +138,7 @@ static PExpr *rAnd(Parser *p) {
         PExpr *right = rEquality(p);
         expr = NewLogical(p->gc, expr, op, right);
         if (expr == NULL) {
-            fatalError(
-                p, op,
-                "Internal Memory Error : Failed to create logical expression "
-                "while reading 'and'"
-            );
+            fatalError(p, op, PARSER_ERR_IME_FAIL_LOGICAL_AT_AND);
             return NULL;
         }
     }
@@ -155,11 +152,7 @@ static PExpr *rOr(Parser *p) {
         PExpr *right = rAnd(p);
         expr = NewLogical(p->gc, expr, op, right);
         if (expr == NULL) {
-            fatalError(
-                p, op,
-                "Internal Memory Error : Failed to create logical expression "
-                "while reading 'or'"
-            );
+            fatalError(p, op, PARSER_ERR_IME_FAIL_LOGICAL_AT_OR);
             return NULL;
         }
     }
@@ -175,17 +168,13 @@ static PExpr *rAssignment(Parser *p) {
         if (expr->type == EXPR_VARIABLE || expr->type == EXPR_SUBSCRIPT) {
             PExpr *assignExpr = NewAssignment(p->gc, op, expr, value);
             if (assignExpr == NULL) {
-                fatalError(
-                    p, op,
-                    "Internal Memory Error : Failed to create assignment "
-                    "expression"
-                );
+                fatalError(p, op, PARSER_ERR_IME_ASSIGN_EXPR);
                 return NULL;
             }
             return assignExpr;
         }
 
-        error(p, NULL, "Invalid assignment");
+        error(p, NULL, PARSER_ERR_INVALID_ASSIGN);
         return NULL;
     }
 
@@ -202,8 +191,7 @@ static PExpr *rEquality(Parser *p) {
         if (expr == NULL) {
             fatalError(
                 p, op,
-                "Internal Memory Error : Failed to create binary expression "
-                "when reading equality expression"
+                PARSER_ERR_IME_FAIL_BINARY_AT_EQ
             );
             return NULL;
         }
@@ -221,8 +209,7 @@ static PExpr *rComparison(Parser *p) {
         if (expr == NULL) {
             fatalError(
                 p, op,
-                "Internal Memory Error : Failed to create binary expression "
-                "when reading comparison expression"
+                PARSER_ERR_IME_FAIL_BINARY_AT_COMPR 
             );
             return NULL;
         }
@@ -240,8 +227,7 @@ static PExpr *rTerm(Parser *p) {
         if (expr == NULL) {
             fatalError(
                 p, op,
-                "Internal Memory Error : Failed to create binary expression "
-                "when reading Add/Sub expression"
+                PARSER_ERR_IME_FAIL_BINARY_AT_ADDSUB 
             );
             return NULL;
         }
@@ -256,14 +242,13 @@ static PExpr *rFactor(Parser *p) {
         Token *op = previous(p);
         PExpr *right = rUnary(p);
         if (right == NULL) {
-            error(p, NULL, "Invalid expression found in factor expression");
+            error(p, NULL, PARSER_ERR_INVALID_FACT_EXPR);
         }
         expr = NewBinaryExpr(p->gc, expr, op, right);
         if (expr == NULL) {
             fatalError(
                 p, op,
-                "Internal Memory Error : Failed to create binary expression "
-                "when reading Mul/Div expression"
+                PARSER_ERR_IME_FAIL_BINARY_AT_MULDIV
             );
             return NULL;
         }
@@ -279,7 +264,7 @@ static PExpr *rUnary(Parser *p) {
         if (unaryExpr == NULL) {
             fatalError(
                 p, op,
-                "Internal Memory Error : Failed to create unary expression"
+                PARSER_ERR_IME_FAIL_UNARY
             );
             return NULL;
         }
@@ -298,14 +283,13 @@ static PExpr *rExponent(Parser *p) {
         // but without it `a ** -b()` throws error, cause the unary getting
         // skipped as the parser directly going to the call
         if (right == NULL) {
-            error(p, NULL, "Invalid expression found in exponent expression");
+            error(p, NULL, PARSER_ERR_INVALID_EXPR_EXPO);
         }
         expr = NewBinaryExpr(p->gc, expr, op, right);
         if (expr == NULL) {
             fatalError(
                 p, op,
-                "Internal Memory Error : Failed to create binary expression "
-                "when reading exponent expression"
+                PARSER_ERR_IME_FAIL_BINARY_AT_EXPO
             );
             return NULL;
         }
@@ -319,19 +303,19 @@ static PExpr *finishCallExpr(Parser *p, PExpr *expr) {
     if (!check(p, T_RIGHT_PAREN)) {
         do {
             if (count >= 255) {
-                error(p, NULL, "Can't have more than 255 arguments");
+                error(p, NULL, PARSER_ERR_CALL_CANT_TOOMANY_ARGS);
             }
             arrput(args, rExpression(p));
             count++;
         } while (matchOne(p, T_COMMA));
     }
 
-    Token *rparen = eat(p, T_RIGHT_PAREN, "Expected ')' after arguments");
+    Token *rparen = eat(p, T_RIGHT_PAREN, PARSER_ERR_EXPECT_RPAREN_ARGS);
     PExpr *callExpr = NewCallExpr(p->gc, rparen, expr, args, count);
     if (callExpr == NULL) {
         fatalError(
             p, rparen,
-            "Internal Memory Error : Failed to create call expression"
+            PARSER_ERR_IME_FAIL_CALL_EXPR
         );
         return NULL;
     }
@@ -342,15 +326,15 @@ static PExpr *rSubscript(Parser *p, PExpr *expr) {
     Token *op = previous(p);
     PExpr *indexExpr = rExpression(p);
     if (indexExpr == NULL) {
-        error(p, op, "Invalid subscript index");
+        error(p, op, PARSER_ERR_INVALID_SUBS_IDX);
         return NULL;
     }
-    eat(p, T_RS_BRACKET, "Expected ']' after subscript expression");
+    eat(p, T_RS_BRACKET, PARSER_ERR_EXPECT_RSBRACK_SUBS);
     PExpr *subExpr = NewSubscriptExpr(p->gc, op, expr, indexExpr);
     if (subExpr == NULL) {
         fatalError(
             p, op,
-            "Internal Memory Error : Failed to create subscript expression"
+            PARSER_ERR_IME_FAIL_SUBS_EXPR
         );
         return NULL;
     }
@@ -361,13 +345,13 @@ static PExpr *rSubscript(Parser *p, PExpr *expr) {
 // Module get expression `module.child`
 static PExpr *rModget(Parser *p, PExpr *expr) {
     Token *op = previous(p);
-    Token *childTok = eat(p, T_IDENT, "Expected child token");
+    Token *childTok = eat(p, T_IDENT, PARSER_ERR_EXPECT_MOD_CHILD);
     PExpr *modGetExpr = NewModgetExpr(p->gc, op, expr, childTok);
     if (modGetExpr == NULL) {
         fatalError(
             p, op,
-            "Internal Memory Error : Failed to create module child get "
-            "expression"
+            PARSER_ERR_IME_FAIL_MOD_CHILD
+            
         );
         return NULL;
     }
@@ -400,11 +384,11 @@ static PExpr *rArrayExpr(Parser *p) {
         if (check(p, T_RS_BRACKET)) {
             break;
         }
-        if (eat(p, T_COMMA, "Expected ',' comma after array item") == NULL) {
+        if (eat(p, T_COMMA, PARSER_ERR_EXPECT_COMMA_ARR_ITEM) == NULL) {
             break;
         }
     }
-    Token *rbrace = eat(p, T_RS_BRACKET, "Expected ']' after array items");
+    Token *rbrace = eat(p, T_RS_BRACKET, PARSER_ERR_EXPECT_RSBRACK_ARR);
     u64 itemCount = (u64)arrlen(items);
     return NewArrayExpr(p->gc, rbrace, items, itemCount);
 }
@@ -414,14 +398,14 @@ static PExpr *rMapExpr(Parser *p) {
     Token *lbrace = previous(p);
     while (!check(p, T_RIGHT_BRACE)) {
         arrput(etable, rExpression(p));
-        eat(p, T_COLON, "Expected ':' after map key");
+        eat(p, T_COLON, PARSER_ERR_EXPECT_COLON_MAPKEY);
         arrput(etable, rExpression(p));
         if (check(p, T_RIGHT_BRACE)) {
             break;
         }
-        eat(p, T_COMMA, "Expected ',' after map pair");
+        eat(p, T_COMMA, PARSER_ERR_EXPECT_COMMA_MAPPAIR);
     }
-    eat(p, T_RIGHT_BRACE, "Expected '}' after map");
+    eat(p, T_RIGHT_BRACE, PARSER_ERR_EXPECT_RBRACE_MAP);
     u64 itemCount = (u64)(arrlen(etable));
     return NewMapExpr(p->gc, lbrace, etable, itemCount);
 }
@@ -439,24 +423,24 @@ static char *readStringEscapes(Parser *p, Token *tok) {
     switch (err) {
         case SESC_OK: break;
         case SESC_UNKNOWN_ESCAPE: {
-            error(p, tok, "Unknown escape sequence found in string");
+            error(p, tok, PARSER_ERR_SESC_UNKN_ESC);
             break;
         }
         case SESC_INVALID_HEX_CHAR: {
             error(
-                p, tok, "Invalid Hex character found in string escape sequence"
+                p, tok,PARSER_ERR_SESC_INVLD_HEX 
             );
             break;
         }
 
         case SESC_BUFFER_NOT_ENOUGH: {
-            error(p, tok, "Internal Error: Failed to process string escape");
+            error(p, tok, PARSER_ERR_SESC_BFR_NOT_ENGH);
             break;
         }
         case SESC_INPUT_FINISHED_EARLY: {
             error(
                 p, tok,
-                "Incomplete escape sequence found at the end of the string"
+                PARSER_ERR_SESC_FNSH_ERLY 
             );
             break;
         }
@@ -464,16 +448,14 @@ static char *readStringEscapes(Parser *p, Token *tok) {
         case SESC_NO_LOW_SURROGATE: {
             error(
                 p, tok,
-                "While reading \\uHHHH sequence another low surrogate \\uHHHH "
-                "sequence was expected but not found"
+                PARSER_ERR_SESC_NO_LO_SRGT 
             );
             break;
         }
         case SESC_LONE_LOW_SURROGATE: {
             error(
                 p, tok,
-                "While reading \\uHHHH sequence only a lone low surrogate was "
-                "found"
+                PARSER_ERR_SESC_LN_LOW_SURROGATE
             );
             break;
         }
@@ -481,20 +463,18 @@ static char *readStringEscapes(Parser *p, Token *tok) {
         case SESC_INVALID_LOW_SURROGATE: {
             error(
                 p, tok,
-                "While reading \\uHHHH a invalid low surrogate was found after "
-                "a high surrogate"
+                PARSER_ERR_SESC_INVLD_LO_SRGT
             );
             break;
         }
         case SESC_8_INVALID_CP: {
-            error(p, tok, "Found invalid codepoint in \\uHHHHHHHH sequence");
+            error(p, tok, PARSER_ERR_SESC_INVALID_8_CP);
             break;
         }
         case SESC_NULL_PTR: {
             error(
                 p, tok,
-                "Internal Error: Invalid Memory allocation for output in "
-                "reading escape sequences"
+                PARSER_ERR_SESC_NUL_PTR
             );
             break;
         }
@@ -509,8 +489,7 @@ static PExpr *rPrimary(Parser *p) {
         if (e == NULL) {
             fatalError(
                 p, op,
-                "Internal Memory Error : Failed to create bool literal "
-                "expression"
+                PARSER_ERR_IME_FAIL_BOOL_LIT
             );
             return NULL;
         }
@@ -524,8 +503,7 @@ static PExpr *rPrimary(Parser *p) {
         if (e == NULL) {
             fatalError(
                 p, op,
-                "Internal Memory Error : Failed to create bool literal "
-                "expression"
+               PARSER_ERR_IME_FAIL_BOOL_LIT
             );
             return NULL;
         }
@@ -539,8 +517,7 @@ static PExpr *rPrimary(Parser *p) {
         if (e == NULL) {
             fatalError(
                 p, op,
-                "Internal Memory Error : Failed to create nil literal "
-                "expression"
+                PARSER_ERR_IME_FAIL_NIL_LIT
             );
         }
 
@@ -553,7 +530,7 @@ static PExpr *rPrimary(Parser *p) {
         bool ok = true;
         double value = NumberFromStr(opTok->lexeme, opTok->len, &ok);
         if (!ok) {
-            error(p, opTok, "Invalid or malformed number found");
+            error(p, opTok, PARSER_ERR_MALFRM_NUM);
             return NULL;
         }
 
@@ -561,8 +538,7 @@ static PExpr *rPrimary(Parser *p) {
         if (e == NULL) {
             fatalError(
                 p, opTok,
-                "Internal Memory Error : Failed to create number literal "
-                "expression"
+               PARSER_ERR_IME_FAIL_NUM_LIT 
             );
             return NULL;
         }
@@ -577,8 +553,7 @@ static PExpr *rPrimary(Parser *p) {
         if (escapedStr == NULL) {
             fatalError(
                 p, opTok,
-                "Internal Memory Error : Failed to create string literal's "
-                "characters"
+                PARSER_ERR_IME_FAIL_STR_CHAR_LIT 
             );
             return NULL;
         }
@@ -587,8 +562,7 @@ static PExpr *rPrimary(Parser *p) {
         if (e == NULL) {
             fatalError(
                 p, opTok,
-                "Internal Memory Error : Failed to create string literal "
-                "expression"
+               PARSER_ERR_IME_FAIL_STR_LIT
             );
             return NULL;
         }
@@ -604,7 +578,7 @@ static PExpr *rPrimary(Parser *p) {
         if (e == NULL) {
             fatalError(
                 p, op,
-                "Internal Memory Error : Failed to create identifier expression"
+                PARSER_ERR_IME_FAIL_IDENT_EXPR
             );
             return NULL;
         }
@@ -614,12 +588,12 @@ static PExpr *rPrimary(Parser *p) {
     if (matchOne(p, T_LEFT_PAREN)) {
         Token *op = previous(p);
         PExpr *e = rExpression(p);
-        eat(p, T_RIGHT_PAREN, "Expected ')'");
+        eat(p, T_RIGHT_PAREN, PARSER_ERR_EXPECT_RPAREN_GRP);
         PExpr *grpExpr = NewGrouping(p->gc, op, e);
         if (grpExpr == NULL) {
             fatalError(
                 p, op,
-                "Internal Memory Error : Failed to create group expression"
+                PARSER_ERR_IME_FAIL_GRP
             );
             return NULL;
         }
@@ -633,7 +607,7 @@ static PExpr *rPrimary(Parser *p) {
         if (e == NULL) {
             fatalError(
                 p, op,
-                "Internal Memory Error : Failed to create array expression"
+                PARSER_ERR_IME_FAIL_ARR
             );
             return NULL;
         }
@@ -646,7 +620,7 @@ static PExpr *rPrimary(Parser *p) {
         PExpr *e = rMapExpr(p);
         if (e == NULL) {
             fatalError(
-                p, op, "Internal Memory Error : Failed to create map expression"
+                p, op, PARSER_ERR_IME_FAIL_MAP 
             );
             return NULL;
         }
@@ -654,7 +628,7 @@ static PExpr *rPrimary(Parser *p) {
         return e;
     }
 
-    error(p, previous(p), "Expected expression");
+    error(p, previous(p), PARSER_ERR_EXPECT_EXPR);
     return NULL;
 }
 
@@ -685,7 +659,7 @@ static PStmt *rExprStmt(Parser *p) {
     if (exprStmt == NULL) {
         fatalError(
             p, op,
-            "Internal Memory Error : Failed to create expression statement"
+            PARSER_ERR_IME_FAIL_EXPSTMT
         );
         return NULL;
     }
@@ -699,7 +673,7 @@ static PStmt *rDebugStmt(Parser *p) {
     PStmt *debugStmt = NewDebugStmt(p->gc, op, value);
     if (debugStmt == NULL) {
         fatalError(
-            p, op, "Internal Memory Error : Failed to create debug statement"
+            p, op,PARSER_ERR_IME_FAIL_DBGSTMT 
         );
         return NULL;
     }
@@ -708,13 +682,13 @@ static PStmt *rDebugStmt(Parser *p) {
 }
 
 static PStmt *rLetStmt(Parser *p) {
-    Token *name = eat(p, T_IDENT, "Expected Identifier");
-    eat(p, T_EQ, "Expected equal");
+    Token *name = eat(p, T_IDENT, PARSER_ERR_EXPECT_IDENT_LET);
+    eat(p, T_EQ, PARSER_ERR_EXPECT_EQ_IDENT_LET);
     PExpr *value = rExpression(p);
     PStmt *letStmt = NewLetStmt(p->gc, name, value);
     if (letStmt == NULL) {
         fatalError(
-            p, name, "Internal Memory Error : Failed to create let statement"
+            p, name,PARSER_ERR_IME_FAIL_LETSTMT 
         );
         return NULL;
     }
@@ -729,12 +703,12 @@ static PStmt *rBlockStmt(Parser *p) {
         arrput(stmtList, rLet(p));
     }
 
-    eat(p, T_RIGHT_BRACE, "Expected '}' after block stmt");
+    eat(p, T_RIGHT_BRACE, PARSER_ERR_EXPECT_RBRACE_BLK);
     PStmt *block = NewBlockStmt(p->gc, curTok, stmtList);
     if (block == NULL) {
         fatalError(
             p, curTok,
-            "Internal Memory Error : Failed to create block statement"
+            PARSER_ERR_IME_FAIL_BLKSTMT
         );
         return NULL;
     }
@@ -747,8 +721,16 @@ static PStmt *rToEndBlockStmt(Parser *p) {
         arrput(stmtList, rLet(p));
     }
 
-    eat(p, T_END, "Expected 'end' after block");
+    eat(p, T_END, PARSER_ERR_EXPECT_END_BLK);
+    Token * endTok = previous(p);
     PStmt *block = NewBlockStmt(p->gc, previous(p), stmtList);
+    if (block == NULL) {
+        fatalError(
+            p, endTok,
+            PARSER_ERR_IME_FAIL_BLKSTMT
+        );
+        return NULL;
+    }
     return block;
 }
 
@@ -760,10 +742,10 @@ static PStmt *rToEndOrElseBlockStmt(Parser *p, bool *hasElse) {
     }
 
     if (check(p, T_ELSE)) {
-        eat(p, T_ELSE, "Expected 'else' ");
+        eat(p, T_ELSE, PARSER_ERR_NOP_ELSE_BLOCK);
         *hasElse = true;
     } else if (check(p, T_END)) {
-        eat(p, T_END, "Expected 'end'");
+        eat(p, T_END, PARSER_ERR_NOP_END_BLOCK);
         *hasElse = false;
     }
 
@@ -772,7 +754,7 @@ static PStmt *rToEndOrElseBlockStmt(Parser *p, bool *hasElse) {
     PStmt *block = NewBlockStmt(p->gc, op, stmtList);
     if (block == NULL) {
         fatalError(
-            p, op, "Internal Memory Error : Failed to create block statement"
+            p, op, PARSER_ERR_IME_FAIL_BLKSTMT 
         );
         return NULL;
     }
@@ -781,7 +763,7 @@ static PStmt *rToEndOrElseBlockStmt(Parser *p, bool *hasElse) {
 static PStmt *rIfStmt(Parser *p) {
     Token *op = previous(p);
     PExpr *cond = rExpression(p);
-    eat(p, T_THEN, "Expected then after if expression");
+    eat(p, T_THEN, PARSER_ERR_EXPECT_THEN_IF);
     bool hasElse = false;
     PStmt *thenBranch = rToEndOrElseBlockStmt(p, &hasElse);
     PStmt *elseBranch = NULL;
@@ -792,7 +774,7 @@ static PStmt *rIfStmt(Parser *p) {
     PStmt *ifStmt = NewIfStmt(p->gc, op, cond, thenBranch, elseBranch);
     if (ifStmt == NULL) {
         fatalError(
-            p, op, "Internal Memory Error : Failed to create if statement"
+            p, op, PARSER_ERR_IME_FAIL_IFSTMT 
         );
         return NULL;
     }
@@ -803,13 +785,13 @@ static PStmt *rIfStmt(Parser *p) {
 static PStmt *rWhileStmt(Parser *p) {
     Token *op = previous(p);
     PExpr *cond = rExpression(p);
-    eat(p, T_DO, "Expected do after while expression");
+    eat(p, T_DO, PARSER_ERR_EXPECT_DO_WHILE);
     PStmt *body = rToEndBlockStmt(p);
     PStmt *whileStmt = NewWhileStmt(p->gc, op, cond, body);
 
     if (whileStmt == NULL) {
         fatalError(
-            p, op, "Internal Memory Error : Failed to create while statement"
+            p, op, PARSER_ERR_IME_FAIL_WHLSTMT
         );
         return NULL;
     }
@@ -826,13 +808,14 @@ static PStmt *rReturnStmt(Parser *p) {
     }
 
     if (check(p, T_SEMICOLON)) {
-        eat(p, T_SEMICOLON, "Expected ';' after empty return");
+        
+        eat(p, T_SEMICOLON, PARSER_ERR_EXPECT_SCOLON_EMT_RET);
     }
 
     PStmt *retStmt = NewReturnStmt(p->gc, op, value);
     if (retStmt == NULL) {
         fatalError(
-            p, op, "Internal Memory Error : Failed to create return statement"
+            p, op, PARSER_ERR_IME_FAIL_RETSTMT 
         );
         return NULL;
     }
@@ -843,14 +826,14 @@ static PStmt *rReturnStmt(Parser *p) {
 static PStmt *rBreakStmt(Parser *p) {
     Token *op = previous(p);
     if (check(p, T_SEMICOLON)) {
-        eat(p, T_SEMICOLON, "Expected ';'");
+        eat(p, T_SEMICOLON, PARSER_ERR_SEMICOLON);
     }
 
     PStmt *breakStmt = NewBreakStmt(p->gc, op);
 
     if (breakStmt == NULL) {
         fatalError(
-            p, op, "Internal Memory Error : Failed to create break statement"
+            p, op,PARSER_ERR_IME_FAIL_BRKSTMT 
         );
         return NULL;
     }
@@ -861,13 +844,13 @@ static PStmt *rBreakStmt(Parser *p) {
 static PStmt *rContinueStmt(Parser *p) {
     Token *op = previous(p);
     if (check(p, T_SEMICOLON)) {
-        eat(p, T_SEMICOLON, "Expected ';'");
+        eat(p, T_SEMICOLON, PARSER_ERR_SEMICOLON);
     }
 
     PStmt *contStmt = NewContinueStmt(p->gc, op);
     if (contStmt == NULL) {
         fatalError(
-            p, op, "Internal Memory Error : Failed to create continue statement"
+            p, op, PARSER_ERR_IME_FAIL_CNTSTMT
         );
         return NULL;
     }
@@ -876,25 +859,25 @@ static PStmt *rContinueStmt(Parser *p) {
 }
 
 static PStmt *rFuncStmt(Parser *p) {
-    Token *name = eat(p, T_IDENT, "Expected function name");
-    eat(p, T_LEFT_PAREN, "Expected '(' after function name");
+    Token *name = eat(p, T_IDENT, PARSER_ERR_EXPECT_FN_NAME_FUNC);
+    eat(p, T_LEFT_PAREN, PARSER_ERR_EXPECT_LPAREN_FN_NAME);
     Token **params = NULL;
     u64 paramCount = 0;
     if (!check(p, T_RIGHT_PAREN)) {
         do {
-            Token *param = eat(p, T_IDENT, "Expected param");
+            Token *param = eat(p, T_IDENT, PARSER_ERR_EXPECT_PARAM_FNPRM);
             arrput(params, param);
             paramCount++;
         } while (matchOne(p, T_COMMA));
     }
-    eat(p, T_RIGHT_PAREN, "Expected ')' after expression list");
+    eat(p, T_RIGHT_PAREN, PARSER_ERR_EXPECT_RPAREN_FN_PARM);
     PStmt *body = rToEndBlockStmt(p);
 
     PStmt *funcStmt = NewFuncStmt(p->gc, name, params, body, paramCount);
     if (funcStmt == NULL) {
         fatalError(
             p, name,
-            "Internal Memory Error : Failed to create function statement"
+            PARSER_ERR_IME_FAIL_FNCSTMT
         );
         return NULL;
     }
@@ -904,16 +887,16 @@ static PStmt *rFuncStmt(Parser *p) {
 
 static PStmt *rImportStmt(Parser *p) {
     Token *op = previous(p);
-    Token *name = eat(p, T_IDENT, "Expected Import Name");
+    Token *name = eat(p, T_IDENT, PARSER_ERR_SEMICOLON);
     PExpr *pathExpr = rExpression(p);
     if (check(p, T_SEMICOLON)) {
-        eat(p, T_SEMICOLON, "Semicolon"); // Error should never occur
+        eat(p, T_SEMICOLON, PARSER_ERR_SEMICOLON); // Error should never occur
     }
 
     PStmt *importStmt = NewImportStmt(p->gc, op, name, pathExpr);
     if (importStmt == NULL) {
         fatalError(
-            p, op, "Internal Memory Error : Failed to create import statement"
+            p, op, PARSER_ERR_IME_FAIL_IMPSTMT
         );
         return NULL;
     }
