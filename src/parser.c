@@ -682,7 +682,12 @@ static PStmt *rIfStmt(Parser *p) {
     PStmt *thenBranch = rToEndOrElseBlockStmt(p, &hasElse);
     PStmt *elseBranch = NULL;
     if (hasElse) {
-        elseBranch = rToEndBlockStmt(p);
+        if (check(p, T_IF)) {
+            advance(p);
+            elseBranch = rIfStmt(p);
+        } else {
+            elseBranch = rToEndBlockStmt(p);
+        }
     }
 
     PStmt *ifStmt = NewIfStmt(p->gc, op, cond, thenBranch, elseBranch);

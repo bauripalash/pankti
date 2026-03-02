@@ -10,6 +10,7 @@ extern "C" {
 UTEST(RuntimeTest, SimpleWhile){ GoldenTest("while_loop"); }
 UTEST(RuntimeTest, WhileBreak){ GoldenTest("while_break"); }
 UTEST(RuntimeTest, WhileContinue){ GoldenTest("while_continue"); }
+UTEST(RuntimeTest, WhileFizzBuzz){ GoldenTest("while_fizzbuzz"); }
 //UTEST(RuntimeTest, *){ GoldenTest("*"); }
 
 

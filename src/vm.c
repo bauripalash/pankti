@@ -227,7 +227,7 @@ static bool vmBinaryOpNumber(PVm *vm, PanOpCode op, PValue left, PValue right) {
             result = leftVal / rightVal;
             break;
         }
-        case OP_MOD:{
+        case OP_MOD: {
             if (rightVal == 0.0) {
                 vmError(vm, "Division by zero");
                 return false;
