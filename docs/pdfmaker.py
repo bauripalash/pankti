@@ -73,12 +73,15 @@ def build_pdf(md : str = OutputMD, pdf : str = OutputPDF, lang : str = "bn") -> 
         "-o",
         pdf,
         f"--pdf-engine={PandocPDFEngine}",
+        "--include-before-body=coverpage.typ",
         "--toc",
         "--toc-depth=3",
         "--number-sections",
         #"-V", f"template={PDFEngineTemplate}",
+        "-V", f"titlepage=true",
         "-V", f"mainfont={main_font}",
         "-V", f"monofont={code_font}",
+
 
     ]
     try:
