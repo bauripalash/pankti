@@ -46,4 +46,4 @@ path = 'github.com/alex-shpak/hugo-book'
     BookFavicon = "panktilogo.png"
 
     [params.pankti]
-    DefaultTheme = 'dark'
+    DefaultTheme = 'light'
