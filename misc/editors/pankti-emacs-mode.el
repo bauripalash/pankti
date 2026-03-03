@@ -30,7 +30,7 @@
     "mittha" "false"
     "nil"
     "bhango" "break"
-    "chalao", "continue"
+    "chalao" "continue"
     "golmal" "panic"
     )
 

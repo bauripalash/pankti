@@ -11,5 +11,5 @@
 #include "test_arithmetic.h"
 #include "test_closure.h"
 #include "test_while.h"
-
+#include "test_if.h"
 UTEST_MAIN();
