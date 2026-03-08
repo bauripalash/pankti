@@ -22,6 +22,7 @@ PanGfxCore *NewGfxCore(int width, int height, const char *title, int fontSize) {
         return NULL;
     }
 
+    core->fontCtx = fctx;
     core->screen = NULL;
     core->win = NULL;
     core->imageList = NULL;

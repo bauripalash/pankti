@@ -26,9 +26,10 @@ void FreePanKbCtxFontContext(PanKbCtx *ctx) {
         kbts_DestroyShapeContext(ctx->kbCtx);
     }
 
-    if (ctx->fontFileData != NULL) {
-        free(ctx->fontFileData);
-    }
+    // TODO: Handle header font
+    // if (ctx->fontFileData != NULL) {
+    //    free(ctx->fontFileData);
+    //}
     free(ctx);
 }
 static unsigned char *brlkbReadFile(const char *path, size_t *size) {
