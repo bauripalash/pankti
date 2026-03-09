@@ -47,7 +47,7 @@ exit /b %errorlevel%
 
 :build
 echo Building With CMake
-cmake --build %CMAKE_BUILD_DIR% --target %BIN%
+cmake --build %CMAKE_BUILD_DIR% --target %BIN% --parallel
 if errorlevel 1 (
 	echo Build failed!
 	exit /b 1
@@ -104,7 +104,7 @@ if exist %CMAKE_BUILD_DIR% rmdir /s /q %CMAKE_BUILD_DIR%
 cmake -S . -B %CMAKE_BUILD_DIR% -DCMAKE_BUILD_TYPE=Release
 if errorlevel 1 exit /b 1
 set BUILD_CONFIG=Release
-cmake --build %CMAKE_BUILD_DIR% --target %BIN% --config %BUILD_CONFIG%
+cmake --build %CMAKE_BUILD_DIR% --target %BIN% --config %BUILD_CONFIG% --parallel
 exit /b %errorlevel%
 
 :build_dbg
@@ -113,7 +113,7 @@ if exist %CMAKE_BUILD_DIR% rmdir /s /q %CMAKE_BUILD_DIR%
 cmake -S . -B %CMAKE_BUILD_DIR% -DCMAKE_BUILD_TYPE=Debug
 if errorlevel 1 exit /b 1
 set BUILD_CONFIG=Debug
-cmake --build %CMAKE_BUILD_DIR% --target %BIN% --config %BUILD_CONFIG%
+cmake --build %CMAKE_BUILD_DIR% --target %BIN% --config %BUILD_CONFIG% --parallel
 exit /b %errorlevel%
 
 :build_rld
@@ -122,5 +122,5 @@ if exist %CMAKE_BUILD_DIR% rmdir /s /q %CMAKE_BUILD_DIR%
 cmake -S . -B %CMAKE_BUILD_DIR% -DCMAKE_BUILD_TYPE=RelWithDebInfo
 if errorlevel 1 exit /b 1
 set BUILD_CONFIG=Release
-cmake --build %CMAKE_BUILD_DIR% --target %BIN% --config %BUILD_CONFIG%
+cmake --build %CMAKE_BUILD_DIR% --target %BIN% --config %BUILD_CONFIG% --parallel
 exit /b %errorlevel%

@@ -22,15 +22,15 @@ int PanStrToMouseKey(const char *keyStr, i64 len) {
     return -1;
 }
 
-static KeyboardKey asciiCharToKeyboardKey(char keyChar) {
+static PKey asciiCharToKeyboardKey(char keyChar) {
     if (isalpha(keyChar)) {
         // Key A to key Z
         // KEY_A -> KEY_Z
-        return (KeyboardKey)toupper(keyChar);
+        return (PKey)toupper(keyChar);
     } else if (isdigit(keyChar)) {
         // Key 0 to Key 9
         // KEY_ZERO to KEY_NINE
-        return (KeyboardKey)keyChar;
+        return (PKey)keyChar;
     } else {
         switch (keyChar) {
             case '\'': return KEY_APOSTROPHE;
@@ -51,14 +51,14 @@ static KeyboardKey asciiCharToKeyboardKey(char keyChar) {
     return KEY_NULL;
 }
 
-static KeyboardKey charKeyToKeyboardKey(char keyChar) {
+static PKey charKeyToKeyboardKey(char keyChar) {
     if (isascii(keyChar)) {
         return asciiCharToKeyboardKey(keyChar);
     }
     return KEY_NULL;
 }
 
-static KeyboardKey fKeyToKeyboardKey(const char *numStr, u64 len) {
+static PKey fKeyToKeyboardKey(const char *numStr, u64 len) {
 
     bool ok = false;
     double nm = NumberFromStr(numStr, len, &ok);
@@ -73,7 +73,7 @@ static KeyboardKey fKeyToKeyboardKey(const char *numStr, u64 len) {
     return KEY_NULL;
 }
 
-KeyboardKey strMatchKeyName(const char *keyStr, i64 len) {
+PKey strMatchKeyName(const char *keyStr, i64 len) {
 
     if (m(GFX_KEY_ESCAPE_1) || m(GFX_KEY_ESCAPE_2) || m(GFX_KEY_ESCAPE_3)) {
         return KEY_ESCAPE;
@@ -207,7 +207,7 @@ KeyboardKey strMatchKeyName(const char *keyStr, i64 len) {
     return KEY_NULL;
 }
 
-KeyboardKey PanStrToKeyboardKey(const char *keyStr, i64 len) {
+PKey PanStrToKeyboardKey(const char *keyStr, i64 len) {
     u64 keyLen = 0;
 
     if (len != -1) {

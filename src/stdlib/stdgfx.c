@@ -2,6 +2,7 @@
 #include "../external/stb/stb_ds.h"
 #include "../include/gc.h"
 #include "../include/gfxcore.h"
+#include "../include/gfxdraw.h"
 #include "../include/gfxfont.h"
 #include "../include/gfxhelper.h"
 #include "../include/pstdlib.h"
@@ -57,7 +58,7 @@ static PValue gfx_DrawLine(PVm *vm, PValue *args, u64 argc) {
         return MakeError(vm->gc, "Invalid Color");
     }
 
-    DrawLine((int)x1Val, (int)y1Val, (int)x2Val, (int)y2Val, clr);
+    GfxDrawLine(gcore, (int)x1Val, (int)y1Val, (int)x2Val, (int)y2Val, 1, clr);
 
     return MakeNil();
 }
@@ -71,7 +72,7 @@ static PValue gfx_DrawPixel(PVm *vm, PValue *args, u64 argc) {
     if (err != CLRSTR_OK) {
         return MakeError(vm->gc, "Invalid Color");
     }
-    DrawPixel((int)xVal, (int)yVal, clr);
+    GfxDrawPixel(gcore, (int)xVal, (int)yVal, clr);
     return MakeNil();
 }
 
@@ -87,9 +88,7 @@ static PValue gfx_DrawRectangle(PVm *vm, PValue *args, u64 argc) {
         return MakeError(vm->gc, "Invalid Color");
     }
 
-    DrawRectangleRec(
-        (Rectangle){(int)xVal, (int)yVal, (int)wVal, (int)hVal}, clr
-    );
+    GfxDrawRect(gcore, (int)xVal, (int)yVal, (int)wVal, (int)hVal, clr);
     return MakeNil();
 }
 
@@ -106,9 +105,8 @@ static PValue gfx_DrawRectangleLines(PVm *vm, PValue *args, u64 argc) {
         return MakeError(vm->gc, "Invalid Color");
     }
 
-    DrawRectangleLinesEx(
-        (Rectangle){(int)xVal, (int)yVal, (int)wVal, (int)hVal}, (int)thickVal,
-        clr
+    GfxDrawRectLine(
+        gcore, (int)xVal, (int)yVal, (int)wVal, (int)hVal, (int)thickVal, clr
     );
     return MakeNil();
 }
@@ -123,7 +121,7 @@ static PValue gfx_DrawCircle(PVm *vm, PValue *args, u64 argc) {
     if (err != CLRSTR_OK) {
         return MakeError(vm->gc, "Invalid Color");
     }
-    DrawCircle((int)xVal, (int)yVal, (float)rVal, clr);
+    GfxDrawCircle(gcore, (int)xVal, (int)yVal, (float)rVal, clr);
     return MakeNil();
 }
 
@@ -138,8 +136,9 @@ static PValue gfx_DrawCircleLines(PVm *vm, PValue *args, u64 argc) {
     if (err != CLRSTR_OK) {
         return MakeError(vm->gc, "Invalid Color");
     }
-    // DrawCircle((int)xVal, (int)yVal, (float)rVal, clr);
-    //[TODO]: Make Circle Line
+    GfxDrawCircleLine(
+        gcore, (int)xVal, (int)yVal, (int)rVal, (int)thickVal, clr
+    );
 
     return MakeNil();
 }
@@ -154,7 +153,7 @@ static PValue gfx_DrawText(PVm *vm, PValue *args, u64 argc) {
     if (err != CLRSTR_OK) {
         return MakeError(vm->gc, "Invalid Color");
     }
-    PanKbCtxDrawText(gcore->fontCtx, xVal, yVal, text, clr);
+    GfxDrawText(gcore, xVal, yVal, text, clr);
     return MakeNil();
 }
 static PValue gfx_Clear(PVm *vm, PValue *args, u64 argc) {
@@ -168,7 +167,7 @@ static PValue gfx_KeyPress(PVm *vm, PValue *args, u64 argc) {
     if (kbKey == KEY_NULL) {
         return MakeError(vm->gc, "Invalid key");
     }
-    return MakeBool(IsKeyPressed(kbKey));
+    return MakeBool(GfxKeyPressed(gcore, kbKey));
 }
 
 static PValue gfx_KeyDown(PVm *vm, PValue *args, u64 argc) {
@@ -177,7 +176,7 @@ static PValue gfx_KeyDown(PVm *vm, PValue *args, u64 argc) {
     if (kbKey == KEY_NULL) {
         return MakeError(vm->gc, "Invalid key");
     }
-    return MakeBool(IsKeyDown(kbKey));
+    return MakeBool(GfxKeyDown(gcore, kbKey));
 }
 
 static PValue gfx_KeyUp(PVm *vm, PValue *args, u64 argc) {
@@ -186,7 +185,7 @@ static PValue gfx_KeyUp(PVm *vm, PValue *args, u64 argc) {
     if (kbKey == KEY_NULL) {
         return MakeError(vm->gc, "Invalid key");
     }
-    return MakeBool(IsKeyUp(kbKey));
+    return MakeBool(GfxKeyUp(gcore, kbKey));
 }
 
 static PValue gfx_KeyReleased(PVm *vm, PValue *args, u64 argc) {
@@ -195,7 +194,7 @@ static PValue gfx_KeyReleased(PVm *vm, PValue *args, u64 argc) {
     if (kbKey == KEY_NULL) {
         return MakeError(vm->gc, "Invalid key");
     }
-    return MakeBool(IsKeyReleased(kbKey));
+    return MakeBool(GfxKeyReleased(gcore, kbKey));
 }
 
 static PValue gfx_LoadImage(PVm *vm, PValue *args, u64 argc) {
@@ -241,10 +240,12 @@ static PValue gfx_DrawImage(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_GetMousePos(PVm *vm, PValue *args, u64 argc) {
-    Vector2 mpos = GetMousePosition();
+    double mposX = 0.0;
+    double mposY = 0.0;
+    GfxGetMousePos(gcore, &mposX, &mposY);
     PValue *arrItems = NULL;
-    arrput(arrItems, MakeNumber((double)mpos.x));
-    arrput(arrItems, MakeNumber((double)mpos.y));
+    arrput(arrItems, MakeNumber((double)mposX));
+    arrput(arrItems, MakeNumber((double)mposY));
     PObj *arrObj = NewArrayObject(vm->gc, NULL, arrItems, 2);
     arrObj->marked = true;
     return MakeObject(arrObj);
@@ -257,7 +258,7 @@ static PValue gfx_IsMouseButtonPressed(PVm *vm, PValue *args, u64 argc) {
         return MakeError(vm->gc, "Invalid mouse key name");
     }
 
-    bool result = IsMouseButtonPressed(btnInt);
+    bool result = GfxMousePressed(gcore, btnInt);
     return MakeBool(result);
 }
 
@@ -268,7 +269,7 @@ static PValue gfx_IsMouseButtonDown(PVm *vm, PValue *args, u64 argc) {
         return MakeError(vm->gc, "Invalid mouse key name");
     }
 
-    bool result = IsMouseButtonDown(btnInt);
+    bool result = GfxMouseDown(gcore, btnInt);
     return MakeBool(result);
 }
 
@@ -279,7 +280,7 @@ static PValue gfx_IsMouseButtonReleased(PVm *vm, PValue *args, u64 argc) {
         return MakeError(vm->gc, "Invalid mouse key name");
     }
 
-    bool result = IsMouseButtonReleased(btnInt);
+    bool result = GfxMouseReleased(gcore, btnInt);
     return MakeBool(result);
 }
 
@@ -290,7 +291,7 @@ static PValue gfx_IsMouseButtonUp(PVm *vm, PValue *args, u64 argc) {
         return MakeError(vm->gc, "Invalid mouse key name");
     }
 
-    bool result = IsMouseButtonUp(btnInt);
+    bool result = GfxMouseUp(gcore, btnInt);
     return MakeBool(result);
 }
 
@@ -305,10 +306,7 @@ static PValue gfx_Is2RectCollision(PVm *vm, PValue *args, u64 argc) {
     double r2w = ValueAsNum(args[6]);
     double r2h = ValueAsNum(args[7]);
 
-    Rectangle rect1 = (Rectangle){r1x, r1y, r1w, r1h};
-    Rectangle rect2 = (Rectangle){r2x, r2y, r2w, r2h};
-
-    bool collide = CheckCollisionRecs(rect1, rect2);
+    bool collide = Gfx2RectColsn(gcore, r1x, r1y, r1w, r1h, r2x, r2y, r2w, r2h);
 
     return MakeBool(collide);
 }
@@ -322,10 +320,7 @@ static PValue gfx_IsPointRectCollision(PVm *vm, PValue *args, u64 argc) {
     double rw = ValueAsNum(args[4]);
     double rh = ValueAsNum(args[5]);
 
-    Vector2 point = (Vector2){px, py};
-    Rectangle rect = (Rectangle){rx, ry, rw, rh};
-
-    bool collide = CheckCollisionPointRec(point, rect);
+    bool collide = GfxPointRectColsn(gcore, px, py, rx, ry, rw, rh);
 
     return MakeBool(collide);
 }
@@ -375,7 +370,7 @@ void PushStdlibGraphics(PVm *vm, SymbolTable *table) {
         MakeStdlibEntry(GFX_STD_RECT, gfx_DrawRectangle, 5),
         MakeStdlibEntry(GFX_STD_RECT_LINE, gfx_DrawRectangleLines, 6),
         MakeStdlibEntry(GFX_STD_CIRCLE, gfx_DrawCircle, 4),
-        // MakeStdlibEntry(GFX_STD_CIRCLE_LINE, gfx_DrawCircleLines, 5),
+        MakeStdlibEntry(GFX_STD_CIRCLE_LINE, gfx_DrawCircleLines, 5),
         MakeStdlibEntry(GFX_STD_CLEAR, gfx_Clear, 0),
         MakeStdlibEntry(GFX_STD_TEXT, gfx_DrawText, 4),
         MakeStdlibEntry(GFX_STD_PRESSED, gfx_KeyPress, 1),

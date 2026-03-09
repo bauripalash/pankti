@@ -54,7 +54,7 @@ crun: build
 
 .PHONY: build
 build:
-	cmake --build build --target $(BIN)
+	cmake --build build --target $(BIN) --parallel
 
 .PHONY: run
 run: build
@@ -121,19 +121,19 @@ cmake_clean:
 build_dbg:
 	rm -rf build
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
-	cmake --build build --target $(BIN)
+	cmake --build build --target $(BIN) --parallel
 
 .PHONY: build_rls
 build_rls:
 	rm -rf build
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=$(RELEASE_CC)
-	cmake --build build --target $(BIN)
+	cmake --build build --target $(BIN) --parallel
 
 .PHONY: build_rld
 build_rld:
 	rm -rf build
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_COMPILER=$(RELEASE_CC)
-	cmake --build build --target $(BIN)
+	cmake --build build --target $(BIN) --parallel
 
 .PHONY: run_perf
 run_perf: build_rld

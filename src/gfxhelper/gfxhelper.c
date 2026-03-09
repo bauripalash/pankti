@@ -9,7 +9,7 @@
 #define MatchClr(clr)         (StrEqual(str, clr))
 #define MatchClr2(clr1, clr2) (StrEqual(str, clr1) || StrEqual(str, clr2))
 
-Color ParseColorString(const char *str, ColorStrError *err) {
+PColor ParseColorString(const char *str, ColorStrError *err) {
     const char *ptr = str;
     if (StrStartsWith(str, GFX_COLOR_PREFIX_EN)) {
         ptr += StrLength(GFX_COLOR_PREFIX_EN);
@@ -80,12 +80,12 @@ Color ParseColorString(const char *str, ColorStrError *err) {
     bVal = round(ClampDouble(rawBlue, 0, 255));
     aVal = round(ClampDouble(rawAlpha, 0, 255));
     *err = CLRSTR_OK;
-    return (Color){rVal, gVal, bVal, aVal};
+    return (PColor){rVal, gVal, bVal, aVal};
 }
 
-Color PanStrToColor(const char *str, ColorStrError *err) {
+PColor PanStrToColor(const char *str, ColorStrError *err) {
     ColorStrError parseErr = CLRSTR_OK;
-    Color val = ParseColorString(str, &parseErr);
+    PColor val = ParseColorString(str, &parseErr);
     if (parseErr == CLRSTR_OK) {
         *err = parseErr;
         return val;
