@@ -275,8 +275,6 @@ static PTokenType getIdentType(const char *str) {
         return T_FUNC;
     } else if (MatchKW(str, KW_EN_IMPORT, KW_PN_IMPORT, KW_BN_IMPORT)) {
         return T_IMPORT;
-    } else if (MatchKW(str, KW_EN_PANIC, KW_PN_PANIC, KW_BN_PANIC)) {
-        return T_PANIC;
     } else if (MatchKW(str, KW_EN_DO, KW_PN_DO, KW_BN_DO)) {
         return T_DO;
     } else if (MatchKW(str, KW_EN_BREAK, KW_PN_BREAK, KW_BN_BREAK)) {

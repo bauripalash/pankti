@@ -27,6 +27,10 @@
 #define NAME_APPEND_BN     "সংযোগ"
 #define NAME_APPEND_PN     "songjog"
 
+#define NAME_ERROR_EN    "error"
+#define NAME_ERROR_BN    "গোলমাল"
+#define NAME_ERROR_PN    "golmal"
+
 #define NATIVE_MODULE_NAME "সাধারণ"
 
 static PValue ntvClock(PVm *vm, PValue *args, u64 argc) {
@@ -111,6 +115,19 @@ static PValue ntvAppend(PVm *vm, PValue *args, u64 argc) {
     );
 }
 
+
+static PValue ntvError(PVm *vm, PValue *args, u64 argc) {
+    PValue rawMsg = args[0];
+    if (!IsValueObjType(rawMsg, OT_STR)) {
+        return MakeError(vm->gc, "Error message must be a string");
+    }
+    struct OString * strObj = &ValueAsObj(rawMsg)->v.OString;
+
+    //BUG: the error should own the message for gc's sake
+    return MakeError(vm->gc, strObj->value);
+
+}
+
 #define DefStrHash(s, v) ((StrHash(s, DefStrLen(s), v->gc->timestamp)))
 
 void RegisterNatives(PVm *vm, PEnv *env) {
@@ -135,6 +152,9 @@ void RegisterNatives(PVm *vm, PEnv *env) {
         MakeStdlibEntry(NAME_APPEND_EN, ntvAppend, -1),
         MakeStdlibEntry(NAME_APPEND_BN, ntvAppend, -1),
         MakeStdlibEntry(NAME_APPEND_PN, ntvAppend, -1),
+        MakeStdlibEntry(NAME_ERROR_EN, ntvError, 1),
+        MakeStdlibEntry(NAME_ERROR_BN, ntvError, 1),
+        MakeStdlibEntry(NAME_ERROR_PN, ntvError, 1),
     };
 
     u64 count = ArrCount(nativeEntries);

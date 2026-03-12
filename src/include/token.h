@@ -107,14 +107,12 @@ typedef enum PTokenType {
     T_RETURN = 42,
     // Token : Keyword `import/anoyon`
     T_IMPORT = 43,
-    // Token : Keyword `panic/golmal`
-    T_PANIC = 44,
     // Token : Debug `?`
-    T_DEBUG = 45,
+    T_DEBUG = 44,
     // Token : Keyword `continue/chalao`
-    T_CONTINUE = 46,
+    T_CONTINUE = 45,
     // Token : End of File
-    T_EOF = 47
+    T_EOF = 46
 } PTokenType;
 
 // Get Token Type as String
