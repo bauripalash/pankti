@@ -139,23 +139,6 @@ PObj *NewNativeFnObject(Pgc *gc, const char *name, NativeFn fn, int arity) {
     return o;
 }
 
-PObj *NewErrorObject(Pgc *gc, char *msg) {
-    PObj *o = NewObject(gc, OT_ERROR);
-    if (o == NULL) {
-        return NULL;
-    }
-    o->v.OError.msg = NULL;
-    if (msg != NULL) {
-        char *msgStr = StrDuplicate(msg, strlen(msg));
-        if (msgStr == NULL) {
-            GcPopObj(gc, o);
-            return NULL;
-        }
-        o->v.OError.msg = msgStr;
-    }
-    return o;
-}
-
 PObj *NewModuleObject(Pgc *gc, char *name, char *path) {
     PObj *o = NewObject(gc, OT_MODULE);
     if (o == NULL) {
@@ -196,11 +179,6 @@ PObj *NewUpvalueObject(Pgc *gc, PValue initValue) {
     }
     o->v.OUpval.value = initValue;
     return o;
-}
-
-PValue MakeError(Pgc *gc, char *msg) {
-    PObj *o = NewErrorObject(gc, msg);
-    return MakeObject(o);
 }
 
 static inline void freeBaseObj(PObj *o) {
@@ -270,14 +248,6 @@ void FreeObject(Pgc *gc, PObj *o) {
             struct ONative *nativeFn = &o->v.ONative;
             if (nativeFn->name != NULL) {
                 PFree(nativeFn->name);
-            }
-            freeBaseObj(o);
-            break;
-        }
-
-        case OT_ERROR: {
-            if (o->v.OError.msg != NULL) {
-                PFree(o->v.OError.msg);
             }
             freeBaseObj(o);
             break;

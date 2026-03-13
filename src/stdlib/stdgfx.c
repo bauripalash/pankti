@@ -55,7 +55,8 @@ static PValue gfx_DrawLine(PVm *vm, PValue *args, u64 argc) {
     ColorStrError err = CLRSTR_OK;
     Color clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
-        return MakeError(vm->gc, "Invalid Color");
+        VmError(vm, "Invalid Color");
+        return MakeNil();
     }
 
     GfxDrawLine(gcore, (int)x1Val, (int)y1Val, (int)x2Val, (int)y2Val, 1, clr);
@@ -70,7 +71,8 @@ static PValue gfx_DrawPixel(PVm *vm, PValue *args, u64 argc) {
     ColorStrError err = CLRSTR_OK;
     Color clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
-        return MakeError(vm->gc, "Invalid Color");
+        VmError(vm, "Invalid Color");
+        return MakeNil();
     }
     GfxDrawPixel(gcore, (int)xVal, (int)yVal, clr);
     return MakeNil();
@@ -85,7 +87,8 @@ static PValue gfx_DrawRectangle(PVm *vm, PValue *args, u64 argc) {
     ColorStrError err = CLRSTR_OK;
     Color clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
-        return MakeError(vm->gc, "Invalid Color");
+        VmError(vm, "Invalid Color");
+        return MakeNil();
     }
 
     GfxDrawRect(gcore, (int)xVal, (int)yVal, (int)wVal, (int)hVal, clr);
@@ -102,7 +105,8 @@ static PValue gfx_DrawRectangleLines(PVm *vm, PValue *args, u64 argc) {
     ColorStrError err = CLRSTR_OK;
     Color clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
-        return MakeError(vm->gc, "Invalid Color");
+        VmError(vm, "Invalid Color");
+        return MakeNil();
     }
 
     GfxDrawRectLine(
@@ -119,7 +123,8 @@ static PValue gfx_DrawCircle(PVm *vm, PValue *args, u64 argc) {
     ColorStrError err = CLRSTR_OK;
     Color clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
-        return MakeError(vm->gc, "Invalid Color");
+        VmError(vm, "Invalid Color");
+        return MakeNil();
     }
     GfxDrawCircle(gcore, (int)xVal, (int)yVal, (float)rVal, clr);
     return MakeNil();
@@ -134,7 +139,8 @@ static PValue gfx_DrawCircleLines(PVm *vm, PValue *args, u64 argc) {
     ColorStrError err = CLRSTR_OK;
     Color clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
-        return MakeError(vm->gc, "Invalid Color");
+        VmError(vm, "Invalid Color");
+        return MakeNil();
     }
     GfxDrawCircleLine(
         gcore, (int)xVal, (int)yVal, (int)rVal, (int)thickVal, clr
@@ -151,7 +157,8 @@ static PValue gfx_DrawText(PVm *vm, PValue *args, u64 argc) {
     ColorStrError err = CLRSTR_OK;
     Color clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
-        return MakeError(vm->gc, "Invalid Color");
+        VmError(vm, "Invalid Color");
+        return MakeNil();
     }
     GfxDrawText(gcore, xVal, yVal, text, clr);
     return MakeNil();
@@ -165,7 +172,8 @@ static PValue gfx_KeyPress(PVm *vm, PValue *args, u64 argc) {
     char *keyStr = ValueAsObj(args[0])->v.OString.value;
     KeyboardKey kbKey = PanStrToKeyboardKey(keyStr, -1);
     if (kbKey == KEY_NULL) {
-        return MakeError(vm->gc, "Invalid key");
+        VmError(vm, "Invalid key");
+        return MakeNil();
     }
     return MakeBool(GfxKeyPressed(gcore, kbKey));
 }
@@ -174,7 +182,8 @@ static PValue gfx_KeyDown(PVm *vm, PValue *args, u64 argc) {
     char *keyStr = ValueAsObj(args[0])->v.OString.value;
     KeyboardKey kbKey = PanStrToKeyboardKey(keyStr, -1);
     if (kbKey == KEY_NULL) {
-        return MakeError(vm->gc, "Invalid key");
+        VmError(vm, "Invalid key");
+        return MakeNil();
     }
     return MakeBool(GfxKeyDown(gcore, kbKey));
 }
@@ -183,7 +192,8 @@ static PValue gfx_KeyUp(PVm *vm, PValue *args, u64 argc) {
     char *keyStr = ValueAsObj(args[0])->v.OString.value;
     KeyboardKey kbKey = PanStrToKeyboardKey(keyStr, -1);
     if (kbKey == KEY_NULL) {
-        return MakeError(vm->gc, "Invalid key");
+        VmError(vm, "Invalid key");
+        return MakeNil();
     }
     return MakeBool(GfxKeyUp(gcore, kbKey));
 }
@@ -192,7 +202,8 @@ static PValue gfx_KeyReleased(PVm *vm, PValue *args, u64 argc) {
     char *keyStr = ValueAsObj(args[0])->v.OString.value;
     KeyboardKey kbKey = PanStrToKeyboardKey(keyStr, -1);
     if (kbKey == KEY_NULL) {
-        return MakeError(vm->gc, "Invalid key");
+        VmError(vm, "Invalid key");
+        return MakeNil();
     }
     return MakeBool(GfxKeyReleased(gcore, kbKey));
 }
@@ -200,19 +211,22 @@ static PValue gfx_KeyReleased(PVm *vm, PValue *args, u64 argc) {
 static PValue gfx_LoadImage(PVm *vm, PValue *args, u64 argc) {
     char *pathStr = ValueAsObj(args[0])->v.OString.value;
     if (!FileExists(pathStr)) {
-        return MakeError(vm->gc, "Image file cannot be found");
+        VmError(vm, "Image file cannot be found");
+        return MakeNil();
     }
     Image img = LoadImage(pathStr);
     i64 index = GfxCoreAddImage(gcore, img);
     bool ok = false;
     char *str = GfxGetImageString(gcore, index, &ok);
     if (!ok) {
-        return MakeError(vm->gc, "Internal Error : Failed to load image");
+        VmError(vm, "Internal Error : Failed to load image");
+        return MakeNil();
     }
     PObj *obj = NewStrObject(vm->gc, NULL, str, true);
 
     if (obj == NULL) {
-        return MakeError(vm->gc, "Internal Error : Failed to load image");
+        VmError(vm, "Internal Error : Failed to load image");
+        return MakeNil();
     }
 
     return MakeObject(obj);
@@ -226,13 +240,15 @@ static PValue gfx_DrawImage(PVm *vm, PValue *args, u64 argc) {
     i64 index = GfxCoreGetImageIndex(gcore, imgStrObj->value, -1);
     // getImgIndexFromStr(imgStrObj->value, -1);
     if (index == -1) {
-        return MakeError(vm->gc, "Invalid image to draw");
+        VmError(vm, "Invalid image to draw");
+        return MakeNil();
     }
     bool ok = false;
     Image img = GfxGetImageFromIdx(gcore, index, &ok);
     // getImageFromIndex(index, &ok);
     if (!ok) {
-        return MakeError(vm->gc, "Invalid image to draw");
+        VmError(vm, "Invalid image to draw");
+        return MakeNil();
     }
     Texture2D imgTxt = LoadTextureFromImage(img);
     DrawTexture(imgTxt, (int)xVal, (int)yVal, WHITE);
@@ -255,7 +271,8 @@ static PValue gfx_IsMouseButtonPressed(PVm *vm, PValue *args, u64 argc) {
     char *keyStr = ValueAsObj(args[0])->v.OString.value;
     int btnInt = PanStrToMouseKey(keyStr, -1);
     if (btnInt == -1) {
-        return MakeError(vm->gc, "Invalid mouse key name");
+        VmError(vm, "Invalid mouse key name");
+        return MakeNil();
     }
 
     bool result = GfxMousePressed(gcore, btnInt);
@@ -266,7 +283,8 @@ static PValue gfx_IsMouseButtonDown(PVm *vm, PValue *args, u64 argc) {
     char *keyStr = ValueAsObj(args[0])->v.OString.value;
     int btnInt = PanStrToMouseKey(keyStr, -1);
     if (btnInt == -1) {
-        return MakeError(vm->gc, "Invalid mouse key name");
+        VmError(vm, "Invalid mouse key name");
+        return MakeNil();
     }
 
     bool result = GfxMouseDown(gcore, btnInt);
@@ -277,7 +295,8 @@ static PValue gfx_IsMouseButtonReleased(PVm *vm, PValue *args, u64 argc) {
     char *keyStr = ValueAsObj(args[0])->v.OString.value;
     int btnInt = PanStrToMouseKey(keyStr, -1);
     if (btnInt == -1) {
-        return MakeError(vm->gc, "Invalid mouse key name");
+        VmError(vm, "Invalid mouse key name");
+        return MakeNil();
     }
 
     bool result = GfxMouseReleased(gcore, btnInt);
@@ -288,7 +307,8 @@ static PValue gfx_IsMouseButtonUp(PVm *vm, PValue *args, u64 argc) {
     char *keyStr = ValueAsObj(args[0])->v.OString.value;
     int btnInt = PanStrToMouseKey(keyStr, -1);
     if (btnInt == -1) {
-        return MakeError(vm->gc, "Invalid mouse key name");
+        VmError(vm, "Invalid mouse key name");
+        return MakeNil();
     }
 
     bool result = GfxMouseUp(gcore, btnInt);

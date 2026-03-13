@@ -113,15 +113,8 @@ PObj *NewMapObject(Pgc *gc, Token *op);
 // Create New Native Function Object
 PObj *NewNativeFnObject(Pgc *gc, const char *name, NativeFn fn, int arity);
 
-// Create New Error Object
-// `msg` = Error message. It will be duplicated.
-PObj *NewErrorObject(Pgc *gc, char *msg);
-
 PObj *NewModuleObject(Pgc *gc, char *name, char *path);
 PObj *NewUpvalueObject(Pgc *gc, PValue initValue);
-
-// Shortcut for NewErrorObject + MakeObject
-PValue MakeError(Pgc *gc, char *msg);
 
 // Create New (Empty) Expression
 // `type` = Expression Type

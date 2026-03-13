@@ -10,25 +10,23 @@
 static PValue str_Index(PVm *vm, PValue *args, u64 argc) {
     PValue rawStr = args[0];
     if (!IsValueObjType(rawStr, OT_STR)) {
-        return MakeError(
-            vm->gc, "Index(...) function's first argument must be a string"
-        );
+        VmError(vm, "Index(...) function's first argument must be a string");
+        return MakeNil();
     }
 
     PValue rawIndex = args[1];
     u64 index = 0;
     if (!IsValueNum(rawIndex)) {
 
-        return MakeError(
-            vm->gc, "Index(...) index argument must be a non-negative integer"
-        );
+        VmError(vm, "Index(...) index argument must be a non-negative integer");
+        return MakeNil();
     } else {
         double dIndex = ValueAsNum(rawIndex);
         if (!IsDoubleInt(dIndex)) {
-            return MakeError(
-                vm->gc,
-                "Index(...) index argument must be a non-negative integer"
+            VmError(
+                vm, "Index(...) index argument must be a non-negative integer"
             );
+            return MakeNil();
         }
 
         index = (u64)floor(dIndex);
@@ -42,12 +40,14 @@ static PValue str_Index(PVm *vm, PValue *args, u64 argc) {
 
     switch (err) {
         case GR_ERR_INDEX_OUT_RANGE: {
-            return MakeError(vm->gc, "Index(...) index is out of range");
+            VmError(vm, "Index(...) index is out of range");
+            return MakeNil();
         }; // error
         case GR_ERR_MEM: {
-            return MakeError(
-                vm->gc, "Internal Error : Index(...) failed due to memory error"
+            VmError(
+                vm, "Internal Error : Index(...) failed due to memory error"
             );
+            return MakeNil();
         }; // error
         case GR_ERR_EMPTY: {
             return MakeNil(); // return empty string
@@ -66,9 +66,8 @@ static PValue str_Split(PVm *vm, PValue *args, u64 argc) {
     PValue rawStr = args[0];
     PValue rawDelim = args[1];
     if (!IsValueObjType(rawStr, OT_STR) || !IsValueObjType(rawDelim, OT_STR)) {
-        return MakeError(
-            vm->gc, "Split(...) function's both arguments must be string"
-        );
+        VmError(vm, "Split(...) function's both arguments must be string");
+        return MakeNil();
     }
 
     struct OString *str = &ValueAsObj(rawStr)->v.OString;
@@ -97,9 +96,8 @@ static PValue str_Split(PVm *vm, PValue *args, u64 argc) {
         return MakeObject(arr);
 
     } else {
-        return MakeError(
-            vm->gc, "Internal Error : Split(...) failed due to memory error"
-        );
+        VmError(vm, "Internal Error : Split(...) failed due to memory error");
+        return MakeNil();
     }
 
     return MakeNil(); // should never reach here

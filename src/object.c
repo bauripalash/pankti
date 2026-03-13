@@ -149,16 +149,6 @@ bool IsValueEqual(PValue a, PValue b) {
     return false;
 }
 
-bool IsValueError(PValue val) { return IsValueObjType(val, OT_ERROR); }
-
-char *GetErrorObjMsg(PObj *obj) {
-    if (obj->type == OT_ERROR && obj->v.OError.msg != NULL) {
-        return obj->v.OError.msg;
-    }
-
-    return NULL;
-}
-
 bool ObjectHasLen(PObj *obj) {
     if (obj == NULL) {
         return false;
@@ -340,12 +330,6 @@ void PrintObject(const PObj *o) {
             PanPrint("}");
             break;
         }
-        case OT_ERROR: {
-            if (o->v.OError.msg != NULL) {
-                PanPrint("%s", o->v.OError.msg);
-            }
-            break;
-        }
         case OT_MODULE: {
             char *name = NULL;
             const struct OModule *mod = &o->v.OModule;
@@ -494,11 +478,6 @@ char *ObjToString(PObj *obj) {
             result = StrDuplicate(temp, strlen(temp));
             break;
         }
-        case OT_ERROR: {
-            const char *temp = StrFormat("<Error '%s'>", "<todo>");
-            result = StrDuplicate(temp, strlen(temp));
-            break;
-        }
         case OT_MODULE: {
             const char *name = NULL;
             bool hasName = false;
@@ -528,7 +507,6 @@ char *ObjTypeToString(PObjType type) {
         case OT_ARR: return "Array";
         case OT_MAP: return "HashMap";
         case OT_NATIVE: return "Native Func";
-        case OT_ERROR: return "Error";
         case OT_MODULE: return "Module";
         case OT_UPVAL: return "Upvalue";
         case OT_COMFNC: return "Function";
@@ -551,14 +529,6 @@ bool IsObjEqual(const PObj *a, const PObj *b) {
         case OT_ARR: result = false; break; // TODO: fix
         case OT_NATIVE: result = (a->v.ONative.fn == b->v.ONative.fn); break;
         case OT_MAP: result = false; break;
-        case OT_ERROR: {
-            if (a->v.OError.msg != NULL && b->v.OError.msg != NULL) {
-                result = StrEqual(a->v.OError.msg, b->v.OError.msg);
-            } else {
-                result = false;
-            }
-            break;
-        }
         case OT_MODULE: {
             if (a->v.OModule.path != NULL && b->v.OModule.path != NULL) {
                 result = StrEqual(a->v.OModule.path, b->v.OModule.path);

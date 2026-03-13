@@ -161,7 +161,8 @@ if(IS_OS_LINUX)
 	list(APPEND PANKTI_DEBUG_CFLAGS 	
 		"-fsanitize=address"
 		"-fsanitize=undefined"
-		"-fsanitize=float-cast-overflow" 
+		"-fsanitize=float-cast-overflow"
+        "-fdiagnostics-color=always"
 	)
 endif()
 

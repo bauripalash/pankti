@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <time.h>
 
 #if defined(DEBUG_GC)
@@ -241,7 +240,6 @@ static void markObjectChildren(Pgc *gc, PObj *obj) {
 
     switch (obj->type) {
         case OT_NATIVE:
-        case OT_ERROR:
         case OT_STR:
         case OT_MODULE: {
             break;

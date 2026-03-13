@@ -56,13 +56,13 @@ UTEST_F(LexerTest, Operator) {
 
 UTEST_F(LexerTest, EnglishKeywords) {
     char *src = "let and or end if then else while nil true false"
-                " return func import panic do break";
+                " return func import do break";
 
     SetupLexer(src);
     PTokenType types[] = {
         T_LET,  T_AND,    T_OR,    T_END,  T_IF,    T_THEN,
         T_ELSE, T_WHILE,  T_NIL,   T_TRUE, T_FALSE, T_RETURN,
-        T_FUNC, T_IMPORT, T_PANIC, T_DO,   T_BREAK, T_EOF,
+        T_FUNC, T_IMPORT, T_DO,   T_BREAK, T_EOF,
     };
 
     CheckTokens(utest_fixture->lx, types);
@@ -70,13 +70,13 @@ UTEST_F(LexerTest, EnglishKeywords) {
 
 UTEST_F(LexerTest, PhoneticKeywords) {
     char *src = "dhori ebong ba sesh jodi tahole nahole jotokhon"
-                " nil sotti mittha ferao kaj anoyon golmal koro bhango";
+                " nil sotti mittha ferao kaj anoyon koro bhango";
 
     SetupLexer(src);
     PTokenType types[] = {
         T_LET,  T_AND,    T_OR,    T_END,  T_IF,    T_THEN,
         T_ELSE, T_WHILE,  T_NIL,   T_TRUE, T_FALSE, T_RETURN,
-        T_FUNC, T_IMPORT, T_PANIC, T_DO,   T_BREAK, T_EOF,
+        T_FUNC, T_IMPORT, T_DO,   T_BREAK, T_EOF,
     };
 
     CheckTokens(utest_fixture->lx, types);
@@ -84,12 +84,12 @@ UTEST_F(LexerTest, PhoneticKeywords) {
 
 UTEST_F(LexerTest, BengaliKeywords) {
     char *src = "ধরি এবং বা শেষ যদি তাহলে নাহলে যতক্ষণ নিল সত্যি মিথ্যা ফেরাও"
-                " কাজ আনয়ন গোলমাল করো ভাঙো";
+                " কাজ আনয়ন করো ভাঙো";
     SetupLexer(src);
     PTokenType types[] = {
         T_LET,  T_AND,    T_OR,    T_END,  T_IF,    T_THEN,
         T_ELSE, T_WHILE,  T_NIL,   T_TRUE, T_FALSE, T_RETURN,
-        T_FUNC, T_IMPORT, T_PANIC, T_DO,   T_BREAK, T_EOF,
+        T_FUNC, T_IMPORT, T_DO,   T_BREAK, T_EOF,
     };
 
     CheckTokens(utest_fixture->lx, types);
@@ -97,12 +97,12 @@ UTEST_F(LexerTest, BengaliKeywords) {
 
 UTEST_F(LexerTest, MixedKeywords) {
     char *src = "dhori and বা শেষ jodi তাহলে else jotokhon নিল সত্যি মিথ্যা"
-                " ferao func আনয়ন panic koro ভাঙো";
+                " ferao func আনয়ন koro ভাঙো";
     SetupLexer(src);
     PTokenType types[] = {
         T_LET,  T_AND,    T_OR,    T_END,  T_IF,    T_THEN,
         T_ELSE, T_WHILE,  T_NIL,   T_TRUE, T_FALSE, T_RETURN,
-        T_FUNC, T_IMPORT, T_PANIC, T_DO,   T_BREAK, T_EOF,
+        T_FUNC, T_IMPORT, T_DO,   T_BREAK, T_EOF,
     };
 
     CheckTokens(utest_fixture->lx, types);

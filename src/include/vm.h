@@ -97,6 +97,9 @@ void DebugVMStack(PVm *vm);
 // Run the VM
 void VmRun(PVm *vm);
 
+// Throw VM Runtime Error
+void VmError(PVm *vm, const char *msg);
+
 // Push Value to VM Stack
 bool VmPush(PVm *vm, PValue val);
 // Pop Value from VM Stack

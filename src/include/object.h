@@ -62,8 +62,6 @@ typedef enum PObjType {
     OT_MAP,
     // Native Function Object
     OT_NATIVE,
-    // Error Object
-    OT_ERROR,
     // Module Object
     OT_MODULE,
     // UpValue Object
@@ -141,12 +139,6 @@ typedef struct PObj {
             // Function name
             char *name;
         } ONative;
-
-        // Error Object. Type : `OT_ERROR`
-        struct OError {
-            // Error message
-            char *msg;
-        } OError;
 
         // Object Module. Type : `OT_MODULE`
         struct OModule {
@@ -280,8 +272,6 @@ static inline bool IsValueObjType(PValue val, PObjType otype) {
     return false;
 }
 
-// Return the Message inside the Error Object. Can be NULL
-char *GetErrorObjMsg(PObj *obj);
 // Check if value is truthy. Only bools are considered
 bool IsValueTruthy(PValue val);
 // Check if two values `a` and `b` are equal
@@ -290,8 +280,6 @@ bool IsValueEqual(PValue a, PValue b);
 void PrintValue(PValue val);
 // Get string from value
 char *ValueToString(PValue val);
-// Check if value is a error object
-bool IsValueError(PValue val);
 
 // Check if length can be calculated for object
 bool ObjectHasLen(PObj *obj);

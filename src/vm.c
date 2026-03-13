@@ -131,7 +131,7 @@ static void vmPrintStackTrace(PVm *vm) {
     }
 }
 
-static void vmError(PVm *vm, const char *msg) {
+void VmError(PVm *vm, const char *msg) {
     PanPrint("Error occurred:\n");
     vmPrintStackTrace(vm);
 
@@ -188,7 +188,7 @@ PValue VmGetLastPopped(const PVm *vm) { return MakeNil(); }
 
 bool VmPush(PVm *vm, PValue val) {
     if (vm->sp >= vm->stack + PVM_STACK_SIZE) {
-        vmError(vm, "Pankti VM Stack Overflow!");
+        VmError(vm, "Pankti VM Stack Overflow!");
         return false;
     }
     *vm->sp = val;
@@ -198,7 +198,7 @@ bool VmPush(PVm *vm, PValue val) {
 
 PValue VmPop(PVm *vm) {
     if (vm->sp <= vm->stack) {
-        vmError(vm, "Pankti VM Stack Underflow!");
+        VmError(vm, "Pankti VM Stack Underflow!");
         return MakeNil();
     }
     vm->sp--;
@@ -221,7 +221,7 @@ static bool vmBinaryOpNumber(PVm *vm, PanOpCode op, PValue left, PValue right) {
         case OP_MUL: result = leftVal * rightVal; break;
         case OP_DIV: {
             if (rightVal == 0.0) {
-                vmError(vm, "Division by zero");
+                VmError(vm, "Division by zero");
                 return false;
             }
             result = leftVal / rightVal;
@@ -229,7 +229,7 @@ static bool vmBinaryOpNumber(PVm *vm, PanOpCode op, PValue left, PValue right) {
         }
         case OP_MOD: {
             if (rightVal == 0.0) {
-                vmError(vm, "Division by zero");
+                VmError(vm, "Division by zero");
                 return false;
             }
             result = fmod(leftVal, rightVal);
@@ -268,17 +268,17 @@ static bool vmBinaryOp(PVm *vm, PanOpCode op) {
     if (IsValueNum(left) && IsValueNum(right)) {
         bool isok = vmBinaryOpNumber(vm, op, left, right);
         if (!isok) {
-            vmError(vm, "Failed to binary operation");
+            VmError(vm, "Failed to binary operation");
             return false;
         }
     } else if (IsValueObjType(left, OT_STR) && IsValueObjType(right, OT_STR)) {
         bool isok = vmBinaryOpString(vm, op, left, right);
         if (!isok) {
-            vmError(vm, "Failed to binary operation on string");
+            VmError(vm, "Failed to binary operation on string");
             return false; // todo handle better
         }
     } else {
-        vmError(vm, "Invalid Binary Operation");
+        VmError(vm, "Invalid Binary Operation");
         return false;
     }
 
@@ -306,14 +306,14 @@ static bool vmCompareOp(PVm *vm, PanOpCode op) {
         VmPush(vm, MakeBool(result));
         return true;
     } else {
-        vmError(vm, "Invalid Compare Operation");
+        VmError(vm, "Invalid Compare Operation");
         return false;
     }
 }
 
 static bool vmCallFunction(PVm *vm, PObj *funcObj, int argCount) {
     if (funcObj->v.OComFunction.paramCount != (u64)argCount) {
-        vmError(vm, "Function call argument count != function param count");
+        VmError(vm, "Function call argument count != function param count");
         return false;
     }
     PCallFrame *frame = &vm->frames[vm->frameCount++];
@@ -327,7 +327,7 @@ static bool vmCallNative(PVm *vm, PObj *funcObj, int argc) {
     struct ONative *native = &funcObj->v.ONative;
     if (native->arity != -1 && native->arity != argc) {
         // PanPrint("%d != %d", argc, native->arity);
-        vmError(
+        VmError(
             vm, StrFormat(
                     "%s wanted %d arguments but got %d", native->name,
                     native->arity, argc
@@ -340,10 +340,6 @@ static bool vmCallNative(PVm *vm, PObj *funcObj, int argc) {
     PValue result = native->fn(vm, vm->sp - argc, argc);
     vm->sp -= argc + 1;
     VmPush(vm, result);
-    if (IsValueObjType(result, OT_ERROR)) {
-        vmError(vm, ValueAsObj(result)->v.OError.msg);
-        return false;
-    }
     return true;
 }
 
@@ -370,13 +366,13 @@ static bool vmArraySubscript(PVm *vm, PValue target, bool assign) {
     PValue indexVal = vmGetSubIndex(vm, assign);
 
     if (!IsValueNum(indexVal)) {
-        vmError(vm, "Arrays can only be indexed with non-negative integers");
+        VmError(vm, "Arrays can only be indexed with non-negative integers");
         return false;
     }
 
     double dblIndex = ValueAsNum(indexVal);
     if (dblIndex < 0 || !IsDoubleInt(dblIndex)) {
-        vmError(vm, "Arrays can only be indexed with non-negative integers");
+        VmError(vm, "Arrays can only be indexed with non-negative integers");
         return false;
     }
     u64 index = (u64)floor(dblIndex);
@@ -384,7 +380,7 @@ static bool vmArraySubscript(PVm *vm, PValue target, bool assign) {
     struct OArray *arrObj = &ValueAsObj(target)->v.OArray;
 
     if (index >= arrObj->count) {
-        vmError(vm, "Arrays index out of range");
+        VmError(vm, "Arrays index out of range");
         return false;
     }
 
@@ -410,7 +406,7 @@ static bool vmMapSubscript(PVm *vm, PValue target, bool assign) {
     PValue keyVal = vmGetSubIndex(vm, assign);
 
     if (!CanValueBeKey(keyVal)) {
-        vmError(vm, "Subscript key is invalid as a map key");
+        VmError(vm, "Subscript key is invalid as a map key");
         return false;
     }
 
@@ -428,7 +424,7 @@ static bool vmMapSubscript(PVm *vm, PValue target, bool assign) {
         bool found = false;
         result = MapObjGetValue(ValueAsObj(target), keyVal, keyHash, &found);
         if (!found) {
-            vmError(vm, "Key doesn't exist in map");
+            VmError(vm, "Key doesn't exist in map");
             return false;
         }
         VmPop(vm); // key
@@ -447,7 +443,7 @@ static bool vmSubscript(PVm *vm) {
     } else if (IsValueObjType(targetVal, OT_MAP)) {
         return vmMapSubscript(vm, targetVal, false);
     } else {
-        vmError(vm, "Invalid Subscript target");
+        VmError(vm, "Invalid Subscript target");
         return false;
     }
 }
@@ -460,7 +456,7 @@ static bool vmSubscriptAssign(PVm *vm) {
     } else if (IsValueObjType(targetVal, OT_MAP)) {
         return vmMapSubscript(vm, targetVal, true);
     } else {
-        vmError(vm, "Invalid Subscript Assignment target");
+        VmError(vm, "Invalid Subscript Assignment target");
         return false;
     }
 }
@@ -468,7 +464,7 @@ static bool vmSubscriptAssign(PVm *vm) {
 static bool vmImportModule(PVm *vm, PValue name) {
     PValue importPath = VmPeek(vm, 0);
     if (!IsValueObjType(importPath, OT_STR)) {
-        vmError(vm, "Import Path must be a string");
+        VmError(vm, "Import Path must be a string");
         return false;
     }
 
@@ -476,14 +472,14 @@ static bool vmImportModule(PVm *vm, PValue name) {
 
     StdlibMod stdmod = GetStdlibMod(pathStr);
     if (stdmod == STDLIB_NONE) {
-        vmError(vm, "Currently only stdlib imports are supported");
+        VmError(vm, "Currently only stdlib imports are supported");
         return false;
     }
 
     PModule *mod = NewModule(vm, pathStr);
 
     if (mod == NULL) {
-        vmError(vm, "Failed to create module");
+        VmError(vm, "Failed to create module");
         return false;
     }
 
@@ -630,7 +626,7 @@ void VmRun(PVm *vm) {
                         "Undefined variable found : %s",
                         nameObj->v.OString.value
                     );
-                    vmError(vm, errorMsg);
+                    VmError(vm, errorMsg);
                     return;
                 }
 
@@ -649,7 +645,7 @@ void VmRun(PVm *vm) {
                         "Undefined Variable Assignment : %s",
                         nameObj->v.OString.value
                     );
-                    vmError(vm, errorMsg);
+                    VmError(vm, errorMsg);
                     return;
                 }
                 break;
@@ -709,17 +705,17 @@ void VmRun(PVm *vm) {
                 PValue callee = VmPeek(vm, argCount);
                 if (!IsValueObjType(callee, OT_COMFNC) &&
                     !IsValueObjType(callee, OT_NATIVE)) {
-                    vmError(vm, "Can only call functions");
+                    VmError(vm, "Can only call functions");
                     return;
                 }
 
                 if (vm->frameCount >= PVM_FRAMESTACK_SIZE) {
-                    vmError(vm, "Call stack overflow");
+                    VmError(vm, "Call stack overflow");
                     return;
                 }
 
                 if (!vmCallValue(vm, callee, argCount)) {
-                    vmError(vm, "Failed to call function");
+                    VmError(vm, "Failed to call function");
 
                     return;
                 }
@@ -740,7 +736,7 @@ void VmRun(PVm *vm) {
                 PObj *arrObj = NewArrayObject(vm->gc, NULL, items, itemCount);
                 if (arrObj == NULL) {
                     arrfree(items);
-                    vmError(vm, "Internal Error : Failed to create array");
+                    VmError(vm, "Internal Error : Failed to create array");
                     return;
                 }
                 VmPush(vm, MakeObject(arrObj));
@@ -758,7 +754,7 @@ void VmRun(PVm *vm) {
                     if (!CanValueBeKey(key)) {
                         hmfree(entries);
                         PrintValue(key);
-                        vmError(vm, "value cannot be a key");
+                        VmError(vm, "value cannot be a key");
                         return;
                     }
 
@@ -770,7 +766,7 @@ void VmRun(PVm *vm) {
                 PObj *mapObj = NewMapObject(vm->gc, NULL);
                 if (mapObj == NULL) {
                     hmfree(entries);
-                    vmError(vm, "Internal Error : Failed to create map");
+                    VmError(vm, "Internal Error : Failed to create map");
                     return;
                 }
                 mapObj->v.OMap.count = pairCount;
@@ -795,18 +791,18 @@ void VmRun(PVm *vm) {
                 PValue child = vmReadConst(vm, frame);
                 PValue moduleVal = VmPeek(vm, 0);
                 if (!IsValueObjType(moduleVal, OT_MODULE)) {
-                    vmError(vm, "Only modules can provide child values");
+                    VmError(vm, "Only modules can provide child values");
                     return;
                 }
                 if (!IsValueObjType(child, OT_STR)) {
-                    vmError(vm, "Invalid module child");
+                    VmError(vm, "Invalid module child");
                     return;
                 }
                 PObj *childObj = ValueAsObj(child);
                 PObj *modObj = ValueAsObj(moduleVal);
                 u64 nameHash = modObj->v.OModule.nameHash;
                 if (hmgeti(vm->modProxies, nameHash) < 0) {
-                    vmError(vm, "Unknown module found");
+                    VmError(vm, "Unknown module found");
                 }
 
                 ModProxyEntry proxy = hmgets(vm->modProxies, nameHash);
@@ -818,7 +814,7 @@ void VmRun(PVm *vm) {
                 if (!found) {
 
                     PrintObject(childObj);
-                    vmError(vm, "Unknown child for module");
+                    VmError(vm, "Unknown child for module");
                     break;
                 }
                 VmPop(vm);

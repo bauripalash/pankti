@@ -115,7 +115,7 @@ cmake_cc:
 
 .PHONY: cmake_clean
 cmake_clean:
-	cd build && make clean
+	cmake --build build --target clean
 
 .PHONY: build_dbg
 build_dbg:

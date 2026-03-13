@@ -30,8 +30,9 @@ static inline double getRandNumRange(double min, double max) {
 static PValue math_Sqrt(PVm *vm, PValue *args, u64 argc) {
     PValue rawVal = args[0];
     if (!IsValueNum(rawVal)) {
-        // MakeError
-        return MakeError(vm->gc, "Square root can only calculated for numbers");
+
+        VmError(vm, "Square root can only calculated for numbers");
+        return MakeNil();
     }
     double result = sqrt(ValueAsNum(rawVal));
     return MakeNumber(result);
@@ -40,7 +41,8 @@ static PValue math_Sqrt(PVm *vm, PValue *args, u64 argc) {
 static PValue math_Log10(PVm *vm, PValue *args, u64 argc) {
     PValue rawVal = args[0];
     if (!IsValueNum(rawVal)) {
-        // MakeError
+
+        VmError(vm, "log can only be calculated for numbers");
         return MakeNil();
     }
     double result = log10(ValueAsNum(rawVal));
@@ -49,7 +51,7 @@ static PValue math_Log10(PVm *vm, PValue *args, u64 argc) {
 static PValue math_Log(PVm *vm, PValue *args, u64 argc) {
     PValue rawVal = args[0];
     if (!IsValueNum(rawVal)) {
-        // MakeError
+        VmError(vm, "log can only be calculated for numbers");
         return MakeNil();
     }
     double result = log(ValueAsNum(rawVal));
@@ -60,7 +62,7 @@ static PValue math_LogBase(PVm *vm, PValue *args, u64 argc) {
     PValue rawNum = args[1];
 
     if (!IsValueNum(rawBase) || !IsValueNum(rawNum)) {
-        // MakeError
+        VmError(vm, "log can only be calculated for numbers");
         return MakeNil();
     }
     double result = log(ValueAsNum(rawNum)) / log(ValueAsNum(rawBase));
@@ -136,7 +138,8 @@ static PValue math_Number(PVm *vm, PValue *args, u64 argc) {
     PValue rawStr = args[0];
 
     if (!IsValueObjType(rawStr, OT_STR)) {
-        return MakeError(vm->gc, "Only string can be converted to numbers");
+        VmError(vm, "Only string can be converted to numbers");
+        return MakeNil();
     }
 
     struct OString *strObj = &ValueAsObj(rawStr)->v.OString;
@@ -149,7 +152,8 @@ static PValue math_Number(PVm *vm, PValue *args, u64 argc) {
     }
 
     if (!isok) {
-        return MakeError(vm->gc, "Failed to convert string to number");
+        VmError(vm, "Failed to convert string to number");
+        return MakeNil();
     }
 
     return MakeNumber(result);

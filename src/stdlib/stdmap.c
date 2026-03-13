@@ -28,7 +28,8 @@ static PValue map_Exists(PVm *vm, PValue *args, u64 argc) {
     PValue rawMap = args[0];
 
     if (!IsValueObjType(rawMap, OT_MAP)) {
-        return MakeError(vm->gc, "exists(...) only works with maps");
+        VmError(vm, "exists(...) only works with maps");
+        return MakeNil();
     }
 
     PObj *map = ValueAsObj(rawMap);
@@ -42,15 +43,15 @@ static PValue map_Keys(PVm *vm, PValue *args, u64 argc) {
     PValue rawMap = args[0];
 
     if (!IsValueObjType(rawMap, OT_MAP)) {
-        return MakeError(vm->gc, "keys(...) only works with maps");
+        VmError(vm, "keys(...) only works with maps");
+        return MakeNil();
     }
     u64 count = 0;
     PValue *items = mapItemsAsArray(ValueAsObj(rawMap), &count, true);
     PObj *arrObj = NewArrayObject(vm->gc, NULL, items, count);
     if (arrObj == NULL) {
-        return MakeError(
-            vm->gc, "Internal Error : Failed to Create Keys Array"
-        );
+        VmError(vm, "Internal Error : Failed to Create Keys Array");
+        return MakeNil();
     }
     return MakeObject(arrObj);
 }
@@ -58,15 +59,15 @@ static PValue map_Values(PVm *vm, PValue *args, u64 argc) {
     PValue rawMap = args[0];
 
     if (!IsValueObjType(rawMap, OT_MAP)) {
-        return MakeError(vm->gc, "values(...) only works with maps");
+        VmError(vm, "values(...) only works with maps");
+        return MakeNil();
     }
     u64 count = 0;
     PValue *items = mapItemsAsArray(ValueAsObj(rawMap), &count, false);
     PObj *arrObj = NewArrayObject(vm->gc, NULL, items, count);
     if (arrObj == NULL) {
-        return MakeError(
-            vm->gc, "Internal Error : Failed to Create Values Array"
-        );
+        VmError(vm, "Internal Error : Failed to Create Values Array");
+        return MakeNil();
     }
     return MakeObject(arrObj);
 }
