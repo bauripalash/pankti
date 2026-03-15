@@ -19,32 +19,7 @@ bool GfxDrawText(PanGfxCore *core, int x, int y, const char *txt, PColor clr) {
 bool GfxDrawLine(
     PanGfxCore *core, int x1, int y1, int x2, int y2, int thick, PColor clr
 ) {
-    int dx = abs(x2 - x1);
-    int sx = x1 < x2 ? 1 : -1;
-    int dy = -abs(y2 - y1);
-    int sy = y1 < y2 ? 1 : -1;
-    int err = dx + dy;
-    int e2 = 0;
-
-    while (true) {
-        drawpx(core, x1, y1, thick, clr);
-        e2 = 2 * err;
-
-        if (x1 == x2 && y1 == y2) {
-            break;
-        }
-
-        if (e2 >= dy) {
-            err += dy;
-            x1 += sx;
-        }
-
-        if (e2 <= dx) {
-            err += dx;
-            y1 += sy;
-        }
-    }
-
+    tigrLine(core->screen, x1, y1, x2, y2, clr);
     return true;
 }
 bool GfxDrawPixel(PanGfxCore *core, int x1, int y1, PColor clr) {
@@ -94,20 +69,20 @@ bool GfxDrawCircleLine(
 }
 
 bool GfxKeyPressed(PanGfxCore *core, PKey key) {
-    return tigrKeyDown(core->screen, key) != 0;
+    return key < GFX_CORE_MAX_KEYS ? core->kbPressedKey[key] : 0;
 }
 bool GfxKeyDown(PanGfxCore *core, PKey key) {
     return tigrKeyHeld(core->screen, key) != 0;
 }
-bool GfxKeyReleased(PanGfxCore *core, PKey key) { return false; }
-bool GfxKeyUp(PanGfxCore *core, PKey key) { return false; }
+bool GfxKeyReleased(PanGfxCore *core, PKey key) {
+    return key < GFX_CORE_MAX_KEYS ? core->kbReleasedKey[key] : 0;
+}
+bool GfxKeyUp(PanGfxCore *core, PKey key) {
+    return !GfxKeyPressed(core, key) && !GfxKeyDown(core, key);
+}
 
 bool GfxMousePressed(PanGfxCore *core, int key) {
-    int x = 0;
-    int y = 0;
-    int btn = 0;
-    tigrMouse(core->screen, &x, &y, &btn);
-    return (btn & key);
+    return (core->mouseNewPress & key) != 0;
     // tigrMouse(Tigr *bmp, int *x, int *y, int *buttons);
     // return IsMouseButtonPressed(key);
 }
@@ -120,18 +95,10 @@ bool GfxMouseDown(PanGfxCore *core, int key) {
     return (btn & key);
 }
 bool GfxMouseReleased(PanGfxCore *core, int key) {
-    int x;
-    int y;
-    int btn;
-    // return IsMouseButtonReleased(key);
-    return false;
+    return (core->mouseNewRelease & key) != 0;
 }
 bool GfxMouseUp(PanGfxCore *core, int key) {
-    int x;
-    int y;
-    int btn;
-    // return IsMouseButtonUp(key);
-    return false;
+    return !GfxMousePressed(core, key) && !GfxMouseDown(core, key);
 }
 
 void GfxGetMousePos(PanGfxCore *core, double *xpos, double *ypos) {

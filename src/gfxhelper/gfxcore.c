@@ -55,6 +55,9 @@ PanGfxCore *NewGfxCore(int width, int height, const char *title, int fontSize) {
     core->screen = NULL;
     core->fontCtx->core = core;
     core->initd = true;
+    core->mousePrevBtn = 0;
+    core->mouseNewPress = 0;
+    core->mousePrevBtn = 0;
     return core;
 }
 
@@ -113,6 +116,20 @@ bool EndGfxProcess(PanGfxCore *core) {
 
 bool UpdateGfxStatus(PanGfxCore *core) {
     core->winRunning = !tigrClosed(core->screen);
+    int x = 0;
+    int y = 0;
+    int buttons = 0;
+    tigrMouse(core->screen, &x, &y, &buttons);
+    core->mouseNewPress = buttons & ~core->mousePrevBtn;
+    core->mouseNewRelease = ~buttons & core->mousePrevBtn;
+    core->mousePrevBtn = buttons;
+
+    for (int key = 0; key < GFX_CORE_MAX_KEYS; ++key) {
+        int down = tigrKeyDown(core->screen, key);
+        core->kbPressedKey[key] = down && !core->kbPrevKeys[key];
+        core->kbReleasedKey[key] = !down && core->kbPrevKeys[key];
+        core->kbPrevKeys[key] = down;
+    }
     return true;
 }
 

@@ -5,7 +5,6 @@
 #include "../include/gfxdraw.h"
 #include "../include/gfxfont.h"
 #include "../include/gfxhelper.h"
-#include "../include/printer.h"
 #include "../include/pstdlib.h"
 #include "../include/symtable.h"
 #include "../include/vm.h"
@@ -331,9 +330,7 @@ static PValue gfx_IsPointRectCollision(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_GetDelta(PVm *vm, PValue *args, u64 argc) {
-    float dt = deltaTime;
-    PanPrint("dt->%f\n", dt);
-    return MakeNumber((double)dt);
+    return MakeNumber((double)deltaTime);
 }
 
 #define GFX_STD_NEW               "নতুন"

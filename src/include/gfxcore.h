@@ -13,6 +13,8 @@ extern "C" {
 #define DEFAULT_STDGFX_WIN_TITLE  "Pankti Graphics"
 #define DEFAULT_STDGFX_FONT_SIZE  PANKB_DEFAULT_FONT_SIZE
 
+#define GFX_CORE_MAX_KEYS         256
+
 typedef struct PanGfxCore {
     // Screen frame buffer (if any)
     Tigr *screen;
@@ -38,6 +40,14 @@ typedef struct PanGfxCore {
 
     // everything ready to go
     bool initd;
+
+    int mousePrevBtn;
+    int mouseNewPress;
+    int mouseNewRelease;
+
+    char kbPrevKeys[GFX_CORE_MAX_KEYS];
+    char kbPressedKey[GFX_CORE_MAX_KEYS];
+    char kbReleasedKey[GFX_CORE_MAX_KEYS];
 
 } PanGfxCore;
 
