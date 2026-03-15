@@ -1,6 +1,7 @@
 #include "../include/gfxfont.h"
 #include "../external/kb/kb_text_shape.h"
 #include "../gen/fonts/notoserifbn.h"
+#include "../include/gfxcore.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -124,7 +125,7 @@ bool PanKbLoadDefaultNotoFont(PanKbCtx *ctx) {
 }
 
 static void brlkbDrawGlyph(
-    PanKbCtx *ctx, int index, int posX, int posY, float scale, Color color
+    PanKbCtx *ctx, int index, int posX, int posY, float scale, PColor color
 ) {
     int width, height, xoffset, yoffset;
     unsigned char *bitmap = stbtt_GetGlyphBitmap(
@@ -144,17 +145,26 @@ static void brlkbDrawGlyph(
             int scaledAscent = (int)(ascent * scale);
             int pxPosX = posX + x + xoffset;
             int pxPosY = posY + y + scaledAscent + yoffset;
+            tigrPlot(
+                ctx->core->screen, pxPosX, pxPosY,
+                (TPixel){.r = color.r,
+                         .g = color.g,
+                         .b = color.b,
+                         .a = color.a * alpha}
+            );
+            /*
             DrawPixel(
                 pxPosX, pxPosY,
                 (Color){color.r, color.g, color.b, color.a * alpha}
             );
+            */
         }
     }
     stbtt_FreeBitmap(bitmap, NULL);
 }
 
 bool PanKbCtxDrawText(
-    PanKbCtx *ctx, int xpos, int ypos, const char *text, Color color
+    PanKbCtx *ctx, int xpos, int ypos, const char *text, PColor color
 ) {
     kbts_ShapeBegin(ctx->kbCtx, KBTS_DIRECTION_LTR, KBTS_LANGUAGE_BANGLA);
     kbts_ShapeUtf8(

@@ -1,20 +1,23 @@
 #ifndef PANKTI_BRLKB_H
 #define PANKTI_BRLKB_H
 
-#include "../external/raylib/raylib.h"
 #include <stdbool.h>
 #include <stddef.h>
 
 #include "../external/kb/kb_text_shape.h"
 #include "../external/stb/stb_truetype.h"
+#include "gfxhelper.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #define PANKB_DEFAULT_FONT_SIZE 28
 
+typedef struct PanGfxCore PanGfxCore;
+
 // Raylib+kb_text_shape Integration Context
 typedef struct PanKbCtx {
+    PanGfxCore *core;
     // Font Size to render the text At
     int fontSize;
     // Font file binary data
@@ -37,7 +40,7 @@ void FreePanKbCtxFontContext(PanKbCtx *ctx);
 bool PanKbCtxLoadFontFile(PanKbCtx *ctx, const char *filepath);
 // Draw text with previously loaded font from context
 bool PanKbCtxDrawText(
-    PanKbCtx *ctx, int xpos, int ypos, const char *text, Color color
+    PanKbCtx *ctx, int xpos, int ypos, const char *text, PColor color
 );
 // Load default font (Noto Serif Bengali Regular)
 bool PanKbLoadDefaultNotoFont(PanKbCtx *ctx);

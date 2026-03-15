@@ -1,16 +1,16 @@
 #ifndef PANKTI_RL_HELPER_H
 #define PANKTI_RL_HELPER_H
 
-#include "ptypes.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "../external/raylib/raylib.h"
+#include "../external/tigr/tigr.h"
+#include "ptypes.h"
 #include <stdbool.h>
 
-typedef Color PColor;
-typedef KeyboardKey PKey;
+typedef TPixel PColor;
+typedef TKey PKey;
 
 // Color sources : https://en.wikipedia.org/wiki/Web_colors
 
@@ -299,7 +299,7 @@ typedef enum ColorStrError {
 PColor ParseColorString(const char *str, ColorStrError *err);
 
 PColor PanStrToColor(const char *str, ColorStrError *err);
-Image LoadGuiAppIcon(void);
+// Image LoadGuiAppIcon(void);
 PKey PanStrToKeyboardKey(const char *keyStr, i64 len);
 int PanStrToMouseKey(const char *keyStr, i64 len);
 #ifdef __cplusplus

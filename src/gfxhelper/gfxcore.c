@@ -1,11 +1,9 @@
 #include "../include/gfxcore.h"
-#include "../external/raylib/raylib.h"
 #include "../external/stb/stb_ds.h"
 #include "../include/alloc.h"
 #include "../include/gfxhelper.h"
 #include "../include/ptypes.h"
 #include "../include/utils.h"
-#include "raylib.h"
 #include <math.h>
 #include <stdbool.h>
 #include <string.h>
@@ -54,6 +52,8 @@ PanGfxCore *NewGfxCore(int width, int height, const char *title, int fontSize) {
     core->winRunning = false;
 
     PanKbLoadDefaultNotoFont(core->fontCtx);
+    core->screen = NULL;
+    core->fontCtx->core = core;
     core->initd = true;
     return core;
 }
@@ -64,7 +64,7 @@ static void unloadImageList(PanGfxCore *core) {
     }
     i64 count = arrlen(core->imageList);
     for (i64 i = count; i > 0; i--) {
-        UnloadImage(arrpop(core->imageList));
+        tigrFree(arrpop(core->imageList));
     }
 
     arrfree(core->imageList);
@@ -94,25 +94,29 @@ bool StartGfxProcess(PanGfxCore *core) {
     }
 
     core->winRunning = true;
-    SetTraceLogLevel(LOG_WARNING);
-    InitWindow(core->winWidth, core->winHeight, core->winTitle);
-    SetTargetFPS(60);
-    Image winIcon = LoadGuiAppIcon();
-    arrput(core->imageList, winIcon);
+    core->screen =
+        tigrWindow(core->winWidth, core->winHeight, core->winTitle, TIGR_AUTO);
+    // SetTraceLogLevel(LOG_WARNING);
+    // InitWindow(core->winWidth, core->winHeight, core->winTitle);
+    // SetTargetFPS(60);
+    // Image winIcon = LoadGuiAppIcon();
+    // arrput(core->imageList, winIcon);
     return true;
 }
 
 bool EndGfxProcess(PanGfxCore *core) {
-    CloseWindow();
+    if (core->screen != NULL) {
+        tigrFree(core->screen);
+    }
     return true;
 }
 
 bool UpdateGfxStatus(PanGfxCore *core) {
-    core->winRunning = !WindowShouldClose();
+    core->winRunning = !tigrClosed(core->screen);
     return true;
 }
 
-i64 GfxCoreAddImage(PanGfxCore *core, Image img) {
+i64 GfxCoreAddImage(PanGfxCore *core, Tigr *img) {
     if (core == NULL) {
         return -1;
     }
@@ -149,14 +153,14 @@ i64 GfxCoreGetImageIndex(const PanGfxCore *core, const char *str, i64 len) {
     return -1;
 }
 
-Image GfxGetImageFromIdx(const PanGfxCore *core, i64 index, bool *ok) {
+Tigr *GfxGetImageFromIdx(const PanGfxCore *core, i64 index, bool *ok) {
     if (core == NULL) {
         *ok = false;
-        return (Image){0};
+        return NULL;
     }
     if (index < 0 || index >= arrlen(core->imageList)) {
         *ok = false;
-        return (Image){0};
+        return NULL;
     }
 
     *ok = true;

@@ -1,8 +1,6 @@
 #include "../include/gfxhelper.h"
-#include "../external/raylib/raylib.h"
 #include "../gen/panktilogo.h"
 #include "../include/utils.h"
-#include "raylib.h"
 #include <math.h>
 #include <stdbool.h>
 
@@ -145,6 +143,7 @@ PColor PanStrToColor(const char *str, ColorStrError *err) {
     return GFX_COLOR_BLANK_CODE;
 }
 
+/*
 Image LoadGuiAppIcon(void) {
     Image iconImg = LoadImageFromMemory(
         ".png", IMAGES_PANKTI_LOGO_PNG, IMAGES_PANKTI_LOGO_PNG_LEN
@@ -152,3 +151,4 @@ Image LoadGuiAppIcon(void) {
     SetWindowIcon(iconImg);
     return iconImg;
 }
+*/

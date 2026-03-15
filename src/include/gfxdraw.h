@@ -28,10 +28,10 @@ bool GfxKeyDown(PanGfxCore *core, PKey key);
 bool GfxKeyReleased(PanGfxCore *core, PKey key);
 bool GfxKeyUp(PanGfxCore *core, PKey key);
 
-bool GfxMousePressed(PanGfxCore *core, PKey key);
-bool GfxMouseDown(PanGfxCore *core, PKey key);
-bool GfxMouseReleased(PanGfxCore *core, PKey key);
-bool GfxMouseUp(PanGfxCore *core, PKey key);
+bool GfxMousePressed(PanGfxCore *core, int key);
+bool GfxMouseDown(PanGfxCore *core, int key);
+bool GfxMouseReleased(PanGfxCore *core, int key);
+bool GfxMouseUp(PanGfxCore *core, int key);
 
 void GfxGetMousePos(PanGfxCore *core, double *xpos, double *ypos);
 

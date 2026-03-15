@@ -1,14 +1,12 @@
 #ifndef PANKTI_GFX_CORE_H
 #define PANKTI_GFX_CORE_H
 
-#include "ptypes.h"
-#include <stdbool.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "../external/raylib/raylib.h"
 #include "gfxfont.h"
+#include "ptypes.h"
+#include <stdbool.h>
 
 #define DEFAULT_STDGFX_WIN_WIDTH  640
 #define DEFAULT_STDGFX_WIN_HEIGHT 480
@@ -17,14 +15,14 @@ extern "C" {
 
 typedef struct PanGfxCore {
     // Screen frame buffer (if any)
-    void *screen;
+    Tigr *screen;
     // Screen window handle (if any)
     void *win;
     // Font Context
     PanKbCtx *fontCtx;
 
     // Image/Sprite List
-    Image *imageList;
+    Tigr **imageList;
 
     // Window Width
     int winWidth;
@@ -59,13 +57,13 @@ bool UpdateGfxStatus(PanGfxCore *core);
 // Image handling
 
 // Add Image to Image List
-i64 GfxCoreAddImage(PanGfxCore *core, Image img);
+i64 GfxCoreAddImage(PanGfxCore *core, Tigr *img);
 
 // Given the string get image index
 i64 GfxCoreGetImageIndex(const PanGfxCore *core, const char *str, i64 len);
 
 // Fetch Image from Core via index
-Image GfxGetImageFromIdx(const PanGfxCore *core, i64 index, bool *ok);
+Tigr *GfxGetImageFromIdx(const PanGfxCore *core, i64 index, bool *ok);
 
 // Get Image String from index
 char *GfxGetImageString(const PanGfxCore *core, i64 index, bool *ok);

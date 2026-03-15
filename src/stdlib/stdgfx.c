@@ -1,10 +1,11 @@
-#include "../external/raylib/raylib.h"
 #include "../external/stb/stb_ds.h"
+#include "../external/tigr/tigr.h"
 #include "../include/gc.h"
 #include "../include/gfxcore.h"
 #include "../include/gfxdraw.h"
 #include "../include/gfxfont.h"
 #include "../include/gfxhelper.h"
+#include "../include/printer.h"
 #include "../include/pstdlib.h"
 #include "../include/symtable.h"
 #include "../include/vm.h"
@@ -12,6 +13,7 @@
 #include <time.h>
 
 static PanGfxCore *gcore = NULL;
+float deltaTime = 0.0;
 
 static PValue gfx_New(PVm *vm, PValue *args, u64 argc) {
     double winW = ValueAsNum(args[0]);
@@ -36,12 +38,14 @@ static PValue gfx_Running(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_DrawStart(PVm *vm, PValue *args, u64 argc) {
-    BeginDrawing();
+
+    deltaTime = tigrTime();
+    // BeginDrawing();
     return MakeNil();
 }
 
 static PValue gfx_DrawFinish(PVm *vm, PValue *args, u64 argc) {
-    EndDrawing();
+    tigrUpdate(gcore->screen);
     return MakeNil();
 }
 
@@ -53,7 +57,7 @@ static PValue gfx_DrawLine(PVm *vm, PValue *args, u64 argc) {
 
     char *colorStr = ValueAsObj(args[4])->v.OString.value;
     ColorStrError err = CLRSTR_OK;
-    Color clr = PanStrToColor(colorStr, &err);
+    PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
         return MakeError(vm->gc, "Invalid Color");
     }
@@ -68,7 +72,7 @@ static PValue gfx_DrawPixel(PVm *vm, PValue *args, u64 argc) {
     double yVal = ValueAsNum(args[1]);
     char *colorStr = ValueAsObj(args[2])->v.OString.value;
     ColorStrError err = CLRSTR_OK;
-    Color clr = PanStrToColor(colorStr, &err);
+    PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
         return MakeError(vm->gc, "Invalid Color");
     }
@@ -83,7 +87,7 @@ static PValue gfx_DrawRectangle(PVm *vm, PValue *args, u64 argc) {
     double hVal = ValueAsNum(args[3]);
     char *colorStr = ValueAsObj(args[4])->v.OString.value;
     ColorStrError err = CLRSTR_OK;
-    Color clr = PanStrToColor(colorStr, &err);
+    PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
         return MakeError(vm->gc, "Invalid Color");
     }
@@ -100,7 +104,7 @@ static PValue gfx_DrawRectangleLines(PVm *vm, PValue *args, u64 argc) {
     double thickVal = ValueAsNum(args[4]);
     char *colorStr = ValueAsObj(args[5])->v.OString.value;
     ColorStrError err = CLRSTR_OK;
-    Color clr = PanStrToColor(colorStr, &err);
+    PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
         return MakeError(vm->gc, "Invalid Color");
     }
@@ -117,7 +121,7 @@ static PValue gfx_DrawCircle(PVm *vm, PValue *args, u64 argc) {
     double rVal = ValueAsNum(args[2]);
     char *colorStr = ValueAsObj(args[3])->v.OString.value;
     ColorStrError err = CLRSTR_OK;
-    Color clr = PanStrToColor(colorStr, &err);
+    PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
         return MakeError(vm->gc, "Invalid Color");
     }
@@ -132,7 +136,7 @@ static PValue gfx_DrawCircleLines(PVm *vm, PValue *args, u64 argc) {
     double thickVal = ValueAsNum(args[3]);
     char *colorStr = ValueAsObj(args[4])->v.OString.value;
     ColorStrError err = CLRSTR_OK;
-    Color clr = PanStrToColor(colorStr, &err);
+    PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
         return MakeError(vm->gc, "Invalid Color");
     }
@@ -149,7 +153,7 @@ static PValue gfx_DrawText(PVm *vm, PValue *args, u64 argc) {
     char *text = ValueAsObj(args[2])->v.OString.value;
     char *colorStr = ValueAsObj(args[3])->v.OString.value;
     ColorStrError err = CLRSTR_OK;
-    Color clr = PanStrToColor(colorStr, &err);
+    PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
         return MakeError(vm->gc, "Invalid Color");
     }
@@ -157,14 +161,14 @@ static PValue gfx_DrawText(PVm *vm, PValue *args, u64 argc) {
     return MakeNil();
 }
 static PValue gfx_Clear(PVm *vm, PValue *args, u64 argc) {
-    ClearBackground(GFX_COLOR_WHITE_CODE);
+    tigrClear(gcore->screen, GFX_COLOR_WHITE_CODE);
     return MakeNil();
 }
 
 static PValue gfx_KeyPress(PVm *vm, PValue *args, u64 argc) {
     char *keyStr = ValueAsObj(args[0])->v.OString.value;
-    KeyboardKey kbKey = PanStrToKeyboardKey(keyStr, -1);
-    if (kbKey == KEY_NULL) {
+    PKey kbKey = PanStrToKeyboardKey(keyStr, -1);
+    if (kbKey == 0) {
         return MakeError(vm->gc, "Invalid key");
     }
     return MakeBool(GfxKeyPressed(gcore, kbKey));
@@ -172,8 +176,8 @@ static PValue gfx_KeyPress(PVm *vm, PValue *args, u64 argc) {
 
 static PValue gfx_KeyDown(PVm *vm, PValue *args, u64 argc) {
     char *keyStr = ValueAsObj(args[0])->v.OString.value;
-    KeyboardKey kbKey = PanStrToKeyboardKey(keyStr, -1);
-    if (kbKey == KEY_NULL) {
+    PKey kbKey = PanStrToKeyboardKey(keyStr, -1);
+    if (kbKey == 0) {
         return MakeError(vm->gc, "Invalid key");
     }
     return MakeBool(GfxKeyDown(gcore, kbKey));
@@ -181,8 +185,8 @@ static PValue gfx_KeyDown(PVm *vm, PValue *args, u64 argc) {
 
 static PValue gfx_KeyUp(PVm *vm, PValue *args, u64 argc) {
     char *keyStr = ValueAsObj(args[0])->v.OString.value;
-    KeyboardKey kbKey = PanStrToKeyboardKey(keyStr, -1);
-    if (kbKey == KEY_NULL) {
+    PKey kbKey = PanStrToKeyboardKey(keyStr, -1);
+    if (kbKey == 0) {
         return MakeError(vm->gc, "Invalid key");
     }
     return MakeBool(GfxKeyUp(gcore, kbKey));
@@ -190,8 +194,8 @@ static PValue gfx_KeyUp(PVm *vm, PValue *args, u64 argc) {
 
 static PValue gfx_KeyReleased(PVm *vm, PValue *args, u64 argc) {
     char *keyStr = ValueAsObj(args[0])->v.OString.value;
-    KeyboardKey kbKey = PanStrToKeyboardKey(keyStr, -1);
-    if (kbKey == KEY_NULL) {
+    PKey kbKey = PanStrToKeyboardKey(keyStr, -1);
+    if (kbKey == 0) {
         return MakeError(vm->gc, "Invalid key");
     }
     return MakeBool(GfxKeyReleased(gcore, kbKey));
@@ -199,10 +203,10 @@ static PValue gfx_KeyReleased(PVm *vm, PValue *args, u64 argc) {
 
 static PValue gfx_LoadImage(PVm *vm, PValue *args, u64 argc) {
     char *pathStr = ValueAsObj(args[0])->v.OString.value;
-    if (!FileExists(pathStr)) {
+    if (!DoesFileExists(pathStr)) {
         return MakeError(vm->gc, "Image file cannot be found");
     }
-    Image img = LoadImage(pathStr);
+    Tigr *img = tigrLoadImage(pathStr);
     i64 index = GfxCoreAddImage(gcore, img);
     bool ok = false;
     char *str = GfxGetImageString(gcore, index, &ok);
@@ -229,13 +233,14 @@ static PValue gfx_DrawImage(PVm *vm, PValue *args, u64 argc) {
         return MakeError(vm->gc, "Invalid image to draw");
     }
     bool ok = false;
-    Image img = GfxGetImageFromIdx(gcore, index, &ok);
+    Tigr *img = GfxGetImageFromIdx(gcore, index, &ok);
     // getImageFromIndex(index, &ok);
     if (!ok) {
         return MakeError(vm->gc, "Invalid image to draw");
     }
-    Texture2D imgTxt = LoadTextureFromImage(img);
-    DrawTexture(imgTxt, (int)xVal, (int)yVal, WHITE);
+    // Texture2D imgTxt = LoadTextureFromImage(img);
+    // DrawTexture(imgTxt, (int)xVal, (int)yVal, WHITE);
+    tigrBlit(gcore->screen, img, (int)xVal, (int)yVal, 0, 0, img->w, img->h);
     return MakeNil();
 }
 
@@ -326,7 +331,9 @@ static PValue gfx_IsPointRectCollision(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_GetDelta(PVm *vm, PValue *args, u64 argc) {
-    return MakeNumber(GetFrameTime());
+    float dt = deltaTime;
+    PanPrint("dt->%f\n", dt);
+    return MakeNumber((double)dt);
 }
 
 #define GFX_STD_NEW               "নতুন"
