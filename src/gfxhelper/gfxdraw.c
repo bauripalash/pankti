@@ -7,12 +7,20 @@ static void drawpx(PanGfxCore *core, int x, int y, int size, PColor clr) {
     tigrFillRect(core->screen, x, y, size, size, clr);
 }
 
-bool GfxDrawText(PanGfxCore *core, int x, int y, const char *txt, PColor clr) {
+bool GfxDrawText(
+    PanGfxCore *core, int x, int y, const char *txt, int size, PColor clr
+) {
     if (core == NULL || core->fontCtx == NULL) {
         return false;
     }
-
+    int oldSize = core->fontCtx->fontSize;
+    if (size > 0) {
+        core->fontCtx->fontSize = size;
+    }
     PanKbCtxDrawText(core->fontCtx, x, y, txt, clr);
+    if (size > 0) {
+        core->fontCtx->fontSize = oldSize;
+    }
     return true;
 }
 

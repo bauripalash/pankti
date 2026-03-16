@@ -9,7 +9,9 @@ extern "C" {
 #include "gfxhelper.h"
 #include <stdbool.h>
 
-bool GfxDrawText(PanGfxCore *core, int x, int y, const char *txt, PColor clr);
+bool GfxDrawText(
+    PanGfxCore *core, int x, int y, const char *txt, int size, PColor clr
+);
 bool GfxDrawLine(
     PanGfxCore *core, int x1, int y1, int x2, int y2, int thick, PColor clr
 );

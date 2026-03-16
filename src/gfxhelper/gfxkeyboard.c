@@ -116,8 +116,6 @@ PKey strMatchKeyName(const char *keyStr, i64 len) {
         return TK_SCROLL;
     } else if (m(GFX_KEY_NUMLOCKS_1) || m(GFX_KEY_NUMLOCKS_2)) {
         return TK_NUMLOCK;
-    } else if (m(GFX_KEY_PRINTSCRN_1) || m(GFX_KEY_PRINTSCRN_2)) {
-        return 0; // KEY_PRINT_SCREEN; TODO:
     } else if (m(GFX_KEY_PAUSE_1)) {
         return TK_PAUSE;
     } else if (m(GFX_KEY_LEFT_SHIFT_1) || m(GFX_KEY_LEFT_SHIFT_2) ||
@@ -150,8 +148,6 @@ PKey strMatchKeyName(const char *keyStr, i64 len) {
                m(GFX_KEY_RIGHT_SUPER_5) || m(GFX_KEY_RIGHT_SUPER_6) ||
                m(GFX_KEY_RIGHT_SUPER_7) || m(GFX_KEY_RIGHT_SUPER_8)) {
         return TK_RWIN;
-    } else if (m(GFX_KEY_MENU_1) || m(GFX_KEY_MENU_2)) {
-        return 0;
     } else if (m(GFX_KEY_KP_ZERO_1) || m(GFX_KEY_KP_ZERO_2) ||
                m(GFX_KEY_KP_ZERO_3)) {
         return TK_PAD0;

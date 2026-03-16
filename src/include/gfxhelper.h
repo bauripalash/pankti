@@ -162,9 +162,6 @@ typedef enum ColorStrError {
 #define GFX_KEY_NUMLOCKS_1     "নাম লক"
 #define GFX_KEY_NUMLOCKS_2     "num lock"
 
-#define GFX_KEY_PRINTSCRN_1    "প্রিন্ট স্ক্রিন"
-#define GFX_KEY_PRINTSCRN_2    "print screen"
-
 #define GFX_KEY_PAUSE_1        "pause"
 
 #define GFX_KEY_LEFT_SHIFT_1   "লেফট শিফট"
@@ -216,9 +213,6 @@ typedef enum ColorStrError {
 #define GFX_KEY_RIGHT_SUPER_6  "dan super"
 #define GFX_KEY_RIGHT_SUPER_7  "ডান উইন্ডোজ"
 #define GFX_KEY_RIGHT_SUPER_8  "dan windows"
-
-#define GFX_KEY_MENU_1         "menu"
-#define GFX_KEY_MENU_2         "মেনু"
 
 #define GFX_KEY_KP_ZERO_1      "কীপ্যাড ০"
 #define GFX_KEY_KP_ZERO_2      "keypad 0"

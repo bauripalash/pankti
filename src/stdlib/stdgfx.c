@@ -150,13 +150,14 @@ static PValue gfx_DrawText(PVm *vm, PValue *args, u64 argc) {
     double xVal = ValueAsNum(args[0]);
     double yVal = ValueAsNum(args[1]);
     char *text = ValueAsObj(args[2])->v.OString.value;
-    char *colorStr = ValueAsObj(args[3])->v.OString.value;
+    double sizeVal = ValueAsNum(args[3]);
+    char *colorStr = ValueAsObj(args[4])->v.OString.value;
     ColorStrError err = CLRSTR_OK;
     PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
         return MakeError(vm->gc, "Invalid Color");
     }
-    GfxDrawText(gcore, xVal, yVal, text, clr);
+    GfxDrawText(gcore, xVal, yVal, text, (int)sizeVal, clr);
     return MakeNil();
 }
 static PValue gfx_Clear(PVm *vm, PValue *args, u64 argc) {
@@ -376,7 +377,7 @@ void PushStdlibGraphics(PVm *vm, SymbolTable *table) {
         MakeStdlibEntry(GFX_STD_CIRCLE, gfx_DrawCircle, 4),
         MakeStdlibEntry(GFX_STD_CIRCLE_LINE, gfx_DrawCircleLines, 5),
         MakeStdlibEntry(GFX_STD_CLEAR, gfx_Clear, 0),
-        MakeStdlibEntry(GFX_STD_TEXT, gfx_DrawText, 4),
+        MakeStdlibEntry(GFX_STD_TEXT, gfx_DrawText, 5),
         MakeStdlibEntry(GFX_STD_PRESSED, gfx_KeyPress, 1),
         MakeStdlibEntry(GFX_STD_DOWN, gfx_KeyDown, 1),
         MakeStdlibEntry(GFX_STD_RELEASED, gfx_KeyReleased, 1),
