@@ -1,69 +1,54 @@
 #include "../include/gfxdraw.h"
-#include "../external/raylib/raylib.h"
-#include "raylib.h"
+#include "../external/tigr/tigr.h"
 #include <stdbool.h>
 #include <stdlib.h>
 
-static void drawpx(int x, int y, int size, Color clr) {
-    DrawRectangle(x, y, size, size, clr);
+static void drawpx(PanGfxCore *core, int x, int y, int size, PColor clr) {
+    tigrFillRect(core->screen, x, y, size, size, clr);
 }
 
-bool GfxDrawText(PanGfxCore *core, int x, int y, const char *txt, PColor clr) {
+bool GfxDrawText(
+    PanGfxCore *core, int x, int y, const char *txt, int size, PColor clr
+) {
     if (core == NULL || core->fontCtx == NULL) {
         return false;
     }
-
+    int oldSize = core->fontCtx->fontSize;
+    if (size > 0) {
+        core->fontCtx->fontSize = size;
+    }
     PanKbCtxDrawText(core->fontCtx, x, y, txt, clr);
+    if (size > 0) {
+        core->fontCtx->fontSize = oldSize;
+    }
     return true;
 }
 
 bool GfxDrawLine(
     PanGfxCore *core, int x1, int y1, int x2, int y2, int thick, PColor clr
 ) {
-    int dx = abs(x2 - x1);
-    int sx = x1 < x2 ? 1 : -1;
-    int dy = -abs(y2 - y1);
-    int sy = y1 < y2 ? 1 : -1;
-    int err = dx + dy;
-    int e2 = 0;
-
-    while (true) {
-        drawpx(x1, y1, thick, clr);
-        e2 = 2 * err;
-
-        if (x1 == x2 && y1 == y2) {
-            break;
-        }
-
-        if (e2 >= dy) {
-            err += dy;
-            x1 += sx;
-        }
-
-        if (e2 <= dx) {
-            err += dx;
-            y1 += sy;
-        }
-    }
-
+    tigrLine(core->screen, x1, y1, x2, y2, clr);
     return true;
 }
 bool GfxDrawPixel(PanGfxCore *core, int x1, int y1, PColor clr) {
-    drawpx(x1, y1, 1, clr);
+    drawpx(core, x1, y1, 1, clr);
     return true;
 }
 bool GfxDrawRect(PanGfxCore *core, int x, int y, int w, int h, PColor clr) {
-    DrawRectangle(x, y, w, h, clr);
+    // DrawRectangle(x, y, w, h, clr);
+    tigrFillRect(core->screen, x, y, w, h, clr);
     return true;
 }
 bool GfxDrawRectLine(
     PanGfxCore *core, int x, int y, int w, int h, int thick, PColor clr
 ) {
-    DrawRectangleLinesEx((Rectangle){x, y, w, h}, thick, clr);
+    // DrawRectangleLinesEx((Rectangle){x, y, w, h}, thick, clr);
+    tigrRect(core->screen, x, y, w, h, clr);
     return true;
 }
 bool GfxDrawCircle(PanGfxCore *core, int x, int y, int r, PColor clr) {
-    DrawCircle(x, y, r, clr);
+    // DrawCircle(x, y, r, clr);
+    tigrFillCircle(core->screen, x, y, r, clr);
     return true;
 }
 bool GfxDrawCircleLine(
@@ -74,10 +59,10 @@ bool GfxDrawCircleLine(
     int err = 2 - 2 * r;
 
     do {
-        DrawPixel(cx - x, cy + y, clr);
-        DrawPixel(cx - y, cy - x, clr);
-        DrawPixel(cx + x, cy - y, clr);
-        DrawPixel(cx + y, cy + x, clr);
+        tigrPlot(core->screen, cx - x, cy + y, clr);
+        tigrPlot(core->screen, cx - y, cy - x, clr);
+        tigrPlot(core->screen, cx + x, cy - y, clr);
+        tigrPlot(core->screen, cx + y, cy + x, clr);
 
         r = err;
         if (r <= y) {
@@ -91,24 +76,46 @@ bool GfxDrawCircleLine(
     return true;
 }
 
-bool GfxKeyPressed(PanGfxCore *core, PKey key) { return IsKeyPressed(key); }
-bool GfxKeyDown(PanGfxCore *core, PKey key) { return IsKeyDown(key); }
-bool GfxKeyReleased(PanGfxCore *core, PKey key) { return IsKeyReleased(key); }
-bool GfxKeyUp(PanGfxCore *core, PKey key) { return IsKeyUp(key); }
+bool GfxKeyPressed(PanGfxCore *core, PKey key) {
+    return key < GFX_CORE_MAX_KEYS ? core->kbPressedKey[key] : 0;
+}
+bool GfxKeyDown(PanGfxCore *core, PKey key) {
+    return tigrKeyHeld(core->screen, key) != 0;
+}
+bool GfxKeyReleased(PanGfxCore *core, PKey key) {
+    return key < GFX_CORE_MAX_KEYS ? core->kbReleasedKey[key] : 0;
+}
+bool GfxKeyUp(PanGfxCore *core, PKey key) {
+    return !GfxKeyPressed(core, key) && !GfxKeyDown(core, key);
+}
 
-bool GfxMousePressed(PanGfxCore *core, PKey key) {
-    return IsMouseButtonPressed(key);
+bool GfxMousePressed(PanGfxCore *core, int key) {
+    return (core->mouseNewPress & key) != 0;
+    // tigrMouse(Tigr *bmp, int *x, int *y, int *buttons);
+    // return IsMouseButtonPressed(key);
 }
-bool GfxMouseDown(PanGfxCore *core, PKey key) { return IsMouseButtonDown(key); }
-bool GfxMouseReleased(PanGfxCore *core, PKey key) {
-    return IsMouseButtonReleased(key);
+bool GfxMouseDown(PanGfxCore *core, int key) {
+    int x;
+    int y;
+    int btn;
+    // return IsMouseButtonDown(key);
+    tigrMouse(core->screen, &x, &y, &btn);
+    return (btn & key);
 }
-bool GfxMouseUp(PanGfxCore *core, PKey key) { return IsMouseButtonUp(key); }
+bool GfxMouseReleased(PanGfxCore *core, int key) {
+    return (core->mouseNewRelease & key) != 0;
+}
+bool GfxMouseUp(PanGfxCore *core, int key) {
+    return !GfxMousePressed(core, key) && !GfxMouseDown(core, key);
+}
 
 void GfxGetMousePos(PanGfxCore *core, double *xpos, double *ypos) {
-    Vector2 mpos = GetMousePosition();
-    *xpos = (double)mpos.x;
-    *ypos = (double)mpos.y;
+    int x = 0;
+    int y = 0;
+    int btn = 0;
+    tigrMouse(core->screen, &x, &y, &btn);
+    *xpos = (double)x;
+    *ypos = (double)y;
 }
 
 bool Gfx2RectColsn(
@@ -122,14 +129,15 @@ bool Gfx2RectColsn(
     int w2,
     int h2
 ) {
-    return CheckCollisionRecs(
-        (Rectangle){x1, y1, w1, h1}, (Rectangle){x2, y2, w2, h2}
-    );
+    return (x1 < x2 + w2 && x1 + w1 > x2 && y1 < y2 + h2 && y1 + h1 > y2);
 }
 bool GfxPointRectColsn(
     PanGfxCore *core, int px, int py, int rx, int ry, int rw, int rh
 ) {
-    return CheckCollisionPointRec(
-        (Vector2){px, py}, (Rectangle){rx, ry, rw, rh}
-    );
+    int x1 = rx;
+    int y1 = ry;
+    int x2 = rx + rw;
+    int y2 = ry + rh;
+
+    return (px > x1 && px < x2 && py > y1 && py < y2);
 }

@@ -1,16 +1,17 @@
 #ifndef PANKTI_RL_HELPER_H
 #define PANKTI_RL_HELPER_H
 
-#include "ptypes.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "../external/raylib/raylib.h"
+#include "../external/tigr/tigr.h"
+#include "ptypes.h"
 #include <stdbool.h>
 
-typedef Color PColor;
-typedef KeyboardKey PKey;
+typedef TPixel PColor;
+typedef TKey PKey;
+typedef struct PanGfxCore PanGfxCore;
 
 // Color sources : https://en.wikipedia.org/wiki/Web_colors
 
@@ -162,9 +163,6 @@ typedef enum ColorStrError {
 #define GFX_KEY_NUMLOCKS_1     "নাম লক"
 #define GFX_KEY_NUMLOCKS_2     "num lock"
 
-#define GFX_KEY_PRINTSCRN_1    "প্রিন্ট স্ক্রিন"
-#define GFX_KEY_PRINTSCRN_2    "print screen"
-
 #define GFX_KEY_PAUSE_1        "pause"
 
 #define GFX_KEY_LEFT_SHIFT_1   "লেফট শিফট"
@@ -216,9 +214,6 @@ typedef enum ColorStrError {
 #define GFX_KEY_RIGHT_SUPER_6  "dan super"
 #define GFX_KEY_RIGHT_SUPER_7  "ডান উইন্ডোজ"
 #define GFX_KEY_RIGHT_SUPER_8  "dan windows"
-
-#define GFX_KEY_MENU_1         "menu"
-#define GFX_KEY_MENU_2         "মেনু"
 
 #define GFX_KEY_KP_ZERO_1      "কীপ্যাড ০"
 #define GFX_KEY_KP_ZERO_2      "keypad 0"
@@ -299,7 +294,9 @@ typedef enum ColorStrError {
 PColor ParseColorString(const char *str, ColorStrError *err);
 
 PColor PanStrToColor(const char *str, ColorStrError *err);
-Image LoadGuiAppIcon(void);
+// Image LoadGuiAppIcon(void);
+
+void GfxSetWindowIcon(PanGfxCore *core);
 PKey PanStrToKeyboardKey(const char *keyStr, i64 len);
 int PanStrToMouseKey(const char *keyStr, i64 len);
 #ifdef __cplusplus

@@ -1,3 +1,0 @@
-commit: 97023def48c4be1e27bbaab70242521dd0d829df
-last_update: 2026-02-18 5:37 PM IST
-commit_link: https://github.com/raysan5/raylib/commit/97023def48c4be1e27bbaab70242521dd0d829df

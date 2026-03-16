@@ -9,7 +9,9 @@ extern "C" {
 #include "gfxhelper.h"
 #include <stdbool.h>
 
-bool GfxDrawText(PanGfxCore *core, int x, int y, const char *txt, PColor clr);
+bool GfxDrawText(
+    PanGfxCore *core, int x, int y, const char *txt, int size, PColor clr
+);
 bool GfxDrawLine(
     PanGfxCore *core, int x1, int y1, int x2, int y2, int thick, PColor clr
 );
@@ -28,10 +30,10 @@ bool GfxKeyDown(PanGfxCore *core, PKey key);
 bool GfxKeyReleased(PanGfxCore *core, PKey key);
 bool GfxKeyUp(PanGfxCore *core, PKey key);
 
-bool GfxMousePressed(PanGfxCore *core, PKey key);
-bool GfxMouseDown(PanGfxCore *core, PKey key);
-bool GfxMouseReleased(PanGfxCore *core, PKey key);
-bool GfxMouseUp(PanGfxCore *core, PKey key);
+bool GfxMousePressed(PanGfxCore *core, int key);
+bool GfxMouseDown(PanGfxCore *core, int key);
+bool GfxMouseReleased(PanGfxCore *core, int key);
+bool GfxMouseUp(PanGfxCore *core, int key);
 
 void GfxGetMousePos(PanGfxCore *core, double *xpos, double *ypos);
 
