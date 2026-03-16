@@ -1,9 +1,9 @@
 #include "../include/gfxhelper.h"
 #include "../external/stb/stb_image.h"
 #include "../gen/panktilogo.h"
+#include "../include/alloc.h"
 #include "../include/gfxcore.h"
 #include "../include/utils.h"
-#include "../include/alloc.h"
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -160,7 +160,7 @@ static void gfxSetX11Icon(PanGfxCore *core) {
         return;
     }
 
-    long * icon = PMalloc(sizeof(long) * (w * h + 2));
+    long *icon = PMalloc(sizeof(long) * (w * h + 2));
     icon[0] = w;
     icon[1] = h;
 
@@ -169,12 +169,10 @@ static void gfxSetX11Icon(PanGfxCore *core) {
         unsigned char g = img[i * 4 + 1];
         unsigned char b = img[i * 4 + 2];
         unsigned char a = img[i * 4 + 3];
-        icon[i+2] = ((unsigned long)a << 24) |
-                    ((unsigned long)r << 16) |
-                    ((unsigned long)g << 8)  |
-                    (unsigned long)b;
+        icon[i + 2] = ((unsigned long)a << 24) | ((unsigned long)r << 16) |
+                      ((unsigned long)g << 8) | (unsigned long)b;
     }
-    Display * dpy = NULL;
+    Display *dpy = NULL;
     Window win = {0};
     PCTigrExposeX11Handle(core->screen, &dpy, &win);
     if (dpy == NULL) {
@@ -182,18 +180,20 @@ static void gfxSetX11Icon(PanGfxCore *core) {
     }
 
     Atom prop = XInternAtom(dpy, "_NET_WM_ICON", False);
-    XChangeProperty(dpy, win, prop, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)icon, w * h + 2);
+    XChangeProperty(
+        dpy, win, prop, XA_CARDINAL, 32, PropModeReplace, (unsigned char *)icon,
+        w * h + 2
+    );
     XFlush(dpy);
     PFree(icon);
     stbi_image_free(img);
-
 }
 #endif
 
-#if defined (PANKTI_OS_WIN)
+#if defined(PANKTI_OS_WIN)
 #include <windows.h>
 
-static void gfxSetWin32Icon(PanGfxCore *core){
+static void gfxSetWin32Icon(PanGfxCore *core) {
     int w, h, channels;
     unsigned char *img = stbi_load_from_memory(
         IMAGES_PANKTI_LOGO_PNG, IMAGES_PANKTI_LOGO_PNG_LEN, &w, &h, &channels, 4
@@ -217,7 +217,7 @@ static void gfxSetWin32Icon(PanGfxCore *core){
 
     HDC hdc = GetDC(NULL);
     HBITMAP color = CreateBitmap(w, h, 1, 32, bgraIcon);
-    HBITMAP mask = CreateBitmap(w, h, 1, 32, NULL );
+    HBITMAP mask = CreateBitmap(w, h, 1, 32, NULL);
 
     iinfo.hbmColor = color;
     iinfo.hbmMask = mask;
@@ -236,11 +236,11 @@ static void gfxSetWin32Icon(PanGfxCore *core){
 #endif
 
 void GfxSetWindowIcon(PanGfxCore *core) {
-    #if defined (PANKTI_OS_LINUX)
+#if defined(PANKTI_OS_LINUX)
     gfxSetX11Icon(core);
-    #elif defined (PANKTI_OS_WIN)
+#elif defined(PANKTI_OS_WIN)
     gfxSetWin32Icon(core);
-    #else
+#else
     return;
-    #endif
+#endif
 }

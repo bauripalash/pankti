@@ -128,10 +128,20 @@ static void brlkbDrawGlyph(
     PanKbCtx *ctx, int index, int posX, int posY, float scale, PColor color
 ) {
     int width, height, xoffset, yoffset;
+
     unsigned char *bitmap = stbtt_GetGlyphBitmap(
         &ctx->sFontInfo, scale, scale, (int)index, &width, &height, &xoffset,
         &yoffset
     );
+
+    int ascent, descent, lineGap;
+    stbtt_GetFontVMetrics(&ctx->sFontInfo, &ascent, &descent, &lineGap);
+    int scaledAscent = (int)(ascent * scale);
+
+    Tigr *screen = ctx->core->screen;
+    int screenW = screen->w;
+    int screenH = screen->h;
+
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             unsigned char rawAlpha = bitmap[y * width + x];
@@ -140,24 +150,20 @@ static void brlkbDrawGlyph(
                 continue;
             }
 
-            int ascent, descent, lineGap;
-            stbtt_GetFontVMetrics(&ctx->sFontInfo, &ascent, &descent, &lineGap);
-            int scaledAscent = (int)(ascent * scale);
             int pxPosX = posX + x + xoffset;
             int pxPosY = posY + y + scaledAscent + yoffset;
-            tigrPlot(
-                ctx->core->screen, pxPosX, pxPosY,
-                (TPixel){.r = color.r,
-                         .g = color.g,
-                         .b = color.b,
-                         .a = color.a * alpha}
-            );
-            /*
-            DrawPixel(
-                pxPosX, pxPosY,
-                (Color){color.r, color.g, color.b, color.a * alpha}
-            );
-            */
+
+            if (pxPosX < 0 || pxPosX >= screenW || pxPosY < 0 ||
+                pxPosY >= screenH) {
+                continue;
+            }
+
+            float inv = 1.0f - alpha;
+            TPixel *dest = &screen->pix[pxPosY * screenW + pxPosX];
+            dest->r = (unsigned char)(color.r * alpha + dest->r * inv);
+            dest->g = (unsigned char)(color.g * alpha + dest->g * inv),
+            dest->b = (unsigned char)(color.b * alpha + dest->b * inv),
+            dest->a = 255;
         }
     }
     stbtt_FreeBitmap(bitmap, NULL);

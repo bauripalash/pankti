@@ -205,4 +205,3 @@ char *GfxGetImageString(const PanGfxCore *core, i64 index, bool *ok) {
     *ok = true;
     return result;
 }
-
