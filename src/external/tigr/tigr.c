@@ -159,6 +159,16 @@ int tigrGAPIBegin(Tigr* bmp);
 int tigrGAPIEnd(Tigr* bmp);
 void tigrGAPIPresent(Tigr* bmp, int w, int h);
 
+// CUSTOM CODE : FOR PANKTI
+#if defined (__linux) || defined (__linux__)
+void PCTigrExposeX11Handle(Tigr * bmp, Display ** dpy, Window * win){
+    TigrInternal * internal = tigrInternal(bmp);
+    *dpy = internal->dpy;
+    *win = internal->win;
+}
+#endif
+// END CUSTOM CODE
+
 #endif
 
 //////// End of inlined file: tigr_internal.h ////////

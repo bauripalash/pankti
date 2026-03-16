@@ -104,6 +104,7 @@ bool StartGfxProcess(PanGfxCore *core) {
     // SetTargetFPS(60);
     // Image winIcon = LoadGuiAppIcon();
     // arrput(core->imageList, winIcon);
+    GfxSetWindowIcon(core);
     return true;
 }
 
@@ -204,3 +205,4 @@ char *GfxGetImageString(const PanGfxCore *core, i64 index, bool *ok) {
     *ok = true;
     return result;
 }
+

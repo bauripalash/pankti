@@ -11,6 +11,7 @@ extern "C" {
 
 typedef TPixel PColor;
 typedef TKey PKey;
+typedef struct PanGfxCore PanGfxCore;
 
 // Color sources : https://en.wikipedia.org/wiki/Web_colors
 
@@ -294,6 +295,8 @@ PColor ParseColorString(const char *str, ColorStrError *err);
 
 PColor PanStrToColor(const char *str, ColorStrError *err);
 // Image LoadGuiAppIcon(void);
+
+void GfxSetWindowIcon(PanGfxCore *core);
 PKey PanStrToKeyboardKey(const char *keyStr, i64 len);
 int PanStrToMouseKey(const char *keyStr, i64 len);
 #ifdef __cplusplus

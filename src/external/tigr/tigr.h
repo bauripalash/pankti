@@ -361,6 +361,14 @@ const char *tigrDecodeUTF8(const char *text, int *cp);
 // Encodes a single UTF8 codepoint and returns the next pointer.
 char *tigrEncodeUTF8(char *text, int cp);
 
+// CUSTOM CODE : FOR PANKTI
+#if defined (__linux) || defined (__linux__)
+#include <X11/Xatom.h>
+#include <X11/Xlib.h>
+void PCTigrExposeX11Handle(Tigr * bmp, Display ** dpy, Window * win);
+#endif
+// END CUSTOM CODE
+
 #ifdef __cplusplus
 }
 #endif
