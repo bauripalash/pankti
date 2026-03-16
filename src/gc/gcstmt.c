@@ -141,6 +141,9 @@ PStmt *NewFuncStmt(
 
 PStmt *NewImportStmt(Pgc *gc, Token *op, Token *iname, PExpr *ipath) {
     PStmt *s = NewStmt(gc, STMT_IMPORT, op);
+    if (s == NULL) {
+        return NULL;
+    }
     s->stmt.SImport.op = op;
     s->stmt.SImport.name = iname;
     s->stmt.SImport.path = ipath;

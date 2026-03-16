@@ -27,6 +27,9 @@
 
 PanktiCore *NewCore(const char *path) {
     PanktiCore *core = PCreate(PanktiCore);
+    if (core == NULL) {
+        return NULL;
+    }
     core->path = path;
     core->source = PanReadFile(core->path);
     if (core->source == NULL) {

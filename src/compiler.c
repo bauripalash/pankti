@@ -61,6 +61,7 @@ PCompiler *dummyCompiler(
             cmFunc = NewComFuncObject(c->gc, NULL);
         }
         if (cmFunc == NULL) {
+            FreeToken(c->dummyToken);
             PFree(c);
             return NULL;
         }
