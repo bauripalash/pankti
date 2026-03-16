@@ -182,8 +182,6 @@ bool PanKbCtxDrawText(
 
     float curX = xpos;
     float curY = ypos;
-    // DrawLine(curX, curY, 500, curY, RED);
-    // DrawLine(curX, curY, curX, 500, RED);
 
     // iterate through each glyph
     kbts_run Run;
