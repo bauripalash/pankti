@@ -38,7 +38,6 @@ static PValue gfx_Running(PVm *vm, PValue *args, u64 argc) {
 static PValue gfx_DrawStart(PVm *vm, PValue *args, u64 argc) {
 
     deltaTime = tigrTime();
-    // BeginDrawing();
     return MakeNil();
 }
 
@@ -241,20 +240,16 @@ static PValue gfx_DrawImage(PVm *vm, PValue *args, u64 argc) {
     struct OString *imgStrObj = &ValueAsObj(args[2])->v.OString;
 
     i64 index = GfxCoreGetImageIndex(gcore, imgStrObj->value, -1);
-    // getImgIndexFromStr(imgStrObj->value, -1);
     if (index == -1) {
         VmError(vm, "Invalid image to draw");
         return MakeNil();
     }
     bool ok = false;
     Tigr *img = GfxGetImageFromIdx(gcore, index, &ok);
-    // getImageFromIndex(index, &ok);
     if (!ok) {
         VmError(vm, "Invalid image to draw");
         return MakeNil();
     }
-    // Texture2D imgTxt = LoadTextureFromImage(img);
-    // DrawTexture(imgTxt, (int)xVal, (int)yVal, WHITE);
     tigrBlit(gcore->screen, img, (int)xVal, (int)yVal, 0, 0, img->w, img->h);
     return MakeNil();
 }

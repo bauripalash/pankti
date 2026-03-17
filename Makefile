@@ -123,6 +123,12 @@ build_dbg:
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
 	cmake --build build --target $(BIN) --parallel
 
+.PHONY: build_rls_ninja
+build_rls_ninja:
+	rm -rf build
+	cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=$(RELEASE_CC) -G "Ninja"
+	cmake --build build --target $(BIN) --parallel
+
 .PHONY: build_rls
 build_rls:
 	rm -rf build
