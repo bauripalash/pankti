@@ -10,6 +10,7 @@ set(PANKTI_SRC_FILES
   "${CMAKE_CURRENT_LIST_DIR}/parser.c"
   "${CMAKE_CURRENT_LIST_DIR}/printer.c"
   "${CMAKE_CURRENT_LIST_DIR}/strescape.c"
+  "${CMAKE_CURRENT_LIST_DIR}/terminal.c"
   "${CMAKE_CURRENT_LIST_DIR}/token.c"
   "${CMAKE_CURRENT_LIST_DIR}/unicode.c"
   "${CMAKE_CURRENT_LIST_DIR}/ustring.c"
@@ -51,7 +52,6 @@ set(PANKTI_SRC_FILES
 
 set(PANKTI_HEADER_FILES
   "${CMAKE_CURRENT_LIST_DIR}/include/alloc.h"
-  "${CMAKE_CURRENT_LIST_DIR}/include/ansicolors.h"
   "${CMAKE_CURRENT_LIST_DIR}/include/ast.h"
   "${CMAKE_CURRENT_LIST_DIR}/include/bengali.h"
   "${CMAKE_CURRENT_LIST_DIR}/include/core.h"
@@ -65,6 +65,7 @@ set(PANKTI_HEADER_FILES
   "${CMAKE_CURRENT_LIST_DIR}/include/parser.h"
   "${CMAKE_CURRENT_LIST_DIR}/include/pstdlib.h"
   "${CMAKE_CURRENT_LIST_DIR}/include/strescape.h"
+  "${CMAKE_CURRENT_LIST_DIR}/include/terminal.h"
   "${CMAKE_CURRENT_LIST_DIR}/include/token.h"
   "${CMAKE_CURRENT_LIST_DIR}/include/ustring.h"
   "${CMAKE_CURRENT_LIST_DIR}/include/utils.h"

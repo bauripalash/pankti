@@ -1,5 +1,6 @@
 #include "include/core.h"
 #include "include/printer.h"
+#include "include/terminal.h"
 #include "include/utils.h"
 #include "include/version.h"
 #include <locale.h>
@@ -29,6 +30,7 @@ void setupOs(void) {
 
 int main(int argc, char **argv) {
     setupOs();
+    InitTermInfo();
     if (argc < 2) {
         PanPrint("Pankti Programming Language v%s\n", PANKTI_VERSION);
         PanPrint("Usage: pankti [FILENAME]\n");

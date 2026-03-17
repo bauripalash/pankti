@@ -1,7 +1,6 @@
 #include "include/core.h"
 #include "external/stb/stb_ds.h"
 #include "include/alloc.h"
-#include "include/ansicolors.h"
 #include "include/ast.h"
 #include "include/compiler.h"
 #include "include/gc.h"
@@ -10,6 +9,7 @@
 #include "include/parser.h"
 #include "include/printer.h"
 #include "include/ptypes.h"
+#include "include/terminal.h"
 #include "include/token.h"
 #include "include/utils.h"
 #include "include/vm.h"
@@ -244,8 +244,9 @@ static void printErrMsg(
         PanPrint("] ");
     }
 
-    PanPrint(
-        TERMC_RED "%s Error: %s" TERMC_RESET "\n", coreErrorToStr(errtype), msg
+    PanFPrint(
+        stderr, "%s%s Error: %s%s\n", TermColor(TERMC_RED),
+        coreErrorToStr(errtype), msg, TermColor(TERMC_RESET)
     );
 }
 

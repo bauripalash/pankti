@@ -1,8 +1,8 @@
 #include "include/ast.h"
 #include "external/stb/stb_ds.h"
-#include "include/ansicolors.h"
 #include "include/printer.h"
 #include "include/ptypes.h"
+#include "include/terminal.h"
 #include "include/token.h"
 #include <stddef.h>
 #include <stdio.h>
@@ -29,9 +29,10 @@ void AstPrintLiteral(PExpr *expr) {
 
     struct ELiteral *lit = &expr->exp.ELiteral;
 
-    PanPrint(
-        TERMC_YELLOW "%s(" TERMC_RESET "%s" TERMC_YELLOW ")" TERMC_RESET,
-        LiteralTypeToStr(lit->type), lit->op->lexeme
+    PanFPrint(
+        stdout, "%s%s(%s%s%s)%s", TermColor(TERMC_YELLOW),
+        LiteralTypeToStr(lit->type), TermColor(TERMC_RESET), lit->op->lexeme,
+        TermColor(TERMC_YELLOW), TermColor(TERMC_RESET)
     );
     PanPrint("\n");
 }

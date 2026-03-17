@@ -204,8 +204,10 @@ static finline PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
             if (IsValueNum(l) && IsValueNum(r)) {
                 double value = ValueAsNum(l) + ValueAsNum(r);
                 return MakeNumber(value);
-            } else if ((IsValueObj(l) && ValueAsObj(l)->type == OT_STR) &&
-                       (IsValueObj(r) && ValueAsObj(r)->type == OT_STR)) {
+            } else if (
+                (IsValueObj(l) && ValueAsObj(l)->type == OT_STR) &&
+                (IsValueObj(r) && ValueAsObj(r)->type == OT_STR)
+            ) {
                 bool ok = true;
                 struct OString *ls = &ValueAsObj(l)->v.OString;
                 u64 lsLen = (u64)strlen(ls->value);

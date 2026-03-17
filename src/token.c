@@ -1,7 +1,7 @@
 #include "include/token.h"
 #include "include/alloc.h"
-#include "include/ansicolors.h"
 #include "include/printer.h"
+#include "include/terminal.h"
 #include <stdbool.h>
 
 char *TokTypeToStr(PTokenType type) {

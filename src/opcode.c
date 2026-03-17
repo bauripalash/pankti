@@ -1,10 +1,10 @@
 #include "include/opcode.h"
 #include "external/stb/stb_ds.h"
 #include "include/alloc.h"
-#include "include/ansicolors.h"
 #include "include/object.h"
 #include "include/printer.h"
 #include "include/ptypes.h"
+#include "include/terminal.h"
 #include "include/token.h"
 #include <stdarg.h>
 #include <stdbool.h>
