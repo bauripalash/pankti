@@ -25,10 +25,12 @@
 #include <windows.h>
 #define PAN_ISATTY(fd) _isatty(fd)
 #define PAN_STDERR_FD  2
+#define PAN_STDOUT_FD  1
 #else
 #include <unistd.h>
 #define PAN_ISATTY(fd) isatty(fd)
 #define PAN_STDERR_FD  STDERR_FILENO
+#define PAN_STDOUT_FD  STDOUT_FILENO
 #endif
 
 static PTermInfo pantermInfo = {
@@ -38,7 +40,9 @@ static PTermInfo pantermInfo = {
 
 static bool checkNoColor(void) { return getenv("NO_COLOR") != NULL; }
 
-static bool checkIsAtty(void) { return PAN_ISATTY(PAN_STDERR_FD) != 0; }
+static bool checkIsAtty(void) {
+    return (PAN_ISATTY(PAN_STDERR_FD) != 0 && PAN_ISATTY(PAN_STDOUT_FD) != 0);
+}
 
 static bool checkTermColor(void) {
     const char *term = getenv("TERM");
