@@ -8,7 +8,8 @@
 #include <time.h>
 
 #if defined(DEBUG_GC)
-#include "../include/ansicolors.h"
+#include "../include/printer.h"
+#include "../include/terminal.h"
 #endif
 
 static void sweep(Pgc *gc);
@@ -144,12 +145,12 @@ void CollectGarbage(Pgc *gc) {
     if (gc->stress || gc->needCollect) {
 #if defined(DEBUG_GC)
         PanPrint(
-            TERMC_YELLOW
-            "[DEBUG] [GC] Starting Garbage Collection\n" TERMC_RESET
+            "%s[DEBUG] [GC] Starting Garbage Collection%s\n", TermYellow(),
+            TermReset()
         );
         PanPrint(
-            TERMC_BYELLOW "[DEBUG] [GC] [Object Count : %zu]\n" TERMC_RESET,
-            gc->objCount
+            "%s[DEBUG] [GC] [Object Count : %zu]%s\n", TermYellow(),
+            gc->objCount, TermReset()
         );
 #endif
         markRoots(gc);
@@ -158,12 +159,12 @@ void CollectGarbage(Pgc *gc) {
         gc->needCollect = false;
 #if defined(DEBUG_GC)
         PanPrint(
-            TERMC_YELLOW
-            "[DEBUG] [GC] Finished Garbage Collection\n" TERMC_RESET
+            "%s[DEBUG] [GC] Finished Garbage Collection%s\n", TermYellow(),
+            TermReset()
         );
         PanPrint(
-            TERMC_BYELLOW "[DEBUG] [GC] [Object Count : %zu]\n" TERMC_RESET,
-            gc->objCount
+            "%s[DEBUG] [GC] [Object Count : %zu]%s\n", TermYellow(),
+            gc->objCount, TermReset()
         );
 #endif
     }

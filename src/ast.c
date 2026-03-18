@@ -30,9 +30,8 @@ void AstPrintLiteral(PExpr *expr) {
     struct ELiteral *lit = &expr->exp.ELiteral;
 
     PanFPrint(
-        stdout, "%s%s(%s%s%s)%s", TermColor(TERMC_YELLOW),
-        LiteralTypeToStr(lit->type), TermColor(TERMC_RESET), lit->op->lexeme,
-        TermColor(TERMC_YELLOW), TermColor(TERMC_RESET)
+        stdout, "%s%s(%s%s%s)%s", TermYellow(), LiteralTypeToStr(lit->type),
+        TermReset(), lit->op->lexeme, TermYellow(), TermReset()
     );
     PanPrint("\n");
 }
@@ -46,15 +45,18 @@ static void printIndent(int indent) {
 void AstPrint(PExpr *expr, int indent) {
     printIndent(indent);
     if (expr == NULL) {
-        PanPrint("[Invalid Expression!]\n");
+        PanPrint("%s[Invalid Expression!]%s\n", TermRed(), TermReset());
         return;
     }
     switch (expr->type) {
         case EXPR_BINARY: {
             PanPrint(
-                TERMC_PURPLE "BinaryExpr(" TERMC_RESET "%s" TERMC_PURPLE
-                             ")\n" TERMC_RESET,
-                TokTypeToStr(expr->exp.EBinary.op->type)
+                "%sBinaryExpr(%s"
+                "%s"
+                "%s)%s\n",
+                TermPurple(), TermReset(),
+                TokTypeToStr(expr->exp.EBinary.op->type), TermPurple(),
+                TermReset()
             );
 
             AstPrint(expr->exp.EBinary.left, indent + 1);
@@ -63,9 +65,13 @@ void AstPrint(PExpr *expr, int indent) {
         }
         case EXPR_UNARY: {
             PanPrint(
-                TERMC_GREEN "Unary(" TERMC_RESET "%s" TERMC_GREEN
-                            ")\n" TERMC_RESET,
-                TokTypeToStr(expr->exp.EBinary.op->type)
+                "%sUnary(%s"
+                "%s"
+                "%s)%s\n",
+                TermGreen(), TermReset(),
+                TokTypeToStr(expr->exp.EUnary.op->type), TermGreen(),
+                TermReset()
+
             );
 
             AstPrint(expr->exp.EUnary.right, indent + 1);
@@ -76,21 +82,24 @@ void AstPrint(PExpr *expr, int indent) {
             break;
         }
         case EXPR_GROUPING: {
-            PanPrint(TERMC_GREEN "Group\n" TERMC_RESET);
+            PanPrint("%sGroup%s\n", TermGreen(), TermReset());
 
             AstPrint(expr->exp.EGrouping.expr, indent + 1);
             break;
         }
         case EXPR_VARIABLE: {
             PanPrint(
-                TERMC_RED "Var(" TERMC_GREEN "%s" TERMC_RED ")\n" TERMC_RESET,
-                expr->exp.EVariable.name->lexeme
+                "%sVar(%s"
+                "%s"
+                "%s)%s\n",
+                TermRed(), TermGreen(), expr->exp.EVariable.name->lexeme,
+                TermRed(), TermReset()
             );
 
             break;
         }
         case EXPR_ASSIGN: {
-            PanPrint(TERMC_YELLOW "Assign {\n" TERMC_RESET);
+            PanPrint("%sAssign%s {\n", TermYellow(), TermReset());
             printIndent(indent + 1);
             PanPrint("Target {\n");
             AstPrint(expr->exp.EAssign.name, indent + 2);
@@ -112,7 +121,7 @@ void AstPrint(PExpr *expr, int indent) {
         }
         case EXPR_CALL: {
             struct ECall *call = &expr->exp.ECall;
-            PanPrint(TERMC_YELLOW "Call" TERMC_RESET);
+            PanPrint("%sCall%s", TermYellow(), TermReset());
             PanPrint("{\n");
             printIndent(indent + 1);
             PanPrint("Callee {\n");
@@ -135,9 +144,10 @@ void AstPrint(PExpr *expr, int indent) {
         case EXPR_ARRAY: {
             struct EArray *arr = &expr->exp.EArray;
             PanPrint(
-                TERMC_RED "Array (" TERMC_GREEN "%zu" TERMC_RED
-                          ") " TERMC_RESET,
-                arr->count
+                "%sArray ("
+                "%s%zu"
+                "%s)%s ",
+                TermRed(), TermGreen(), arr->count, TermRed(), TermReset()
             );
             PanPrint("{\n");
             for (u64 i = 0; i < arr->count; i++) {
@@ -150,8 +160,10 @@ void AstPrint(PExpr *expr, int indent) {
         case EXPR_MAP: {
             struct EMap *map = &expr->exp.EMap;
             PanPrint(
-                TERMC_RED "Map (" TERMC_GREEN "%zu" TERMC_RED ") " TERMC_RESET,
-                map->count / 2
+                "%sMap ("
+                "%s%zu"
+                "%s)%s ",
+                TermRed(), TermGreen(), map->count / 2, TermRed(), TermReset()
             );
             PanPrint("{\n");
             for (u64 i = 0; i < map->count; i += 2) {
@@ -169,7 +181,7 @@ void AstPrint(PExpr *expr, int indent) {
         }
         case EXPR_SUBSCRIPT: {
             struct ESubscript *sub = &expr->exp.ESubscript;
-            PanPrint(TERMC_YELLOW "Subscript " TERMC_RESET);
+            PanPrint("%sSubscript%s ", TermYellow(), TermReset());
             PanPrint("{\n");
             printIndent(indent + 1);
             PanPrint("Value {\n");
@@ -188,7 +200,7 @@ void AstPrint(PExpr *expr, int indent) {
 
         case EXPR_MODGET: {
             struct EModget *mg = &expr->exp.EModget;
-            PanPrint(TERMC_YELLOW "ModuleGet" TERMC_RESET);
+            PanPrint("%sModuleGet%s", TermYellow(), TermReset());
             PanPrint("{\n");
             printIndent(indent + 1);
             PanPrint("Module {\n");
@@ -201,8 +213,10 @@ void AstPrint(PExpr *expr, int indent) {
                 childName = mg->child->lexeme;
             }
             PanPrint(
-                "Child(" TERMC_GREEN "%s" TERMC_RESET ")\n",
-                childName != NULL ? childName : "<error>"
+                "Child("
+                "%s%s%s)\n",
+                TermGreen(), childName != NULL ? childName : "<error>",
+                TermReset()
             );
             printIndent(indent);
             PanPrint("}\n");
@@ -213,7 +227,7 @@ void AstPrint(PExpr *expr, int indent) {
 
 void AstStmtPrint(PStmt *stmt, int indent) {
     if (stmt == NULL) {
-        PanPrint("Invalid Statement\n");
+        PanPrint("%s[Invalid Statement]%s\n", TermRed(), TermReset());
         return;
     }
     printIndent(indent);
@@ -234,8 +248,10 @@ void AstStmtPrint(PStmt *stmt, int indent) {
         }
         case STMT_LET: {
             PanPrint(
-                "Let (" TERMC_GREEN "%s" TERMC_RESET ") [\n",
-                stmt->stmt.SLet.name->lexeme
+                "Let ("
+                "%s%s%s"
+                ") [\n",
+                TermGreen(), stmt->stmt.SLet.name->lexeme, TermReset()
             );
 
             AstPrint(stmt->stmt.SLet.expr, indent + 1);
@@ -313,16 +329,19 @@ void AstStmtPrint(PStmt *stmt, int indent) {
             struct SFunc *fn = &stmt->stmt.SFunc;
 
             PanPrint(
-                "Func(" TERMC_GREEN "%s" TERMC_RESET ") <", fn->name->lexeme
+                "Func("
+                "%s%s%s"
+                ") <",
+                TermGreen(), fn->name->lexeme, TermReset()
             );
-            PanPrint(TERMC_GREEN);
+            PanPrint(TermGreen());
             for (u64 i = 0; i < fn->paramCount; i++) {
                 PanPrint("%s", fn->params[i]->lexeme);
                 if (i != fn->paramCount - 1) {
-                    PanPrint(TERMC_RESET ", " TERMC_GREEN);
+                    PanPrint("%s, %s", TermReset(), TermGreen());
                 }
             }
-            PanPrint(TERMC_RESET "> [\n");
+            PanPrint("%s> [\n", TermReset());
             AstStmtPrint(fn->body, indent + 1);
             printIndent(indent);
             PanPrint("]\n");
@@ -331,8 +350,10 @@ void AstStmtPrint(PStmt *stmt, int indent) {
         case STMT_IMPORT: {
             struct SImport *import = &stmt->stmt.SImport;
             PanPrint(
-                "Import(" TERMC_GREEN "%s" TERMC_RESET ") ",
-                import->name->lexeme
+                "Import("
+                "%s%s%s"
+                ") ",
+                TermGreen(), import->name->lexeme, TermReset()
             );
             PanPrint("{\n");
             AstPrint(import->path, indent + 2);

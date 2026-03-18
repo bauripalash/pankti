@@ -9,10 +9,10 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <string.h>
 
 #if defined DEBUG_GC
-#include "../include/ansicolors.h"
+#include "../include/printer.h"
+#include "../include/terminal.h"
 #endif
 
 #define GcPopObj(gc, o)                                                        \
@@ -32,8 +32,8 @@ PObj *NewObject(Pgc *gc, PObjType type) {
     o->marked = false;
 #if defined DEBUG_GC
     PanPrint(
-        TERMC_BLUE "[DEBUG] [GC] %p New Object : %s\n" TERMC_RESET, (void *)o,
-        ObjTypeToString(type)
+        "%s[DEBUG] [GC] %p New Object : %s%s\n", TermBlue(), (void *)o,
+        ObjTypeToString(type), TermReset()
     );
 #endif
     GcCounterNew(gc);
@@ -195,8 +195,8 @@ void FreeObject(Pgc *gc, PObj *o) {
 
 #if defined DEBUG_GC
     PanPrint(
-        TERMC_GREEN "[DEBUG] [GC] Freeing Object : %p : %s : " TERMC_RESET,
-        (void *)o, ObjTypeToString(o->type)
+        "%s[DEBUG] [GC] Freeing Object : %p : %s : %s", TermGreen(), (void *)o,
+        ObjTypeToString(o->type), TermReset()
     );
     if (o->type == OT_UPVAL) {
         PanPrint("<UpValue> : %ld", (u64)o);

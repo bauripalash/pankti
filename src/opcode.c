@@ -11,10 +11,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define OFFSET_COLOR    TERMC_BLUE
-#define OPNAME_COLOR    TERMC_GREEN
-#define CONST_VAL_COLOR TERMC_PURPLE
-
 static const POpDefinition opDefs[] = {
     [OP_CONST] = {"OpConst", 1, {2}},
     [OP_DEBUG] = {"OpDebug", 0, {0}},
@@ -94,18 +90,18 @@ void FreeBytecode(PBytecode *b) {
 }
 
 static u64 disasmSimpleIns(const char *name, u64 offset) {
-    PanPrint("%s%s%s\n", TermColor(OPNAME_COLOR), name, TermReset());
+    PanPrint("%s%s%s\n", TermGreen(), name, TermReset());
     return offset + 1;
 }
 
 static u64 disasmConstIns(const char *name, u64 offset, const PBytecode *b) {
     u16 constIndex = ReadU16(b, offset + 1);
 
-    PanPrint("%s%s%s", TermColor(OPNAME_COLOR), name, TermReset());
+    PanPrint("%s%s%s", TermGreen(), name, TermReset());
     PanPrint(" %d", constIndex);
     if (b->constPool != NULL) {
         PanPrint(" : ");
-        PanPrint(TermColor(CONST_VAL_COLOR));
+        PanPrint(TermPurple());
         PrintValue(b->constPool[constIndex]);
     }
     PanPrint(TermReset());
@@ -114,7 +110,7 @@ static u64 disasmConstIns(const char *name, u64 offset, const PBytecode *b) {
 }
 
 static u64 disasmBytesIns(const char *name, u64 offset, const PBytecode *b) {
-    PanPrint("%s%s%s", TermColor(OPNAME_COLOR), name, TermReset());
+    PanPrint("%s%s%s", TermGreen(), name, TermReset());
     u16 itemCount = ReadU16(b, offset + 1);
 
     PanPrint(" [%d]", itemCount);
@@ -127,7 +123,7 @@ static u64 disasmJumpIns(
 ) {
     u16 jump = ReadU16(b, offset + 1);
 
-    PanPrint("%s%s%s", TermColor(OPNAME_COLOR), name, TermReset());
+    PanPrint("%s%s%s", TermGreen(), name, TermReset());
     PanPrint(" : %05d -> %05d\n", offset, offset + 3 + sign * jump);
 
     return offset + 3;
@@ -139,13 +135,13 @@ static u64 disasmComplexDSIns(
     u16 count = (u16)b->code[offset + 1] << 8;
     count |= b->code[offset + 2];
 
-    PanPrint("%s%s%s", TermColor(OPNAME_COLOR), name, TermReset());
+    PanPrint("%s%s%s", TermGreen(), name, TermReset());
     PanPrint(" : %02d\n", count);
     return offset + 3;
 }
 
 u64 DisasmBytecode(const PBytecode *bt, u64 offset) {
-    PanPrint("%s%05d %s", TermColor(OFFSET_COLOR), offset, TermReset());
+    PanPrint("%s%05d %s", TermBlue(), offset, TermReset());
     PanOpCode op = (PanOpCode)bt->code[offset];
     POpDefinition def = GetOpDefinition(op);
 

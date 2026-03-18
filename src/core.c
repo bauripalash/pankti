@@ -245,8 +245,8 @@ static void printErrMsg(
     }
 
     PanFPrint(
-        stderr, "%s%s Error: %s%s\n", TermColor(TERMC_RED),
-        coreErrorToStr(errtype), msg, TermColor(TERMC_RESET)
+        stderr, "%s%s Error: %s%s\n", TermRed(), coreErrorToStr(errtype), msg,
+        TermReset()
     );
 }
 

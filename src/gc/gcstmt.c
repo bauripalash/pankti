@@ -7,7 +7,8 @@
 #include <stdio.h>
 
 #if defined(DEBUG_GC)
-#include "../include/ansicolors.h"
+#include "../include/printer.h"
+#include "../include/terminal.h"
 #endif
 
 // ===================
@@ -25,8 +26,8 @@ PStmt *NewStmt(Pgc *gc, PStmtType type, Token *op) {
     gc->stmts = s;
 #if defined DEBUG_GC
     PanPrint(
-        TERMC_BLUE "[DEBUG] [GC] %p New Statement : %s\n" TERMC_RESET,
-        (void *)s, StmtTypeToStr(type)
+        "%s[DEBUG] [GC] %p New Statement : %s%s\n", TermBlue(), (void *)s,
+        StmtTypeToStr(type), TermReset()
     );
 #endif
     return s;
@@ -166,8 +167,8 @@ void FreeStmt(Pgc *gc, PStmt *s) {
     }
 #if defined DEBUG_GC
     PanPrint(
-        TERMC_GREEN "[DEBUG] [GC] Freeing Statement : %s\n" TERMC_RESET,
-        StmtTypeToStr(s->type)
+        "%s[DEBUG] [GC] Freeing Statement : %s%s\n", TermGreen(),
+        StmtTypeToStr(s->type), TermReset()
     );
 #endif
     switch (s->type) {
