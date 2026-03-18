@@ -75,7 +75,7 @@ typedef struct VmPosInfo {
     Token *token;
 } VmPosInfo;
 
-static VmPosInfo vmGetPosInfo(PVm *vm, PCallFrame *frame) {
+static VmPosInfo vmGetPosInfo(const PVm *vm, const PCallFrame *frame) {
     if (vm == NULL || frame == NULL) {
         return (VmPosInfo){.found = false};
     }
@@ -115,30 +115,26 @@ static VmPosInfo vmGetPosInfo(PVm *vm, PCallFrame *frame) {
     };
 }
 
-static void vmPrintStackTrace(PVm *vm) {
+void VmPrintStackTrace(const PVm *vm) {
     for (int i = vm->frameCount - 1; i >= 0; i--) {
-        PCallFrame *frame = &vm->frames[i];
+        const PCallFrame *frame = &vm->frames[i];
         VmPosInfo posInfo = vmGetPosInfo(vm, frame);
         struct OComFunction *fn = &frame->f->v.OComFunction;
-        if (posInfo.found) {
-            PanPrint("[line %llu, col %llu] in ", posInfo.line, posInfo.gcol);
-        } else {
-            PanPrint("in ");
-        }
+
+        PanFPrint(stderr, "in ");
         if (fn->strName != NULL) {
             struct OString *name = &fn->strName->v.OString;
-            PanPrint("%s(...)\n", name->value);
+            PanFPrint(stderr, "%s(...)", name->value);
         } else {
-            PanPrint("<script>\n");
-            ;
+            PanFPrint(stderr, "<script> (%s)", vm->core->path);
+        }
+        if (posInfo.found) {
+            PanFPrint(stderr, " at %llu:%llu\n", posInfo.line, posInfo.gcol);
         }
     }
 }
 
 void VmError(PVm *vm, const char *msg) {
-    PanPrint("Error occurred:\n");
-    vmPrintStackTrace(vm);
-
     PCallFrame *frame = &vm->frames[vm->frameCount - 1];
     VmPosInfo posInfo = vmGetPosInfo(vm, frame);
     if (posInfo.found) {

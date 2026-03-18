@@ -28,6 +28,11 @@ const char *TermCyan(void);
 
 const char *TermYellow(void);
 const char *TermPurple(void);
+const char *TermUnderline(void);
+const char *TermBold(void);
+
+const char *TermErrorColorStart(void);
+const char *TermErrorColorEnd(void);
 
 #ifdef __cplusplus
 }

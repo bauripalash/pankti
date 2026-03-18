@@ -19,6 +19,7 @@
 #define TERMC_WHITE     TERM_ESC "[0;37m"
 
 #define TERMC_UNDERLINE TERM_ESC "[4m"
+#define TERMC_BOLD      TERM_ESC "[1m"
 
 #if defined(PANKTI_OS_WIN)
 #include <io.h>
@@ -91,3 +92,22 @@ const char *TermCyan(void) { return pantermInfo.color ? TERMC_CYAN : ""; }
 const char *TermYellow(void) { return pantermInfo.color ? TERMC_YELLOW : ""; }
 
 const char *TermPurple(void) { return pantermInfo.color ? TERMC_PURPLE : ""; }
+const char *TermUnderline(void) {
+    return pantermInfo.underline ? TERMC_UNDERLINE : "";
+}
+const char *TermBold(void) { return pantermInfo.color ? TERMC_BOLD : ""; }
+
+const char *TermErrorColorStart(void) {
+    if (pantermInfo.color) {
+        return TERMC_RED TERMC_UNDERLINE TERMC_BOLD;
+    }
+
+    return " ▶";
+}
+const char *TermErrorColorEnd(void) {
+    if (pantermInfo.color) {
+        return TERMC_RESET;
+    }
+
+    return "◀";
+}

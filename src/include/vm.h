@@ -94,6 +94,8 @@ void SetupVm(PVm *vm, Pgc *gc, PObj *func);
 void FreeVm(PVm *vm);
 // Debug VM Stack
 void DebugVMStack(PVm *vm);
+// Print Call Stack Trace
+void VmPrintStackTrace(const PVm *vm);
 // Run the VM
 void VmRun(PVm *vm);
 
