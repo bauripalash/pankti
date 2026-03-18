@@ -94,26 +94,27 @@ void FreeBytecode(PBytecode *b) {
 }
 
 static u64 disasmSimpleIns(const char *name, u64 offset) {
-    PanPrint(OPNAME_COLOR "%s\n" TERMC_RESET, name);
+    PanPrint("%s%s%s\n", TermColor(OPNAME_COLOR), name, TermReset());
     return offset + 1;
 }
 
 static u64 disasmConstIns(const char *name, u64 offset, const PBytecode *b) {
     u16 constIndex = ReadU16(b, offset + 1);
 
-    PanPrint(OPNAME_COLOR "%s" TERMC_RESET, name);
+    PanPrint("%s%s%s", TermColor(OPNAME_COLOR), name, TermReset());
     PanPrint(" %d", constIndex);
     if (b->constPool != NULL) {
         PanPrint(" : ");
-        PanPrint(CONST_VAL_COLOR);
+        PanPrint(TermColor(CONST_VAL_COLOR));
         PrintValue(b->constPool[constIndex]);
     }
-    PanPrint("\n" TERMC_RESET);
+    PanPrint(TermReset());
+    PanPrint("\n");
     return offset + 3;
 }
 
 static u64 disasmBytesIns(const char *name, u64 offset, const PBytecode *b) {
-    PanPrint(OPNAME_COLOR "%s" TERMC_RESET, name);
+    PanPrint("%s%s%s", TermColor(OPNAME_COLOR), name, TermReset());
     u16 itemCount = ReadU16(b, offset + 1);
 
     PanPrint(" [%d]", itemCount);
@@ -126,7 +127,7 @@ static u64 disasmJumpIns(
 ) {
     u16 jump = ReadU16(b, offset + 1);
 
-    PanPrint(OPNAME_COLOR "%s" TERMC_RESET, name);
+    PanPrint("%s%s%s", TermColor(OPNAME_COLOR), name, TermReset());
     PanPrint(" : %05d -> %05d\n", offset, offset + 3 + sign * jump);
 
     return offset + 3;
@@ -138,13 +139,13 @@ static u64 disasmComplexDSIns(
     u16 count = (u16)b->code[offset + 1] << 8;
     count |= b->code[offset + 2];
 
-    PanPrint(OPNAME_COLOR "%s" TERMC_RESET, name);
+    PanPrint("%s%s%s", TermColor(OPNAME_COLOR), name, TermReset());
     PanPrint(" : %02d\n", count);
     return offset + 3;
 }
 
 u64 DisasmBytecode(const PBytecode *bt, u64 offset) {
-    PanPrint(OFFSET_COLOR "%05d " TERMC_RESET, offset);
+    PanPrint("%s%05d %s", TermColor(OFFSET_COLOR), offset, TermReset());
     PanOpCode op = (PanOpCode)bt->code[offset];
     POpDefinition def = GetOpDefinition(op);
 

@@ -20,24 +20,6 @@ extern "C" {
 #define TERMC_CYAN      TERM_ESC "[0;36m"
 #define TERMC_WHITE     TERM_ESC "[0;37m"
 
-#define TERMC_BBLACK    TERM_ESC "[0;30m"
-#define TERMC_BRED      TERM_ESC "[0;31m"
-#define TERMC_BGREEN    TERM_ESC "[0;32m"
-#define TERMC_BYELLOW   TERM_ESC "[0;33m"
-#define TERMC_BBLUE     TERM_ESC "[0;34m"
-#define TERMC_BPURPLE   TERM_ESC "[0;35m"
-#define TERMC_BCYAN     TERM_ESC "[0;36m"
-#define TERMC_BWHITE    TERM_ESC "[0;37m"
-
-#define TERMC_UBLACK    TERM_ESC "[4;30m"
-#define TERMC_URED      TERM_ESC "[4;31m"
-#define TERMC_UGREEN    TERM_ESC "[4;32m"
-#define TERMC_UYELLOW   TERM_ESC "[4;33m"
-#define TERMC_UBLUE     TERM_ESC "[4;34m"
-#define TERMC_UPURPLE   TERM_ESC "[4;35m"
-#define TERMC_UCYAN     TERM_ESC "[4;36m"
-#define TERMC_UWHITE    TERM_ESC "[4;37m"
-
 #define TERMC_UNDERLINE TERM_ESC "[4m"
 
 typedef struct PTermInfo {
@@ -47,7 +29,21 @@ typedef struct PTermInfo {
 
 PTermInfo GetTermInfo(void);
 void InitTermInfo(void);
+
 const char *TermColor(const char *color);
+
+const char *TermReset(void);
+
+const char *TermBlack(void);
+const char *TermWhite(void);
+
+const char *TermRed(void);
+const char *TermGreen(void);
+const char *TermBlue(void);
+const char *TermCyan(void);
+
+const char *TermYellow(void);
+const char *TermPurple(void);
 
 #ifdef __cplusplus
 }

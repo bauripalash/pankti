@@ -54,9 +54,20 @@ void InitTermInfo(void) {
 
 PTermInfo GetTermInfo(void) { return pantermInfo; }
 const char *TermColor(const char *color) {
-    if (pantermInfo.color) {
-        return color;
-    } else {
-        return "";
-    }
+    return pantermInfo.color ? color : "";
 }
+
+const char *TermReset(void) { return pantermInfo.color ? TERMC_RESET : ""; }
+
+const char *TermBlack(void) { return pantermInfo.color ? TERMC_BLACK : ""; }
+const char *TermWhite(void) { return pantermInfo.color ? TERMC_WHITE : ""; }
+const char *TermRed(void) { return pantermInfo.color ? TERMC_RED : ""; }
+const char *TermGreen(void) { return pantermInfo.color ? TERMC_GREEN : ""; }
+
+const char *TermBlue(void) { return pantermInfo.color ? TERMC_BLUE : ""; }
+
+const char *TermCyan(void) { return pantermInfo.color ? TERMC_CYAN : ""; }
+
+const char *TermYellow(void) { return pantermInfo.color ? TERMC_YELLOW : ""; }
+
+const char *TermPurple(void) { return pantermInfo.color ? TERMC_PURPLE : ""; }
