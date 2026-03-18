@@ -255,7 +255,7 @@ void CoreRuntimeError(PanktiCore *core, Token *token, const char *msg) {
     u64 col = 0;
     if (token != NULL) {
         line = token->line;
-        col = token->col;
+        col = token->gcol;
     }
 
     printErrMsg(core, line, col, msg, token != NULL, PCERR_RUNTIME);
@@ -271,7 +271,7 @@ void CoreParserError(
     u64 col = 0;
     if (token != NULL) {
         line = token->line;
-        col = token->col;
+        col = token->gcol;
     }
 
     printErrMsg(core, line, col, msg, token != NULL, PCERR_PARSER);
@@ -303,7 +303,7 @@ void CoreCompilerError(PanktiCore *core, Token *token, const char *msg) {
     u64 col = 0;
     if (token != NULL) {
         line = token->line;
-        col = token->col;
+        col = token->gcol;
     }
 
     printErrMsg(core, line, col, msg, token != NULL, PCERR_COMPILER);

@@ -75,6 +75,9 @@ Token *NewToken(PTokenType type) {
     tok->type = type;
     tok->line = 0;
     tok->hash = 0;
+    tok->gcol = 0;
+    tok->glen = 0;
+    tok->index = 0;
 
     return tok;
 }
@@ -137,10 +140,10 @@ static const char *getLexeme(const Token *t) {
 
 void PrintToken(const Token *token) {
     PanPrint(
-        "Token[" TERMC_BLUE "%zu:%zu | " TERMC_PURPLE "%s" TERMC_BLUE
+        "%03zu | Token[" TERMC_BLUE "%zu:%zu | " TERMC_PURPLE "%s" TERMC_BLUE
         ":'" TERMC_GREEN "%s" TERMC_BLUE "' (%ld)" TERMC_RESET "]",
-        token->line, token->col, TokTypeToStr(token->type), getLexeme(token),
-        token->len
+        token->index, token->line, token->gcol, TokTypeToStr(token->type),
+        getLexeme(token), token->glen
     );
 }
 

@@ -12,6 +12,7 @@
 #include "include/lexer.h"
 #include "include/printer.h"
 #include "include/token.h"
+#include "include/unicode.h"
 #include "include/ustring.h"
 #include "include/utils.h"
 
@@ -33,6 +34,8 @@ Lexer *NewLexer(char *src) {
     lx->start = 0;
     lx->column = 1;
     lx->line = 1;
+    lx->lineStart = 0;
+    lx->tokIndex = 0;
     lx->source = src;
     lx->length = (u64)strlen(src);
     lx->tokens = NULL;
@@ -95,6 +98,7 @@ void ResetLexer(Lexer *lexer) {
     lexer->current = 0;
     lexer->start = 0;
     lexer->column = 1;
+    lexer->lineStart = 0;
     lexer->line = 1;
     lexer->length = (u64)strlen(lexer->source);
     lexer->tokens = NULL;
@@ -187,6 +191,18 @@ static bool addTokenWithLexeme(Lexer *lx, PTokenType type, char *str, u64 len) {
     column -= tok->len;
 
     tok->col = column;
+
+    tok->gcol =
+        GetGraphemeCount(
+            lx->source + lx->lineStart,
+            lx->start - lx->lineStart // bytes from line start to token start
+        ) +
+        1; // 1 based column
+
+    tok->glen =
+        GetGraphemeCount(lx->source + lx->start, lx->current - lx->start);
+
+    tok->index = lx->tokIndex++;
     arrput(lx->tokens, tok);
     return true;
 }
@@ -206,6 +222,13 @@ static bool addStringToken(Lexer *lx, char *str, u64 line, u64 col, u64 len) {
     tok->col = col;
     tok->len = len - 2;
     tok->hash = StrHash(str, tok->len, lx->timestamp);
+    tok->gcol = GetGraphemeCount(
+                    lx->source + lx->lineStart, lx->start - lx->lineStart
+                ) +
+                1;
+    tok->glen = GetGraphemeCount(str, StrLength(str));
+
+    tok->index = lx->tokIndex++;
     arrput(lx->tokens, tok);
     return true;
 }
@@ -374,6 +397,7 @@ static void scanToken(Lexer *lx) {
         case '\n': {
             lx->line++;
             lx->column = 1;
+            lx->lineStart = lx->current;
             break;
         }
         default: {

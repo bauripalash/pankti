@@ -137,9 +137,15 @@ typedef struct Token {
     // length of the token lexeme, if lexeme is optional depends of how many
     // characters the token contains need. For example, T_EQ is 1, T_EQEQ is 2
     u64 len;
+    // Grapheme based column number
+    u64 gcol;
+    // Grapheme based length
+    u64 glen;
     // Hash for the token lexeme. expect for Keywords, identifiers, strings,
     // numbers it will be 0 (zero)
     u64 hash;
+    // This token <index>th token in the script
+    u64 index;
 } Token;
 
 // Create an empty token.

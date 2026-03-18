@@ -345,6 +345,7 @@ static PValue gfx_IsPointRectCollision(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_GetDelta(PVm *vm, PValue *args, u64 argc) {
+    // delta time
     return MakeNumber((double)deltaTime);
 }
 

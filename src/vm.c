@@ -70,6 +70,8 @@ typedef struct VmPosInfo {
     u64 line;
     u64 col;
     u64 len;
+    u64 gcol;
+    u64 glen;
     Token *token;
 } VmPosInfo;
 
@@ -106,6 +108,8 @@ static VmPosInfo vmGetPosInfo(PVm *vm, PCallFrame *frame) {
         .line = bestPos->line,
         .col = bestPos->col,
         .len = bestPos->len,
+        .gcol = bestPos->gcol,
+        .glen = bestPos->glen,
         .token = bestPos->token,
 
     };
@@ -117,7 +121,7 @@ static void vmPrintStackTrace(PVm *vm) {
         VmPosInfo posInfo = vmGetPosInfo(vm, frame);
         struct OComFunction *fn = &frame->f->v.OComFunction;
         if (posInfo.found) {
-            PanPrint("[line %llu, col %llu] in ", posInfo.line, posInfo.col);
+            PanPrint("[line %llu, col %llu] in ", posInfo.line, posInfo.gcol);
         } else {
             PanPrint("in ");
         }

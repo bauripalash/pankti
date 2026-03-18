@@ -244,6 +244,8 @@ static bool recordPos(PBytecode *b, Token *tok) {
         .line = tok->line,
         .col = tok->col,
         .len = tok->len,
+        .gcol = tok->gcol,
+        .glen = tok->glen,
         .token = tok
     };
 

@@ -84,6 +84,8 @@ typedef struct PBtPosInfo {
     u64 line;
     u64 col;
     u64 len;
+    u64 gcol;
+    u64 glen;
     Token *token;
 } PBtPosInfo;
 

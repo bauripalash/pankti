@@ -27,6 +27,9 @@ typedef struct Lexer {
     // Array of tokens; Filled with ScanTokens(...) function
     Token **tokens;
 
+    // Token index
+    u64 tokIndex;
+
     // Start index of the character for token to be created
     // When creating a new token, this will be the first character index
     u64 start;
@@ -37,6 +40,9 @@ typedef struct Lexer {
     u64 line;
     // current column number of the start of the token
     u64 column;
+
+    // Byte offset of where current line starts
+    u64 lineStart;
 
     // Codepoint iterator. The characters are read as UTF-32 characters
     UIter *iter;
