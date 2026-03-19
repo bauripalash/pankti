@@ -1,0 +1,26 @@
+function(Win32RCSetup)
+        if(NOT GIT_COMMIT_COUNT STREQUAL "_")
+            string(REPLACE "\"" "" RAW_PANKTI_RC_BUILD "${GIT_COMMIT_COUNT}")
+            set(PANKTI_RC_BUILD "${RAW_PANKTI_RC_BUILD}" PARENT_SCOPE)
+        else()
+            set(PANKTI_RC_BUILD 0 PARENT_SCOPE)
+        endif()
+
+        if (NOT PANKTI_RELEASE_LEVEL STREQUAL "")
+            set(PANKTI_RC_FILEFLAGS "VS_FF_PRERELEASE" PARENT_SCOPE)
+        else()
+            set(PANKTI_RC_FILEFLAGS "0L" PARENT_SCOPE)
+        endif()
+        if(NOT PANKTI_RELEASE_LEVEL STREQUAL "" AND 
+                NOT GIT_COMMIT_COUNT STREQUAL "_")
+            set(PANKTI_VERSION_STRING_RC 
+                "${PANKTI_VERSION_MAJOR}.${PANKTI_VERSION_MINOR}.${PANKTI_VERSION_PATCH}-${PANKTI_RELEASE_LEVEL}.r${PANKTI_RC_BUILD}" PARENT_SCOPE)
+        elseif(NOT PANKTI_RELEASE_LEVEL STREQUAL "")
+            set(PANKTI_VERSION_STRING_RC 
+                "${PANKTI_VERSION_MAJOR}.${PANKTI_VERSION_MINOR}.${PANKTI_VERSION_PATCH}-${PANKTI_RELEASE_LEVEL}" PARENT_SCOPE)
+        else()
+            set(PANKTI_VERSION_STRING_RC 
+                "${PANKTI_VERSION_MAJOR}.${PANKTI_VERSION_MINOR}.${PANKTI_VERSION_PATCH}" PARENT_SCOPE)
+        endif()
+        message(STATUS "Config File Updating")
+endfunction()

@@ -11,6 +11,8 @@ option(
 )
 
 option(BUILD_GFX "Build with graphics features enabled" ON)
+option(NO_GIT_INFO "Do not include git commit data" OFF)
+option(NO_VERSION_FETCH "Do not fetch version information from source" OFF)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE 
@@ -57,20 +59,9 @@ foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
 endforeach()
 
 # ================== END CROSS PLATFORM OUTPUT SETUP ==================
-# ================== GIT INFO CHECK ==================
 
-include(cmake/getgitinfo.cmake)
-GetGitInfo(GIT_COMMIT_HASH GIT_COMMIT_COUNT)
 
-if (NOT (GIT_COMMIT_HASH STREQUAL "_"))
-	add_compile_definitions(PANKTI_GIT_HASH="${GIT_COMMIT_HASH}")
-endif()
 
-if (NOT (GIT_COMMIT_COUNT STREQUAL "_"))
-	add_compile_definitions(PANKTI_GIT_COUNT=${GIT_COMMIT_COUNT})
-endif()
-
-# ================== END GIT INFO CHECK ==================
 
 
 # ================== OS CHECK ==================
@@ -102,7 +93,8 @@ endif()
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	set(IS_GCC TRUE)
-elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "AppleClang")
+elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang" OR 
+        CMAKE_C_COMPILER_ID STREQUAL "AppleClang")
 	set(IS_CLANG TRUE)
 elseif(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
 	set(IS_MSVC TRUE)
@@ -118,6 +110,35 @@ else()
 endif()
 
 # ================== END COMPILER CHECK ==================
+
+
+# ================== READ VERSION INFORMATION ==================
+
+if(NOT NO_VERSION_FETCH)
+    include(cmake/parseversion.cmake)
+    ParseVersion("${CMAKE_SOURCE_DIR}/src/include/version.h")
+
+
+    # ------------------ GIT INFO CHECK ------------------
+
+    if(NOT NO_GIT_INFO)
+        include(cmake/getgitinfo.cmake)
+        GetGitInfo(GIT_COMMIT_HASH GIT_COMMIT_COUNT)
+
+        if (NOT (GIT_COMMIT_HASH STREQUAL "_"))
+            add_compile_definitions(PANKTI_GIT_HASH="${GIT_COMMIT_HASH}")
+        endif()
+
+        if (NOT (GIT_COMMIT_COUNT STREQUAL "_"))
+            add_compile_definitions(PANKTI_GIT_COUNT=${GIT_COMMIT_COUNT})
+        endif()
+    endif()
+
+    # ------------------ END GIT INFO CHECK ------------------
+endif()
+
+# ================== END READ VERSION INFORMATION ==================
+
 set_property(GLOBAL PROPERTY C_STANDARD 11)
 set_property(GLOBAL PROPERTY C_STANDARD_REQUIRED ON)
 
@@ -250,11 +271,6 @@ if(IS_GFX_BUILD)
     add_compile_definitions(HAS_GFX_SUPPORT)
     add_subdirectory(src/external/tigr)
     target_link_libraries(${PROJECT_NAME} PRIVATE tigr)
-    #if(IS_OS_LINUX)
-    #    target_link_libraries(${PROJECT_NAME} PRIVATE GLU GL X11)
-    #elseif(IS_OS_WIN)
-    #    target_link_libraries(${PROJECT_NAME} PRIVATE opengl32 gdi32)
-    #endif()
 endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE libgrapheme)
@@ -276,6 +292,15 @@ endif()
 
 if (IS_OS_WIN) 
 	add_compile_definitions(PANKTI_OS_WIN)
+    include(cmake/win32rc.cmake)
+    Win32RCSetup()
+    configure_file(
+        "${CMAKE_CURRENT_LIST_DIR}/windows/pankti.rc.in"
+        "${CMAKE_BINARY_DIR}/pankti.rc"
+        @ONLY
+    )
+
+    target_sources(${PROJECT_NAME} PRIVATE "${CMAKE_BINARY_DIR}/pankti.rc")
 elseif (IS_OS_LINUX)
 	add_compile_definitions(PANKTI_OS_LINUX)
 elseif (IS_OS_MACOS) 
@@ -291,8 +316,15 @@ add_subdirectory(tests/runtime)
 message(STATUS "")
 message(STATUS "")
 message(STATUS "======== Pankti Build Information ========")
-message(STATUS "Git Hash : ${GIT_COMMIT_HASH}")
-message(STATUS "Git Count : ${GIT_COMMIT_COUNT}")
+if(NOT NO_VERSION_FETCH)
+    message(STATUS  "Version : ${PANKTI_VERSION_MAJOR}.${PANKTI_VERSION_MINOR}.${PANKTI_VERSION_PATCH}")
+    if (NOT PANKTI_RELEASE_LEVEL STREQUAL "")
+        message(STATUS "Release Level : ${PANKTI_RELEASE_LEVEL}")
+    endif()
+    message(STATUS "Git Hash : ${GIT_COMMIT_HASH}")
+    message(STATUS "Git Count : ${GIT_COMMIT_COUNT}")
+endif()
+
 if(USE_NAN_BOXING)
 	message(STATUS "NaN-Boxing : Enabled")
 else()

@@ -1,0 +1,34 @@
+#include <winver.h>
+
+// Icon — path relative to the build-time source dir
+IDI_APPICON ICON "@CMAKE_SOURCE_DIR@/images/pankti-logo.ico"
+
+VS_VERSION_INFO VERSIONINFO
+  FILEVERSION    @PANKTI_VERSION_MAJOR@,@PANKTI_VERSION_MINOR@,@PANKTI_VERSION_PATCH@,@PANKTI_RC_BUILD@
+  PRODUCTVERSION @PANKTI_VERSION_MAJOR@,@PANKTI_VERSION_MINOR@,@PANKTI_VERSION_PATCH@,@PANKTI_RC_BUILD@
+  FILEFLAGSMASK  VS_FFI_FILEFLAGSMASK
+  FILEFLAGS      @PANKTI_RC_FILEFLAGS@
+  FILEOS         VOS_NT_WINDOWS32
+  FILETYPE       VFT_APP
+  FILESUBTYPE    VFT2_UNKNOWN
+
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "080904B0" 
+    BEGIN
+      VALUE "CompanyName",      "Palash Bauri"
+      VALUE "FileDescription",  "Pankti Programming Language"
+      VALUE "FileVersion",      "@PANKTI_VERSION_STRING_RC@"
+      VALUE "InternalName",     "pankti"
+      VALUE "LegalCopyright",   "\xa9 Palash Bauri"
+      VALUE "OriginalFilename", "pankti.exe"
+      VALUE "ProductName",      "Pankti"
+      VALUE "ProductVersion",   "@PANKTI_VERSION_STRING_RC@"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0809, 0x04B0
+  END
+END

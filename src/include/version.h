@@ -1,6 +1,5 @@
 #ifndef PANKTI_VERSION_H
 #define PANKTI_VERSION_H
-#include <stdio.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -25,7 +24,7 @@ extern "C" {
 #endif
 
 // Release Level
-// '_' = Normal Release (Default)
+// '' = Normal Release (Default)
 // `dev`, `alpha<NUMBER>`, `beta<NUMBER>`, rc<NUMBER> = Pre-release
 #ifndef PANKTI_RELEASE_LEVEL
 #define PANKTI_RELEASE_LEVEL "dev"
