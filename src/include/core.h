@@ -81,7 +81,9 @@ void CoreParserError(
 // `line` = Non negative line number. If ambiguous pass U64_MAX.
 // `col` = Non negative byte based column number. If ambiguous pass U64_MAX.
 // `msg` = Error Message
-void CoreLexerError(PanktiCore *core, u64 line, u64 col, const char *msg);
+void CoreLexerError(
+    PanktiCore *core, u64 line, u64 col, u64 len, const char *msg
+);
 
 void CoreCompilerError(PanktiCore *core, Token *token, const char *msg);
 #ifdef __cplusplus

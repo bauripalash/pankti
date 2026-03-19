@@ -11,6 +11,7 @@
 #include "include/keywords.h"
 #include "include/lexer.h"
 #include "include/printer.h"
+#include "include/ptypes.h"
 #include "include/token.h"
 #include "include/unicode.h"
 #include "include/ustring.h"
@@ -107,10 +108,17 @@ void ResetLexer(Lexer *lexer) {
 static inline void error(Lexer *lx, u64 line, u64 col, const char *msg) {
     lx->hasError = true;
     if (lx->core != NULL) {
-        CoreLexerError(lx->core, line, col, msg);
-    } else {
+        u64 len = lx->current - lx->start;
+        if (len == 0) {
+            len = 1;
+        }
+        CoreLexerError(lx->core, line, col, len, msg);
+    }
+
+    if (lx->core == NULL) {
         // Should never reach here
         PanPrint(LEXER_ERR_INVALID_CHAR_NOCORE, lx->line, lx->column);
+        return;
     }
 }
 
@@ -167,6 +175,32 @@ static bool match(Lexer *lx, char32_t target) {
     advance(lx);
     return true;
 }
+
+/*
+static void lexerErrorSync(Lexer * lx){
+    while (!atEnd(lx)) {
+        char32_t c = peek(lx);
+        switch (c) {
+            case ' ':
+            case '\t':
+            case '\r':
+            case '\n':
+            case '(':
+            case ')':
+            case '{':
+            case '}':
+            case '[':
+            case ']':
+            case ',':
+            case ';':
+            case '"':{
+                break;
+            }
+        }
+        advance(lx);
+    }
+}
+*/
 
 static bool addTokenWithLexeme(Lexer *lx, PTokenType type, char *str, u64 len) {
     Token *tok = NewToken(type);
@@ -410,10 +444,13 @@ static void scanToken(Lexer *lx) {
             } else {
                 u8 rawChar[4];
                 U32ToU8(c, rawChar);
+                // backtrack current position advance
+                u64 errCol = lx->column - (lx->current - lx->start);
                 error(
-                    lx, lx->line, lx->column,
+                    lx, lx->line, errCol,
                     StrFormat(LEXER_ERR_INVALID_CHAR, rawChar)
                 );
+                // lexerErrorSync(lx);
                 break;
             }
             break;

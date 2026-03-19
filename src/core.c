@@ -128,7 +128,6 @@ PCoreErrorType RunCore(PanktiCore *core) {
     PanPrint("===============\n");
 #endif
     if (core->lexer->hasError) {
-        PanPrint("Lexer Error found!\n");
         FreeCore(core);
         exit(1);
     }
@@ -227,8 +226,10 @@ static void printSourceLine(PanktiCore *core, u64 lineNum, u64 col, u64 len) {
     }
 
     const char *ptr = core->source;
-    u64 cur = 1;
+    u64 cur = 1; // current line number
 
+    // as long we get character while current line is less than lineNum
+    // advance the pointer and also increase line number on '\n'
     while (*ptr != '\0' && cur < lineNum) {
         if (*ptr == '\n') {
             cur++;
@@ -239,32 +240,54 @@ static void printSourceLine(PanktiCore *core, u64 lineNum, u64 col, u64 len) {
     const char *lineStart = ptr;
     const char *lineEnd = ptr;
 
+    // Fetch the line ending position
     while (*lineEnd != '\0' && *lineEnd != '\n') {
         lineEnd++;
     }
+
+    // length of target line
     u64 lineLen = (u64)(lineEnd - lineStart);
 
+    // get column index from column number (1 based column to 0 based column)
     u64 tokStart = (col > 0) ? (col - 1) : 0;
+
+    // Safety check if token start went past line
     if (tokStart > lineLen) {
         tokStart = lineLen;
     }
+    // token length
     u64 tokLen = len > 0 ? len : 1;
+
+    // safety check if token length makes the token
+    // position go beyond line limit
     if (tokStart + tokLen > lineLen) {
         tokLen = (lineLen > tokStart) ? (lineLen - tokStart) : 1;
     }
 
+    // hello token bye
+    //       ^ --> tokPtr
     const char *tokPtr = lineStart + tokStart;
+    // hello token bye
+    //            ^ --> afterTokPtr
     const char *afterTokPtr = tokPtr + tokLen;
 
+    // hello token bye
+    //|~~~~~| <-- beforeTokLen (length)
     u64 beforeTokLen = tokStart;
+
+    // hello token bye
+    //            |~~| <-- afterTokLen (length)
     u64 afterTokLen = (u64)(lineEnd - afterTokPtr);
 
+    // Print the line number
     PanFPrint(stderr, "  %s%zu%s | ", TermBlue(), lineNum, TermReset());
 
+    // if there's something before the token in line, print it
     if (beforeTokLen > 0) {
         PanFPrint(stderr, "%.*s", beforeTokLen, lineStart);
     }
 
+    // Print the problematic token
     PanFPrint(
         stderr,
         "%s"
@@ -273,6 +296,7 @@ static void printSourceLine(PanktiCore *core, u64 lineNum, u64 col, u64 len) {
         TermErrorColorStart(), tokLen, tokPtr, TermErrorColorEnd()
     );
 
+    // If there's something after the token in line, print it
     if (afterTokLen) {
         PanFPrint(stderr, "%.*s", afterTokLen, afterTokPtr);
     }
@@ -282,26 +306,9 @@ static void printSourceLine(PanktiCore *core, u64 lineNum, u64 col, u64 len) {
 
 // Simply print error message with line and column numbers, if present
 static void printErrMsg(
-    PanktiCore *core,
-    u64 line,
-    u64 col,
-    const char *msg,
-    bool printPos,
-    PCoreErrorType errtype
+    PanktiCore *core, u64 line, u64 col, const char *msg, PCoreErrorType errtype
 ) {
-    if (printPos) {
-        PanPrint("[");
-
-        if (line >= 1) {
-            PanPrint("line: %zu", line);
-        }
-
-        if (col >= 1) {
-            PanPrint(" : column: %zu", col);
-        }
-        PanPrint("] ");
-    }
-
+    PanFPrint(stderr, "\n");
     PanFPrint(
         stderr, "%s%s Error: %s%s\n", TermRed(), coreErrorToStr(errtype), msg,
         TermReset()
@@ -321,7 +328,7 @@ void CoreRuntimeError(PanktiCore *core, Token *token, const char *msg) {
         len = token->len;
     }
 
-    printErrMsg(core, line, gcol, msg, false, PCERR_RUNTIME);
+    printErrMsg(core, line, gcol, msg, PCERR_RUNTIME);
     printSourceLine(core, line, col, len);
     PanFPrint(stderr, "\n");
     VmPrintStackTrace(core->vm);
@@ -344,7 +351,7 @@ void CoreParserError(
         len = token->len;
     }
 
-    printErrMsg(core, line, gcol, msg, token != NULL, PCERR_PARSER);
+    printErrMsg(core, line, gcol, msg, PCERR_PARSER);
     printSourceLine(core, line, col, len);
     if (fatal) {
         FreeCore(core);
@@ -352,33 +359,37 @@ void CoreParserError(
     }
 }
 
-void CoreLexerError(PanktiCore *core, u64 line, u64 col, const char *msg) {
-    u64 _line = 0;
-    u64 _col = 0;
+void CoreLexerError(
+    PanktiCore *core, u64 line, u64 col, u64 len, const char *msg
+) {
+    u64 _line = (line != UINT64_MAX) ? line : 0;
+    u64 _col = (col != UINT64_MAX) ? col : 0;
+    u64 _len = (len > 0) ? len : 1;
+    bool hasPos = (line != UINT64_MAX && col != UINT64_MAX);
 
-    if (line != UINT64_MAX) {
-        _line = line;
+    printErrMsg(core, _line, _col, msg, PCERR_LEXER);
+
+    if (hasPos && _line >= 1) {
+        printSourceLine(core, _line, _col, _len);
     }
-
-    if (col != UINT64_MAX) {
-        _col = col;
-    }
-
-    bool dontHavePos = line == UINT64_MAX || col == UINT64_MAX;
-
-    printErrMsg(core, _line, _col, msg, !dontHavePos, PCERR_LEXER);
 }
 
 void CoreCompilerError(PanktiCore *core, Token *token, const char *msg) {
     u64 line = 0;
     u64 col = 0;
+    u64 gcol = 0;
+    u64 len = 0;
+
     if (token != NULL) {
         line = token->line;
-        col = token->gcol;
+        col = token->col;
+        gcol = token->gcol;
+        len = token->len;
     }
 
-    printErrMsg(core, line, col, msg, token != NULL, PCERR_COMPILER);
-    PanPrint("Compiler Error Occurred!\n");
+    printErrMsg(core, line, gcol, msg, PCERR_COMPILER);
+    printSourceLine(core, line, col, len);
+
     FreeCore(core);
     exit(EXIT_FAILURE);
 }

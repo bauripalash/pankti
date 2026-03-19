@@ -1,1 +1,10 @@
-jodi true show(1)
+dhori a = 10
+kaj x()
+    dhori b = a
+    dhori a = b
+    a = 100
+    ?a
+end
+
+x()
+?a
