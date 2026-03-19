@@ -13,12 +13,12 @@ path = 'github.com/alex-shpak/hugo-book'
 	languageName = 'Bengali'
 	contentDir = 'bengali'
 [languages.bn.params]
-	weigth = 2
+	weight = 2
 [languages.en]
 	languageName = 'English'
 	contentDir = 'english'
 [languages.en.params]
-	weigth = 1
+	weight = 1
 
 [markup]
 [markup.goldmark.renderer]
