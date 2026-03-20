@@ -117,7 +117,10 @@ static inline void error(Lexer *lx, u64 line, u64 col, const char *msg) {
 
     if (lx->core == NULL) {
         // Should never reach here
-        PanPrint(LEXER_ERR_INVALID_CHAR_NOCORE, lx->line, lx->column);
+        PanPrint(
+            LEXER_ERR_INVALID_CHAR_NOCORE, (unsigned long long)lx->line,
+            (unsigned long long)lx->column
+        );
         return;
     }
 }

@@ -21,9 +21,9 @@ BEGIN
       VALUE "FileDescription",  "Pankti Programming Language"
       VALUE "FileVersion",      "@PANKTI_VERSION_STRING_RC@"
       VALUE "InternalName",     "pankti"
-      VALUE "LegalCopyright",   "\xa9 Palash Bauri"
+      VALUE "LegalCopyright",   "Copyright \xa9 Palash Bauri"
       VALUE "OriginalFilename", "pankti.exe"
-      VALUE "ProductName",      "Pankti"
+      VALUE "ProductName",      "Pankti Programming Language"
       VALUE "ProductVersion",   "@PANKTI_VERSION_STRING_RC@"
     END
   END

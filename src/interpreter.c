@@ -535,7 +535,10 @@ static finline PValue handleCall(
     if (it->callDepth + 1 > it->maxCallDepth) {
         error(
             it, callExpr->op,
-            StrFormat("Maximum call depth reached : %zu", it->callDepth)
+            StrFormat(
+                "Maximum call depth reached : %llu",
+                (unsigned long long)it->callDepth
+            )
         );
         return MakeNil();
     }
@@ -576,8 +579,9 @@ callFunction(PInterpreter *it, PObj *func, PExpr *callExpr, PEnv *env) {
         error(
             it, callExpr->op,
             StrFormat(
-                "Function needs %zu arguments but %zu was given when calling",
-                funcObj->paramCount, call->argCount
+                "Function needs %llu arguments but %llu was given when calling",
+                (unsigned long long)funcObj->paramCount,
+                (unsigned long long)call->argCount
             )
         );
         return MakeNil();

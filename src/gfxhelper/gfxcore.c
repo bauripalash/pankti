@@ -195,7 +195,8 @@ char *GfxGetImageString(const PanGfxCore *core, i64 index, bool *ok) {
         return NULL;
     }
 
-    const char *fmtStr = StrFormat("%s%zu", GFX_IMAGE_STR_PREFIX, index);
+    const char *fmtStr =
+        StrFormat("%s%llu", GFX_IMAGE_STR_PREFIX, (unsigned long long)index);
     char *result = StrDuplicate(fmtStr, strlen(fmtStr));
 
     if (result == NULL) {

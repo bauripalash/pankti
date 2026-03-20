@@ -293,7 +293,7 @@ endif()
 if (IS_OS_WIN) 
 	add_compile_definitions(PANKTI_OS_WIN)
     include(cmake/win32rc.cmake)
-    Win32RCSetup()
+	Win32RCSetup("${GIT_COMMIT_COUNT}")
     configure_file(
         "${CMAKE_CURRENT_LIST_DIR}/windows/pankti.rc.in"
         "${CMAKE_BINARY_DIR}/pankti.rc"
@@ -323,6 +323,7 @@ if(NOT NO_VERSION_FETCH)
     endif()
     message(STATUS "Git Hash : ${GIT_COMMIT_HASH}")
     message(STATUS "Git Count : ${GIT_COMMIT_COUNT}")
+	message(STATUS "Version String: ${PANKTI_VERSION_STRING_RC}")
 endif()
 
 if(USE_NAN_BOXING)

@@ -140,14 +140,15 @@ static const char *getLexeme(const Token *t) {
 
 void PrintToken(const Token *token) {
     PanPrint(
-        "%03zu | Token[ " // token index
-        "%s%zu:%zu%s | "  // token line: token column (grapheme based)
-        "%s%s%s : '"      // TokenType
-        "%s%s%s"          // Lexeme
-        "' (%s%ld%s) ]",  // Token Lexeme Length
-        token->index,
+        "%03llu | Token[ " // token index
+        "%s%llu:%llu%s | " // token line: token column (grapheme based)
+        "%s%s%s : '"       // TokenType
+        "%s%s%s"           // Lexeme
+        "' (%s%ld%s) ]",   // Token Lexeme Length
+        (unsigned long long)token->index,
 
-        TermBlue(), token->line, token->gcol, // token line:col (clr: blue)
+        TermBlue(), (unsigned long long)token->line,
+        (unsigned long long)token->gcol, // token line:col (clr: blue)
         TermReset(),
 
         TermPurple(),

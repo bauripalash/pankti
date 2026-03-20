@@ -13,7 +13,22 @@
 void setupWindows(void) {
     SetConsoleOutputCP(65001);
     SetConsoleCP(CP_UTF8);
+
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    HANDLE hErr = GetStdHandle(STD_ERROR_HANDLE);
+
+    DWORD outMode = 0;
+    DWORD errMode = 0;
+
+    if (GetConsoleMode(hOut, &outMode)) {
+        SetConsoleMode(hOut, outMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+    }
+
+    if (GetConsoleMode(hErr, &errMode)) {
+        SetConsoleMode(hErr, errMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+    }
 }
+
 #endif
 
 void setupOs(void) {

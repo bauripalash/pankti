@@ -130,7 +130,7 @@ void AstPrint(PExpr *expr, int indent) {
             PanPrint("}\n");
 
             printIndent(indent + 1);
-            PanPrint("Args (%zu) {\n", call->argCount);
+            PanPrint("Args (%llu) {\n", (unsigned long long)call->argCount);
             for (u64 i = 0; i < call->argCount; i++) {
                 AstPrint(call->args[i], indent + 2);
             }
@@ -145,9 +145,10 @@ void AstPrint(PExpr *expr, int indent) {
             struct EArray *arr = &expr->exp.EArray;
             PanPrint(
                 "%sArray ("
-                "%s%zu"
+                "%s%llu"
                 "%s)%s ",
-                TermRed(), TermGreen(), arr->count, TermRed(), TermReset()
+                TermRed(), TermGreen(), (unsigned long long)arr->count,
+                TermRed(), TermReset()
             );
             PanPrint("{\n");
             for (u64 i = 0; i < arr->count; i++) {
@@ -161,9 +162,10 @@ void AstPrint(PExpr *expr, int indent) {
             struct EMap *map = &expr->exp.EMap;
             PanPrint(
                 "%sMap ("
-                "%s%zu"
+                "%s%llu"
                 "%s)%s ",
-                TermRed(), TermGreen(), map->count / 2, TermRed(), TermReset()
+                TermRed(), TermGreen(), (unsigned long long)map->count / 2,
+                TermRed(), TermReset()
             );
             PanPrint("{\n");
             for (u64 i = 0; i < map->count; i += 2) {

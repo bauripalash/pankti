@@ -67,6 +67,28 @@ void InitTermInfo(void) {
         return;
     }
 
+#if defined(PANKTI_OS_WIN)
+
+    HANDLE h = GetStdHandle(STD_ERROR_HANDLE);
+
+    if (h != INVALID_HANDLE_VALUE) {
+
+        DWORD mode = 0;
+
+        if (GetConsoleMode(h, &mode)) {
+
+            if (SetConsoleMode(h, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING)) {
+                pantermInfo.color = true;
+                pantermInfo.underline = true;
+                return;
+            }
+        }
+    }
+
+    return;
+
+#endif
+
     pantermInfo.color = checkTermColor();
     if (pantermInfo.color) {
         pantermInfo.underline = true;
@@ -74,6 +96,7 @@ void InitTermInfo(void) {
 }
 
 PTermInfo GetTermInfo(void) { return pantermInfo; }
+
 const char *TermColor(const char *color) {
     return pantermInfo.color ? color : "";
 }
@@ -102,12 +125,12 @@ const char *TermErrorColorStart(void) {
         return TERMC_RED TERMC_UNDERLINE TERMC_BOLD;
     }
 
-    return " ▶";
+    return " -->";
 }
 const char *TermErrorColorEnd(void) {
     if (pantermInfo.color) {
         return TERMC_RESET;
     }
 
-    return "◀";
+    return "<--";
 }

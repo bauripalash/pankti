@@ -1,10 +1,4 @@
-dhori a = 10
-kaj x()
-    dhori b = a
-    dhori a = b
-    a = 100
-    ?a
-end
-
-x()
-?a
+dhori apple = 10
+dhori b = "hello"
+apple + b
+"hello"

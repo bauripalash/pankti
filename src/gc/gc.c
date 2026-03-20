@@ -149,8 +149,8 @@ void CollectGarbage(Pgc *gc) {
             TermReset()
         );
         PanPrint(
-            "%s[DEBUG] [GC] [Object Count : %zu]%s\n", TermYellow(),
-            gc->objCount, TermReset()
+            "%s[DEBUG] [GC] [Object Count : %llu]%s\n", TermYellow(),
+            (unsigned long long)gc->objCount, TermReset()
         );
 #endif
         markRoots(gc);
@@ -163,8 +163,8 @@ void CollectGarbage(Pgc *gc) {
             TermReset()
         );
         PanPrint(
-            "%s[DEBUG] [GC] [Object Count : %zu]%s\n", TermYellow(),
-            gc->objCount, TermReset()
+            "%s[DEBUG] [GC] [Object Count : %llu]%s\n", TermYellow(),
+            (unsigned long long)gc->objCount, TermReset()
         );
 #endif
     }

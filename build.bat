@@ -31,6 +31,9 @@ if "%1"=="build_dbg" goto:build_dbg
 if "%1"=="build_rld" goto:build_rld
 if "%1"=="test_only" goto:test_only
 
+if "%1"=="build_rls_win32" goto:build_rls_win32
+if "%1"=="build_rls_win64" goto:build_rls_win64
+
 echo Unknown command %1
 echo Usage "build.bat [COMMAND]"
 exit /b 1
@@ -105,6 +108,22 @@ cmake -S . -B %CMAKE_BUILD_DIR% -DCMAKE_BUILD_TYPE=Release
 if errorlevel 1 exit /b 1
 set BUILD_CONFIG=Release
 cmake --build %CMAKE_BUILD_DIR% --target %BIN% --config %BUILD_CONFIG% --parallel
+exit /b %errorlevel%
+
+:build_rls_win32
+echo Building in Release Mode : Win32
+if exist %CMAKE_BUILD_DIR% rmdir /s /q %CMAKE_BUILD_DIR%
+cmake -S . -B build -A Win32 -DCMAKE_BUILD_TYPE=Release -DBUILD_GFX=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+if errorlevel 1 exit /b 1
+cmake --build %CMAKE_BUILD_DIR% --target %BIN% --parallel
+exit /b %errorlevel%
+
+:build_rls_win64
+echo Building in Release Mode : Win64
+if exist %CMAKE_BUILD_DIR% rmdir /s /q %CMAKE_BUILD_DIR%
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_GFX=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+if errorlevel 1 exit /b 1
+cmake --build %CMAKE_BUILD_DIR% --target %BIN% --parallel
 exit /b %errorlevel%
 
 :build_dbg

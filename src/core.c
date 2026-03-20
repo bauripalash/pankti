@@ -280,11 +280,14 @@ static void printSourceLine(PanktiCore *core, u64 lineNum, u64 col, u64 len) {
     u64 afterTokLen = (u64)(lineEnd - afterTokPtr);
 
     // Print the line number
-    PanFPrint(stderr, "  %s%zu%s | ", TermBlue(), lineNum, TermReset());
+    PanFPrint(
+        stderr, "  %s%llu%s | ", TermBlue(), (unsigned long long)lineNum,
+        TermReset()
+    );
 
     // if there's something before the token in line, print it
     if (beforeTokLen > 0) {
-        PanFPrint(stderr, "%.*s", beforeTokLen, lineStart);
+        PanFPrint(stderr, "%.*s", (long)beforeTokLen, lineStart);
     }
 
     // Print the problematic token
@@ -293,12 +296,12 @@ static void printSourceLine(PanktiCore *core, u64 lineNum, u64 col, u64 len) {
         "%s"
         "%.*s"
         "%s",
-        TermErrorColorStart(), tokLen, tokPtr, TermErrorColorEnd()
+        TermErrorColorStart(), (long)tokLen, tokPtr, TermErrorColorEnd()
     );
 
     // If there's something after the token in line, print it
     if (afterTokLen) {
-        PanFPrint(stderr, "%.*s", afterTokLen, afterTokPtr);
+        PanFPrint(stderr, "%.*s", (long)afterTokLen, afterTokPtr);
     }
 
     PanFPrint(stderr, "\n");
