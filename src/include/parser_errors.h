@@ -37,15 +37,7 @@ extern "C" {
 #define PARSER_ERR_EXPECT_COMMA_MAPPAIR "Expected ',' after map pair"
 #define PARSER_ERR_EXPECT_RBRACE_MAP "Expected '}' after map"
 
-#define PARSER_ERR_SESC_UNKN_ESC "Unknown escape sequence found in string"
-#define PARSER_ERR_SESC_INVLD_HEX "Invalid hex character found in string escape sequence"
-#define PARSER_ERR_SESC_BFR_NOT_ENGH "Internal Error : Failed to process string escape"
-#define PARSER_ERR_SESC_FNSH_ERLY "Incomplete escape sequence found at the end of the string"
-#define PARSER_ERR_SESC_NO_LO_SRGT "While reading \\uHHHH sequence another low surrogate \\uHHHH sequence as expected but not found"
-#define PARSER_ERR_SESC_LN_LOW_SURROGATE "While reading \\uHHHH sequence only a lone low surrogate was found"
-#define PARSER_ERR_SESC_INVLD_LO_SRGT "While reading \\uHHHH a invalid low surrogate surrogate was found after a high surrogate"
-#define PARSER_ERR_SESC_INVALID_8_CP "Found invalid codepoint in \\uHHHHHHHH sequence"
-#define PARSER_ERR_SESC_NUL_PTR "Internal Error: Invalid Memory allocation for output in reading escape sequences"
+
 #define PARSER_ERR_IME_FAIL_BOOL_LIT PARSER_ERR_IME "Failed to create bool literal expression"
 #define PARSER_ERR_IME_FAIL_NIL_LIT PARSER_ERR_IME "Failed to create nil literal expression"
 #define PARSER_ERR_MALFRM_NUM "Invalid or malformed number found"

@@ -173,9 +173,8 @@ static finline PValue vLiteral(PInterpreter *it, PExpr *expr, PEnv *env) {
             return MakeNumber(value);
         }
         case EXP_LIT_STR: {
-            PObj *litObj = NewStrObject(
-                it->gc, expr->op, expr->exp.ELiteral.value.svalue, false
-            );
+            PObj *litObj =
+                NewStrObject(it->gc, expr->op, expr->exp.ELiteral.value.svalue);
             return MakeObject(litObj);
         }
         case EXP_LIT_BOOL: {
@@ -219,7 +218,7 @@ static finline PValue vBinary(PInterpreter *it, PExpr *expr, PEnv *env) {
                     return MakeNil();
                 }
 
-                PObj *nsObj = NewStrObject(it->gc, expr->op, newStr, true);
+                PObj *nsObj = NewStrObject(it->gc, expr->op, newStr);
                 return MakeObject(nsObj);
             } else {
                 error(

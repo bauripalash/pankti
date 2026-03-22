@@ -86,10 +86,9 @@ void FreeObject(Pgc *gc, PObj *o);
 // Create New String Object
 // `name` = Token (optional if virtual, created in runtime)
 // `value` = String value
-// `virt` = Is the string virtual aka. created on runtime
-// If string is virtual it means, the string object is the owner of value
-// otherwise the owner of the heap allocated string is owned by AST's Literal
-PObj *NewStrObject(Pgc *gc, Token *name, char *value, bool virt);
+// `noDup` = Don't duplicate the value, it means we are giving you already
+// mallocd string, just chanding ownership
+PObj *NewStrObject(Pgc *gc, Token *name, char *value);
 
 // Create New Compiled Function Object
 PObj *NewComFuncObject(Pgc *gc, Token *name);

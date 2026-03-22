@@ -9,6 +9,7 @@
 #include "include/opcode.h"
 #include "include/printer.h"
 #include "include/ptypes.h"
+#include "include/strescape.h"
 #include "include/token.h"
 #include "include/utils.h"
 #include "include/vm.h"
@@ -252,6 +253,61 @@ bool CompilerCompile(PCompiler *compiler, PStmt **prog) {
     return true;
 }
 
+static char *readStringEscapes(PCompiler *comp, Token *tok) {
+    char *rawinput = tok->lexeme;
+    u64 inlen = (u64)strlen(rawinput);
+    u64 outlen = inlen * 4 + 1;
+    char *output = PCalloc((u64)outlen, sizeof(char));
+    if (output == NULL) {
+        return NULL;
+    }
+
+    StrEscapeErr err = ProcessStringEscape(rawinput, inlen, output, outlen);
+    switch (err) {
+        case SESC_OK: break;
+        case SESC_UNKNOWN_ESCAPE: {
+            cmpError(comp, tok, CMP_ERR_SESC_UNKN_ESC);
+            break;
+        }
+        case SESC_INVALID_HEX_CHAR: {
+            cmpError(comp, tok, CMP_ERR_SESC_INVLD_HEX);
+            break;
+        }
+
+        case SESC_BUFFER_NOT_ENOUGH: {
+            cmpError(comp, tok, CMP_ERR_SESC_BFR_NOT_ENGH);
+            break;
+        }
+        case SESC_INPUT_FINISHED_EARLY: {
+            cmpError(comp, tok, CMP_ERR_SESC_FNSH_ERLY);
+            break;
+        }
+
+        case SESC_NO_LOW_SURROGATE: {
+            cmpError(comp, tok, CMP_ERR_SESC_NO_LO_SRGT);
+            break;
+        }
+        case SESC_LONE_LOW_SURROGATE: {
+            cmpError(comp, tok, CMP_ERR_SESC_LN_LOW_SURROGATE);
+            break;
+        }
+
+        case SESC_INVALID_LOW_SURROGATE: {
+            cmpError(comp, tok, CMP_ERR_SESC_INVLD_LO_SRGT);
+            break;
+        }
+        case SESC_8_INVALID_CP: {
+            cmpError(comp, tok, CMP_ERR_SESC_INVALID_8_CP);
+            break;
+        }
+        case SESC_NULL_PTR: {
+            cmpError(comp, tok, CMP_ERR_SESC_NUL_PTR);
+            break;
+        }
+    }
+    return output;
+}
+
 // Compile Literal Expression
 static bool compileLitExpr(PCompiler *comp, PExpr *expr) {
     struct ELiteral *lit = &expr->exp.ELiteral;
@@ -263,8 +319,11 @@ static bool compileLitExpr(PCompiler *comp, PExpr *expr) {
             break;
         }
         case EXP_LIT_STR: {
-            PObj *strObj =
-                NewStrObject(comp->gc, expr->op, lit->value.svalue, false);
+            // TODO: ESCAPE String HERE
+            Token *opTok = expr->op;
+            char *escapedStr = readStringEscapes(comp, opTok);
+            PObj *strObj = NewStrObject(comp->gc, expr->op, escapedStr);
+
             if (strObj == NULL) {
                 cmpError(comp, expr->op, CMP_ERR_IME_FAIL_STROBJ_LIT);
                 return false;
@@ -420,7 +479,7 @@ static bool compileMapExpr(PCompiler *comp, PExpr *expr) {
 // Make a string object, Make a value out of it, push the value to constant pool
 // return the constant index
 static u16 addIdentConst(PCompiler *comp, Token *tok) {
-    PObj *strObj = NewStrObject(comp->gc, tok, tok->lexeme, false);
+    PObj *strObj = NewStrObject(comp->gc, tok, tok->lexeme);
     if (strObj == NULL) {
         cmpError(comp, tok, CMP_ERR_IME_FAIL_STR_IDENT);
         return 0;

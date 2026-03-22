@@ -44,7 +44,7 @@ PObj *NewObject(Pgc *gc, PObjType type) {
     return o;
 }
 
-PObj *NewStrObject(Pgc *gc, Token *name, char *value, bool virt) {
+PObj *NewStrObject(Pgc *gc, Token *name, char *value) {
     PObj *o = NewObject(gc, OT_STR);
     if (o == NULL) {
         return NULL;
@@ -60,7 +60,6 @@ PObj *NewStrObject(Pgc *gc, Token *name, char *value, bool virt) {
 
     o->v.OString.name = name;
     o->v.OString.value = dupValue;
-    o->v.OString.isVirtual = virt;
     u64 hash = StrHash(dupValue, valueLen, gc->timestamp);
     o->v.OString.hash = hash;
     return o;
@@ -99,7 +98,7 @@ PObj *NewComFuncObject(Pgc *gc, Token *name) {
     o->v.OComFunction.strName = NULL;
 
     if (name != NULL) {
-        PObj *strName = NewStrObject(gc, name, name->lexeme, false);
+        PObj *strName = NewStrObject(gc, name, name->lexeme);
         if (strName == NULL) {
             GcPopObj(gc, o);
             return NULL;
@@ -236,7 +235,7 @@ void FreeObject(Pgc *gc, PObj *o) {
         }
         case OT_STR: {
             struct OString *s = &o->v.OString;
-            if (s->isVirtual && s->value != NULL) {
+            if (s->value != NULL) {
                 PFree(s->value);
             }
 

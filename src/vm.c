@@ -254,7 +254,7 @@ static bool vmBinaryOpString(PVm *vm, PanOpCode op, PValue left, PValue right) {
         return false;
     }
 
-    PObj *nsObj = NewStrObject(vm->gc, NULL, newStr, true); // fetch the token
+    PObj *nsObj = NewStrObject(vm->gc, NULL, newStr); // fetch the token
     VmPop(vm);
     VmPop(vm);
 

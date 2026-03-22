@@ -145,11 +145,7 @@ static PValue math_Number(PVm *vm, PValue *args, u64 argc) {
     struct OString *strObj = &ValueAsObj(rawStr)->v.OString;
     double result = 0;
     bool isok = true;
-    if (strObj->isVirtual) {
-        result = NumberFromStr(strObj->value, StrLength(strObj->value), &isok);
-    } else {
-        result = NumberFromStr(strObj->name->lexeme, strObj->name->len, &isok);
-    }
+    result = NumberFromStr(strObj->value, StrLength(strObj->value), &isok);
 
     if (!isok) {
         VmError(vm, "Failed to convert string to number");
@@ -247,9 +243,9 @@ void PushStdlibMath(PVm *vm, SymbolTable *table) {
     int count = ArrCount(entries);
 
     PushStdlibEntries(vm, table, MATH_STDLIB_NAME, entries, count);
-    PObj *piNameObj = NewStrObject(vm->gc, NULL, MATH_STD_PI, false);
+    PObj *piNameObj = NewStrObject(vm->gc, NULL, MATH_STD_PI);
     VmPush(vm, MakeObject(piNameObj));
-    PObj *eNameObj = NewStrObject(vm->gc, NULL, MATH_STD_E, false);
+    PObj *eNameObj = NewStrObject(vm->gc, NULL, MATH_STD_E);
     VmPush(vm, MakeObject(eNameObj));
     SymbolTableSet(table, piNameObj, MakeNumber(CONST_PI));
     SymbolTableSet(table, eNameObj, MakeNumber(CONST_E));

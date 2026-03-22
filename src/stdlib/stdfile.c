@@ -44,7 +44,7 @@ static PValue file_ReadAsString(PVm *vm, PValue *args, u64 argc) {
         return MakeNil();
     }
 
-    PObj *strObj = NewStrObject(vm->gc, NULL, fileStr, true);
+    PObj *strObj = NewStrObject(vm->gc, NULL, fileStr);
     if (strObj == NULL) {
         const char *err = StrFormat(
             "failed to create string while reading file '%s' ", filePathStr

@@ -51,6 +51,16 @@ extern "C" {
 #define CMP_ERR_RET_TOP_LVL "Cannot use return in top level script"
 #define CMP_ERR_RET_VAL "Failed to compile return value"
 #define CMP_ERR_IMPRT_PATH "Failed to compile import path expression"
+
+#define CMP_ERR_SESC_UNKN_ESC "Unknown escape sequence found in string"
+#define CMP_ERR_SESC_INVLD_HEX "Invalid hex character found in string escape sequence"
+#define CMP_ERR_SESC_BFR_NOT_ENGH "Internal Error : Failed to process string escape"
+#define CMP_ERR_SESC_FNSH_ERLY "Incomplete escape sequence found at the end of the string"
+#define CMP_ERR_SESC_NO_LO_SRGT "While reading \\uHHHH sequence another low surrogate \\uHHHH sequence as expected but not found"
+#define CMP_ERR_SESC_LN_LOW_SURROGATE "While reading \\uHHHH sequence only a lone low surrogate was found"
+#define CMP_ERR_SESC_INVLD_LO_SRGT "While reading \\uHHHH a invalid low surrogate surrogate was found after a high surrogate"
+#define CMP_ERR_SESC_INVALID_8_CP "Found invalid codepoint in \\uHHHHHHHH sequence"
+#define CMP_ERR_SESC_NUL_PTR "Internal Error: Invalid Memory allocation for output in reading escape sequences"
 /* clang-format on */
 #ifdef __cplusplus
 }

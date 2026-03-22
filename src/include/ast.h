@@ -94,13 +94,11 @@ typedef struct PExpr {
             Token *op;
             // Literal Type.
             ExpLitType type;
-            union value {
+            union value { // TODO: REMOVE VALUES FROM PARSING. DO IN COMPILING
                 // Literal Pre Evaluated Bool
                 bool bvalue;
                 // Literal Pre Evaluated Number value
                 double nvalue;
-                // Literal Pre Evaluated String value
-                char *svalue;
             } value;
         } ELiteral;
 

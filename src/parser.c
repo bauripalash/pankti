@@ -385,61 +385,6 @@ static PExpr *rMapExpr(Parser *p) {
     return NewMapExpr(p->gc, lbrace, etable, itemCount);
 }
 
-static char *readStringEscapes(Parser *p, Token *tok) {
-    char *rawinput = tok->lexeme;
-    u64 inlen = (u64)strlen(rawinput);
-    u64 outlen = inlen * 4 + 1;
-    char *output = PCalloc((u64)outlen, sizeof(char));
-    if (output == NULL) {
-        return NULL;
-    }
-
-    StrEscapeErr err = ProcessStringEscape(rawinput, inlen, output, outlen);
-    switch (err) {
-        case SESC_OK: break;
-        case SESC_UNKNOWN_ESCAPE: {
-            error(p, tok, PARSER_ERR_SESC_UNKN_ESC);
-            break;
-        }
-        case SESC_INVALID_HEX_CHAR: {
-            error(p, tok, PARSER_ERR_SESC_INVLD_HEX);
-            break;
-        }
-
-        case SESC_BUFFER_NOT_ENOUGH: {
-            error(p, tok, PARSER_ERR_SESC_BFR_NOT_ENGH);
-            break;
-        }
-        case SESC_INPUT_FINISHED_EARLY: {
-            error(p, tok, PARSER_ERR_SESC_FNSH_ERLY);
-            break;
-        }
-
-        case SESC_NO_LOW_SURROGATE: {
-            error(p, tok, PARSER_ERR_SESC_NO_LO_SRGT);
-            break;
-        }
-        case SESC_LONE_LOW_SURROGATE: {
-            error(p, tok, PARSER_ERR_SESC_LN_LOW_SURROGATE);
-            break;
-        }
-
-        case SESC_INVALID_LOW_SURROGATE: {
-            error(p, tok, PARSER_ERR_SESC_INVLD_LO_SRGT);
-            break;
-        }
-        case SESC_8_INVALID_CP: {
-            error(p, tok, PARSER_ERR_SESC_INVALID_8_CP);
-            break;
-        }
-        case SESC_NULL_PTR: {
-            error(p, tok, PARSER_ERR_SESC_NUL_PTR);
-            break;
-        }
-    }
-    return output;
-}
-
 static PExpr *rPrimary(Parser *p) {
     if (matchOne(p, T_TRUE)) {
         Token *op = previous(p);
@@ -494,20 +439,11 @@ static PExpr *rPrimary(Parser *p) {
 
     if (matchOne(p, T_STR)) {
         Token *opTok = previous(p);
-        char *escapedStr = readStringEscapes(p, opTok);
-
-        if (escapedStr == NULL) {
-            fatalError(p, opTok, PARSER_ERR_IME_FAIL_STR_CHAR_LIT);
-            return NULL;
-        }
-
-        PExpr *e = NewLiteral(p->gc, previous(p), EXP_LIT_STR);
+        PExpr *e = NewLiteral(p->gc, opTok, EXP_LIT_STR);
         if (e == NULL) {
             fatalError(p, opTok, PARSER_ERR_IME_FAIL_STR_LIT);
             return NULL;
         }
-
-        e->exp.ELiteral.value.svalue = escapedStr;
 
         return e;
     }

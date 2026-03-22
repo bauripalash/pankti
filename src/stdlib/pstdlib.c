@@ -34,7 +34,7 @@ void PushStdlibEntries(
 ) {
     for (u64 i = 0; i < count; i++) {
         const StdlibEntry *entry = &entries[i];
-        PObj *stdNameObj = NewStrObject(vm->gc, NULL, entry->name, false);
+        PObj *stdNameObj = NewStrObject(vm->gc, NULL, entry->name);
         VmPush(vm, MakeObject(stdNameObj));
         const char *entryName = StrFormat(
             "<%s>.%s", module != NULL ? module : "unknown", entry->name
