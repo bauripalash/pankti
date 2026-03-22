@@ -49,10 +49,19 @@ PObj *NewStrObject(Pgc *gc, Token *name, char *value, bool virt) {
     if (o == NULL) {
         return NULL;
     }
+
+    u64 valueLen = StrLength(value);
+    char *dupValue = StrDuplicate(value, valueLen);
+
+    if (dupValue == NULL) {
+        GcPopObj(gc, o);
+        return NULL;
+    }
+
     o->v.OString.name = name;
-    o->v.OString.value = value;
+    o->v.OString.value = dupValue;
     o->v.OString.isVirtual = virt;
-    u64 hash = StrHash(value, StrLength(value), gc->timestamp);
+    u64 hash = StrHash(dupValue, valueLen, gc->timestamp);
     o->v.OString.hash = hash;
     return o;
 }
