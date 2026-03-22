@@ -2,12 +2,13 @@
 #include "../external/stb/stb_ds.h"
 #include "../include/alloc.h"
 #include "../include/env.h"
+#include "../include/flags.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <time.h>
 
-#if defined(DEBUG_GC)
+#if defined(PANKTI_BUILD_DEBUG)
 #include "../include/printer.h"
 #include "../include/terminal.h"
 #endif
@@ -20,10 +21,8 @@ static void markObjectChildren(Pgc *gc, PObj *obj);
 Pgc *NewGc(void) {
     Pgc *gc = PCreate(Pgc);
     gc->disable = false;
-#if defined(STRESS_GC)
-    gc->stress = true;
-#else
-    gc->stress = false;
+#if defined(PANKTI_BUILD_DEBUG)
+    gc->stress = FLAG_STRESS_GC;
 #endif
     gc->objects = NULL;
     gc->stmts = NULL;
@@ -143,29 +142,33 @@ void CollectGarbage(Pgc *gc) {
     }
 
     if (gc->stress || gc->needCollect) {
-#if defined(DEBUG_GC)
-        PanPrint(
-            "%s[DEBUG] [GC] Starting Garbage Collection%s\n", TermYellow(),
-            TermReset()
-        );
-        PanPrint(
-            "%s[DEBUG] [GC] [Object Count : %llu]%s\n", TermYellow(),
-            (unsigned long long)gc->objCount, TermReset()
-        );
+#if defined(PANKTI_BUILD_DEBUG)
+        if (FLAG_DEBUG_GC) {
+            PanPrint(
+                "%s[DEBUG] [GC] Starting Garbage Collection%s\n", TermYellow(),
+                TermReset()
+            );
+            PanPrint(
+                "%s[DEBUG] [GC] [Object Count : %llu]%s\n", TermYellow(),
+                (unsigned long long)gc->objCount, TermReset()
+            );
+        }
 #endif
         markRoots(gc);
         sweep(gc);
         GcUpdateThreshold(gc);
         gc->needCollect = false;
-#if defined(DEBUG_GC)
-        PanPrint(
-            "%s[DEBUG] [GC] Finished Garbage Collection%s\n", TermYellow(),
-            TermReset()
-        );
-        PanPrint(
-            "%s[DEBUG] [GC] [Object Count : %llu]%s\n", TermYellow(),
-            (unsigned long long)gc->objCount, TermReset()
-        );
+#if defined(PANKTI_BUILD_DEBUG)
+        if (FLAG_DEBUG_GC) {
+            PanPrint(
+                "%s[DEBUG] [GC] Finished Garbage Collection%s\n", TermYellow(),
+                TermReset()
+            );
+            PanPrint(
+                "%s[DEBUG] [GC] [Object Count : %llu]%s\n", TermYellow(),
+                (unsigned long long)gc->objCount, TermReset()
+            );
+        }
 #endif
     }
 }

@@ -1,12 +1,13 @@
 #include "../external/stb/stb_ds.h"
 #include "../include/alloc.h"
 #include "../include/ast.h"
+#include "../include/flags.h"
 #include "../include/gc.h"
 #include "../include/token.h"
 #include <stddef.h>
 #include <stdio.h>
 
-#if defined(DEBUG_GC)
+#if defined(PANKTI_BUILD_DEBUG)
 #include "../include/printer.h"
 #include "../include/terminal.h"
 #endif
@@ -24,11 +25,14 @@ PStmt *NewStmt(Pgc *gc, PStmtType type, Token *op) {
     s->op = op;
     s->next = gc->stmts;
     gc->stmts = s;
-#if defined DEBUG_GC
-    PanPrint(
-        "%s[DEBUG] [GC] %p New Statement : %s%s\n", TermBlue(), (void *)s,
-        StmtTypeToStr(type), TermReset()
-    );
+#if defined PANKTI_BUILD_DEBUG
+    if (FLAG_DEBUG_GC) {
+
+        PanPrint(
+            "%s[DEBUG] [GC] %p New Statement : %s%s\n", TermBlue(), (void *)s,
+            StmtTypeToStr(type), TermReset()
+        );
+    }
 #endif
     return s;
 }
@@ -165,11 +169,13 @@ void FreeStmt(Pgc *gc, PStmt *s) {
     if (s == NULL) {
         return;
     }
-#if defined DEBUG_GC
-    PanPrint(
-        "%s[DEBUG] [GC] Freeing Statement : %s%s\n", TermGreen(),
-        StmtTypeToStr(s->type), TermReset()
-    );
+#if defined PANKTI_BUILD_DEBUG
+    if (FLAG_DEBUG_GC) {
+        PanPrint(
+            "%s[DEBUG] [GC] Freeing Statement : %s%s\n", TermGreen(),
+            StmtTypeToStr(s->type), TermReset()
+        );
+    }
 #endif
     switch (s->type) {
         case STMT_DEBUG: {

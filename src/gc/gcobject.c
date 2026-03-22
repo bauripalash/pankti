@@ -1,6 +1,7 @@
 #include "../external/stb/stb_ds.h"
 #include "../include/alloc.h"
 #include "../include/env.h"
+#include "../include/flags.h"
 #include "../include/gc.h"
 #include "../include/object.h"
 #include "../include/opcode.h"
@@ -10,7 +11,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#if defined DEBUG_GC
+#if defined PANKTI_BUILD_DEBUG
 #include "../include/printer.h"
 #include "../include/terminal.h"
 #endif
@@ -30,11 +31,14 @@ PObj *NewObject(Pgc *gc, PObjType type) {
     o->next = gc->objects;
     gc->objects = o;
     o->marked = false;
-#if defined DEBUG_GC
-    PanPrint(
-        "%s[DEBUG] [GC] %p New Object : %s%s\n", TermBlue(), (void *)o,
-        ObjTypeToString(type), TermReset()
-    );
+
+#if defined PANKTI_BUILD_DEBUG
+    if (FLAG_DEBUG_GC) {
+        PanPrint(
+            "%s[DEBUG] [GC] %p New Object : %s%s\n", TermBlue(), (void *)o,
+            ObjTypeToString(type), TermReset()
+        );
+    }
 #endif
     GcCounterNew(gc);
     return o;
@@ -193,17 +197,19 @@ void FreeObject(Pgc *gc, PObj *o) {
         return;
     }
 
-#if defined DEBUG_GC
-    PanPrint(
-        "%s[DEBUG] [GC] Freeing Object : %p : %s : %s", TermGreen(), (void *)o,
-        ObjTypeToString(o->type), TermReset()
-    );
-    if (o->type == OT_UPVAL) {
-        PanPrint("<UpValue> : %ld", (u64)o);
-    } else {
-        PrintObject(o);
+#if defined PANKTI_BUILD_DEBUG
+    if (FLAG_DEBUG_GC) {
+        PanPrint(
+            "%s[DEBUG] [GC] Freeing Object : %p : %s : %s", TermGreen(),
+            (void *)o, ObjTypeToString(o->type), TermReset()
+        );
+        if (o->type == OT_UPVAL) {
+            PanPrint("<UpValue> : %ld", (u64)o);
+        } else {
+            PrintObject(o);
+        }
+        PanPrint("\n");
     }
-    PanPrint("\n");
 #endif
 
     switch (o->type) {
@@ -221,9 +227,11 @@ void FreeObject(Pgc *gc, PObj *o) {
         }
         case OT_STR: {
             struct OString *s = &o->v.OString;
-            if (s->isVirtual) {
+            if (s->isVirtual && s->value != NULL) {
                 PFree(s->value);
             }
+
+            s->value = NULL;
             freeBaseObj(o);
             break;
         }
@@ -248,6 +256,7 @@ void FreeObject(Pgc *gc, PObj *o) {
             struct ONative *nativeFn = &o->v.ONative;
             if (nativeFn->name != NULL) {
                 PFree(nativeFn->name);
+                nativeFn->name = NULL;
             }
             freeBaseObj(o);
             break;

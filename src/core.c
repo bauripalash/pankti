@@ -3,6 +3,7 @@
 #include "include/alloc.h"
 #include "include/ast.h"
 #include "include/compiler.h"
+#include "include/flags.h"
 #include "include/gc.h"
 #include "include/lexer.h"
 #include "include/object.h"
@@ -42,11 +43,11 @@ PanktiCore *NewCore(const char *path) {
         PFree(core);
         return NULL;
     }
+
     core->lexer->core = core;
     core->parser = NULL;
     core->caughtError = false;
     core->runtimeError = false;
-    // core->it = NULL;
     core->gc = NewGc();
     core->lexer->timestamp = core->gc->timestamp;
     core->compiler = NewCompiler(core);
@@ -69,10 +70,6 @@ void FreeCore(PanktiCore *core) {
         FreeLexer(core->lexer);
     }
 
-    // if (core->it != NULL) {
-    //     FreeInterpreter(core->it);
-    // }
-
     if (core->compiler != NULL) {
         FreeCompiler(core->compiler);
     }
@@ -84,48 +81,32 @@ void FreeCore(PanktiCore *core) {
     PFree(core);
 }
 
-#ifdef PANKTI_BUILD_DEBUG
-// Print All the Scanned Tokens
-#define DEBUG_LEXER
-// Print the Ast
-#define DEBUG_PARSER
-// Print time it takes to finish each step
-#define DEBUG_TIMES
-
-// Print Bytecode of Script
-#define DEBUG_BYTECODE
-#endif
-
 PCoreErrorType RunCore(PanktiCore *core) {
     if (core == NULL) {
         PanPrint("Internal Error : Failed to create Pankti Core\n");
         return PCERR_CORE;
     }
+
     if (core->lexer == NULL) {
         PanPrint("Internal Error : Failed to create Pankti Lexer\n");
         return PCERR_CORE;
     }
+
     stbds_rand_seed((size_t)time(NULL));
     srand(time(NULL));
     core->lexer->core = core;
-#if defined DEBUG_TIMES
-    clock_t lxTic = clock();
-#endif
+
     ScanTokens(core->lexer);
-#if defined DEBUG_TIMES
-    clock_t lxToc = clock();
-    PanPrint(
-        "[DEBUG] Scanner finished : %f sec.\n",
-        (double)(lxToc - lxTic) / CLOCKS_PER_SEC
-    );
-#endif
-#if defined DEBUG_PARSER
-    PanPrint("==== Token ====\n");
-    for (int i = 0; i < arrlen(core->lexer->tokens); i++) {
-        PrintToken(core->lexer->tokens[i]);
-        PanPrint("\n");
+
+#if defined(PANKTI_BUILD_DEBUG)
+    if (FLAG_DEBUG_LEXER) {
+        PanPrint("==== Token ====\n");
+        for (int i = 0; i < arrlen(core->lexer->tokens); i++) {
+            PrintToken(core->lexer->tokens[i]);
+            PanPrint("\n");
+        }
+        PanPrint("===============\n");
     }
-    PanPrint("===============\n");
 #endif
     if (core->lexer->hasError) {
         FreeCore(core);
@@ -134,26 +115,17 @@ PCoreErrorType RunCore(PanktiCore *core) {
 
     core->parser = NewParser(core->gc, core->lexer);
     core->parser->core = core;
-#if defined DEBUG_TIMES
-    clock_t pTic = clock();
-#endif
+
     PStmt **prog = ParseParser(core->parser);
-#if defined DEBUG_TIMES
-    clock_t pToc = clock();
-    PanPrint(
-        "[DEBUG] Parser finished : %f sec.\n",
-        (double)(pToc - pTic) / CLOCKS_PER_SEC
-    );
-#endif
-#if defined DEBUG_PARSER
-    PanPrint("===== AST =====\n");
-    for (int i = 0; i < arrlen(prog); i++) {
-        AstStmtPrint(prog[i], 0);
+#if defined(PANKTI_BUILD_DEBUG)
+    if (FLAG_DEBUG_PARSER) {
+        PanPrint("===== AST =====\n");
+        for (int i = 0; i < arrlen(prog); i++) {
+            AstStmtPrint(prog[i], 0);
+        }
+        PanPrint("===== END =====\n");
     }
-    PanPrint("===== END =====\n");
 #endif
-    if (core->parser->hasError) {
-    }
 
     if (core->lexer->hasError) {
         return PCERR_LEXER;
@@ -168,34 +140,17 @@ PCoreErrorType RunCore(PanktiCore *core) {
         exit(1);
     }
 
-#if defined(DEBUG_TIMES)
-    clock_t cmpTic = clock();
-#endif
     CompilerCompile(core->compiler, prog);
-#if defined(DEBUG_TIMES)
-    clock_t cmpToc = clock();
-    PanPrint(
-        "[DEBUG] Compiler finished : %f sec.\n",
-        (double)(cmpToc - cmpTic) / CLOCKS_PER_SEC
-    );
-#endif
-    PObj *comFn = GetCompiledFunction(core->compiler);
 
-#if defined(DEBUG_BYTECODE)
-    DebugBytecode(comFn->v.OComFunction.code, 0);
+    PObj *comFn = GetCompiledFunction(core->compiler);
+#if defined(PANKTI_BUILD_DEBUG)
+    if (FLAG_DEBUG_BYTECODE) {
+        DebugBytecode(comFn->v.OComFunction.code, 0);
+    }
 #endif
     SetupVm(core->vm, core->gc, comFn);
-#if defined(DEBUG_TIMES)
-    clock_t vmTic = clock();
-#endif
+
     VmRun(core->vm);
-#if defined(DEBUG_TIMES)
-    clock_t vmToc = clock();
-    PanPrint(
-        "[DEBUG] VM finished : %f sec.\n",
-        (double)(vmToc - vmTic) / CLOCKS_PER_SEC
-    );
-#endif
 
     if (core->caughtError) {
         PanPrint("Runtime Error found!\n");

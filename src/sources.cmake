@@ -1,8 +1,10 @@
 set(PANKTI_SRC_FILES
+  "${CMAKE_CURRENT_LIST_DIR}/argparse.c"
   "${CMAKE_CURRENT_LIST_DIR}/ast.c"
   "${CMAKE_CURRENT_LIST_DIR}/bengali.c"
   "${CMAKE_CURRENT_LIST_DIR}/core.c"
   "${CMAKE_CURRENT_LIST_DIR}/env.c"
+  "${CMAKE_CURRENT_LIST_DIR}/flags.c"
   #"${CMAKE_CURRENT_LIST_DIR}/interpreter.c"
   "${CMAKE_CURRENT_LIST_DIR}/lexer.c"
   "${CMAKE_CURRENT_LIST_DIR}/native.c"

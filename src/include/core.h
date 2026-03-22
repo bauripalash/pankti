@@ -41,6 +41,7 @@ typedef struct PanktiCore {
     bool caughtError;
     // Has runtime error?
     bool runtimeError;
+
 } PanktiCore;
 
 typedef enum PCoreErrorType {

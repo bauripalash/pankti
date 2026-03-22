@@ -1,8 +1,9 @@
+#include "include/argparse.h"
 #include "include/core.h"
+#include "include/flags.h"
 #include "include/printer.h"
 #include "include/terminal.h"
 #include "include/utils.h"
-#include "include/version.h"
 #include <locale.h>
 #include <stdlib.h>
 
@@ -46,18 +47,25 @@ void setupOs(void) {
 int main(int argc, char **argv) {
     setupOs();
     InitTermInfo();
-    if (argc < 2) {
-        PanPrint("Pankti Programming Language v%s\n", PANKTI_VERSION);
-        PanPrint("Usage: pankti [FILENAME]\n");
-        return EXIT_FAILURE;
-    } else {
-        char *filepath = argv[1];
-        if (!DoesFileExists(filepath)) {
-            PanPrint("Failed to open file : '%s'\n", filepath);
+    InitDebugFlags();
+
+    PanktiArgs args;
+    PanArgsResult argRes = ParsePanArgs(argc, argv, &args);
+
+    switch (argRes) {
+        case PARGS_EXIT_OK: return EXIT_SUCCESS;
+        case PARGS_EXIT_ERR: return EXIT_FAILURE;
+        case PARGS_OK: break;
+    }
+
+    if (args.scriptPath != NULL) {
+        const char *filePath = args.scriptPath;
+        if (!DoesFileExists(filePath)) {
+            PanPrint("Failed to open file : '%s'\n", filePath);
             return EXIT_FAILURE;
         }
 
-        PanktiCore *core = NewCore(filepath);
+        PanktiCore *core = NewCore(filePath);
         if (core == NULL) {
             PanPrint("Error: Failed to initialize Pankti Runtime\n");
             return EXIT_FAILURE;
@@ -65,4 +73,6 @@ int main(int argc, char **argv) {
         RunCore(core);
         FreeCore(core);
     }
+
+    return EXIT_SUCCESS;
 }

@@ -180,10 +180,10 @@ set (PANKTI_REL_WITH_DINFO_CFLAGS
 
 if(IS_OS_LINUX)
 	list(APPEND PANKTI_DEBUG_CFLAGS 	
-		"-fsanitize=address"
-		"-fsanitize=undefined"
-		"-fsanitize=float-cast-overflow"
-        "-fdiagnostics-color=always"
+        #		"-fsanitize=address"
+        #"-fsanitize=undefined"
+        #"-fsanitize=float-cast-overflow"
+        #"-fdiagnostics-color=always"
 	)
 endif()
 
@@ -225,9 +225,9 @@ set(PANKTI_REL_WITH_DINFO_LINKER_FLAGS
 )
 if(IS_OS_LINUX)
 	list(APPEND PANKTI_DEBUG_LINKER_FLAGS
-		"-fsanitize=address"
-		"-fsanitize=undefined"
-		"-fsanitize=float-cast-overflow" 
+        #	"-fsanitize=address"
+        #"-fsanitize=undefined"
+        #"-fsanitize=float-cast-overflow" 
 	)
 endif()
 if(IS_MSVC)
