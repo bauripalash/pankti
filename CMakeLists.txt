@@ -269,8 +269,11 @@ target_link_options(${PROJECT_NAME} PRIVATE
 
 if(IS_GFX_BUILD)
     add_compile_definitions(HAS_GFX_SUPPORT)
+    add_subdirectory(src/external/kb)
     add_subdirectory(src/external/tigr)
+    target_link_libraries(${PROJECT_NAME} PRIVATE kb)
     target_link_libraries(${PROJECT_NAME} PRIVATE tigr)
+    
 endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE libgrapheme)

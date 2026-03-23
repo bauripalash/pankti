@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.24)
 add_library(tigr STATIC tigr.c)
 
 target_include_directories(tigr PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_options(tigr PRIVATE -w)
 
 if (WIN32 OR CMAKE_SYSTEM_NAME STREQUAL "Windows" OR 
 	CMAKE_SYSTEM_NAME STREQUAL "CYGWIN" OR 
