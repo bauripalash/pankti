@@ -1,5 +1,4 @@
 #include "include/argparse.h"
-#include "include/flags.h"
 #include "include/printer.h"
 #include "include/version.h"
 #include <stdbool.h>
@@ -10,6 +9,7 @@
 #include "external/optparse/optparse.h"
 
 #if defined(PANKTI_BUILD_DEBUG)
+#include "include/flags.h"
 #define PANKTI_SHORT_ARGS "hvLPBTGS"
 #else
 #define PANKTI_SHORT_ARGS "hv"
@@ -34,6 +34,7 @@ static const struct optparse_long PANKTI_LONG_OPTS[] = {
 PanArgsResult ParsePanArgs(int argc, char **argv, PanktiArgs *out) {
 
     if (argc < 2 || argv == NULL || out == NULL) {
+        PrintPanktiHelp();
         return PARGS_EXIT_ERR;
     }
 
@@ -120,7 +121,35 @@ PanArgsResult ParsePanArgs(int argc, char **argv, PanktiArgs *out) {
     return PARGS_OK;
 }
 
-void PrintPanktiVersion(void) { PanFPrint(stdout, "%s\n", PANKTI_VERSION); }
-void PrintPanktiHelp(void) {
-    PanFPrint(stdout, "Pankti %s\n", "TODO_HELP_PANKTI");
+void PrintPanktiVersion(void) {
+    PanPrint("Pankti Programming Language %s\n", PANKTI_VERSION);
 }
+
+static const char *HelpInfo =
+    "Pankti Programming Language %s\n\n"
+    "Usage:\n"
+    "   pankti [options] [script.pn] [-- script-args]\n\n"
+    "Options:\n"
+    "   -h, --help              Show this help message\n"
+    "   -v, --version           Show version information\n\n"
+    "Examples:\n"
+    "   pankti script.pn\n"
+    "   pankti --version\n"
+#if defined(PANKTI_BUILD_DEBUG)
+    "\n"
+    "Debug Options (debug builds only):\n"
+    "   -L, --debug-lexer       Print Scanned Tokens\n"
+    "   -P, --debug-parser      Print Parsed AST\n"
+    "   -B, --debug-bytecode    Print Compiled Bytecode\n"
+    "   -T, --debug-times       Print Times for Lexing, Parsing...etc.\n"
+    "   -G, --debug-gc          Print Debug Events\n"
+    "   -S, --stress-gc         Stress GC to to run on every allocation\n"
+    "\n"
+    "Environment Variables:\n"
+    "(Debugging features can be turned on with environment variables)\n"
+    "   DEBUG_LEXER=1   DEBUG_PARSER=1  DEBUG_BYTECODE=1\n"
+    "   DEBUG_TIMES=1   DEBUG_GC=1      STRESS_GC=1\n"
+#endif
+    ;
+
+void PrintPanktiHelp(void) { PanPrint(HelpInfo, PANKTI_VERSION); }
