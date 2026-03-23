@@ -28,8 +28,7 @@ static PValue os_Name(PVm *vm, PValue *args, u64 argc) {
 #else
     char *name = OS_UNKNOWN;
 #endif
-    PObj *nameStrObj =
-        NewStrObject(vm->gc, NULL, StrDuplicate(name, StrLength(name)));
+    PObj *nameStrObj = NewStrObject(vm->gc, NULL, name, false);
     return MakeObject(nameStrObj);
 }
 static PValue os_Arch(PVm *vm, PValue *args, u64 argc) {
@@ -44,8 +43,7 @@ static PValue os_Arch(PVm *vm, PValue *args, u64 argc) {
 #else
     char *arch = OS_UNKNOWN;
 #endif
-    PObj *archStrObj =
-        NewStrObject(vm->gc, NULL, StrDuplicate(arch, StrLength(arch)));
+    PObj *archStrObj = NewStrObject(vm->gc, NULL, arch, false);
     return MakeObject(archStrObj);
 }
 static PValue os_Username(PVm *vm, PValue *args, u64 argc) {
@@ -55,14 +53,10 @@ static PValue os_Username(PVm *vm, PValue *args, u64 argc) {
     char *username = GetOsUsername();
 #endif
     if (username != NULL) {
-        PObj *usernameStrObj = NewStrObject(
-            vm->gc, NULL, StrDuplicate(username, StrLength(username))
-        );
+        PObj *usernameStrObj = NewStrObject(vm->gc, NULL, username, false);
         return MakeObject(usernameStrObj);
     }
-    PObj *unknownUserStrObj = NewStrObject(
-        vm->gc, NULL, StrDuplicate(OS_UNKNOWN, StrLength(OS_UNKNOWN))
-    );
+    PObj *unknownUserStrObj = NewStrObject(vm->gc, NULL, OS_UNKNOWN, false);
     return MakeObject(unknownUserStrObj);
 }
 static PValue os_HomeDir(PVm *vm, PValue *args, u64 argc) {
@@ -72,14 +66,10 @@ static PValue os_HomeDir(PVm *vm, PValue *args, u64 argc) {
     char *homedir = GetHomeDir();
 #endif
     if (homedir != NULL) {
-        PObj *usernameStrObj = NewStrObject(
-            vm->gc, NULL, StrDuplicate(homedir, StrLength(homedir))
-        );
+        PObj *usernameStrObj = NewStrObject(vm->gc, NULL, homedir, false);
         return MakeObject(usernameStrObj);
     }
-    PObj *unknownUserStrObj = NewStrObject(
-        vm->gc, NULL, StrDuplicate(OS_UNKNOWN, StrLength(OS_UNKNOWN))
-    );
+    PObj *unknownUserStrObj = NewStrObject(vm->gc, NULL, OS_UNKNOWN, false);
     return MakeObject(unknownUserStrObj);
 }
 static PValue os_CurDir(PVm *vm, PValue *args, u64 argc) {
@@ -89,14 +79,11 @@ static PValue os_CurDir(PVm *vm, PValue *args, u64 argc) {
     char *curdir = GetCurDir();
 #endif
     if (curdir != NULL) {
-        PObj *usernameStrObj =
-            NewStrObject(vm->gc, NULL, StrDuplicate(curdir, StrLength(curdir)));
+        PObj *usernameStrObj = NewStrObject(vm->gc, NULL, curdir, false);
         PFree(curdir);
         return MakeObject(usernameStrObj);
     }
-    PObj *unknownUserStrObj = NewStrObject(
-        vm->gc, NULL, StrDuplicate(OS_UNKNOWN, StrLength(OS_UNKNOWN))
-    );
+    PObj *unknownUserStrObj = NewStrObject(vm->gc, NULL, OS_UNKNOWN, false);
     return MakeObject(unknownUserStrObj);
 }
 

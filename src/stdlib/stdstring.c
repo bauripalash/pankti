@@ -53,7 +53,7 @@ static PValue str_Index(PVm *vm, PValue *args, u64 argc) {
             return MakeNil(); // return empty string
         }; // empty string
         case GR_ERR_OK: {
-            PObj *obj = NewStrObject(vm->gc, NULL, result);
+            PObj *obj = NewStrObject(vm->gc, NULL, result, false);
             // todo: null check
             return MakeObject(obj);
         }
@@ -81,7 +81,7 @@ static PValue str_Split(PVm *vm, PValue *args, u64 argc) {
 
         PValue *items = NULL;
         for (u64 i = 0; i < count; i++) {
-            PObj *tempStr = NewStrObject(vm->gc, NULL, result[i]);
+            PObj *tempStr = NewStrObject(vm->gc, NULL, result[i], false);
             if (tempStr == NULL) {
                 return MakeNil(); // memory error //todo
             }
@@ -111,7 +111,7 @@ static PValue str_String(PVm *vm, PValue *args, u64 argc) {
         return MakeNil(); // error
     }
 
-    PObj *strObj = NewStrObject(vm->gc, NULL, str);
+    PObj *strObj = NewStrObject(vm->gc, NULL, str, true);
     return MakeObject(strObj);
 }
 

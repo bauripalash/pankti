@@ -243,9 +243,9 @@ void PushStdlibMath(PVm *vm, SymbolTable *table) {
     int count = ArrCount(entries);
 
     PushStdlibEntries(vm, table, MATH_STDLIB_NAME, entries, count);
-    PObj *piNameObj = NewStrObject(vm->gc, NULL, MATH_STD_PI);
+    PObj *piNameObj = NewStrObject(vm->gc, NULL, MATH_STD_PI, false);
     VmPush(vm, MakeObject(piNameObj));
-    PObj *eNameObj = NewStrObject(vm->gc, NULL, MATH_STD_E);
+    PObj *eNameObj = NewStrObject(vm->gc, NULL, MATH_STD_E, false);
     VmPush(vm, MakeObject(eNameObj));
     SymbolTableSet(table, piNameObj, MakeNumber(CONST_PI));
     SymbolTableSet(table, eNameObj, MakeNumber(CONST_E));

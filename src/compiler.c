@@ -322,7 +322,8 @@ static bool compileLitExpr(PCompiler *comp, PExpr *expr) {
             // TODO: ESCAPE String HERE
             Token *opTok = expr->op;
             char *escapedStr = readStringEscapes(comp, opTok);
-            PObj *strObj = NewStrObject(comp->gc, expr->op, escapedStr);
+            // We hand ownership of escaped str to the string object
+            PObj *strObj = NewStrObject(comp->gc, expr->op, escapedStr, true);
 
             if (strObj == NULL) {
                 cmpError(comp, expr->op, CMP_ERR_IME_FAIL_STROBJ_LIT);
@@ -479,7 +480,7 @@ static bool compileMapExpr(PCompiler *comp, PExpr *expr) {
 // Make a string object, Make a value out of it, push the value to constant pool
 // return the constant index
 static u16 addIdentConst(PCompiler *comp, Token *tok) {
-    PObj *strObj = NewStrObject(comp->gc, tok, tok->lexeme);
+    PObj *strObj = NewStrObject(comp->gc, tok, tok->lexeme, false);
     if (strObj == NULL) {
         cmpError(comp, tok, CMP_ERR_IME_FAIL_STR_IDENT);
         return 0;

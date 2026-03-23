@@ -88,7 +88,7 @@ void FreeObject(Pgc *gc, PObj *o);
 // `value` = String value
 // `noDup` = Don't duplicate the value, it means we are giving you already
 // mallocd string, just chanding ownership
-PObj *NewStrObject(Pgc *gc, Token *name, char *value);
+PObj *NewStrObject(Pgc *gc, Token *name, char *value, bool noDup);
 
 // Create New Compiled Function Object
 PObj *NewComFuncObject(Pgc *gc, Token *name);

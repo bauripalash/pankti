@@ -44,23 +44,30 @@ PObj *NewObject(Pgc *gc, PObjType type) {
     return o;
 }
 
-PObj *NewStrObject(Pgc *gc, Token *name, char *value) {
+PObj *NewStrObject(Pgc *gc, Token *name, char *value, bool noDup) {
     PObj *o = NewObject(gc, OT_STR);
     if (o == NULL) {
         return NULL;
     }
 
     u64 valueLen = StrLength(value);
-    char *dupValue = StrDuplicate(value, valueLen);
+    char *strValue = NULL;
+    if (noDup) {
+        strValue = value;
+    } else {
+        char *dupValue = StrDuplicate(value, valueLen);
 
-    if (dupValue == NULL) {
-        GcPopObj(gc, o);
-        return NULL;
+        if (dupValue == NULL) {
+            GcPopObj(gc, o);
+            return NULL;
+        }
+
+        strValue = dupValue;
     }
 
     o->v.OString.name = name;
-    o->v.OString.value = dupValue;
-    u64 hash = StrHash(dupValue, valueLen, gc->timestamp);
+    o->v.OString.value = strValue;
+    u64 hash = StrHash(strValue, valueLen, gc->timestamp);
     o->v.OString.hash = hash;
     return o;
 }
@@ -98,7 +105,7 @@ PObj *NewComFuncObject(Pgc *gc, Token *name) {
     o->v.OComFunction.strName = NULL;
 
     if (name != NULL) {
-        PObj *strName = NewStrObject(gc, name, name->lexeme);
+        PObj *strName = NewStrObject(gc, name, name->lexeme, false);
         if (strName == NULL) {
             GcPopObj(gc, o);
             return NULL;

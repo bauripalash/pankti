@@ -96,9 +96,21 @@ PCoreErrorType RunCore(PanktiCore *core) {
     srand(time(NULL));
     core->lexer->core = core;
 
+#if defined(PANKTI_BUILD_DEBUG)
+    clock_t start, end;
+
+    if (FLAG_DEBUG_TIMES) {
+        start = clock();
+    }
+
+#endif
+
     ScanTokens(core->lexer);
 
 #if defined(PANKTI_BUILD_DEBUG)
+    if (FLAG_DEBUG_TIMES) {
+        end = clock();
+    }
     if (FLAG_DEBUG_LEXER) {
         PanPrint("==== Token ====\n");
         for (int i = 0; i < arrlen(core->lexer->tokens); i++) {
@@ -106,6 +118,10 @@ PCoreErrorType RunCore(PanktiCore *core) {
             PanPrint("\n");
         }
         PanPrint("===============\n");
+    }
+    if (FLAG_DEBUG_TIMES) {
+        double lexerTime = ((double)(end - start)) / CLOCKS_PER_SEC;
+        PanPrint("[DEBUG] Lexer finished in : %f sec.\n", lexerTime);
     }
 #endif
     if (core->lexer->hasError) {
@@ -116,14 +132,28 @@ PCoreErrorType RunCore(PanktiCore *core) {
     core->parser = NewParser(core->gc, core->lexer);
     core->parser->core = core;
 
-    PStmt **prog = ParseParser(core->parser);
 #if defined(PANKTI_BUILD_DEBUG)
+    if (FLAG_DEBUG_TIMES) {
+        start = clock();
+    }
+#endif
+
+    PStmt **prog = ParseParser(core->parser);
+
+#if defined(PANKTI_BUILD_DEBUG)
+    if (FLAG_DEBUG_TIMES) {
+        end = clock();
+    }
     if (FLAG_DEBUG_PARSER) {
         PanPrint("===== AST =====\n");
         for (int i = 0; i < arrlen(prog); i++) {
             AstStmtPrint(prog[i], 0);
         }
         PanPrint("===== END =====\n");
+    }
+    if (FLAG_DEBUG_TIMES) {
+        double parserTime = ((double)(end - start)) / CLOCKS_PER_SEC;
+        PanPrint("[DEBUG] Parser finished in : %f sec.\n", parserTime);
     }
 #endif
 
@@ -140,18 +170,43 @@ PCoreErrorType RunCore(PanktiCore *core) {
         exit(1);
     }
 
+#if defined(PANKTI_BUILD_DEBUG)
+    if (FLAG_DEBUG_TIMES) {
+        start = clock();
+    }
+#endif
     CompilerCompile(core->compiler, prog);
 
     PObj *comFn = GetCompiledFunction(core->compiler);
+
 #if defined(PANKTI_BUILD_DEBUG)
+    if (FLAG_DEBUG_TIMES) {
+        end = clock();
+    }
     if (FLAG_DEBUG_BYTECODE) {
         DebugBytecode(comFn->v.OComFunction.code, 0);
+    }
+
+    if (FLAG_DEBUG_TIMES) {
+        double compilerTime = ((double)(end - start)) / CLOCKS_PER_SEC;
+        PanPrint("[DEBUG] Compiler finished in : %f sec.\n", compilerTime);
     }
 #endif
     SetupVm(core->vm, core->gc, comFn);
 
+#if defined(PANKTI_BUILD_DEBUG)
+    if (FLAG_DEBUG_TIMES) {
+        start = clock();
+    }
+#endif
     VmRun(core->vm);
-
+#if defined(PANKTI_BUILD_DEBUG)
+    if (FLAG_DEBUG_TIMES) {
+        end = clock();
+        double vmTime = ((double)(end - start)) / CLOCKS_PER_SEC;
+        PanPrint("[DEBUG] VM finished in : %f sec.\n", vmTime);
+    }
+#endif
     if (core->caughtError) {
         PanPrint("Runtime Error found!\n");
         FreeCore(core);
