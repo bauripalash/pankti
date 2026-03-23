@@ -35,7 +35,8 @@ typedef struct PanktiCore {
     // Original script as is
     char *source;
     // Path to script
-    const char *path;
+    const char *scriptPath;
+    char **scriptArgs;
 
     // Has error?
     bool caughtError;
@@ -55,7 +56,7 @@ typedef enum PCoreErrorType {
 
 // Create New Pankti Core
 // `path` = File path of the script
-PanktiCore *NewCore(const char *path);
+PanktiCore *NewCore(const char *scriptPath);
 // Free everything Pankti Core allocated
 void FreeCore(PanktiCore *core);
 // Run the script

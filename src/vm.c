@@ -126,7 +126,7 @@ void VmPrintStackTrace(const PVm *vm) {
             struct OString *name = &fn->strName->v.OString;
             PanFPrint(stderr, "%s(...)", name->value);
         } else {
-            PanFPrint(stderr, "<script> (%s)", vm->core->path);
+            PanFPrint(stderr, "<script> (%s)", vm->core->scriptPath);
         }
         if (posInfo.found) {
             PanFPrint(stderr, " at %llu:%llu\n", posInfo.line, posInfo.gcol);

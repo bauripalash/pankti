@@ -26,13 +26,13 @@
 #include "include/opcode.h"
 #endif
 
-PanktiCore *NewCore(const char *path) {
+PanktiCore *NewCore(const char *scriptPath) {
     PanktiCore *core = PCreate(PanktiCore);
     if (core == NULL) {
         return NULL;
     }
-    core->path = path;
-    core->source = PanReadFile(core->path);
+    core->scriptPath = scriptPath;
+    core->source = PanReadFile(core->scriptPath);
     if (core->source == NULL) {
         PanPrint("Failed to Read Source Code\n");
         PFree(core);
@@ -46,6 +46,9 @@ PanktiCore *NewCore(const char *path) {
 
     core->lexer->core = core;
     core->parser = NULL;
+
+    core->scriptArgs = NULL;
+
     core->caughtError = false;
     core->runtimeError = false;
     core->gc = NewGc();
