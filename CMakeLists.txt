@@ -273,7 +273,6 @@ if(IS_GFX_BUILD)
     add_subdirectory(src/external/tigr)
     target_link_libraries(${PROJECT_NAME} PRIVATE kb)
     target_link_libraries(${PROJECT_NAME} PRIVATE tigr)
-    
 endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE libgrapheme)
