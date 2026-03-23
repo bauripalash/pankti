@@ -47,6 +47,7 @@ PanArgsResult ParsePanArgs(int argc, char **argv, PanktiArgs *out) {
 
     struct optparse opts;
     optparse_init(&opts, argv);
+    opts.permute = 0;
 
     int opt;
     while ((opt = optparse_long(&opts, longopts, NULL)) != -1) {
@@ -102,15 +103,15 @@ PanArgsResult ParsePanArgs(int argc, char **argv, PanktiArgs *out) {
         }
     }
 
-    char *arg = optparse_arg(&opts);
-    if (arg != NULL) {
-        out->scriptPath = arg;
-    }
+    char *scriptArg = optparse_arg(&opts);
+    if (scriptArg != NULL) {
+        out->scriptPath = scriptArg;
 
-    int remaining = argc - opts.optind;
-    if (remaining > 0) {
-        out->scriptArgs = argv + opts.optind;
-        out->scriptArgCount = remaining;
+        int remaining = argc - opts.optind;
+        if (remaining > 0) {
+            out->scriptArgs = argv + opts.optind;
+            out->scriptArgCount = remaining;
+        }
     }
 
     if (out->scriptPath == NULL) {
