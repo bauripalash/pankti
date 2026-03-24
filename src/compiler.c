@@ -216,6 +216,8 @@ static void markLocalInit(PCompiler *comp) {
     comp->locals[comp->localCount - 1].depth = comp->scopeDepth;
 }
 
+
+// Add upvalue to compiler
 static int addUpvalue(PCompiler *comp, u16 index, bool isLocal) {
     struct OComFunction *compFun = &comp->func->v.OComFunction;
     i16 upvalCount = compFun->upvalCount;
@@ -240,13 +242,14 @@ static int addUpvalue(PCompiler *comp, u16 index, bool isLocal) {
     return compFun->upvalCount++;
 }
 
+// Find upvalue in local context and enclosing context
 static int findUpvalue(PCompiler *comp, Token *name) {
     if (comp->enclosing == NULL) { // no outer scope means no local or upvalue
         return -1;
     }
     int local = findLocal(comp->enclosing, name);
     if (local != -1) {
-        addUpvalue(comp, (u16)local, true);
+        return addUpvalue(comp, (u16)local, true);
     }
 
     int upval = findUpvalue(comp->enclosing, name);
