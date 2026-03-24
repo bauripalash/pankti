@@ -27,13 +27,6 @@ Pgc *NewGc(void) {
     gc->objects = NULL;
     gc->stmts = NULL;
     gc->timestamp = (u64)time(NULL);
-    gc->rootEnvs = NULL;
-    gc->rootEnvCount = 0;
-
-    gc->envFreeListCap = GC_ENV_FREELIST_DEF_CAP;
-    gc->envFreeList = PCreateArray(PEnv *, gc->envFreeListCap);
-    gc->envFreeListCount = 0;
-
     return gc;
 }
 
@@ -63,42 +56,7 @@ void FreeGc(Pgc *gc) {
     freeStatements(gc);
     freeObjects(gc);
 
-    if (gc->rootEnvs != NULL && gc->rootEnvCount > 0) {
-        arrfree(gc->rootEnvs);
-    }
-
-    if (gc->envFreeList != NULL) {
-        for (u64 i = 0; i < gc->envFreeListCount; i++) {
-            ReallyFreeEnv(gc->envFreeList[i]);
-        }
-
-        PFree(gc->envFreeList);
-    }
-
     PFree(gc);
-}
-
-void RegisterRootEnv(Pgc *gc, PEnv *env) {
-    if (gc == NULL || env == NULL) {
-        return;
-    }
-
-    arrpush(gc->rootEnvs, env);
-    gc->rootEnvCount++;
-}
-
-void UnregisterRootEnv(Pgc *gc, PEnv *env) {
-    if (gc == NULL || env == NULL) {
-        return;
-    }
-    for (u64 i = 0; i < gc->rootEnvCount; i++) {
-        if (gc->rootEnvs[i] == env) {
-            // With this delswap we don't to move items
-            arrdelswap(gc->rootEnvs, i);
-            break;
-        }
-    }
-    gc->rootEnvCount--;
 }
 void GcCounterNew(Pgc *gc) {
     if (gc == NULL) {
@@ -176,12 +134,6 @@ void CollectGarbage(Pgc *gc) {
 static void markRoots(Pgc *gc) {
     if (gc == NULL) {
         return;
-    }
-
-    if (gc->rootEnvs != NULL && gc->rootEnvCount > 0) {
-        for (u64 i = 0; i < gc->rootEnvCount; i++) {
-            MarkEnvGC(gc, gc->rootEnvs[i]);
-        }
     }
 }
 

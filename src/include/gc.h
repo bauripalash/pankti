@@ -46,8 +46,6 @@ typedef struct Pgc {
     bool stress;
     PObj *objects;
     PStmt *stmts;
-    PEnv **rootEnvs;
-    u64 rootEnvCount;
     // Currently live objects
     u64 objCount;
     // Should we run collector
@@ -55,14 +53,6 @@ typedef struct Pgc {
     // When the objCount reaches here, collect garbage
     u64 nextGc;
     u64 timestamp;
-
-    // Env Free List
-    PEnv **envFreeList;
-    // Size/Count of Env Free List
-    u64 envFreeListCount;
-    // Capacity of Env Free List
-    u64 envFreeListCap;
-
 } Pgc;
 
 Pgc *NewGc(void);

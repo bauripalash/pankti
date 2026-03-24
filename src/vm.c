@@ -42,7 +42,7 @@ void SetupVm(PVm *vm, Pgc *gc, PObj *func) {
     frame->ip = clsObj->v.OClosure.function->v.OComFunction.code->code;
     // func->v.OComFunction.code->code;
     frame->slots = vm->stack;
-    RegisterNatives(vm, NULL);
+    RegisterNatives(vm);
 }
 void FreeVm(PVm *vm) {
     if (vm == NULL) {

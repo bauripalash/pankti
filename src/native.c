@@ -173,7 +173,7 @@ static PValue ntvGetArgs(PVm *vm, PValue *args, u64 argc) {
 
 #define DefStrHash(s, v) ((StrHash(s, DefStrLen(s), v->gc->timestamp)))
 
-void RegisterNatives(PVm *vm, PEnv *env) {
+void RegisterNatives(PVm *vm) {
     if (vm == NULL) {
         return;
     }

@@ -4,10 +4,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "env.h"
-#include "object.h"
-
-void RegisterNatives(PVm *vm, PEnv *env);
+typedef struct PVm PVm;
+void RegisterNatives(PVm *vm);
 
 #ifdef __cplusplus
 }

@@ -3,9 +3,9 @@ set(PANKTI_SRC_FILES
   "${CMAKE_CURRENT_LIST_DIR}/ast.c"
   "${CMAKE_CURRENT_LIST_DIR}/bengali.c"
   "${CMAKE_CURRENT_LIST_DIR}/core.c"
-  "${CMAKE_CURRENT_LIST_DIR}/env.c"
+  #  "${CMAKE_CURRENT_LIST_DIR}/env.c"
   "${CMAKE_CURRENT_LIST_DIR}/flags.c"
-  #"${CMAKE_CURRENT_LIST_DIR}/interpreter.c"
+  #  "${CMAKE_CURRENT_LIST_DIR}/interpreter.c"
   "${CMAKE_CURRENT_LIST_DIR}/lexer.c"
   "${CMAKE_CURRENT_LIST_DIR}/native.c"
   "${CMAKE_CURRENT_LIST_DIR}/object.c"
@@ -54,7 +54,7 @@ set(PANKTI_SRC_FILES
 
 set(PANKTI_HEADER_FILES
   "${CMAKE_CURRENT_LIST_DIR}/include/alloc.h"
-  "${CMAKE_CURRENT_LIST_DIR}/include/ast.h"
+  #  "${CMAKE_CURRENT_LIST_DIR}/include/ast.h"
   "${CMAKE_CURRENT_LIST_DIR}/include/bengali.h"
   "${CMAKE_CURRENT_LIST_DIR}/include/core.h"
   "${CMAKE_CURRENT_LIST_DIR}/include/defaults.h"
