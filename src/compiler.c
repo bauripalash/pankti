@@ -904,7 +904,8 @@ static bool compileFunc(PCompiler *comp, PStmt *stmt) {
     }
     fnObj->v.OComFunction.paramCount = fnStmt->paramCount;
     u16 constIndex = addConstant(comp, MakeObject(fnObj));
-    emitBtU16(comp, fnStmt->name, OP_CONST, constIndex);
+    // emitBtU16(comp, fnStmt->name, OP_CONST, constIndex);
+    emitBtU16(comp, fnStmt->name, OP_CLOSURE, constIndex);
     FreeCompiler(fComp);
     return true;
 }

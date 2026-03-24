@@ -273,6 +273,7 @@ void PrintObject(const PObj *o) {
 
             break;
         }
+        /*
         case OT_FNC: {
             const struct OFunction *func = &o->v.OFunction;
             if (func->name != NULL) {
@@ -280,6 +281,7 @@ void PrintObject(const PObj *o) {
             }
             break;
         }
+        */
         case OT_COMFNC: {
             const struct OComFunction *func = &o->v.OComFunction;
             if (func->strName != NULL) {
@@ -394,6 +396,7 @@ char *ObjToString(PObj *obj) {
             break;
         }
 
+        /*
         case OT_FNC: {
             struct OFunction *fn = &obj->v.OFunction;
             const char *temp =
@@ -401,6 +404,7 @@ char *ObjToString(PObj *obj) {
             result = StrDuplicate(temp, strlen(temp));
             break;
         }
+        */
         case OT_COMFNC: {
             struct OComFunction *fn = &obj->v.OComFunction;
             if (fn->strName != NULL) {
@@ -513,7 +517,7 @@ char *ObjToString(PObj *obj) {
 char *ObjTypeToString(PObjType type) {
     switch (type) {
         case OT_STR: return "String";
-        case OT_FNC: return "Function";
+        // case OT_FNC: return "Function";
         case OT_ARR: return "Array";
         case OT_MAP: return "HashMap";
         case OT_NATIVE: return "Native Func";
@@ -535,7 +539,8 @@ bool IsObjEqual(const PObj *a, const PObj *b) {
             result = StrEqual(a->v.OString.value, b->v.OString.value);
             break;
         }
-        case OT_FNC: result = false; break;
+
+        // case OT_FNC: result = false; break;
         case OT_COMFNC: result = false; break;
         case OT_CLOSURE: result = false; break;
         case OT_ARR: result = false; break; // TODO: fix

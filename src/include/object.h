@@ -53,7 +53,7 @@ typedef enum PObjType {
     // String Object
     OT_STR,
     // Function Object. Used by `OFunction`
-    OT_FNC,
+    // OT_FNC,
     // Compiler Function Object. Used by `OComFunction`
     OT_COMFNC,
     // Array Object. Used by `OArray`
@@ -92,6 +92,7 @@ typedef struct PObj {
             char *value;
             u64 hash;
         } OString;
+        /*
         // Function Object. Type : `OT_FNC`
         // Gets directly translated from Function Statement : `STMT_FUNC`
         struct OFunction {
@@ -107,6 +108,7 @@ typedef struct PObj {
             // Will always be a Block Statement
             PStmt *body;
         } OFunction;
+        */
 
         // Compiled Function Object. Type : `OT_COMFNC`
         struct OComFunction {

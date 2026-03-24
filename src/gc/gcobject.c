@@ -72,6 +72,7 @@ PObj *NewStrObject(Pgc *gc, Token *name, char *value, bool noDup) {
     return o;
 }
 
+/*
 PObj *NewFuncObject(
     Pgc *gc, Token *name, Token **params, PStmt *body, void *env, u64 count
 ) {
@@ -86,6 +87,7 @@ PObj *NewFuncObject(
     o->v.OFunction.paramCount = count;
     return o;
 }
+*/
 
 PObj *NewComFuncObject(Pgc *gc, Token *name) {
     PObj *o = NewObject(gc, OT_COMFNC);
@@ -244,12 +246,14 @@ void FreeObject(Pgc *gc, PObj *o) {
 #endif
 
     switch (o->type) {
+        /*
         case OT_FNC: {
             struct OFunction *f = &o->v.OFunction;
             ReallyFreeEnv(f->env);
             freeBaseObj(o);
             break;
         }
+        */
         case OT_COMFNC: {
             struct OComFunction *f = &o->v.OComFunction;
             FreeBytecode(f->code);

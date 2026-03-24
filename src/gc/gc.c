@@ -249,6 +249,11 @@ static void markObjectChildren(Pgc *gc, PObj *obj) {
             break;
         }
 
+        case OT_CLOSURE: {
+            struct OClosure *cls = &obj->v.OClosure;
+            markObject(gc, cls->function);
+            break;
+        }
         case OT_ARR: {
             struct OArray *arr = &obj->v.OArray;
             for (u64 i = 0; i < arr->count; i++) {
@@ -266,18 +271,20 @@ static void markObjectChildren(Pgc *gc, PObj *obj) {
             }
             break;
         }
-        case OT_FNC: {
-            struct OFunction *func = &obj->v.OFunction;
-            if (func->body) {
-                // MarkStatements
-            }
+            /*
+            case OT_FNC: {
+                struct OFunction *func = &obj->v.OFunction;
+                if (func->body) {
+                    // MarkStatements
+                }
 
-            if (func->env != NULL) {
-                MarkEnvGC(gc, func->env);
-            }
+                if (func->env != NULL) {
+                    MarkEnvGC(gc, func->env);
+                }
 
-            break;
-        }
+                break;
+            }
+            */
 
         case OT_COMFNC: {
             struct OComFunction *func = &obj->v.OComFunction;

@@ -34,9 +34,13 @@ PVm *NewVm(PanktiCore *core) {
 void SetupVm(PVm *vm, Pgc *gc, PObj *func) {
     vm->gc = gc;
     VmPush(vm, MakeObject(func));
+    PObj *clsObj = NewClosureObject(gc, func);
+    VmPop(vm);
+    VmPush(vm, MakeObject(clsObj));
     PCallFrame *frame = &vm->frames[vm->frameCount++];
-    frame->f = func;
-    frame->ip = func->v.OComFunction.code->code;
+    frame->cls = clsObj;
+    frame->ip = clsObj->v.OClosure.function->v.OComFunction.code->code;
+    // func->v.OComFunction.code->code;
     frame->slots = vm->stack;
     RegisterNatives(vm, NULL);
 }
@@ -79,7 +83,7 @@ static VmPosInfo vmGetPosInfo(const PVm *vm, const PCallFrame *frame) {
     if (vm == NULL || frame == NULL) {
         return (VmPosInfo){.found = false};
     }
-    PBytecode *bt = frame->f->v.OComFunction.code;
+    PBytecode *bt = frame->cls->v.OClosure.function->v.OComFunction.code;
     u64 errOffset = (frame->ip - bt->code) - 1;
     u64 posCount = (u64)arrlen(bt->posTable);
     if (posCount == 0) {
@@ -119,7 +123,8 @@ void VmPrintStackTrace(const PVm *vm) {
     for (int i = vm->frameCount - 1; i >= 0; i--) {
         const PCallFrame *frame = &vm->frames[i];
         VmPosInfo posInfo = vmGetPosInfo(vm, frame);
-        struct OComFunction *fn = &frame->f->v.OComFunction;
+        struct OClosure *cls = &frame->cls->v.OClosure;
+        struct OComFunction *fn = &cls->function->v.OComFunction;
 
         PanFPrint(stderr, "in ");
         if (fn->strName != NULL) {
@@ -311,14 +316,15 @@ static bool vmCompareOp(PVm *vm, PanOpCode op) {
     }
 }
 
-static bool vmCallFunction(PVm *vm, PObj *funcObj, int argCount) {
-    if (funcObj->v.OComFunction.paramCount != (u64)argCount) {
+static bool vmCallFunction(PVm *vm, PObj *clsObj, int argCount) {
+    struct OClosure *cls = &clsObj->v.OClosure;
+    if (cls->function->v.OComFunction.paramCount != (u64)argCount) {
         VmError(vm, "Function call argument count != function param count");
         return false;
     }
     PCallFrame *frame = &vm->frames[vm->frameCount++];
-    frame->f = funcObj;
-    frame->ip = funcObj->v.OComFunction.code->code;
+    frame->cls = clsObj;
+    frame->ip = cls->function->v.OComFunction.code->code;
     frame->slots = vm->sp - argCount - 1;
     return true;
 }
@@ -344,7 +350,7 @@ static bool vmCallNative(PVm *vm, PObj *funcObj, int argc) {
 }
 
 static bool vmCallValue(PVm *vm, PValue callee, int argCount) {
-    if (IsValueObjType(callee, OT_COMFNC)) {
+    if (IsValueObjType(callee, OT_CLOSURE)) {
         return vmCallFunction(vm, ValueAsObj(callee), argCount);
     } else if (IsValueObjType(callee, OT_NATIVE)) {
         return vmCallNative(vm, ValueAsObj(callee), argCount);
@@ -508,12 +514,15 @@ static finline u16 vmReadU16(PVm *vm, PCallFrame *frame) {
 }
 
 static finline PValue vmReadConst(PVm *vm, PCallFrame *frame) {
-    return frame->f->v.OComFunction.code->constPool[vmReadU16(vm, frame)];
+    return frame->cls->v.OClosure.function->v.OComFunction.code
+        ->constPool[vmReadU16(vm, frame)];
+    // return frame->f->v.OComFunction.code->constPool[vmReadU16(vm, frame)];
 }
 
 static finline PObj *vmReadObjConst(PVm *vm, PCallFrame *frame) {
     return ValueAsObj(
-        frame->f->v.OComFunction.code->constPool[vmReadU16(vm, frame)]
+        vmReadConst(vm, frame)
+        // frame->f->v.OComFunction.code->constPool[vmReadU16(vm, frame)]
     );
 }
 
@@ -703,7 +712,7 @@ void VmRun(PVm *vm) {
             case OP_CALL: {
                 u16 argCount = vmReadU16(vm, frame);
                 PValue callee = VmPeek(vm, argCount);
-                if (!IsValueObjType(callee, OT_COMFNC) &&
+                if (!IsValueObjType(callee, OT_CLOSURE) &&
                     !IsValueObjType(callee, OT_NATIVE)) {
                     VmError(vm, "Can only call functions");
                     return;
@@ -721,6 +730,19 @@ void VmRun(PVm *vm) {
                 }
 
                 frame = &vm->frames[vm->frameCount - 1];
+                break;
+            }
+
+            case OP_CLOSURE: {
+                PValue funcVal = vmReadConst(vm, frame);
+                if (!IsValueObjType(funcVal, OT_COMFNC)) {
+                    VmError(vm, "Closures can only created for functions");
+                    return;
+                }
+
+                PObj *objClosure =
+                    NewClosureObject(vm->gc, ValueAsObj(funcVal));
+                VmPush(vm, MakeObject(objClosure));
                 break;
             }
 

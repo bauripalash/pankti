@@ -96,6 +96,7 @@ PObj *NewComFuncObject(Pgc *gc, Token *name);
 // Create New Closure Object
 PObj *NewClosureObject(Pgc *gc, PObj *function);
 
+/*
 // Create Function Statement Object
 // `name` = Name of the function
 // `params` = Token array of parameters
@@ -105,6 +106,7 @@ PObj *NewClosureObject(Pgc *gc, PObj *function);
 PObj *NewFuncObject(
     Pgc *gc, Token *name, Token **params, PStmt *body, void *env, u64 count
 );
+*/
 
 // Create New Array Object
 PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, u64 count);

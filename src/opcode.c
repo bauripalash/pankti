@@ -46,6 +46,7 @@ static const POpDefinition opDefs[] = {
     [OP_POP_JUMP_IF_TRUE] = {"OpPopJumpIfTrue", 1, {2}},
     [OP_LOOP] = {"OpLoop", 1, {2}},
     [OP_CALL] = {"OpCall", 1, {2}},
+    [OP_CLOSURE] = {"OpClosure", 1, {2}},
     [OP_SUBSCRIPT] = {"OpSubscript", 0, {0}},
     [OP_SUBS_ASSIGN] = {"OpSubsAssign", 0, {0}},
     [OP_IMPORT] = {"OpImport", 1, {2}},
@@ -199,6 +200,14 @@ u64 DisasmBytecode(const PBytecode *bt, u64 offset) {
         case OP_MAP:
         case OP_ARRAY: {
             return disasmComplexDSIns(def.name, offset, bt);
+        }
+        case OP_CLOSURE: {
+            u16 constant = ReadU16(bt, offset + 1);
+            PanPrint("%s%s%s", TermGreen(), "OpClosure", TermReset());
+            PanPrint("%4d ", constant);
+            PrintValue(bt->constPool[constant]);
+            PanPrint("\n");
+            return offset + 3;
         }
     }
     return offset + 1;

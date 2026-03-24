@@ -54,6 +54,7 @@ typedef enum PanOpCode {
     // Op Jump but Backwards
     OP_LOOP,
     OP_CALL,
+    OP_CLOSURE,
     // indexing or subscript
     OP_SUBSCRIPT,
     // Subscript/index assignment

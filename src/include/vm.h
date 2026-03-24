@@ -45,7 +45,7 @@ typedef struct ModProxyEntry {
 } ModProxyEntry;
 
 typedef struct PCallFrame {
-    PObj *f;
+    PObj *cls;
     u8 *ip;
     PValue *slots;
 } PCallFrame;
