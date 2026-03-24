@@ -48,6 +48,7 @@ PanktiCore *NewCore(const char *scriptPath) {
     core->parser = NULL;
 
     core->scriptArgs = NULL;
+    core->scriptArgCount = 0;
 
     core->caughtError = false;
     core->runtimeError = false;

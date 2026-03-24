@@ -1,4 +1,7 @@
 #include "include/native.h"
+#include "external/stb/stb_ds.h"
+#include "include/compiler.h"
+#include "include/core.h"
 #include "include/env.h"
 #include "include/gc.h"
 #include "include/object.h"
@@ -7,6 +10,7 @@
 #include "include/ptypes.h"
 #include "include/utils.h"
 #include "include/vm.h"
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <time.h>
@@ -30,6 +34,10 @@
 #define NAME_ERROR_EN      "error"
 #define NAME_ERROR_BN      "গোলমাল"
 #define NAME_ERROR_PN      "golmal"
+
+#define NAME_ARGS_EN       "args"
+#define NAME_ARGS_BN       "args"
+#define NAME_ARGS_PN       "args"
 
 #define NATIVE_MODULE_NAME "সাধারণ"
 
@@ -129,6 +137,40 @@ static PValue ntvError(PVm *vm, PValue *args, u64 argc) {
     return MakeNil();
 }
 
+static PValue ntvGetArgs(PVm *vm, PValue *args, u64 argc) {
+    (void)args;
+    (void)argc;
+    PanktiCore *core = vm->core;
+
+    int sargCount = core->scriptArgCount;
+    char **sargs = core->scriptArgs;
+
+    if (sargCount == 0 || sargs == NULL) {
+        PObj *emptyArray = NewArrayObject(vm->gc, NULL, NULL, 0);
+
+        if (emptyArray == NULL) {
+            VmError(vm, "Failed to create array for arguments list");
+            return MakeNil();
+        }
+
+        return MakeObject(emptyArray);
+    }
+
+    PValue *items = NULL;
+    for (int i = 0; i < sargCount; i++) {
+        PObj *strObj = NewStrObject(vm->gc, NULL, sargs[i], false);
+        if (strObj == NULL) {
+            // handle error
+        }
+
+        arrpush(items, MakeObject(strObj));
+    }
+
+    PObj *arr = NewArrayObject(vm->gc, NULL, items, sargCount);
+
+    return MakeObject(arr);
+}
+
 #define DefStrHash(s, v) ((StrHash(s, DefStrLen(s), v->gc->timestamp)))
 
 void RegisterNatives(PVm *vm, PEnv *env) {
@@ -156,6 +198,9 @@ void RegisterNatives(PVm *vm, PEnv *env) {
         MakeStdlibEntry(NAME_ERROR_EN, ntvError, 1),
         MakeStdlibEntry(NAME_ERROR_BN, ntvError, 1),
         MakeStdlibEntry(NAME_ERROR_PN, ntvError, 1),
+        MakeStdlibEntry(NAME_ARGS_EN, ntvGetArgs, -1),
+        MakeStdlibEntry(NAME_ARGS_BN, ntvGetArgs, -1),
+        MakeStdlibEntry(NAME_ARGS_PN, ntvGetArgs, -1),
     };
 
     u64 count = ArrCount(nativeEntries);

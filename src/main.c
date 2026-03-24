@@ -66,6 +66,7 @@ int main(int argc, char **argv) {
         }
 
         PanktiCore *core = NewCore(filePath);
+        core->scriptArgCount = args.scriptArgCount;
         core->scriptArgs = args.scriptArgs;
 
         if (core == NULL) {

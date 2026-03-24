@@ -37,6 +37,7 @@ typedef struct PanktiCore {
     // Path to script
     const char *scriptPath;
     char **scriptArgs;
+    int scriptArgCount;
 
     // Has error?
     bool caughtError;
