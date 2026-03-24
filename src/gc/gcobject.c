@@ -115,6 +115,22 @@ PObj *NewComFuncObject(Pgc *gc, Token *name) {
     return o;
 }
 
+PObj *NewClosureObject(Pgc *gc, PObj *function) {
+
+    // Temp solution
+    if (function->type != OT_COMFNC) {
+        return NULL;
+    }
+
+    PObj *o = NewObject(gc, OT_CLOSURE);
+    if (o == NULL) {
+        return NULL;
+    }
+
+    o->v.OClosure.function = function;
+    return o;
+}
+
 PObj *NewArrayObject(Pgc *gc, Token *op, PValue *items, u64 count) {
     PObj *o = NewObject(gc, OT_ARR);
     if (o == NULL) {
@@ -237,6 +253,10 @@ void FreeObject(Pgc *gc, PObj *o) {
         case OT_COMFNC: {
             struct OComFunction *f = &o->v.OComFunction;
             FreeBytecode(f->code);
+            freeBaseObj(o);
+            break;
+        }
+        case OT_CLOSURE: {
             freeBaseObj(o);
             break;
         }

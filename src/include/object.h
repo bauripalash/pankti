@@ -64,6 +64,8 @@ typedef enum PObjType {
     OT_NATIVE,
     // Module Object
     OT_MODULE,
+    // Closure Object
+    OT_CLOSURE,
     // UpValue Object
     OT_UPVAL,
 } PObjType;
@@ -114,6 +116,10 @@ typedef struct PObj {
             u64 paramCount;
             PBytecode *code;
         } OComFunction;
+
+        struct OClosure {
+            PObj *function;
+        } OClosure;
 
         struct OArray {
             Token *op;

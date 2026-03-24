@@ -1,2 +1,13 @@
-?"hello"
-?args()
+kaj makeCls(value)
+    kaj cls()
+        ?value
+    sesh
+
+    ferao cls
+sesh
+
+dhori d = makeCls("doughnut")
+dhori b = makeCls("bagel")
+
+d()
+b()

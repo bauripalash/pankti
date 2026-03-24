@@ -93,6 +93,9 @@ PObj *NewStrObject(Pgc *gc, Token *name, char *value, bool noDup);
 // Create New Compiled Function Object
 PObj *NewComFuncObject(Pgc *gc, Token *name);
 
+// Create New Closure Object
+PObj *NewClosureObject(Pgc *gc, PObj *function);
+
 // Create Function Statement Object
 // `name` = Name of the function
 // `params` = Token array of parameters

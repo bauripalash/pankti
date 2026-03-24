@@ -289,6 +289,11 @@ void PrintObject(const PObj *o) {
             }
             break;
         }
+        case OT_CLOSURE: {
+            const struct OClosure *cls = &o->v.OClosure;
+            PrintObject(cls->function);
+            break;
+        }
         case OT_ARR: {
             const struct OArray *arr = &o->v.OArray;
             PanPrint("[");
@@ -410,6 +415,11 @@ char *ObjToString(PObj *obj) {
 
             break;
         }
+        case OT_CLOSURE: {
+            struct OClosure *cls = &obj->v.OClosure;
+            result = ObjToString(cls->function);
+            break;
+        }
         case OT_ARR: {
             struct OArray *arr = &obj->v.OArray;
 
@@ -510,6 +520,7 @@ char *ObjTypeToString(PObjType type) {
         case OT_MODULE: return "Module";
         case OT_UPVAL: return "Upvalue";
         case OT_COMFNC: return "Function";
+        case OT_CLOSURE: return "Closure";
     }
     return "Unknown"; // should never reach here
 }
@@ -526,6 +537,7 @@ bool IsObjEqual(const PObj *a, const PObj *b) {
         }
         case OT_FNC: result = false; break;
         case OT_COMFNC: result = false; break;
+        case OT_CLOSURE: result = false; break;
         case OT_ARR: result = false; break; // TODO: fix
         case OT_NATIVE: result = (a->v.ONative.fn == b->v.ONative.fn); break;
         case OT_MAP: result = false; break;
