@@ -52,8 +52,6 @@ typedef PValue (*NativeFn)(PVm *vm, PValue *args, u64 argc);
 typedef enum PObjType {
     // String Object
     OT_STR,
-    // Function Object. Used by `OFunction`
-    // OT_FNC,
     // Compiler Function Object. Used by `OComFunction`
     OT_COMFNC,
     // Array Object. Used by `OArray`
@@ -92,23 +90,6 @@ typedef struct PObj {
             char *value;
             u64 hash;
         } OString;
-        /*
-        // Function Object. Type : `OT_FNC`
-        // Gets directly translated from Function Statement : `STMT_FUNC`
-        struct OFunction {
-            // Name of the Function. (Raw Token)
-            Token *name;
-            // Token array of parameters
-            Token **params;
-            // Count of parameters
-            u64 paramCount;
-            // Function Environment. Will Always have a parent.
-            PEnv *env;
-            // Array of Statements to execute on demand.
-            // Will always be a Block Statement
-            PStmt *body;
-        } OFunction;
-        */
 
         // Compiled Function Object. Type : `OT_COMFNC`
         struct OComFunction {

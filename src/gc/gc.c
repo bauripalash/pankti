@@ -271,21 +271,6 @@ static void markObjectChildren(Pgc *gc, PObj *obj) {
             }
             break;
         }
-            /*
-            case OT_FNC: {
-                struct OFunction *func = &obj->v.OFunction;
-                if (func->body) {
-                    // MarkStatements
-                }
-
-                if (func->env != NULL) {
-                    MarkEnvGC(gc, func->env);
-                }
-
-                break;
-            }
-            */
-
         case OT_COMFNC: {
             struct OComFunction *func = &obj->v.OComFunction;
             if (func->strName != NULL) {

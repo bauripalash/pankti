@@ -273,15 +273,6 @@ void PrintObject(const PObj *o) {
 
             break;
         }
-        /*
-        case OT_FNC: {
-            const struct OFunction *func = &o->v.OFunction;
-            if (func->name != NULL) {
-                PanPrint("<fn %s>", func->name->lexeme);
-            }
-            break;
-        }
-        */
         case OT_COMFNC: {
             const struct OComFunction *func = &o->v.OComFunction;
             if (func->strName != NULL) {
@@ -395,16 +386,6 @@ char *ObjToString(PObj *obj) {
             result = StrDuplicate(str->value, StrLength(str->value));
             break;
         }
-
-        /*
-        case OT_FNC: {
-            struct OFunction *fn = &obj->v.OFunction;
-            const char *temp =
-                StrFormat("<%s '%s'>", KW_BN_FUNC, fn->name->lexeme);
-            result = StrDuplicate(temp, strlen(temp));
-            break;
-        }
-        */
         case OT_COMFNC: {
             struct OComFunction *fn = &obj->v.OComFunction;
             if (fn->strName != NULL) {
@@ -540,7 +521,6 @@ bool IsObjEqual(const PObj *a, const PObj *b) {
             break;
         }
 
-        // case OT_FNC: result = false; break;
         case OT_COMFNC: result = false; break;
         case OT_CLOSURE: result = false; break;
         case OT_ARR: result = false; break; // TODO: fix
