@@ -40,7 +40,6 @@ void SetupVm(PVm *vm, Pgc *gc, PObj *func) {
     PCallFrame *frame = &vm->frames[vm->frameCount++];
     frame->cls = clsObj;
     frame->ip = clsObj->v.OClosure.function->v.OComFunction.code->code;
-    // func->v.OComFunction.code->code;
     frame->slots = vm->stack;
     RegisterNatives(vm);
 }
@@ -742,6 +741,13 @@ void VmRun(PVm *vm) {
 
                 PObj *objClosure =
                     NewClosureObject(vm->gc, ValueAsObj(funcVal));
+                struct OClosure *cls = &objClosure->v.OClosure;
+
+                for (i16 i = 0; i < cls->function->v.OComFunction.upvalCount;
+                     i++) {
+                    u16 isLocal = vmReadU16(vm, frame);
+                    u16 index = vmReadU16(vm, frame);
+                }
                 VmPush(vm, MakeObject(objClosure));
                 break;
             }

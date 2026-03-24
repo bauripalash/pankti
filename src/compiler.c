@@ -216,7 +216,6 @@ static void markLocalInit(PCompiler *comp) {
     comp->locals[comp->localCount - 1].depth = comp->scopeDepth;
 }
 
-
 // Add upvalue to compiler
 static int addUpvalue(PCompiler *comp, u16 index, bool isLocal) {
     struct OComFunction *compFun = &comp->func->v.OComFunction;
@@ -964,6 +963,11 @@ static bool compileFunc(PCompiler *comp, PStmt *stmt) {
     u16 constIndex = addConstant(comp, MakeObject(fnObj));
     // emitBtU16(comp, fnStmt->name, OP_CONST, constIndex);
     emitBtU16(comp, fnStmt->name, OP_CLOSURE, constIndex);
+
+    for (i16 i = 0; i < fnObj->v.OComFunction.upvalCount; i++) {
+        EmitRawU16(getbt(comp), comp->upvals[i].isLocal ? 1 : 0);
+        EmitRawU16(getbt(comp), comp->upvals[i].index);
+    }
 
     if (FLAG_DEBUG_BYTECODE) {
         PanPrint("== FUNC %s ==\n", stmt->op->lexeme);

@@ -206,10 +206,32 @@ u64 DisasmBytecode(const PBytecode *bt, u64 offset) {
             return disasmComplexDSIns(def.name, offset, bt);
         }
         case OP_CLOSURE: {
-            u16 constant = ReadU16(bt, offset + 1);
-            PanPrint("%s%s%s", TermGreen(), "OpClosure", TermReset());
-            PanPrint("%4d ", constant);
-            PrintValue(bt->constPool[constant]);
+            u16 constIndex = ReadU16(bt, offset + 1);
+            PanPrint(
+                "%s%s%s %d", TermGreen(), "OpClosure", TermReset(), constIndex
+            );
+            if (bt->constPool) {
+                PObj *fnObj = ValueAsObj(bt->constPool[constIndex]);
+                struct OComFunction *fn = &fnObj->v.OComFunction;
+                i16 upvalCount = fn->upvalCount;
+                if (upvalCount > 0) {
+                    PanPrint(" [%d upvalues]\n", (int)upvalCount);
+                } else {
+                    PanPrint("\n");
+                }
+
+                u64 cur = offset + 3;
+                for (i16 i = 0; i < upvalCount; i++) {
+                    u16 isLocal = ReadU16RawCode(bt->code, cur);
+                    u16 index = ReadU16RawCode(bt->code, cur + 2);
+                    PanPrint(
+                        "      | %s %d\n", isLocal ? "local" : "upvalue", index
+                    );
+                    cur += 4;
+                }
+
+                return cur;
+            }
             PanPrint("\n");
             return offset + 3;
         }

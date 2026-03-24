@@ -10,7 +10,6 @@ extern "C" {
 #include <stdint.h>
 #include <string.h>
 
-#include "ast.h"
 #include "ptypes.h"
 #include "token.h"
 

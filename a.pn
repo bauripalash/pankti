@@ -2,6 +2,8 @@ kaj x(l)
     kaj y()
         ?l
     sesh
+    return y
 sesh
 
-x(1)
+let p = x(1)
+?p()
