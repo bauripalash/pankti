@@ -1,4 +1,7 @@
-kaj x()
-    ?1
+kaj x(l)
+    kaj y()
+        ?l
+    sesh
 sesh
-x()
+
+x(1)

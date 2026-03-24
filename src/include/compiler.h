@@ -51,6 +51,8 @@ typedef struct PCompiler {
     PLocal locals[MAX_COMPILER_LOCAL_COUNT];
     // How many locals are currently there in locals array
     int localCount;
+
+    UpValue upvals[UINT8_MAX];
     // Current compiling scope depth
     // `0` means top level script
     // the more deep we the go more scopeDepth is increased

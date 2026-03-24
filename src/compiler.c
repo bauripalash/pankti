@@ -4,6 +4,7 @@
 #include "include/ast.h"
 #include "include/compiler_errors.h"
 #include "include/core.h"
+#include "include/flags.h"
 #include "include/gc.h"
 #include "include/object.h"
 #include "include/opcode.h"
@@ -16,6 +17,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 #define MAX_CONST_COUNT 65535
@@ -212,6 +214,47 @@ static void markLocalInit(PCompiler *comp) {
         return;
     }
     comp->locals[comp->localCount - 1].depth = comp->scopeDepth;
+}
+
+static int addUpvalue(PCompiler *comp, u16 index, bool isLocal) {
+    struct OComFunction *compFun = &comp->func->v.OComFunction;
+    i16 upvalCount = compFun->upvalCount;
+
+    for (i16 i = 0; i < upvalCount; i++) {
+        UpValue *upval = &comp->upvals[i];
+        if (upval->index == index && upval->isLocal == isLocal) {
+            return i;
+        }
+    }
+
+    if (upvalCount == UINT8_MAX) {
+        cmpError(
+            comp, compFun->rawName,
+            "Internal Error : Too many closure variables in function"
+        );
+        return 0;
+    }
+
+    comp->upvals[upvalCount].isLocal = isLocal;
+    comp->upvals[upvalCount].index = index;
+    return compFun->upvalCount++;
+}
+
+static int findUpvalue(PCompiler *comp, Token *name) {
+    if (comp->enclosing == NULL) { // no outer scope means no local or upvalue
+        return -1;
+    }
+    int local = findLocal(comp->enclosing, name);
+    if (local != -1) {
+        addUpvalue(comp, (u16)local, true);
+    }
+
+    int upval = findUpvalue(comp->enclosing, name);
+    if (upval != -1) {
+        return addUpvalue(comp, (u16)upval, false);
+    }
+
+    return -1;
 }
 
 // Emit return opcode
@@ -500,6 +543,12 @@ static bool compileVariableExpr(PCompiler *comp, PExpr *expr) {
         return true;
     }
 
+    int upvalIndex = findUpvalue(comp, var->name);
+    if (upvalIndex != -1) {
+        emitBtU16(comp, var->name, OP_GET_UPVAL, upvalIndex);
+        return true;
+    }
+
     u16 constIndex = addIdentConst(comp, var->name);
     emitBtU16(comp, var->name, OP_GET_GLOBAL, constIndex);
     return true;
@@ -516,6 +565,12 @@ static bool cmpVariableAssign(PCompiler *comp, PExpr *expr) {
     if (localIndex != -1 && localIndex != -2) {
         emitBtU16(comp, assign->op, OP_SET_LOCAL, localIndex);
         return true;
+    }
+
+    Token *varName = assign->name->exp.EVariable.name;
+    int upvalIndex = findUpvalue(comp, varName);
+    if (upvalIndex != -1) {
+        emitBtU16(comp, varName, OP_SET_UPVAL, upvalIndex);
     }
 
     u16 constIndex = addIdentConst(comp, assign->name->exp.EVariable.name);
@@ -906,6 +961,12 @@ static bool compileFunc(PCompiler *comp, PStmt *stmt) {
     u16 constIndex = addConstant(comp, MakeObject(fnObj));
     // emitBtU16(comp, fnStmt->name, OP_CONST, constIndex);
     emitBtU16(comp, fnStmt->name, OP_CLOSURE, constIndex);
+
+    if (FLAG_DEBUG_BYTECODE) {
+        PanPrint("== FUNC %s ==\n", stmt->op->lexeme);
+        DebugBytecode(fnObj->v.OComFunction.code, 0);
+        PanPrint("== END  %s ==\n", stmt->op->lexeme);
+    }
     FreeCompiler(fComp);
     return true;
 }

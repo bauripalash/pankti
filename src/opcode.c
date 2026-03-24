@@ -40,6 +40,8 @@ static const POpDefinition opDefs[] = {
     [OP_SET_GLOBAL] = {"OpSetGlobal", 1, {2}},
     [OP_GET_LOCAL] = {"OpGetLocal", 1, {2}},
     [OP_SET_LOCAL] = {"OpSetLocal", 1, {2}},
+    [OP_GET_UPVAL] = {"OpGetUpVal", 1, {2}},
+    [OP_SET_UPVAL] = {"OpSetUpVal", 1, {2}},
     [OP_JUMP_IF_FALSE] = {"OpJumpIfFalse", 1, {2}},
     [OP_JUMP] = {"OpJump", 1, {2}},
     [OP_POP_JUMP_IF_FALSE] = {"OpPopJumpIfFalse", 1, {2}},
@@ -194,6 +196,8 @@ u64 DisasmBytecode(const PBytecode *bt, u64 offset) {
 
         case OP_SET_LOCAL:
         case OP_GET_LOCAL:
+        case OP_SET_UPVAL:
+        case OP_GET_UPVAL:
         case OP_CALL: {
             return disasmBytesIns(def.name, offset, bt);
         }

@@ -75,6 +75,11 @@ typedef struct MapEntry {
     PValue value;
 } MapEntry;
 
+typedef struct UpValue {
+    u16 index;
+    bool isLocal;
+} UpValue;
+
 // Pankti Object
 typedef struct PObj {
     // Pankti Object Type
@@ -97,6 +102,7 @@ typedef struct PObj {
             // Will be OString
             PObj *strName;
             u64 paramCount;
+            i16 upvalCount;
             PBytecode *code;
         } OComFunction;
 

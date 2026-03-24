@@ -87,6 +87,7 @@ PObj *NewComFuncObject(Pgc *gc, Token *name) {
 
     o->v.OComFunction.code = btCode;
     o->v.OComFunction.paramCount = 0;
+    o->v.OComFunction.upvalCount = 0;
     o->v.OComFunction.strName = NULL;
 
     if (name != NULL) {
