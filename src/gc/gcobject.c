@@ -107,6 +107,14 @@ PObj *NewClosureObject(Pgc *gc, PObj *function) {
     if (function->type != OT_COMFNC) {
         return NULL;
     }
+    struct OComFunction *fn = &function->v.OComFunction;
+    PObj **upvals = PCreateArray(PObj *, fn->upvalCount);
+
+    // TODO: error check
+
+    for (i16 i = 0; i < fn->upvalCount; i++) {
+        upvals[i] = NULL;
+    }
 
     PObj *o = NewObject(gc, OT_CLOSURE);
     if (o == NULL) {
@@ -114,6 +122,8 @@ PObj *NewClosureObject(Pgc *gc, PObj *function) {
     }
 
     o->v.OClosure.function = function;
+    o->v.OClosure.upvals = upvals;
+    o->v.OClosure.upvalCount = fn->upvalCount;
     return o;
 }
 
@@ -237,6 +247,9 @@ void FreeObject(Pgc *gc, PObj *o) {
             break;
         }
         case OT_CLOSURE: {
+            if (o->v.OClosure.upvals != NULL) {
+                PFree(o->v.OClosure.upvals);
+            }
             freeBaseObj(o);
             break;
         }

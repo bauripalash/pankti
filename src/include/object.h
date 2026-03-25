@@ -107,6 +107,8 @@ typedef struct PObj {
 
         struct OClosure {
             PObj *function;
+            PObj **upvals;
+            i16 upvalCount;
         } OClosure;
 
         struct OArray {
