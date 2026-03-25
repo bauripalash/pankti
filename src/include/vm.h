@@ -81,6 +81,7 @@ typedef struct PVm {
     Pgc *gc;
     // Globals hash table
     SymbolTable *globals;
+    PObj *openUpvals;
 
     // Link to pankti core
     PanktiCore *core;

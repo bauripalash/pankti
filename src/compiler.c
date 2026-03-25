@@ -175,7 +175,12 @@ static int endScope(PCompiler *comp, Token *op) {
 
     while (comp->localCount > 0 &&
            comp->locals[comp->localCount - 1].depth > comp->scopeDepth) {
-        emitBt(comp, op, OP_POP);
+
+        if (comp->locals[comp->localCount - 1].isCaptured) {
+            emitBt(comp, op, OP_CLS_UPVAL);
+        } else {
+            emitBt(comp, op, OP_POP);
+        }
         comp->localCount--;
     }
 

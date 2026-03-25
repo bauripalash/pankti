@@ -28,6 +28,7 @@ PVm *NewVm(PanktiCore *core) {
     vm->modProxiesCount = 0;
     vm->modProxies = NULL;
     vm->sp = vm->stack;
+    vm->openUpvals = NULL;
     return vm;
 }
 
@@ -504,8 +505,37 @@ static bool vmImportModule(PVm *vm, PValue name) {
 }
 
 static PObj *vmCaptureUpval(PVm *vm, PValue *local) {
+
+    PObj *prevUpval = NULL;
+    PObj *upval = vm->openUpvals;
+
+    while (upval != NULL && upval->v.OUpval.location > local) {
+        prevUpval = upval;
+        upval = upval->v.OUpval.next;
+    }
+
+    if (upval != NULL && upval->v.OUpval.location == local) {
+        return upval;
+    }
+
     PObj *newUpval = NewUpvalueObject(vm->gc, local);
+    newUpval->v.OUpval.next = upval;
+    if (prevUpval == NULL) {
+        vm->openUpvals = newUpval;
+    } else {
+        prevUpval->next = newUpval;
+    }
     return newUpval;
+}
+
+static void closeUpvals(PVm *vm, PValue *last) {
+    while (vm->openUpvals != NULL &&
+           vm->openUpvals->v.OUpval.location >= last) {
+        PObj *upval = vm->openUpvals;
+        upval->v.OUpval.closed = *upval->v.OUpval.location;
+        upval->v.OUpval.location = &upval->v.OUpval.closed;
+        vm->openUpvals = upval->v.OUpval.next;
+    }
 }
 
 static finline u8 vmReadByte(PVm *vm, PCallFrame *frame) {
@@ -538,6 +568,7 @@ void VmRun(PVm *vm) {
         switch (ins = vmReadByte(vm, frame)) {
             case OP_RETURN: {
                 PValue result = VmPop(vm);
+                closeUpvals(vm, frame->slots);
                 vm->frameCount--;
                 if (vm->frameCount == 0) {
                     VmPop(vm);
@@ -774,6 +805,12 @@ void VmRun(PVm *vm) {
                 u16 slot = vmReadU16(vm, frame);
                 *frame->cls->v.OClosure.upvals[slot]->v.OUpval.location =
                     VmPeek(vm, 0);
+                break;
+            }
+
+            case OP_CLS_UPVAL: {
+                closeUpvals(vm, vm->stack - 1);
+                VmPop(vm);
                 break;
             }
 

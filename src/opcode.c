@@ -49,6 +49,7 @@ static const POpDefinition opDefs[] = {
     [OP_LOOP] = {"OpLoop", 1, {2}},
     [OP_CALL] = {"OpCall", 1, {2}},
     [OP_CLOSURE] = {"OpClosure", 1, {2}},
+    [OP_CLS_UPVAL] = {"OpClsUpval", 0, {0}},
     [OP_SUBSCRIPT] = {"OpSubscript", 0, {0}},
     [OP_SUBS_ASSIGN] = {"OpSubsAssign", 0, {0}},
     [OP_IMPORT] = {"OpImport", 1, {2}},
@@ -170,7 +171,8 @@ u64 DisasmBytecode(const PBytecode *bt, u64 offset) {
         case OP_DEBUG:
         case OP_NOT:
         case OP_SUBSCRIPT:
-        case OP_SUBS_ASSIGN: {
+        case OP_SUBS_ASSIGN:
+        case OP_CLS_UPVAL: {
             return disasmSimpleIns(def.name, offset);
         }
 

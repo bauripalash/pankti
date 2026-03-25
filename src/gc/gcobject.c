@@ -211,6 +211,8 @@ PObj *NewUpvalueObject(Pgc *gc, PValue *slot) {
         return NULL;
     }
     o->v.OUpval.location = slot;
+    o->v.OUpval.next = NULL;
+    o->v.OUpval.closed = MakeNil();
     return o;
 }
 

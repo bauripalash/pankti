@@ -1,11 +1,24 @@
-kaj outer()
-    dhori x = "outside"
-    kaj inner()
-        ?x
-    sesh
+let globalOne = nil
+let globalTwo = nil
 
-    return inner
+kaj main()
+  {
+    let a = "one"
+    kaj one()
+      ?a
+    end
+    globalOne = one
+  }
+
+  {
+    let a = "two"
+    kaj two()
+      ?a
+    end
+    globalTwo = two
+  }
 sesh
 
-let p = outer()
-p()
+main()
+globalOne()
+globalTwo()
