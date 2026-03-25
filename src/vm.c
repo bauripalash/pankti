@@ -503,6 +503,11 @@ static bool vmImportModule(PVm *vm, PValue name) {
     return true;
 }
 
+static PObj *vmCaptureUpval(PVm *vm, PValue *local) {
+    PObj *newUpval = NewUpvalueObject(vm->gc, local);
+    return newUpval;
+}
+
 static finline u8 vmReadByte(PVm *vm, PCallFrame *frame) {
     return *frame->ip++;
 }
@@ -743,12 +748,32 @@ void VmRun(PVm *vm) {
                     NewClosureObject(vm->gc, ValueAsObj(funcVal));
                 struct OClosure *cls = &objClosure->v.OClosure;
 
-                for (i16 i = 0; i < cls->function->v.OComFunction.upvalCount;
-                     i++) {
+                for (i16 i = 0; i < cls->upvalCount; i++) {
                     u16 isLocal = vmReadU16(vm, frame);
                     u16 index = vmReadU16(vm, frame);
+                    if (isLocal) {
+                        cls->upvals[i] =
+                            vmCaptureUpval(vm, frame->slots + index);
+                    } else {
+                        cls->upvals[i] = frame->cls->v.OClosure.upvals[i];
+                    }
                 }
                 VmPush(vm, MakeObject(objClosure));
+                break;
+            }
+
+            case OP_GET_UPVAL: {
+                u16 slot = vmReadU16(vm, frame);
+                VmPush(
+                    vm, *frame->cls->v.OClosure.upvals[slot]->v.OUpval.location
+                );
+                break;
+            }
+
+            case OP_SET_UPVAL: {
+                u16 slot = vmReadU16(vm, frame);
+                *frame->cls->v.OClosure.upvals[slot]->v.OUpval.location =
+                    VmPeek(vm, 0);
                 break;
             }
 

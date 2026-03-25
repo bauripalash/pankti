@@ -110,7 +110,9 @@ PObj *NewClosureObject(Pgc *gc, PObj *function) {
     struct OComFunction *fn = &function->v.OComFunction;
     PObj **upvals = PCreateArray(PObj *, fn->upvalCount);
 
-    // TODO: error check
+    if (upvals == NULL) {
+        return NULL;
+    }
 
     for (i16 i = 0; i < fn->upvalCount; i++) {
         upvals[i] = NULL;
