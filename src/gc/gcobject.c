@@ -193,12 +193,12 @@ PObj *NewModuleObject(Pgc *gc, char *name, char *path) {
     return o;
 }
 
-PObj *NewUpvalueObject(Pgc *gc, PValue initValue) {
+PObj *NewUpvalueObject(Pgc *gc, PValue *slot) {
     PObj *o = NewObject(gc, OT_UPVAL);
     if (o == NULL) {
         return NULL;
     }
-    o->v.OUpval.value = initValue;
+    o->v.OUpval.location = slot;
     return o;
 }
 

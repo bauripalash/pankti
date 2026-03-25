@@ -140,7 +140,7 @@ typedef struct PObj {
 
         // UpValue Object. Type : `OT_UPVAL`
         struct OUpval {
-            PValue value; // shared value
+            PValue *location; // shared value
         } OUpval;
     } v;
 

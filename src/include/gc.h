@@ -96,7 +96,7 @@ PObj *NewMapObject(Pgc *gc, Token *op);
 PObj *NewNativeFnObject(Pgc *gc, const char *name, NativeFn fn, int arity);
 
 PObj *NewModuleObject(Pgc *gc, char *name, char *path);
-PObj *NewUpvalueObject(Pgc *gc, PValue initValue);
+PObj *NewUpvalueObject(Pgc *gc, PValue *slot);
 
 // Create New (Empty) Expression
 // `type` = Expression Type

@@ -233,7 +233,7 @@ static void markObjectChildren(Pgc *gc, PObj *obj) {
         }
 
         case OT_UPVAL: {
-            GcMarkValue(gc, obj->v.OUpval.value);
+            GcMarkValue(gc, *obj->v.OUpval.location);
             break;
         }
     }
