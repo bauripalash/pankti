@@ -80,6 +80,7 @@ PCompiler *dummyCompiler(
     PLocal *local = &c->locals[c->localCount++];
     local->depth = 0;
     local->name = NULL;
+    local->isCaptured = false;
     return c;
 }
 
@@ -248,6 +249,7 @@ static int findUpvalue(PCompiler *comp, Token *name) {
     }
     int local = findLocal(comp->enclosing, name);
     if (local >= 0) {
+        comp->enclosing->locals[local].isCaptured = true;
         return addUpvalue(comp, (u16)local, true);
     }
 
@@ -747,6 +749,7 @@ static void tryLocalDeclare(PCompiler *comp, Token *name) {
     PLocal *local = &comp->locals[comp->localCount++];
     local->name = name;
     local->depth = -1;
+    local->isCaptured = false;
 }
 
 // if in global scope, we emit define global opcode to ask the vm to put the

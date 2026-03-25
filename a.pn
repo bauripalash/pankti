@@ -1,10 +1,11 @@
 kaj outer()
-    dhori x = "outer"
+    dhori x = "outside"
     kaj inner()
         ?x
     sesh
 
-    inner()
+    return inner
 sesh
 
-outer()
+let p = outer()
+p()

@@ -23,6 +23,7 @@ typedef struct PanktiCore PanktiCore;
 typedef struct PLocal {
     Token *name;
     int depth;
+    bool isCaptured;
 } PLocal;
 
 // Compiled Function Type
