@@ -1,9 +1,11 @@
-kaj x(l)
-    kaj y()
-        ?l
+kaj outer()
+    dhori a = 1
+    dhori b = 1
+    kaj middle()
+        dhori c = 3
+        dhori d = 0
+        kaj inner()
+            show(a + b + c + d)
+        sesh
     sesh
-    return y
 sesh
-
-let p = x(1)
-?p()

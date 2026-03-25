@@ -247,12 +247,12 @@ static int findUpvalue(PCompiler *comp, Token *name) {
         return -1;
     }
     int local = findLocal(comp->enclosing, name);
-    if (local != -1) {
+    if (local >= 0) {
         return addUpvalue(comp, (u16)local, true);
     }
 
     int upval = findUpvalue(comp->enclosing, name);
-    if (upval != -1) {
+    if (upval >= 0) {
         return addUpvalue(comp, (u16)upval, false);
     }
 
@@ -965,14 +965,13 @@ static bool compileFunc(PCompiler *comp, PStmt *stmt) {
     emitBtU16(comp, fnStmt->name, OP_CLOSURE, constIndex);
 
     for (i16 i = 0; i < fnObj->v.OComFunction.upvalCount; i++) {
-        EmitRawU16(getbt(comp), comp->upvals[i].isLocal ? 1 : 0);
-        EmitRawU16(getbt(comp), comp->upvals[i].index);
+        EmitRawU16(getbt(comp), fComp->upvals[i].isLocal ? 1 : 0);
+        EmitRawU16(getbt(comp), fComp->upvals[i].index);
     }
 
     if (FLAG_DEBUG_BYTECODE) {
-        PanPrint("== FUNC %s ==\n", stmt->op->lexeme);
+        PanPrint("--------- %s --------\n", stmt->op->lexeme);
         DebugBytecode(fnObj->v.OComFunction.code, 0);
-        PanPrint("== END  %s ==\n", stmt->op->lexeme);
     }
     FreeCompiler(fComp);
     return true;
