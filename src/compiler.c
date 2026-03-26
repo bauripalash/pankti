@@ -176,6 +176,8 @@ static int endScope(PCompiler *comp, Token *op) {
     while (comp->localCount > 0 &&
            comp->locals[comp->localCount - 1].depth > comp->scopeDepth) {
 
+        // if the local variable is used as upvalue for inner scopes
+        // close the upvalue, otherwise just pop it from stack
         if (comp->locals[comp->localCount - 1].isCaptured) {
             emitBt(comp, op, OP_CLS_UPVAL);
         } else {
@@ -224,9 +226,11 @@ static void markLocalInit(PCompiler *comp) {
 
 // Add upvalue to compiler
 static int addUpvalue(PCompiler *comp, u16 index, bool isLocal) {
+    // Current compiling function
     struct OComFunction *compFun = &comp->func->v.OComFunction;
     i16 upvalCount = compFun->upvalCount;
 
+    // check if same upvalue has already been made
     for (i16 i = 0; i < upvalCount; i++) {
         UpValue *upval = &comp->upvals[i];
         if (upval->index == index && upval->isLocal == isLocal) {
@@ -252,17 +256,50 @@ static int findUpvalue(PCompiler *comp, Token *name) {
     if (comp->enclosing == NULL) { // no outer scope means no local or upvalue
         return -1;
     }
+
+    // Look for local variables defined in just outside the the scope
+    // func mango()
+    //     let x = 10
+    //     func apple()
+    //         ?x // <-- here x value would be just outside the scope of apple
+    //            // thats where the findLocal(...) succeed.
+    //            // as `mango` is enclosing compiler for `apple`
+    //            // we flag the found local as isCaptured
+    //            // to tell the interpreter that is used by inner functions
+    //     end
+    // end
     int local = findLocal(comp->enclosing, name);
     if (local >= 0) {
         comp->enclosing->locals[local].isCaptured = true;
         return addUpvalue(comp, (u16)local, true);
     }
 
+    // Look for local variables defined in just outside the the scope
+    // func mango()
+    //     let x = 10
+    //     func apple()
+    //         func banana()
+    //             ?x   // <-- x is not defined just outside banana
+    //                  // but it is just outside banana's enclosing compiler
+    //                  // so it is in compiler->enclosing->enclosing
+    //                  // that means x is upvalue in context of apple
+    //                  // so x is upvalue of upvalue
+    //                  // in worst case ->
+    //                  // we will look for `x` till the root script
+    //                  // in apple scope, above `findLocal` will return
+    //                  // stack index, and flag it `isCaptured`
+    //         end
+    //     end
+    // end
+
     int upval = findUpvalue(comp->enclosing, name);
     if (upval >= 0) {
         return addUpvalue(comp, (u16)upval, false);
     }
 
+    // we couldn't find any local or upvalue, so our dumb compiler assumes
+    // it must be a global variables, because we don't throw errors for
+    // non-existing variables till VM executation
     return -1;
 }
 
@@ -552,6 +589,7 @@ static bool compileVariableExpr(PCompiler *comp, PExpr *expr) {
         return true;
     }
 
+    // look for local in enclosing scope or previosly made upvalues
     int upvalIndex = findUpvalue(comp, var->name);
     if (upvalIndex != -1) {
         emitBtU16(comp, var->name, OP_GET_UPVAL, upvalIndex);
@@ -576,6 +614,7 @@ static bool cmpVariableAssign(PCompiler *comp, PExpr *expr) {
         return true;
     }
 
+    // same thing as finding enclosing local or previosly made upvalues
     Token *varName = assign->name->exp.EVariable.name;
     int upvalIndex = findUpvalue(comp, varName);
     if (upvalIndex != -1) {
@@ -754,6 +793,7 @@ static void tryLocalDeclare(PCompiler *comp, Token *name) {
     PLocal *local = &comp->locals[comp->localCount++];
     local->name = name;
     local->depth = -1;
+    // flag it as not upvalue for inner scopes by default
     local->isCaptured = false;
 }
 
@@ -969,18 +1009,20 @@ static bool compileFunc(PCompiler *comp, PStmt *stmt) {
     }
     fnObj->v.OComFunction.paramCount = fnStmt->paramCount;
     u16 constIndex = addConstant(comp, MakeObject(fnObj));
-    // emitBtU16(comp, fnStmt->name, OP_CONST, constIndex);
     emitBtU16(comp, fnStmt->name, OP_CLOSURE, constIndex);
 
+    // emit informatin about function scope upvalues
     for (i16 i = 0; i < fnObj->v.OComFunction.upvalCount; i++) {
         EmitRawU16(getbt(comp), fComp->upvals[i].isLocal ? 1 : 0);
         EmitRawU16(getbt(comp), fComp->upvals[i].index);
     }
 
+#if defined(PANKTI_BUILD_DEBUG)
     if (FLAG_DEBUG_BYTECODE) {
         PanPrint("--------- %s --------\n", stmt->op->lexeme);
         DebugBytecode(fnObj->v.OComFunction.code, 0);
     }
+#endif
     FreeCompiler(fComp);
     return true;
 }
