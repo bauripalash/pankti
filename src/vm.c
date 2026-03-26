@@ -528,6 +528,66 @@ static PObj *vmCaptureUpval(PVm *vm, PValue *local) {
     return newUpval;
 }
 
+// copies the value which `location` was pointing, probably something on stack
+// the value is copied to `closed` which fetches the value from `location`
+// the copy is kind of a stack copy.
+//
+// As the values are nothing but numbers, it is easy to copy the number
+//
+// Open upvalues mean the value it points to is still is in the stack.
+//
+// Closed upvalue means the value was popped off, and now `closed` field has
+// the value
+// 
+// Here's how open upvalue looks ->
+//
+//  ---- Upval (Open) ----
+// | location => 0x777   |
+// | closed => Nil       |
+// ----------------------
+//
+//  ===== STACK =====
+// | 0x333 | 100    |
+// | 0x444 | "hi"   |
+// | 0x777 | 99     |
+// ==================
+//
+// The above upvalue points to third slot which has address of 0x777
+//
+//  ---- Upval (Closed) --
+// | location => 0x123   | ---| it points to the pointer of `closed`
+// | closed => 99       | <---|
+// ----------------------
+//
+//  ===== STACK =====
+// | 0x333 | 100    |
+// | 0x444 | "hi"   |
+// |   <POPPED>     |
+// ==================
+//
+// When an open upvalue is modified the stack item is modified directy
+// in above example changing the value of the open upvalue changes the stack 
+// to something like this->
+//
+// if `newval` = 90
+//
+//  ===== STACK =====
+// | 0x333 | 100    |
+// | 0x444 | "hi"   |
+// | 0x777 | 90     |
+// ==================
+//
+// But modifing a closed upvalue modifies the value inside the `closed` field
+// of the upvalue ->
+//
+// if `newval` = 90
+//
+//  ---- Upval (Closed) --
+// | location => 0x123   | ---| it points to the pointer of `closed`
+// | closed => 90       | <---|
+// ----------------------
+//
+//
 static void closeUpvals(PVm *vm, PValue *last) {
     while (vm->openUpvals != NULL &&
            vm->openUpvals->v.OUpval.location >= last) {

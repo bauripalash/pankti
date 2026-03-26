@@ -5,7 +5,7 @@ kaj main()
   {
     let a = "one"
     kaj one()
-      ?a
+      show(a)
     end
     globalOne = one
   }
@@ -13,7 +13,7 @@ kaj main()
   {
     let a = "two"
     kaj two()
-      ?a
+      show(a)
     end
     globalTwo = two
   }
