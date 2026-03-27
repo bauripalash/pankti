@@ -1,6 +1,7 @@
 #ifndef GC_H
 #define GC_H
 
+#include "strpool.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -12,6 +13,7 @@ extern "C" {
 #include "ast.h"
 #include "object.h"
 #include "ptypes.h"
+#include "strpool.h"
 #include "token.h"
 
 // Print Debug Information for Each GC Action, New Object, Free Object, Marking
@@ -46,6 +48,8 @@ typedef struct Pgc {
     bool stress;
     PObj *objects;
     PStmt *stmts;
+    // String Pool
+    PStringPool *strings;
     // Currently live objects
     u64 objCount;
     // Should we run collector

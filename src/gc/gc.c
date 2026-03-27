@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <time.h>
 
 #if defined(PANKTI_BUILD_DEBUG)
@@ -20,6 +21,14 @@ static void markObjectChildren(Pgc *gc, PObj *obj);
 
 Pgc *NewGc(void) {
     Pgc *gc = PCreate(Pgc);
+    if (gc == NULL) {
+        return NULL;
+    }
+    gc->strings = NewStringPool();
+    if (gc->strings == NULL) {
+        PFree(gc);
+        return NULL;
+    }
     gc->disable = false;
 #if defined(PANKTI_BUILD_DEBUG)
     gc->stress = FLAG_STRESS_GC;
@@ -55,6 +64,10 @@ void FreeGc(Pgc *gc) {
 
     freeStatements(gc);
     freeObjects(gc);
+    if (gc->strings != NULL) {
+        FreeStringPool(gc->strings);
+        gc->strings = NULL;
+    }
 
     PFree(gc);
 }

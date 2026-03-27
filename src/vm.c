@@ -538,7 +538,7 @@ static PObj *vmCaptureUpval(PVm *vm, PValue *local) {
 //
 // Closed upvalue means the value was popped off, and now `closed` field has
 // the value
-// 
+//
 // Here's how open upvalue looks ->
 //
 //  ---- Upval (Open) ----
@@ -566,7 +566,7 @@ static PObj *vmCaptureUpval(PVm *vm, PValue *local) {
 // ==================
 //
 // When an open upvalue is modified the stack item is modified directy
-// in above example changing the value of the open upvalue changes the stack 
+// in above example changing the value of the open upvalue changes the stack
 // to something like this->
 //
 // if `newval` = 90

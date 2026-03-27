@@ -13,6 +13,7 @@ option(
 option(BUILD_GFX "Build with graphics features enabled" ON)
 option(NO_GIT_INFO "Do not include git commit data" OFF)
 option(NO_VERSION_FETCH "Do not fetch version information from source" OFF)
+option(NO_ASAN "Disable ASAN,UBSAN for Debug build" OFF)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE 
@@ -180,11 +181,16 @@ set (PANKTI_REL_WITH_DINFO_CFLAGS
 
 if(IS_OS_LINUX)
 	list(APPEND PANKTI_DEBUG_CFLAGS 	
-        "-fsanitize=address"
-        "-fsanitize=undefined"
-        "-fsanitize=float-cast-overflow"
         "-fdiagnostics-color=always"
 	)
+    if (NOT NO_ASAN)
+        list(APPEND PANKTI_DEBUG_CFLAGS 	
+            "-fsanitize=address"
+            "-fsanitize=undefined"
+            "-fsanitize=float-cast-overflow"
+            "-fdiagnostics-color=always"
+        )
+    endif()
 endif()
 
 if(IS_MSVC)
@@ -224,11 +230,13 @@ set(PANKTI_REL_WITH_DINFO_LINKER_FLAGS
 	${PANKTI_RELEASE_LINKER_FLAGS}
 )
 if(IS_OS_LINUX)
-	list(APPEND PANKTI_DEBUG_LINKER_FLAGS
-        "-fsanitize=address"
-        "-fsanitize=undefined"
-        "-fsanitize=float-cast-overflow" 
-	)
+    if (NOT NO_ASAN)
+        list(APPEND PANKTI_DEBUG_LINKER_FLAGS
+            "-fsanitize=address"
+            "-fsanitize=undefined"
+            "-fsanitize=float-cast-overflow" 
+        )
+    endif()
 endif()
 if(IS_MSVC)
 	# Put MSVC LDFLAGS overrides

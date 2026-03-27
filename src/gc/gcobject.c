@@ -45,30 +45,51 @@ PObj *NewObject(Pgc *gc, PObjType type) {
 }
 
 PObj *NewStrObject(Pgc *gc, Token *name, char *value, bool noDup) {
-    PObj *o = NewObject(gc, OT_STR);
-    if (o == NULL) {
+
+    if (value == NULL) {
         return NULL;
     }
 
     u64 valueLen = StrLength(value);
+    u64 hash = StrHash(value, valueLen, gc->timestamp);
+
+    if (gc->strings != NULL) {
+
+        PObj *existing = StringPoolFind(gc->strings, value, hash);
+
+        if (existing != NULL) {
+            if (noDup) {
+                PFree(value);
+            }
+
+            return existing;
+        }
+    }
+
     char *strValue = NULL;
+
     if (noDup) {
         strValue = value;
     } else {
-        char *dupValue = StrDuplicate(value, valueLen);
+        strValue = StrDuplicate(value, valueLen);
 
-        if (dupValue == NULL) {
-            GcPopObj(gc, o);
+        if (strValue == NULL) {
             return NULL;
         }
+    }
 
-        strValue = dupValue;
+    PObj *o = NewObject(gc, OT_STR);
+
+    if (o == NULL) {
+        return NULL;
     }
 
     o->v.OString.name = name;
     o->v.OString.value = strValue;
-    u64 hash = StrHash(strValue, valueLen, gc->timestamp);
     o->v.OString.hash = hash;
+    if (gc->strings != NULL) {
+        StringPoolInsert(gc->strings, o);
+    }
     return o;
 }
 
@@ -261,9 +282,8 @@ void FreeObject(Pgc *gc, PObj *o) {
             struct OString *s = &o->v.OString;
             if (s->value != NULL) {
                 PFree(s->value);
+                s->value = NULL;
             }
-
-            s->value = NULL;
             freeBaseObj(o);
             break;
         }
