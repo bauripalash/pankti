@@ -143,7 +143,7 @@ void MarkCompilerRoots(PCompiler *comp) {
 
     PCompiler *current = comp;
     while (current != NULL) {
-        GcMarkObject(comp->gc, comp->func);
+        GcMarkObject(comp->gc, current->func);
         current = current->enclosing;
     }
 }

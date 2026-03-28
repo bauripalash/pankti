@@ -90,6 +90,12 @@ void MarkVmOpenUpvals(PVm *vm) {
     }
 }
 
+void MarkVmModules(PVm *vm) {
+    for (u64 i = 0; i < vm->modCount; i++) {
+        MarkSymbolTable(vm->gc, vm->modules[i]->table);
+    }
+}
+
 typedef struct VmPosInfo {
     bool found;
     u64 line;

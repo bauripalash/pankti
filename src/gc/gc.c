@@ -30,6 +30,8 @@ Pgc *NewGc(void) {
         return NULL;
     }
     gc->disable = false;
+    gc->needCollect = false;
+    gc->nextGc = GC_OBJ_THRESHOLD;
 #if defined(PANKTI_BUILD_DEBUG)
     gc->stress = FLAG_STRESS_GC;
 #else
@@ -157,6 +159,7 @@ void CollectGarbage(Pgc *gc) {
 
         markRoots(gc);
         traceRefs(gc);
+        StringPoolRemoveUnmarked(gc->strings);
 
 #if defined(PANKTI_BUILD_DEBUG)
         if (FLAG_DEBUG_GC) {
@@ -186,6 +189,8 @@ void CollectGarbage(Pgc *gc) {
             );
         }
 #endif
+
+        GcUpdateThreshold(gc);
     }
 }
 
@@ -210,6 +215,7 @@ static void markVm(Pgc *gc) {
         MarkVmFrames(vm);
         MarkVmOpenUpvals(vm);
         MarkSymbolTable(gc, vm->globals);
+        MarkVmModules(vm);
     }
 }
 

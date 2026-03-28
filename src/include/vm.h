@@ -103,6 +103,9 @@ void MarkVmFrames(PVm *vm);
 // VM+GC : Mark VM Open Upvalues
 void MarkVmOpenUpvals(PVm *vm);
 
+// VM+GC : Mark Imported Module Tables
+void MarkVmModules(PVm *vm);
+
 // Debug VM Stack
 void DebugVMStack(PVm *vm);
 // Print Call Stack Trace

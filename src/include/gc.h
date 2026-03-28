@@ -20,12 +20,12 @@ extern "C" {
 // Sweeping etc.
 // #define DEBUG_GC
 
-// Stress the GC. Run collector at every new statement from main program.
+// Stress the GC. Run collector at every action
 // Ignores gc threshold limits
 // #define STRESS_GC
 
 #ifndef GC_OBJ_THRESHOLD
-#define GC_OBJ_THRESHOLD 128
+#define GC_OBJ_THRESHOLD 64
 #endif
 
 #ifndef GC_GROW_FACTOR

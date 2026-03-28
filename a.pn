@@ -1,24 +1,3 @@
-let globalOne = nil
-let globalTwo = nil
-
-kaj main()
-  {
-    let a = "one"
-    kaj one()
-      show(a)
-    end
-    globalOne = one
-  }
-
-  {
-    let a = "two"
-    kaj two()
-      show(a)
-    end
-    globalTwo = two
-  }
-sesh
-
-main()
-globalOne()
-globalTwo()
+let a = "hello" + "mango"
+a = "byte"
+?a
