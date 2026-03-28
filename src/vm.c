@@ -550,7 +550,7 @@ static PObj *vmCaptureUpval(PVm *vm, PValue *local) {
     if (prevUpval == NULL) {
         vm->openUpvals = newUpval;
     } else {
-        prevUpval->next = newUpval;
+        prevUpval->v.OUpval.next = newUpval;
     }
     return newUpval;
 }
@@ -884,7 +884,7 @@ void VmRun(PVm *vm) {
                         cls->upvals[i] =
                             vmCaptureUpval(vm, frame->slots + index);
                     } else {
-                        cls->upvals[i] = frame->cls->v.OClosure.upvals[i];
+                        cls->upvals[i] = frame->cls->v.OClosure.upvals[index];
                     }
                 }
                 VmPush(vm, MakeObject(objClosure));
@@ -907,7 +907,7 @@ void VmRun(PVm *vm) {
             }
 
             case OP_CLS_UPVAL: {
-                closeUpvals(vm, vm->stack - 1);
+                closeUpvals(vm, vm->sp - 1);
                 VmPop(vm);
                 break;
             }
