@@ -73,7 +73,6 @@ PObj *NewStrObject(Pgc *gc, Token *name, char *value, bool noDup) {
         strValue = value;
     } else {
         strValue = StrDuplicate(value, valueLen);
-
         if (strValue == NULL) {
             return NULL;
         }
@@ -82,6 +81,9 @@ PObj *NewStrObject(Pgc *gc, Token *name, char *value, bool noDup) {
     PObj *o = NewObject(gc, OT_STR);
 
     if (o == NULL) {
+        if (!noDup && strValue != NULL) {
+            PFree(strValue);
+        }
         return NULL;
     }
 
@@ -142,6 +144,9 @@ PObj *NewClosureObject(Pgc *gc, PObj *function) {
 
     PObj *o = NewObject(gc, OT_CLOSURE);
     if (o == NULL) {
+        if (upvals != NULL) {
+            PFree(upvals);
+        }
         return NULL;
     }
 
