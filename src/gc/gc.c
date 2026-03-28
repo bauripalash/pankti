@@ -192,8 +192,8 @@ void CollectGarbage(Pgc *gc) {
 static void traceRefs(Pgc *gc) {
     gc->grayStackCount = arrlen(gc->grayStack);
     if (gc->grayStackCount > 0) {
-        for (int i = 0; i < gc->grayStackCount; i++) {
-            PObj *obj = gc->grayStack[i];
+        while (arrlen(gc->grayStack) > 0) {
+            PObj *obj = arrpop(gc->grayStack);
             darkenObject(gc, obj);
         }
 
