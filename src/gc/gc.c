@@ -35,7 +35,7 @@ Pgc *NewGc(void) {
 #if defined(PANKTI_BUILD_DEBUG)
     gc->stress = FLAG_STRESS_GC;
 #else
-    gc.stress = false;
+    gc->stress = false;
 #endif
     gc->objects = NULL;
     gc->stmts = NULL;
@@ -145,8 +145,10 @@ void CollectGarbage(Pgc *gc) {
 #if defined(PANKTI_BUILD_DEBUG)
         if (FLAG_DEBUG_GC) {
             PanPrint(
-                "%s[DEBUG] [GC] Starting Garbage Collection%s : [%llu]\n",
-                TermYellow(), TermReset(), (unsigned long long)gc->objCount
+                "%s[DEBUG] [GC] Starting Garbage Collection%s : [%llu] : "
+                "[T:%llu]\n",
+                TermYellow(), TermReset(), (unsigned long long)gc->objCount,
+                (unsigned long long)gc->nextGc
             );
 
             PanPrint(
@@ -191,6 +193,7 @@ void CollectGarbage(Pgc *gc) {
 #endif
 
         GcUpdateThreshold(gc);
+        gc->needCollect = false;
     }
 }
 
@@ -236,6 +239,7 @@ static void sweep(Pgc *gc) {
     PObj *obj = gc->objects;
     while (obj != NULL) {
         if (obj->marked) {
+            obj->marked = false;
             prev = obj;
             obj = obj->next;
         } else {

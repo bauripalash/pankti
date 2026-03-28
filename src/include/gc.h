@@ -25,7 +25,7 @@ extern "C" {
 // #define STRESS_GC
 
 #ifndef GC_OBJ_THRESHOLD
-#define GC_OBJ_THRESHOLD 64
+#define GC_OBJ_THRESHOLD 48
 #endif
 
 #ifndef GC_GROW_FACTOR

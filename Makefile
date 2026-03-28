@@ -23,7 +23,7 @@ RELEASE_CC=clang
 FILE=./a.pn
 
 # File to Run for benchmark
-PERFFILE=./benchmarks/fib.pn
+PERFFILE=./benchmarks/samples/fib.pn
 
 # The Native Frontend Test Binary
 FRONTEND_TEST_BIN=pankti_tests
