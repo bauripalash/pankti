@@ -40,6 +40,7 @@ PObj *NewObject(Pgc *gc, PObjType type) {
         );
     }
 #endif
+
     GcCounterNew(gc);
     return o;
 }
@@ -252,7 +253,7 @@ void FreeObject(Pgc *gc, PObj *o) {
 #if defined PANKTI_BUILD_DEBUG
     if (FLAG_DEBUG_GC) {
         PanPrint(
-            "%s[DEBUG] [GC] Freeing Object : %p : %s : %s", TermGreen(),
+            "        %s[DEBUG] [GC] Freeing Object : %p : %s : %s", TermGreen(),
             (void *)o, ObjTypeToString(o->type), TermReset()
         );
         if (o->type == OT_UPVAL) {

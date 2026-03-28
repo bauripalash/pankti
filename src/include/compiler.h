@@ -85,6 +85,8 @@ PCompiler *NewEnclosedCompiler(
 // Free the compiler
 void FreeCompiler(PCompiler *comp);
 
+// Compiler + GC : Mark Compiler Roots
+void MarkCompilerRoots(PCompiler *comp);
 // Compile a root AST Node
 bool CompilerCompile(PCompiler *compiler, PStmt **prog);
 

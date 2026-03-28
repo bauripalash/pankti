@@ -18,6 +18,8 @@ extern "C" {
 #include "../external/verstable/verstable.h"
 // NOLINTEND(clang-analyzer-*)
 
+typedef struct Pgc Pgc;
+
 typedef struct SymbolTable {
     SymTable table;
     u64 count;
@@ -31,6 +33,8 @@ PValue SymbolTableFind(SymbolTable *table, PObj *str, bool *found);
 bool SymbolTableSet(SymbolTable *table, PObj *str, PValue value);
 bool SymbolTableRemove(SymbolTable *table, PObj *str);
 bool SymbolTableAddAll(SymbolTable *from, SymbolTable *to);
+void DebugSymbolTable(SymbolTable *table);
+void MarkSymbolTable(Pgc *gc, SymbolTable *table);
 
 #ifdef __cplusplus
 }

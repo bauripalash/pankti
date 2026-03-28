@@ -26,7 +26,7 @@ void FreeStringPool(PStringPool *sp);
 PObj *StringPoolFind(PStringPool *sp, const char *val, u64 hash);
 bool StringPoolInsert(PStringPool *sp, PObj *strObj);
 bool StringPoolRemove(PStringPool *sp, PObj *strObj);
-void StringPoolMark(PStringPool *sp);
+void StringPoolRemoveUnmarked(PStringPool *sp);
 
 #ifdef __cplusplus
 }

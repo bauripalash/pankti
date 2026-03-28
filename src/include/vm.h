@@ -93,6 +93,16 @@ PVm *NewVm(PanktiCore *core);
 void SetupVm(PVm *vm, Pgc *gc, PObj *func);
 // Free the VM
 void FreeVm(PVm *vm);
+
+// VM+GC : Mark VM Stack
+void MarkVmStack(PVm *vm);
+
+// VM+GC : Mark VM Call Frames
+void MarkVmFrames(PVm *vm);
+
+// VM+GC : Mark VM Open Upvalues
+void MarkVmOpenUpvals(PVm *vm);
+
 // Debug VM Stack
 void DebugVMStack(PVm *vm);
 // Print Call Stack Trace

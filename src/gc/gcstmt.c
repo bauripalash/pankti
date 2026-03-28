@@ -172,7 +172,7 @@ void FreeStmt(Pgc *gc, PStmt *s) {
 #if defined PANKTI_BUILD_DEBUG
     if (FLAG_DEBUG_GC) {
         PanPrint(
-            "%s[DEBUG] [GC] Freeing Statement : %s%s\n", TermGreen(),
+            "    %s[DEBUG] [GC] Freeing Statement : %s%s\n", TermGreen(),
             StmtTypeToStr(s->type), TermReset()
         );
     }

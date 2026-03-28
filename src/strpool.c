@@ -92,13 +92,18 @@ bool StringPoolRemove(PStringPool *sp, PObj *strObj) {
     sp->count = (u64)SPoolSet_size(&sp->table);
     return true;
 }
-void StringPoolMark(PStringPool *sp) {
+
+void StringPoolRemoveUnmarked(PStringPool *sp) {
     if (sp == NULL) {
         return;
     }
 
-    for (SPoolSet_itr itr = SPoolSet_first(&sp->table); !SPoolSet_is_end(itr);
-         itr = SPoolSet_next(itr)) {
-        itr.data->key->marked = true;
+    SPoolSet_itr itr = SPoolSet_first(&sp->table);
+    while (!SPoolSet_is_end(itr)) {
+        if (!itr.data->key->marked) {
+            itr = SPoolSet_erase_itr(&sp->table, itr);
+        } else {
+            itr = SPoolSet_next(itr);
+        }
     }
 }

@@ -1,12 +1,12 @@
 #include "../include/gc.h"
 #include "../external/stb/stb_ds.h"
 #include "../include/alloc.h"
+#include "../include/core.h"
 #include "../include/env.h"
 #include "../include/flags.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <time.h>
 
 #if defined(PANKTI_BUILD_DEBUG)
@@ -16,8 +16,8 @@
 
 static void sweep(Pgc *gc);
 static void markRoots(Pgc *gc);
-static void markObject(Pgc *gc, PObj *obj);
-static void markObjectChildren(Pgc *gc, PObj *obj);
+static void darkenObject(Pgc *gc, PObj *obj);
+static void traceRefs(Pgc *gc);
 
 Pgc *NewGc(void) {
     Pgc *gc = PCreate(Pgc);
@@ -32,10 +32,16 @@ Pgc *NewGc(void) {
     gc->disable = false;
 #if defined(PANKTI_BUILD_DEBUG)
     gc->stress = FLAG_STRESS_GC;
+#else
+    gc.stress = false;
 #endif
     gc->objects = NULL;
     gc->stmts = NULL;
     gc->timestamp = (u64)time(NULL);
+    gc->objCount = 0;
+    gc->grayStack = NULL;
+    gc->grayStackCount = 0;
+    arrsetcap(gc->grayStack, 16);
     return gc;
 }
 
@@ -58,6 +64,14 @@ static void freeStatements(Pgc *gc) {
 }
 
 void FreeGc(Pgc *gc) {
+#if defined(PANKTI_BUILD_DEBUG)
+    if (FLAG_DEBUG_GC) {
+        PanPrint(
+            "%s[DEBUG] [GC] Shutting Down%s : [%llu]\n", TermYellow(),
+            TermReset(), (unsigned long long)gc->objCount
+        );
+    }
+#endif
     if (gc == NULL) {
         return;
     }
@@ -69,7 +83,19 @@ void FreeGc(Pgc *gc) {
         gc->strings = NULL;
     }
 
+    if (gc->grayStack != NULL) {
+        arrfree(gc->grayStack);
+    }
+
     PFree(gc);
+#if defined(PANKTI_BUILD_DEBUG)
+    if (FLAG_DEBUG_GC) {
+        PanPrint(
+            "%s[DEBUG] [GC] Finished Shutting Down%s\n", TermYellow(),
+            TermReset()
+        );
+    }
+#endif
 }
 void GcCounterNew(Pgc *gc) {
     if (gc == NULL) {
@@ -113,34 +139,80 @@ void CollectGarbage(Pgc *gc) {
     }
 
     if (gc->stress || gc->needCollect) {
+
 #if defined(PANKTI_BUILD_DEBUG)
         if (FLAG_DEBUG_GC) {
             PanPrint(
-                "%s[DEBUG] [GC] Starting Garbage Collection%s\n", TermYellow(),
+                "%s[DEBUG] [GC] Starting Garbage Collection%s : [%llu]\n",
+                TermYellow(), TermReset(), (unsigned long long)gc->objCount
+            );
+
+            PanPrint(
+                "    %s[DEBUG] [GC] Starting GC Marking%s\n", TermPurple(),
                 TermReset()
             );
-            PanPrint(
-                "%s[DEBUG] [GC] [Object Count : %llu]%s\n", TermYellow(),
-                (unsigned long long)gc->objCount, TermReset()
-            );
         }
+
 #endif
+
         markRoots(gc);
-        sweep(gc);
-        GcUpdateThreshold(gc);
-        gc->needCollect = false;
+        traceRefs(gc);
+
 #if defined(PANKTI_BUILD_DEBUG)
         if (FLAG_DEBUG_GC) {
             PanPrint(
-                "%s[DEBUG] [GC] Finished Garbage Collection%s\n", TermYellow(),
+                "    %s[DEBUG] [GC] Finished GC Marking%s\n", TermPurple(),
                 TermReset()
             );
+
             PanPrint(
-                "%s[DEBUG] [GC] [Object Count : %llu]%s\n", TermYellow(),
-                (unsigned long long)gc->objCount, TermReset()
+                "    %s[DEBUG] [GC] Starting GC Sweeping%s\n", TermPurple(),
+                TermReset()
             );
         }
 #endif
+
+        sweep(gc);
+
+#if defined(PANKTI_BUILD_DEBUG)
+        if (FLAG_DEBUG_GC) {
+            PanPrint(
+                "    %s[DEBUG] [GC] Finished GC Sweeping%s\n", TermPurple(),
+                TermReset()
+            );
+            PanPrint(
+                "%s[DEBUG] [GC] Finished Garbage Collection%s : [%llu]\n",
+                TermYellow(), TermReset(), (unsigned long long)gc->objCount
+            );
+        }
+#endif
+    }
+}
+
+static void traceRefs(Pgc *gc) {
+    gc->grayStackCount = arrlen(gc->grayStack);
+    if (gc->grayStackCount > 0) {
+        for (int i = 0; i < gc->grayStackCount; i++) {
+            PObj *obj = gc->grayStack[i];
+            darkenObject(gc, obj);
+        }
+
+        arrfree(gc->grayStack);
+        gc->grayStackCount = 0;
+        arrsetcap(gc->grayStack, 16);
+    }
+}
+
+static void markVm(Pgc *gc) {
+    if (gc != NULL && gc->core != NULL && gc->core->vm != NULL) {
+        PVm *vm = gc->core->vm;
+        MarkVmStack(vm);
+        MarkVmFrames(vm);
+        MarkVmOpenUpvals(vm);
+        if (FLAG_DEBUG_GC) {
+            DebugSymbolTable(vm->globals);
+        }
+        MarkSymbolTable(gc, vm->globals);
     }
 }
 
@@ -148,6 +220,9 @@ static void markRoots(Pgc *gc) {
     if (gc == NULL) {
         return;
     }
+
+    markVm(gc);
+    MarkCompilerRoots(gc->core->compiler);
 }
 
 static void sweep(Pgc *gc) {
@@ -157,31 +232,24 @@ static void sweep(Pgc *gc) {
     PObj *prev = NULL;
     PObj *obj = gc->objects;
     while (obj != NULL) {
-        PObj *next = obj->next;
         if (obj->marked) {
-            obj->marked = false;
             prev = obj;
+            obj = obj->next;
         } else {
+            PObj *unreached = obj;
+            obj = obj->next;
             if (prev != NULL) {
-                prev->next = next;
+                prev->next = obj;
             } else {
-                gc->objects = next;
+                gc->objects = obj;
             }
 
-            FreeObject(gc, obj);
+            FreeObject(gc, unreached);
         }
-
-        obj = next;
     }
 }
 
-void GcMarkValue(Pgc *gc, PValue value) {
-    if (IsValueObj(value)) {
-        markObject(gc, ValueAsObj(value));
-    }
-}
-
-static void markObject(Pgc *gc, PObj *obj) {
+void GcMarkObject(Pgc *gc, PObj *obj) {
     if (gc == NULL) {
         return;
     }
@@ -195,10 +263,28 @@ static void markObject(Pgc *gc, PObj *obj) {
     }
 
     obj->marked = true;
-    markObjectChildren(gc, obj);
+    arrput(gc->grayStack, obj);
+
+#if defined(PANKTI_BUILD_DEBUG)
+
+    if (FLAG_DEBUG_GC) {
+        PanPrint(
+            "        %s[DEBUG] [GC] Marking%s : ", TermPurple(), TermReset()
+        );
+        PrintObject(obj);
+        PanPrint("\n");
+    }
+
+#endif
 }
 
-static void markObjectChildren(Pgc *gc, PObj *obj) {
+void GcMarkValue(Pgc *gc, PValue value) {
+    if (IsValueObj(value)) {
+        GcMarkObject(gc, ValueAsObj(value));
+    }
+}
+
+static void darkenObject(Pgc *gc, PObj *obj) {
     if (gc == NULL) {
         return;
     }
@@ -206,6 +292,17 @@ static void markObjectChildren(Pgc *gc, PObj *obj) {
     if (obj == NULL) {
         return;
     }
+
+#if defined(PANKTI_BUILD_DEBUG)
+    if (FLAG_DEBUG_GC) {
+        PanPrint(
+            "        %s[DEBUG] [GC] Darkening%s : ", TermPurple(), TermReset()
+        );
+        PrintObject(obj);
+        PanPrint("\n");
+    }
+
+#endif
 
     switch (obj->type) {
         case OT_NATIVE:
@@ -216,7 +313,10 @@ static void markObjectChildren(Pgc *gc, PObj *obj) {
 
         case OT_CLOSURE: {
             struct OClosure *cls = &obj->v.OClosure;
-            markObject(gc, cls->function);
+            GcMarkObject(gc, cls->function);
+            for (i16 i = 0; i < cls->upvalCount; i++) {
+                GcMarkObject(gc, cls->upvals[i]);
+            }
             break;
         }
         case OT_ARR: {
@@ -239,7 +339,7 @@ static void markObjectChildren(Pgc *gc, PObj *obj) {
         case OT_COMFNC: {
             struct OComFunction *func = &obj->v.OComFunction;
             if (func->strName != NULL) {
-                markObject(gc, func->strName);
+                GcMarkObject(gc, func->strName);
             }
 
             break;

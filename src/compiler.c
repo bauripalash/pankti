@@ -116,6 +116,18 @@ void FreeCompiler(PCompiler *comp) {
     PFree(comp);
 }
 
+void MarkCompilerRoots(PCompiler *comp) {
+    if (comp == NULL || comp->gc == NULL) {
+        return;
+    }
+
+    PCompiler *current = comp;
+    while (current != NULL) {
+        GcMarkObject(comp->gc, comp->func);
+        current = current->enclosing;
+    }
+}
+
 static void cmpError(PCompiler *comp, Token *token, const char *msg) {
     CoreCompilerError(comp->core, token, msg);
 }

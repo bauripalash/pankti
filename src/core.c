@@ -53,9 +53,11 @@ PanktiCore *NewCore(const char *scriptPath) {
     core->caughtError = false;
     core->runtimeError = false;
     core->gc = NewGc();
+    core->gc->core = core;
     core->lexer->timestamp = core->gc->timestamp;
     core->compiler = NewCompiler(core);
     core->vm = NewVm(core);
+    core->vm->core = core;
     return core;
 }
 

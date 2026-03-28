@@ -1,6 +1,8 @@
 #include "include/symtable.h"
 #include "include/alloc.h"
+#include "include/gc.h"
 #include "include/object.h"
+#include "include/printer.h"
 #include "include/ptypes.h"
 #include <stdbool.h>
 #include <stdlib.h>
@@ -138,4 +140,32 @@ bool SymbolTableAddAll(SymbolTable *from, SymbolTable *to) {
     }
 
     return true;
+}
+
+void DebugSymbolTable(SymbolTable *table) {
+    if (table == NULL) {
+        return;
+    }
+    int i = 0;
+    for (SymTable_itr it = SymTable_first(&table->table); !SymTable_is_end(it);
+         it = SymTable_next(it)) {
+        PanPrint("%04d | ", i);
+        PrintObject(it.data->key);
+        PanPrint(" : ");
+        PrintValue(it.data->val);
+        PanPrint("\n");
+        i++;
+    }
+}
+
+void MarkSymbolTable(Pgc *gc, SymbolTable *table) {
+    if (gc == NULL || table == NULL) {
+        return;
+    }
+    for (SymTable_itr it = SymTable_first(&table->table); !SymTable_is_end(it);
+         it = SymTable_next(it)) {
+
+        GcMarkObject(gc, it.data->key);
+        GcMarkValue(gc, it.data->val);
+    }
 }

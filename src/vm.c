@@ -44,6 +44,7 @@ void SetupVm(PVm *vm, Pgc *gc, PObj *func) {
     frame->slots = vm->stack;
     RegisterNatives(vm);
 }
+
 void FreeVm(PVm *vm) {
     if (vm == NULL) {
         return;
@@ -67,6 +68,30 @@ void FreeVm(PVm *vm) {
     }
 
     PFree(vm);
+}
+
+void MarkVmStack(PVm *vm) {
+    for (PValue *slot = vm->stack; slot < vm->sp; slot++) {
+        PanPrint("-> '");
+        PrintValue(*slot);
+        PanPrint("'");
+        PanPrint("\n");
+        GcMarkValue(vm->gc, *slot);
+    }
+}
+
+void MarkVmFrames(PVm *vm) {
+    for (int i = 0; i < vm->frameCount; i++) {
+        GcMarkObject(vm->gc, vm->frames[i].cls);
+    }
+}
+
+void MarkVmOpenUpvals(PVm *vm) {
+    PObj *upval = vm->openUpvals;
+    while (upval != NULL) {
+        GcMarkObject(vm->gc, upval);
+        upval = upval->v.OUpval.next;
+    }
 }
 
 typedef struct VmPosInfo {
@@ -714,10 +739,17 @@ void VmRun(PVm *vm) {
             case OP_DEFINE_GLOBAL: {
                 PObj *nameObj = vmReadObjConst(vm, frame);
                 if (nameObj->type != OT_STR) {
+                    const char *errorMsg = StrFormat(
+                        "Can not assign a value to a %s",
+                        ObjTypeToString(nameObj->type)
+                    );
+                    VmError(vm, errorMsg);
                     break;
                 }
 
                 SymbolTableSet(vm->globals, nameObj, VmPeek(vm, 0));
+                DebugSymbolTable(vm->globals);
+
                 VmPop(vm);
                 break;
             }
@@ -973,6 +1005,8 @@ void VmRun(PVm *vm) {
 
                 break;
             }
-        }
-    }
+        } // switch
+        PanPrint("========> OP : %s\n", OpCodeToStr(ins));
+        // CollectGarbage(vm->gc);
+    } // while true
 }

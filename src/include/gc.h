@@ -40,6 +40,8 @@ extern "C" {
 #define GC_ENV_FREELIST_DEF_CAP 16
 #endif
 
+typedef struct PanktiCore PanktiCore;
+
 // Pankti Garbage Collector
 typedef struct Pgc {
     // Disable GC
@@ -48,6 +50,8 @@ typedef struct Pgc {
     bool stress;
     PObj *objects;
     PStmt *stmts;
+    // Looped reference to core
+    PanktiCore *core;
     // String Pool
     PStringPool *strings;
     // Currently live objects
@@ -57,6 +61,10 @@ typedef struct Pgc {
     // When the objCount reaches here, collect garbage
     u64 nextGc;
     u64 timestamp;
+
+    int grayStackCount;
+    PObj **grayStack;
+
 } Pgc;
 
 Pgc *NewGc(void);
@@ -68,6 +76,7 @@ void GcCounterNew(Pgc *gc);
 void GcCounterFree(Pgc *gc);
 void GcUpdateThreshold(Pgc *gc);
 void GcMarkValue(Pgc *gc, PValue value);
+void GcMarkObject(Pgc *gc, PObj *obj);
 
 // Create a New Empty Object.
 // `type` = Type of statement
