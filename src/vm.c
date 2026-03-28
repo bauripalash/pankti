@@ -72,10 +72,6 @@ void FreeVm(PVm *vm) {
 
 void MarkVmStack(PVm *vm) {
     for (PValue *slot = vm->stack; slot < vm->sp; slot++) {
-        PanPrint("-> '");
-        PrintValue(*slot);
-        PanPrint("'");
-        PanPrint("\n");
         GcMarkValue(vm->gc, *slot);
     }
 }
@@ -748,7 +744,6 @@ void VmRun(PVm *vm) {
                 }
 
                 SymbolTableSet(vm->globals, nameObj, VmPeek(vm, 0));
-                DebugSymbolTable(vm->globals);
 
                 VmPop(vm);
                 break;
@@ -863,7 +858,12 @@ void VmRun(PVm *vm) {
             case OP_CLOSURE: {
                 PValue funcVal = vmReadConst(vm, frame);
                 if (!IsValueObjType(funcVal, OT_COMFNC)) {
-                    VmError(vm, "Closures can only created for functions");
+                    const char *errorMsg = StrFormat(
+                        "Closures can only be created for functions by we got "
+                        "%s",
+                        ValueTypeToStr(funcVal)
+                    );
+                    VmError(vm, errorMsg);
                     return;
                 }
 
@@ -1006,7 +1006,6 @@ void VmRun(PVm *vm) {
                 break;
             }
         } // switch
-        PanPrint("========> OP : %s\n", OpCodeToStr(ins));
-        // CollectGarbage(vm->gc);
+        CollectGarbage(vm->gc);
     } // while true
 }

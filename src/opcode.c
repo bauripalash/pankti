@@ -341,6 +341,14 @@ u64 EmitBytecodeWithTwoArgs(
 
 u16 AddConstantToPool(PBytecode *b, PValue value) {
     u16 index = b->constCount;
+
+    for (u16 i = 0; i < index; i++) {
+        PValue a = b->constPool[i];
+        if (IsValueEqual(a, value)) {
+            return i;
+        }
+    }
+
     if (index >= MAX_CONST_COUNT) {
         return UINT16_MAX;
     }

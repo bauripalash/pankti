@@ -209,9 +209,6 @@ static void markVm(Pgc *gc) {
         MarkVmStack(vm);
         MarkVmFrames(vm);
         MarkVmOpenUpvals(vm);
-        if (FLAG_DEBUG_GC) {
-            DebugSymbolTable(vm->globals);
-        }
         MarkSymbolTable(gc, vm->globals);
     }
 }
@@ -258,13 +255,6 @@ void GcMarkObject(Pgc *gc, PObj *obj) {
         return;
     }
 
-    if (obj->marked) {
-        return;
-    }
-
-    obj->marked = true;
-    arrput(gc->grayStack, obj);
-
 #if defined(PANKTI_BUILD_DEBUG)
 
     if (FLAG_DEBUG_GC) {
@@ -276,6 +266,13 @@ void GcMarkObject(Pgc *gc, PObj *obj) {
     }
 
 #endif
+
+    if (obj->marked) {
+        return;
+    }
+
+    obj->marked = true;
+    arrput(gc->grayStack, obj);
 }
 
 void GcMarkValue(Pgc *gc, PValue value) {
@@ -340,6 +337,9 @@ static void darkenObject(Pgc *gc, PObj *obj) {
             struct OComFunction *func = &obj->v.OComFunction;
             if (func->strName != NULL) {
                 GcMarkObject(gc, func->strName);
+            }
+            for (u64 i = 0; i < func->code->constCount; i++) {
+                GcMarkValue(gc, func->code->constPool[i]);
             }
 
             break;

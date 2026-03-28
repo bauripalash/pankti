@@ -116,6 +116,26 @@ void FreeCompiler(PCompiler *comp) {
     PFree(comp);
 }
 
+void DebugCompilerTree(PCompiler *comp) {
+    if (comp == NULL || comp->gc == NULL) {
+        return;
+    }
+    PanPrint("---->\n");
+    PCompiler *current = comp;
+    int i = 0;
+    while (current != NULL) {
+        for (int j = 0; j <= i; j++) {
+            PanPrint(" ");
+        }
+        PrintObject(current->func);
+        PanPrint("\n");
+        i += 1;
+        current = current->enclosing;
+    }
+
+    PanPrint("<----\n");
+}
+
 void MarkCompilerRoots(PCompiler *comp) {
     if (comp == NULL || comp->gc == NULL) {
         return;
@@ -581,6 +601,7 @@ static bool compileMapExpr(PCompiler *comp, PExpr *expr) {
 // Make a string object, Make a value out of it, push the value to constant pool
 // return the constant index
 static u16 addIdentConst(PCompiler *comp, Token *tok) {
+
     PObj *strObj = NewStrObject(comp->gc, tok, tok->lexeme, false);
     if (strObj == NULL) {
         cmpError(comp, tok, CMP_ERR_IME_FAIL_STR_IDENT);

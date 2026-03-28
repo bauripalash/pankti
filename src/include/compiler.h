@@ -90,6 +90,8 @@ void MarkCompilerRoots(PCompiler *comp);
 // Compile a root AST Node
 bool CompilerCompile(PCompiler *compiler, PStmt **prog);
 
+void DebugCompilerTree(PCompiler *comp);
+
 // Get just compiled function which has all the bytecode and constants
 PObj *GetCompiledFunction(PCompiler *comp);
 
