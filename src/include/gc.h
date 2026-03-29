@@ -33,15 +33,20 @@ extern "C" {
 #endif
 
 #ifndef GC_MARKER_CAP
+// Root marker capacity
 #define GC_MARKER_CAP 8
 #endif
 
 typedef struct Pgc Pgc;
 
+// Marking Root Function
 typedef void (*PGcMarkRootFn)(Pgc *gc, void *ctx);
 
+// Root Marker : Subtle link to Compiler, VM etc.
 typedef struct PGcRootMarker {
+    // Marking functions
     PGcMarkRootFn fn;
+    // Link to root
     void *ctx;
 } PGcRootMarker;
 
@@ -51,9 +56,16 @@ typedef struct Pgc {
     bool disable;
     // Stress the GC [For Debug ONLY]
     bool stress;
+    // Linked list to all the objects
+    // to traverse the chain for marking, freeing
     PObj *objects;
+    // Linked list to all the statements
+    // Freed at the end
     PStmt *stmts;
+
+    // Link to roots
     PGcRootMarker markers[GC_MARKER_CAP];
+    // How many roots are there
     int markerCount;
     // String Pool
     PStringPool *strings;
@@ -63,23 +75,36 @@ typedef struct Pgc {
     bool needCollect;
     // When the objCount reaches here, collect garbage
     u64 nextGc;
+
+    // Timestamp
     u64 timestamp;
 
-    int grayStackCount;
+    // Gray Stack (Work List for Marking objects)
+    // handled by stb_ds array
     PObj **grayStack;
+    int grayStackCount;
 
 } Pgc;
 
+// Create new Garbage Collector Object
 Pgc *NewGc(void);
+// Free Garbage Collector and all owned objects, statements, strings etc.
 void FreeGc(Pgc *gc);
-void RegisterRootEnv(Pgc *gc, PEnv *env);
-void UnregisterRootEnv(Pgc *gc, PEnv *env);
+// Start Garbage collection process
 void CollectGarbage(Pgc *gc);
+// Increase Object count
 void GcCounterNew(Pgc *gc);
+// Reduce Object count
 void GcCounterFree(Pgc *gc);
+// Update NextGc Threshold
 void GcUpdateThreshold(Pgc *gc);
+// Mark a Value
+// In reality it will if marked if only it is object
 void GcMarkValue(Pgc *gc, PValue value);
+// Mark a Object
 void GcMarkObject(Pgc *gc, PObj *obj);
+
+// Register a root for marking
 void GcRegisterRootMarker(Pgc *gc, PGcMarkRootFn fn, void *ctx);
 
 // Create a New Empty Object.

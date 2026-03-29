@@ -25,7 +25,6 @@ extern "C" {
 
 // Forward declaration of GC
 typedef struct Pgc Pgc;
-typedef struct PanktiCore PanktiCore;
 
 typedef enum PModType {
     PMOD_STDLIB,
@@ -72,10 +71,15 @@ typedef struct PVm {
     SymbolTable *globals;
     // Open Upvalues (Upvalues which are still in stack)
     PObj *openUpvals;
+
+    // Error context
     PErrorCtx errCtx;
 
+    // Path to the script path which is running
     const char *scriptPath;
+    // Arguments to scripts
     char **scriptArgs;
+    // Script argument count
     int scriptArgCount;
 } PVm;
 
