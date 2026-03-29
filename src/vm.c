@@ -2,7 +2,6 @@
 #include "external/stb/stb_ds.h"
 #include "include/alloc.h"
 #include "include/compiler.h"
-#include "include/core.h"
 #include "include/gc.h"
 #include "include/native.h"
 #include "include/object.h"
@@ -43,6 +42,11 @@ void SetupVm(
     vm->scriptArgs = sArgs;
     VmPush(vm, MakeObject(func));
     PObj *clsObj = NewClosureObject(vm->gc, func);
+    if (clsObj == NULL) {
+        // TODO: Better Error Handling
+        PanPrint("Internal Memmory Error : Failed to create script closure");
+        return;
+    }
     VmPop(vm);
     VmPush(vm, MakeObject(clsObj));
     PCallFrame *frame = &vm->frames[vm->frameCount++];
@@ -566,6 +570,14 @@ static PObj *vmCaptureUpval(PVm *vm, PValue *local) {
     }
 
     PObj *newUpval = NewUpvalueObject(vm->gc, local);
+
+    if (newUpval == NULL) {
+        VmError(
+            vm, "Internal Memory Error : Failed to create closure variable"
+        );
+        return NULL;
+    }
+
     newUpval->v.OUpval.next = upval;
     if (prevUpval == NULL) {
         vm->openUpvals = newUpval;
