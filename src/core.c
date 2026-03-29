@@ -52,12 +52,15 @@ PanktiCore *NewCore(const char *scriptPath) {
     }
     core->scriptPath = scriptPath;
     core->source = PanReadFile(core->scriptPath);
+
     if (core->source == NULL) {
         PanPrint("Failed to Read Source Code\n");
         PFree(core);
         return NULL;
     }
+
     core->lexer = NewLexer(core->source);
+
     if (core->lexer == NULL) {
         PFree(core);
         return NULL;
@@ -72,9 +75,48 @@ PanktiCore *NewCore(const char *scriptPath) {
     core->caughtError = false;
     core->runtimeError = false;
     core->gc = NewGc();
+    if (core->gc == NULL) {
+        if (core->lexer != NULL) {
+            FreeLexer(core->lexer);
+        }
+
+        PFree(core);
+        return NULL;
+    }
     core->lexer->timestamp = core->gc->timestamp;
     core->compiler = NewCompiler(core->gc);
+
+    if (core->compiler == NULL) {
+        if (core->lexer != NULL) {
+            FreeLexer(core->lexer);
+        }
+
+        if (core->gc != NULL) {
+            FreeGc(core->gc);
+        }
+
+        PFree(core);
+        return NULL;
+    }
     core->vm = NewVm(core->gc);
+
+    if (core->vm == NULL) {
+        if (core->lexer != NULL) {
+            FreeLexer(core->lexer);
+        }
+
+        if (core->gc != NULL) {
+            FreeGc(core->gc);
+        }
+
+        if (core->compiler != NULL) {
+            FreeCompiler(core->compiler);
+        }
+
+        PFree(core);
+        return NULL;
+    }
+
     GcRegisterRootMarker(core->gc, VmMarkRoots, core->vm);
     GcRegisterRootMarker(core->gc, CompilerMarkRoots, core->compiler);
     core->vm->errCtx =
