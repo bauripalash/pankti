@@ -32,6 +32,10 @@ extern "C" {
 #define GC_ENV_FREELIST_DEF_CAP 16
 #endif
 
+#ifndef GC_MARKER_CAP
+#define GC_MARKER_CAP 8
+#endif
+
 typedef struct Pgc Pgc;
 
 typedef void (*PGcMarkRootFn)(Pgc *gc, void *ctx);
@@ -49,7 +53,7 @@ typedef struct Pgc {
     bool stress;
     PObj *objects;
     PStmt *stmts;
-    PGcRootMarker markers[8];
+    PGcRootMarker markers[GC_MARKER_CAP];
     int markerCount;
     // String Pool
     PStringPool *strings;

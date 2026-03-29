@@ -15,11 +15,12 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-PVm *NewVm(PanktiCore *core) {
+PVm *NewVm(Pgc *gc) {
     PVm *vm = PCreate(PVm);
     vm->sp = vm->stack;
-    vm->gc = core->gc;
+    vm->gc = gc;
     vm->frameCount = 0;
     vm->globals = NewSymbolTable();
     vm->modCount = 0;
@@ -28,13 +29,20 @@ PVm *NewVm(PanktiCore *core) {
     vm->modProxies = NULL;
     vm->sp = vm->stack;
     vm->openUpvals = NULL;
+    vm->scriptPath = NULL;
+    vm->scriptArgs = NULL;
+    vm->scriptArgCount = 0;
     return vm;
 }
 
-void SetupVm(PVm *vm, Pgc *gc, PObj *func) {
-    vm->gc = gc;
+void SetupVm(
+    PVm *vm, PObj *func, const char *scriptPath, int sArgc, char **sArgs
+) {
+    vm->scriptPath = scriptPath;
+    vm->scriptArgCount = sArgc;
+    vm->scriptArgs = sArgs;
     VmPush(vm, MakeObject(func));
-    PObj *clsObj = NewClosureObject(gc, func);
+    PObj *clsObj = NewClosureObject(vm->gc, func);
     VmPop(vm);
     VmPush(vm, MakeObject(clsObj));
     PCallFrame *frame = &vm->frames[vm->frameCount++];
@@ -166,8 +174,10 @@ void VmPrintStackTrace(const PVm *vm) {
             struct OString *name = &fn->strName->v.OString;
             PanFPrint(stderr, "%s(...)", name->value);
         } else {
-            // BUG: Script Name
-            // PanFPrint(stderr, "<script> (%s)", vm->core->scriptPath);
+            PanFPrint(
+                stderr, "<script> (%s)",
+                vm->scriptPath != NULL ? vm->scriptPath : "unknown"
+            );
         }
         if (posInfo.found) {
             PanFPrint(stderr, " at %llu:%llu\n", posInfo.line, posInfo.gcol);
@@ -176,6 +186,7 @@ void VmPrintStackTrace(const PVm *vm) {
 }
 
 void VmError(PVm *vm, const char *msg) {
+
     PCallFrame *frame = &vm->frames[vm->frameCount - 1];
     VmPosInfo posInfo = vmGetPosInfo(vm, frame);
     if (posInfo.found) {

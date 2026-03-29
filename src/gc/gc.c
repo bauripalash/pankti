@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <time.h>
 
 #if defined(PANKTI_BUILD_DEBUG)
@@ -101,6 +102,12 @@ void FreeGc(Pgc *gc) {
 }
 
 void GcRegisterRootMarker(Pgc *gc, PGcMarkRootFn fn, void *ctx) {
+    if (gc->markerCount == GC_MARKER_CAP) {
+        // Should Never Reach Here
+        // because we have fixed roots
+        PanPrint("Fatal Internal Error : GC Marker Registration Failed");
+        exit(EXIT_FAILURE);
+    }
     gc->markers[gc->markerCount++] = (PGcRootMarker){.fn = fn, .ctx = ctx};
 }
 

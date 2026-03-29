@@ -1,7 +1,6 @@
 #include "include/native.h"
 #include "external/stb/stb_ds.h"
 #include "include/compiler.h"
-#include "include/core.h"
 #include "include/gc.h"
 #include "include/object.h"
 #include "include/printer.h"
@@ -139,13 +138,9 @@ static PValue ntvError(PVm *vm, PValue *args, u64 argc) {
 static PValue ntvGetArgs(PVm *vm, PValue *args, u64 argc) {
     (void)args;
     (void)argc;
-    return MakeNil();
-    // BUG: VM should have reference to scripts args
-    /*
-    PanktiCore *core = vm->core;
 
-    int sargCount = core->scriptArgCount;
-    char **sargs = core->scriptArgs;
+    int sargCount = vm->scriptArgCount;
+    char **sargs = vm->scriptArgs;
 
     if (sargCount == 0 || sargs == NULL) {
         PObj *emptyArray = NewArrayObject(vm->gc, NULL, NULL, 0);
@@ -171,7 +166,6 @@ static PValue ntvGetArgs(PVm *vm, PValue *args, u64 argc) {
     PObj *arr = NewArrayObject(vm->gc, NULL, items, sargCount);
 
     return MakeObject(arr);
-    */
 }
 
 #define DefStrHash(s, v) ((StrHash(s, DefStrLen(s), v->gc->timestamp)))

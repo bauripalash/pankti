@@ -74,7 +74,7 @@ PanktiCore *NewCore(const char *scriptPath) {
     core->gc = NewGc();
     core->lexer->timestamp = core->gc->timestamp;
     core->compiler = NewCompiler(core->gc);
-    core->vm = NewVm(core);
+    core->vm = NewVm(core->gc);
     GcRegisterRootMarker(core->gc, VmMarkRoots, core->vm);
     GcRegisterRootMarker(core->gc, CompilerMarkRoots, core->compiler);
     core->vm->errCtx =
@@ -224,7 +224,10 @@ PCoreErrorType RunCore(PanktiCore *core) {
         PanPrint("[DEBUG] Compiler finished in : %f sec.\n", compilerTime);
     }
 #endif
-    SetupVm(core->vm, core->gc, comFn);
+    SetupVm(
+        core->vm, comFn, core->scriptPath, core->scriptArgCount,
+        core->scriptArgs
+    );
 
 #if defined(PANKTI_BUILD_DEBUG)
     if (FLAG_DEBUG_TIMES) {

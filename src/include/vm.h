@@ -73,12 +73,18 @@ typedef struct PVm {
     // Open Upvalues (Upvalues which are still in stack)
     PObj *openUpvals;
     PErrorCtx errCtx;
+
+    const char *scriptPath;
+    char **scriptArgs;
+    int scriptArgCount;
 } PVm;
 
 // Create an empty VM Object
-PVm *NewVm(PanktiCore *core);
+PVm *NewVm(Pgc *gc);
 // Setup VM with bytecode, constants, gc etc.
-void SetupVm(PVm *vm, Pgc *gc, PObj *func);
+void SetupVm(
+    PVm *vm, PObj *func, const char *scriptPath, int sArgc, char **sArgs
+);
 // Free the VM
 void FreeVm(PVm *vm);
 

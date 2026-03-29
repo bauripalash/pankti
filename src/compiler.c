@@ -43,6 +43,9 @@ PCompiler *dummyCompiler(
     c->func = NULL;
     c->funcType = ftype;
     c->enclosing = enclosing;
+    if (enclosing != NULL) {
+        c->errCtx = enclosing->errCtx;
+    }
     c->prog = NULL;
     c->progCount = 0;
     c->scopeDepth = 0;
