@@ -356,6 +356,13 @@ PObj *GetCompiledFunction(PCompiler *comp) {
 }
 
 bool CompilerCompile(PCompiler *compiler, PStmt **prog) {
+    if (compiler->errCtx.report == NULL) {
+        PanPrint(
+            "Fatal Internal Error : Compiler Started Running Before Error "
+            "Context Was Set\n"
+        );
+        exit(EXIT_FAILURE);
+    }
     compiler->prog = prog;
     compiler->progCount = (u64)arrlen(prog);
 

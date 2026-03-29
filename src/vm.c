@@ -668,6 +668,13 @@ static finline PObj *vmReadObjConst(PVm *vm, PCallFrame *frame) {
 }
 
 void VmRun(PVm *vm) {
+    if (vm->errCtx.report == NULL) {
+        PanPrint(
+            "Fatal Internal Error : VM Started Running Before Error Context "
+            "Was Set\n"
+        );
+        exit(EXIT_FAILURE);
+    }
     PCallFrame *frame = &vm->frames[vm->frameCount - 1];
     while (true) {
         u8 ins;
