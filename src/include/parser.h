@@ -1,6 +1,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include "errctx.h"
 #include "gc.h"
 #ifdef __cplusplus
 extern "C" {
@@ -16,8 +17,7 @@ typedef struct Parser {
     Lexer *lx;
     // Array of Tokens, referenced from lexer's token array
     Token **tokens;
-    // Reference to PanktiCore
-    void *core;
+    PErrorCtx errCtx;
     // Reference to GC
     Pgc *gc;
     // Reading Position of token from token array

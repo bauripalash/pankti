@@ -6,7 +6,6 @@
 #include "include/gc.h"
 #include "include/lexer.h"
 #include "include/parser_errors.h"
-#include "include/strescape.h"
 #include "include/token.h"
 #include "include/utils.h"
 #include <assert.h>
@@ -47,7 +46,6 @@ Parser *NewParser(Pgc *gc, Lexer *lexer) {
     parser->tokens = lexer->tokens;
     parser->gc = gc;
     parser->pos = 0;
-    parser->core = NULL;
     parser->stmts = NULL;
     parser->hasError = false;
     return parser;
@@ -112,12 +110,12 @@ static bool matchOne(Parser *p, PTokenType type) {
 
 static inline void error(Parser *p, Token *tok, char *msg) {
     p->hasError = true;
-    CoreParserError(p->core, tok, msg, false);
+    p->errCtx.report(p->errCtx.ctx, tok, msg, false);
 }
 
 static inline void fatalError(Parser *p, Token *tok, char *msg) {
     p->hasError = true;
-    CoreParserError(p->core, tok, msg, true);
+    p->errCtx.report(p->errCtx.ctx, tok, msg, true);
 }
 
 static Token *eat(Parser *p, PTokenType t, char *msg) {

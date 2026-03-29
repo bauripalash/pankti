@@ -39,6 +39,12 @@ static void coreCompilerErrorBridge(
     CoreCompilerError((PanktiCore *)ctx, tok, msg);
 }
 
+static void coreParserErrorBridge(
+    void *ctx, Token *tok, const char *msg, bool fatal
+) {
+    CoreParserError((PanktiCore *)ctx, tok, msg, fatal);
+}
+
 PanktiCore *NewCore(const char *scriptPath) {
     PanktiCore *core = PCreate(PanktiCore);
     if (core == NULL) {
@@ -155,7 +161,8 @@ PCoreErrorType RunCore(PanktiCore *core) {
     }
 
     core->parser = NewParser(core->gc, core->lexer);
-    core->parser->core = core;
+    core->parser->errCtx =
+        (PErrorCtx){.report = coreParserErrorBridge, .ctx = core};
 
 #if defined(PANKTI_BUILD_DEBUG)
     if (FLAG_DEBUG_TIMES) {
