@@ -56,7 +56,6 @@ set(PANKTI_HEADER_FILES
   "${CMAKE_CURRENT_LIST_DIR}/include/bengali.h"
   "${CMAKE_CURRENT_LIST_DIR}/include/core.h"
   "${CMAKE_CURRENT_LIST_DIR}/include/defaults.h"
-  "${CMAKE_CURRENT_LIST_DIR}/include/env.h"
   "${CMAKE_CURRENT_LIST_DIR}/include/gc.h"
   "${CMAKE_CURRENT_LIST_DIR}/include/keywords.h"
   "${CMAKE_CURRENT_LIST_DIR}/include/lexer.h"

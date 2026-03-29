@@ -18,7 +18,6 @@
 
 PVm *NewVm(PanktiCore *core) {
     PVm *vm = PCreate(PVm);
-    vm->core = core;
     vm->sp = vm->stack;
     vm->gc = core->gc;
     vm->frameCount = 0;
@@ -70,19 +69,19 @@ void FreeVm(PVm *vm) {
     PFree(vm);
 }
 
-void MarkVmStack(PVm *vm) {
+void markVmStack(PVm *vm) {
     for (PValue *slot = vm->stack; slot < vm->sp; slot++) {
         GcMarkValue(vm->gc, *slot);
     }
 }
 
-void MarkVmFrames(PVm *vm) {
+void markVmFrames(PVm *vm) {
     for (int i = 0; i < vm->frameCount; i++) {
         GcMarkObject(vm->gc, vm->frames[i].cls);
     }
 }
 
-void MarkVmOpenUpvals(PVm *vm) {
+void markVmOpenUpvals(PVm *vm) {
     PObj *upval = vm->openUpvals;
     while (upval != NULL) {
         GcMarkObject(vm->gc, upval);
@@ -90,10 +89,19 @@ void MarkVmOpenUpvals(PVm *vm) {
     }
 }
 
-void MarkVmModules(PVm *vm) {
+void markVmModules(PVm *vm) {
     for (u64 i = 0; i < vm->modCount; i++) {
         MarkSymbolTable(vm->gc, vm->modules[i]->table);
     }
+}
+
+void VmMarkRoots(Pgc *gc, void *ctx) {
+    PVm *vm = (PVm *)ctx;
+    markVmStack(vm);
+    markVmFrames(vm);
+    markVmOpenUpvals(vm);
+    MarkSymbolTable(gc, vm->globals);
+    markVmModules(vm);
 }
 
 typedef struct VmPosInfo {
@@ -158,7 +166,8 @@ void VmPrintStackTrace(const PVm *vm) {
             struct OString *name = &fn->strName->v.OString;
             PanFPrint(stderr, "%s(...)", name->value);
         } else {
-            PanFPrint(stderr, "<script> (%s)", vm->core->scriptPath);
+            // BUG: Script Name
+            // PanFPrint(stderr, "<script> (%s)", vm->core->scriptPath);
         }
         if (posInfo.found) {
             PanFPrint(stderr, " at %llu:%llu\n", posInfo.line, posInfo.gcol);
@@ -170,9 +179,9 @@ void VmError(PVm *vm, const char *msg) {
     PCallFrame *frame = &vm->frames[vm->frameCount - 1];
     VmPosInfo posInfo = vmGetPosInfo(vm, frame);
     if (posInfo.found) {
-        CoreRuntimeError(vm->core, posInfo.token, msg);
+        vm->errCtx.report(vm->errCtx.ctx, posInfo.token, msg, true);
     } else {
-        CoreRuntimeError(vm->core, NULL, msg);
+        vm->errCtx.report(vm->errCtx.ctx, NULL, msg, true);
     }
 }
 

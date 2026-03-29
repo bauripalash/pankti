@@ -1,6 +1,5 @@
 #include "../external/stb/stb_ds.h"
 #include "../include/alloc.h"
-#include "../include/env.h"
 #include "../include/flags.h"
 #include "../include/gc.h"
 #include "../include/object.h"

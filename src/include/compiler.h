@@ -2,6 +2,7 @@
 #define COMPILER_H
 
 #include "ast.h"
+#include "errctx.h"
 #include "object.h"
 #include "opcode.h"
 #include "ptypes.h"
@@ -61,10 +62,10 @@ typedef struct PCompiler {
 
     Token *dummyToken;
 
+    PErrorCtx errCtx;
+
     // Pointer to garbage collector
     Pgc *gc;
-    // Core
-    PanktiCore *core;
     // Compiled function object, where the bytecodes, constants will be
     // emitted. The function will be returned after compiling finished
     PObj *func;
@@ -77,16 +78,16 @@ typedef struct PCompiler {
 } PCompiler;
 
 // Create a new compiler object
-PCompiler *NewCompiler(PanktiCore *core);
+PCompiler *NewCompiler(Pgc *gc);
 PCompiler *NewEnclosedCompiler(
-    PanktiCore *core, PCompiler *comp, PCompFuncType ftype, Token *name
+    Pgc *gc, PCompiler *comp, PCompFuncType ftype, Token *name
 );
 
 // Free the compiler
 void FreeCompiler(PCompiler *comp);
 
 // Compiler + GC : Mark Compiler Roots
-void MarkCompilerRoots(PCompiler *comp);
+void CompilerMarkRoots(Pgc *gc, void *ctx);
 // Compile a root AST Node
 bool CompilerCompile(PCompiler *compiler, PStmt **prog);
 

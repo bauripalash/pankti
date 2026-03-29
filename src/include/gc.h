@@ -16,14 +16,6 @@ extern "C" {
 #include "strpool.h"
 #include "token.h"
 
-// Print Debug Information for Each GC Action, New Object, Free Object, Marking
-// Sweeping etc.
-// #define DEBUG_GC
-
-// Stress the GC. Run collector at every action
-// Ignores gc threshold limits
-// #define STRESS_GC
-
 #ifndef GC_OBJ_THRESHOLD
 #define GC_OBJ_THRESHOLD 48
 #endif
@@ -40,7 +32,14 @@ extern "C" {
 #define GC_ENV_FREELIST_DEF_CAP 16
 #endif
 
-typedef struct PanktiCore PanktiCore;
+typedef struct Pgc Pgc;
+
+typedef void (*PGcMarkRootFn)(Pgc *gc, void *ctx);
+
+typedef struct PGcRootMarker {
+    PGcMarkRootFn fn;
+    void *ctx;
+} PGcRootMarker;
 
 // Pankti Garbage Collector
 typedef struct Pgc {
@@ -50,8 +49,8 @@ typedef struct Pgc {
     bool stress;
     PObj *objects;
     PStmt *stmts;
-    // Looped reference to core
-    PanktiCore *core;
+    PGcRootMarker markers[8];
+    int markerCount;
     // String Pool
     PStringPool *strings;
     // Currently live objects
@@ -77,6 +76,7 @@ void GcCounterFree(Pgc *gc);
 void GcUpdateThreshold(Pgc *gc);
 void GcMarkValue(Pgc *gc, PValue value);
 void GcMarkObject(Pgc *gc, PObj *obj);
+void GcRegisterRootMarker(Pgc *gc, PGcMarkRootFn fn, void *ctx);
 
 // Create a New Empty Object.
 // `type` = Type of statement

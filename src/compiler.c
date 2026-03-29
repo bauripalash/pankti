@@ -3,7 +3,6 @@
 #include "include/alloc.h"
 #include "include/ast.h"
 #include "include/compiler_errors.h"
-#include "include/core.h"
 #include "include/flags.h"
 #include "include/gc.h"
 #include "include/object.h"
@@ -34,12 +33,13 @@ static u16 addConstant(PCompiler *comp, PValue value);
 static u16 readVariableName(PCompiler *comp, Token *name);
 
 PCompiler *dummyCompiler(
-    PanktiCore *core, PCompiler *enclosing, PCompFuncType ftype, Token *name
+    Pgc *gc, PCompiler *enclosing, PCompFuncType ftype, Token *name
 ) {
     PCompiler *c = PCreate(PCompiler);
     if (c == NULL) {
         return NULL;
     }
+    c->gc = gc;
     c->func = NULL;
     c->funcType = ftype;
     c->enclosing = enclosing;
@@ -52,29 +52,21 @@ PCompiler *dummyCompiler(
         PFree(c);
         return NULL;
     }
-    if (core != NULL) {
-        c->core = core;
-        c->gc = core->gc;
 
-        PObj *cmFunc = NULL;
-        if (name != NULL && ftype == COMP_FN_FUNCTION) {
-            cmFunc = NewComFuncObject(c->gc, name);
-
-        } else {
-            cmFunc = NewComFuncObject(c->gc, NULL);
-        }
-        if (cmFunc == NULL) {
-            FreeToken(c->dummyToken);
-            PFree(c);
-            return NULL;
-        }
-        c->func = cmFunc;
+    PObj *cmFunc = NULL;
+    if (name != NULL && ftype == COMP_FN_FUNCTION) {
+        cmFunc = NewComFuncObject(c->gc, name);
 
     } else {
-        c->core = NULL;
-        c->gc = NULL;
-        c->func = NULL;
+        cmFunc = NewComFuncObject(c->gc, NULL);
     }
+    if (cmFunc == NULL) {
+        FreeToken(c->dummyToken);
+        PFree(c);
+        return NULL;
+    }
+    c->func = cmFunc;
+
     c->loopCtx = NULL;
 
     PLocal *local = &c->locals[c->localCount++];
@@ -84,8 +76,8 @@ PCompiler *dummyCompiler(
     return c;
 }
 
-PCompiler *NewCompiler(PanktiCore *core) {
-    PCompiler *c = dummyCompiler(core, NULL, COMP_FN_SCRIPT, NULL);
+PCompiler *NewCompiler(Pgc *gc) {
+    PCompiler *c = dummyCompiler(gc, NULL, COMP_FN_SCRIPT, NULL);
     if (c == NULL) {
         return NULL;
     }
@@ -94,10 +86,10 @@ PCompiler *NewCompiler(PanktiCore *core) {
 }
 
 PCompiler *NewEnclosedCompiler(
-    PanktiCore *core, PCompiler *comp, PCompFuncType ftype, Token *name
+    Pgc *gc, PCompiler *comp, PCompFuncType ftype, Token *name
 ) {
 
-    PCompiler *c = dummyCompiler(core, comp, COMP_FN_FUNCTION, name);
+    PCompiler *c = dummyCompiler(gc, comp, COMP_FN_FUNCTION, name);
     if (c == NULL) {
         return NULL;
     }
@@ -136,7 +128,8 @@ void DebugCompilerTree(PCompiler *comp) {
     PanPrint("<----\n");
 }
 
-void MarkCompilerRoots(PCompiler *comp) {
+void CompilerMarkRoots(Pgc *gc, void *ctx) {
+    PCompiler *comp = (PCompiler *)ctx;
     if (comp == NULL || comp->gc == NULL) {
         return;
     }
@@ -149,7 +142,7 @@ void MarkCompilerRoots(PCompiler *comp) {
 }
 
 static void cmpError(PCompiler *comp, Token *token, const char *msg) {
-    CoreCompilerError(comp->core, token, msg);
+    comp->errCtx.report(comp->errCtx.ctx, token, msg, true);
 }
 
 // Get Current Compiling Bytecode object
@@ -1020,7 +1013,7 @@ static bool compileFuncBody(PCompiler *comp, PStmt **stmts) {
 static bool compileFunc(PCompiler *comp, PStmt *stmt) {
     struct SFunc *fnStmt = &stmt->stmt.SFunc;
     PCompiler *fComp =
-        NewEnclosedCompiler(comp->core, comp, COMP_FN_FUNCTION, fnStmt->name);
+        NewEnclosedCompiler(comp->gc, comp, COMP_FN_FUNCTION, fnStmt->name);
     if (fComp == NULL) {
         cmpError(comp, fnStmt->name, CMP_ERR_IME_FAIL_FNC_CMP);
         return false;

@@ -3,6 +3,7 @@
 #include "include/alloc.h"
 #include "include/ast.h"
 #include "include/compiler.h"
+#include "include/errctx.h"
 #include "include/flags.h"
 #include "include/gc.h"
 #include "include/lexer.h"
@@ -25,6 +26,18 @@
 #if defined(PANKTI_BUILD_DEBUG)
 #include "include/opcode.h"
 #endif
+
+static void coreRuntimeErrorBridge(
+    void *ctx, Token *tok, const char *msg, bool fatal
+) {
+    CoreRuntimeError((PanktiCore *)ctx, tok, msg);
+}
+
+static void coreCompilerErrorBridge(
+    void *ctx, Token *tok, const char *msg, bool fatal
+) {
+    CoreCompilerError((PanktiCore *)ctx, tok, msg);
+}
 
 PanktiCore *NewCore(const char *scriptPath) {
     PanktiCore *core = PCreate(PanktiCore);
@@ -53,11 +66,17 @@ PanktiCore *NewCore(const char *scriptPath) {
     core->caughtError = false;
     core->runtimeError = false;
     core->gc = NewGc();
-    core->gc->core = core;
     core->lexer->timestamp = core->gc->timestamp;
-    core->compiler = NewCompiler(core);
+    core->compiler = NewCompiler(core->gc);
     core->vm = NewVm(core);
-    core->vm->core = core;
+    GcRegisterRootMarker(core->gc, VmMarkRoots, core->vm);
+    GcRegisterRootMarker(core->gc, CompilerMarkRoots, core->compiler);
+    core->vm->errCtx =
+        (PErrorCtx){.report = coreRuntimeErrorBridge, .ctx = core};
+
+    core->compiler->errCtx =
+        (PErrorCtx){.report = coreCompilerErrorBridge, .ctx = core};
+
     return core;
 }
 

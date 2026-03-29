@@ -1,9 +1,8 @@
 #include "../include/gc.h"
 #include "../external/stb/stb_ds.h"
 #include "../include/alloc.h"
-#include "../include/core.h"
-#include "../include/env.h"
 #include "../include/flags.h"
+#include "../include/opcode.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -32,6 +31,7 @@ Pgc *NewGc(void) {
     gc->disable = false;
     gc->needCollect = false;
     gc->nextGc = GC_OBJ_THRESHOLD;
+    gc->markerCount = 0;
 #if defined(PANKTI_BUILD_DEBUG)
     gc->stress = FLAG_STRESS_GC;
 #else
@@ -99,6 +99,11 @@ void FreeGc(Pgc *gc) {
     }
 #endif
 }
+
+void GcRegisterRootMarker(Pgc *gc, PGcMarkRootFn fn, void *ctx) {
+    gc->markers[gc->markerCount++] = (PGcRootMarker){.fn = fn, .ctx = ctx};
+}
+
 void GcCounterNew(Pgc *gc) {
     if (gc == NULL) {
         return;
@@ -211,24 +216,14 @@ static void traceRefs(Pgc *gc) {
     }
 }
 
-static void markVm(Pgc *gc) {
-    if (gc != NULL && gc->core != NULL && gc->core->vm != NULL) {
-        PVm *vm = gc->core->vm;
-        MarkVmStack(vm);
-        MarkVmFrames(vm);
-        MarkVmOpenUpvals(vm);
-        MarkSymbolTable(gc, vm->globals);
-        MarkVmModules(vm);
-    }
-}
-
 static void markRoots(Pgc *gc) {
     if (gc == NULL) {
         return;
     }
 
-    markVm(gc);
-    MarkCompilerRoots(gc->core->compiler);
+    for (int i = 0; i < gc->markerCount; i++) {
+        gc->markers[i].fn(gc, gc->markers[i].ctx);
+    }
 }
 
 static void sweep(Pgc *gc) {

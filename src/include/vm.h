@@ -1,8 +1,8 @@
 #ifndef VM_H
 #define VM_H
 
+#include "errctx.h"
 #include "object.h"
-#include "opcode.h"
 #include "ptypes.h"
 #include "symtable.h"
 #ifdef __cplusplus
@@ -52,11 +52,6 @@ typedef struct PCallFrame {
 
 // Pankti Virtual Machine Object
 typedef struct PVm {
-    // Constants array
-    // PValue *constPool;
-    // Constants array count
-    // u16 constCount;
-
     PCallFrame frames[PVM_FRAMESTACK_SIZE];
     int frameCount;
 
@@ -65,12 +60,6 @@ typedef struct PVm {
     // Stack pointer
     PValue *sp;
 
-    // Raw bytecode codes
-    // u8 *code;
-    // count
-    // u64 codeCount;
-    // Instruction Pointer
-    // u8 *ip;
     PModule **modules;
     u64 modCount;
 
@@ -81,10 +70,9 @@ typedef struct PVm {
     Pgc *gc;
     // Globals hash table
     SymbolTable *globals;
+    // Open Upvalues (Upvalues which are still in stack)
     PObj *openUpvals;
-
-    // Link to pankti core
-    PanktiCore *core;
+    PErrorCtx errCtx;
 } PVm;
 
 // Create an empty VM Object
@@ -94,17 +82,7 @@ void SetupVm(PVm *vm, Pgc *gc, PObj *func);
 // Free the VM
 void FreeVm(PVm *vm);
 
-// VM+GC : Mark VM Stack
-void MarkVmStack(PVm *vm);
-
-// VM+GC : Mark VM Call Frames
-void MarkVmFrames(PVm *vm);
-
-// VM+GC : Mark VM Open Upvalues
-void MarkVmOpenUpvals(PVm *vm);
-
-// VM+GC : Mark Imported Module Tables
-void MarkVmModules(PVm *vm);
+void VmMarkRoots(Pgc *gc, void *ctx);
 
 // Debug VM Stack
 void DebugVMStack(PVm *vm);
