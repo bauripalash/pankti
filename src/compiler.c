@@ -3,6 +3,7 @@
 #include "include/alloc.h"
 #include "include/ast.h"
 #include "include/compiler_errors.h"
+#include "include/errctx.h"
 #include "include/flags.h"
 #include "include/gc.h"
 #include "include/object.h"
@@ -33,19 +34,17 @@ static u16 addConstant(PCompiler *comp, PValue value);
 static u16 readVariableName(PCompiler *comp, Token *name);
 
 PCompiler *dummyCompiler(
-    Pgc *gc, PCompiler *enclosing, PCompFuncType ftype, Token *name
+    Pgc *gc, PCompiler *enclosing, PCompFuncType ftype, Token *name, PErrorCtx errCtx
 ) {
     PCompiler *c = PCreate(PCompiler);
     if (c == NULL) {
         return NULL;
     }
+    c->errCtx = errCtx;
     c->gc = gc;
     c->func = NULL;
     c->funcType = ftype;
     c->enclosing = enclosing;
-    if (enclosing != NULL) {
-        c->errCtx = enclosing->errCtx;
-    }
     c->prog = NULL;
     c->progCount = 0;
     c->scopeDepth = 0;
@@ -79,8 +78,8 @@ PCompiler *dummyCompiler(
     return c;
 }
 
-PCompiler *NewCompiler(Pgc *gc) {
-    PCompiler *c = dummyCompiler(gc, NULL, COMP_FN_SCRIPT, NULL);
+PCompiler *NewCompiler(Pgc *gc, PErrorCtx errCtx) {
+    PCompiler *c = dummyCompiler(gc, NULL, COMP_FN_SCRIPT, NULL, errCtx);
     if (c == NULL) {
         return NULL;
     }
@@ -89,10 +88,10 @@ PCompiler *NewCompiler(Pgc *gc) {
 }
 
 PCompiler *NewEnclosedCompiler(
-    Pgc *gc, PCompiler *comp, PCompFuncType ftype, Token *name
+    Pgc *gc, PCompiler *comp, PCompFuncType ftype, Token *name, PErrorCtx errCtx
 ) {
 
-    PCompiler *c = dummyCompiler(gc, comp, COMP_FN_FUNCTION, name);
+    PCompiler *c = dummyCompiler(gc, comp, COMP_FN_FUNCTION, name, errCtx);
     if (c == NULL) {
         return NULL;
     }
@@ -1023,7 +1022,7 @@ static bool compileFuncBody(PCompiler *comp, PStmt **stmts) {
 static bool compileFunc(PCompiler *comp, PStmt *stmt) {
     struct SFunc *fnStmt = &stmt->stmt.SFunc;
     PCompiler *fComp =
-        NewEnclosedCompiler(comp->gc, comp, COMP_FN_FUNCTION, fnStmt->name);
+        NewEnclosedCompiler(comp->gc, comp, COMP_FN_FUNCTION, fnStmt->name, comp->errCtx);
     if (fComp == NULL) {
         cmpError(comp, fnStmt->name, CMP_ERR_IME_FAIL_FNC_CMP);
         return false;

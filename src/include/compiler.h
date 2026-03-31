@@ -78,9 +78,9 @@ typedef struct PCompiler {
 } PCompiler;
 
 // Create a new compiler object
-PCompiler *NewCompiler(Pgc *gc);
+PCompiler *NewCompiler(Pgc *gc, PErrorCtx errCtx);
 PCompiler *NewEnclosedCompiler(
-    Pgc *gc, PCompiler *comp, PCompFuncType ftype, Token *name
+    Pgc *gc, PCompiler *comp, PCompFuncType ftype, Token *name, PErrorCtx errCtx
 );
 
 // Free the compiler

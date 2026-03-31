@@ -84,7 +84,7 @@ typedef struct PVm {
 } PVm;
 
 // Create an empty VM Object
-PVm *NewVm(Pgc *gc);
+PVm *NewVm(Pgc *gc, PErrorCtx errCtx);
 // Setup VM with bytecode, constants, gc etc.
 void SetupVm(
     PVm *vm, PObj *func, const char *scriptPath, int sArgc, char **sArgs

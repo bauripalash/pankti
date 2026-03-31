@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-PVm *NewVm(Pgc *gc) {
+PVm *NewVm(Pgc *gc, PErrorCtx errCtx) {
     PVm *vm = PCreate(PVm);
     vm->sp = vm->stack;
     vm->gc = gc;
@@ -31,6 +31,7 @@ PVm *NewVm(Pgc *gc) {
     vm->scriptPath = NULL;
     vm->scriptArgs = NULL;
     vm->scriptArgCount = 0;
+    vm->errCtx = errCtx;
     return vm;
 }
 
@@ -43,8 +44,12 @@ void SetupVm(
     VmPush(vm, MakeObject(func));
     PObj *clsObj = NewClosureObject(vm->gc, func);
     if (clsObj == NULL) {
-        // TODO: Better Error Handling
-        PanPrint("Internal Memmory Error : Failed to create script closure");
+        // Directly call to core runtime error
+        // we cannot provide any stack trace yet
+        vm->errCtx.report(
+            vm->errCtx.ctx, func->v.OComFunction.rawName,
+            "Internal Memmory Error : Failed to create script closure", true
+        );
         return;
     }
     VmPop(vm);

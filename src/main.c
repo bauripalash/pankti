@@ -66,13 +66,13 @@ int main(int argc, char **argv) {
         }
 
         PanktiCore *core = NewCore(filePath);
-        core->scriptArgCount = args.scriptArgCount;
-        core->scriptArgs = args.scriptArgs;
 
         if (core == NULL) {
             PanPrint("Error: Failed to initialize Pankti Runtime\n");
             return EXIT_FAILURE;
         }
+        core->scriptArgCount = args.scriptArgCount;
+        core->scriptArgs = args.scriptArgs;
         RunCore(core);
         FreeCore(core);
     }
