@@ -150,6 +150,25 @@ PColor PanStrToColor(const char *str, ColorStrError *err) {
 #if defined(PANKTI_OS_LINUX)
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
+#include <X11/Xutil.h>
+
+static void gfxSetX11AppClass(PanGfxCore *core) {
+    Display *dpy = NULL;
+    Window win = {0};
+    PCTigrExposeX11Handle(core->screen, &dpy, &win);
+    if (dpy == NULL) {
+        return;
+    }
+
+    XClassHint *classHint = XAllocClassHint();
+    if (classHint != NULL) {
+        classHint->res_name = "pankti"; // TODO: take from core or options
+        classHint->res_class =
+            "in.palashbauri.pankti"; // TODO: take from core or options
+        XSetClassHint(dpy, win, classHint);
+        XFree(classHint);
+    }
+}
 
 static void gfxSetX11Icon(PanGfxCore *core) {
     int w, h, channels;
@@ -237,6 +256,7 @@ static void gfxSetWin32Icon(PanGfxCore *core) {
 
 void GfxSetWindowIcon(PanGfxCore *core) {
 #if defined(PANKTI_OS_LINUX)
+    gfxSetX11AppClass(core);
     gfxSetX11Icon(core);
 #elif defined(PANKTI_OS_WIN)
     gfxSetWin32Icon(core);

@@ -84,7 +84,9 @@ PanktiCore *NewCore(const char *scriptPath) {
         return NULL;
     }
     core->lexer->timestamp = core->gc->timestamp;
-    core->compiler = NewCompiler(core->gc, (PErrorCtx){.report = coreCompilerErrorBridge, .ctx = core});
+    core->compiler = NewCompiler(
+        core->gc, (PErrorCtx){.report = coreCompilerErrorBridge, .ctx = core}
+    );
 
     if (core->compiler == NULL) {
         if (core->lexer != NULL) {
@@ -121,7 +123,6 @@ PanktiCore *NewCore(const char *scriptPath) {
 
     GcRegisterRootMarker(core->gc, VmMarkRoots, core->vm);
     GcRegisterRootMarker(core->gc, CompilerMarkRoots, core->compiler);
-
 
     return core;
 }

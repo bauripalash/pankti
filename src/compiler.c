@@ -34,7 +34,11 @@ static u16 addConstant(PCompiler *comp, PValue value);
 static u16 readVariableName(PCompiler *comp, Token *name);
 
 PCompiler *dummyCompiler(
-    Pgc *gc, PCompiler *enclosing, PCompFuncType ftype, Token *name, PErrorCtx errCtx
+    Pgc *gc,
+    PCompiler *enclosing,
+    PCompFuncType ftype,
+    Token *name,
+    PErrorCtx errCtx
 ) {
     PCompiler *c = PCreate(PCompiler);
     if (c == NULL) {
@@ -1021,8 +1025,9 @@ static bool compileFuncBody(PCompiler *comp, PStmt **stmts) {
 
 static bool compileFunc(PCompiler *comp, PStmt *stmt) {
     struct SFunc *fnStmt = &stmt->stmt.SFunc;
-    PCompiler *fComp =
-        NewEnclosedCompiler(comp->gc, comp, COMP_FN_FUNCTION, fnStmt->name, comp->errCtx);
+    PCompiler *fComp = NewEnclosedCompiler(
+        comp->gc, comp, COMP_FN_FUNCTION, fnStmt->name, comp->errCtx
+    );
     if (fComp == NULL) {
         cmpError(comp, fnStmt->name, CMP_ERR_IME_FAIL_FNC_CMP);
         return false;
