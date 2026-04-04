@@ -42,6 +42,17 @@ double ClampDouble(double value, double min, double max) {
     return value;
 }
 
+i64 ClampInt(i64 value, i64 min, i64 max) {
+    if (value <= min) {
+        return min;
+    }
+    if (value >= max) {
+        return max;
+    }
+
+    return value;
+}
+
 bool IsDoubleInt(double d) { return (floor(d) == ceil(d)); }
 
 unsigned char ToHex2Bytes(char c1, char c2) {

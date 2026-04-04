@@ -1,5 +1,6 @@
 #include "../include/gfxdraw.h"
 #include "../external/tigr/tigr.h"
+#include "../include/utils.h"
 #include <stdbool.h>
 #include <stdlib.h>
 
@@ -140,4 +141,16 @@ bool GfxPointRectColsn(
     int y2 = ry + rh;
 
     return (px > x1 && px < x2 && py > y1 && py < y2);
+}
+
+bool GfxCircleRectColsn(
+    PanGfxCore *core, int cx, int cy, int cr, int rx, int ry, int rw, int rh
+) {
+    int closestX = ClampInt(cx, rx, rx + rw);
+    int closestY = ClampInt(cy, ry, ry + rh);
+    int distX = cx - closestX;
+    int distY = cy - closestY;
+
+    int distSqrd = (distX * distX) + (distY * distY);
+    return distSqrd < (cr * cr);
 }

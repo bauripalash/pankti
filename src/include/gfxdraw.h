@@ -52,6 +52,9 @@ bool GfxPointRectColsn(
     PanGfxCore *core, int px, int py, int rx, int ry, int rw, int rh
 );
 
+bool GfxCircleRectColsn(
+    PanGfxCore *core, int cx, int cy, int cr, int rx, int ry, int rw, int rh
+);
 #ifdef __cplusplus
 }
 #endif

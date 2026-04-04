@@ -330,6 +330,21 @@ static PValue gfx_Is2RectCollision(PVm *vm, PValue *args, u64 argc) {
     return MakeBool(collide);
 }
 
+static PValue gfx_IsCircleRectCollision(PVm *vm, PValue *args, u64 argc) {
+    double cx = ValueAsNum(args[0]);
+    double cy = ValueAsNum(args[1]);
+    double cr = ValueAsNum(args[2]);
+
+    double rx = ValueAsNum(args[3]);
+    double ry = ValueAsNum(args[4]);
+    double rw = ValueAsNum(args[5]);
+    double rh = ValueAsNum(args[6]);
+
+    bool collide = GfxCircleRectColsn(gcore, cx, cy, cr, rx, ry, rw, rh);
+
+    return MakeBool(collide);
+}
+
 static PValue gfx_IsPointRectCollision(PVm *vm, PValue *args, u64 argc) {
     double px = ValueAsNum(args[0]);
     double py = ValueAsNum(args[1]);
@@ -349,34 +364,35 @@ static PValue gfx_GetDelta(PVm *vm, PValue *args, u64 argc) {
     return MakeNumber((double)deltaTime);
 }
 
-#define GFX_STD_NEW               "নতুন"
-#define GFX_STD_STOP              "বন্ধ"
-#define GFX_STD_RUNNING           "চলমান"
-#define GFX_STD_DRAWSTART         "আঁকা_শুরু"
-#define GFX_STD_DRAWFINISH        "আঁকা_শেষ"
-#define GFX_STD_LINE              "রেখা"
-#define GFX_STD_PIXEL             "বিন্দু"
-#define GFX_STD_RECT              "আয়তক্ষেত্র"
-#define GFX_STD_RECT_LINE         "আয়তক্ষেত্র_রেখা"
-#define GFX_STD_CIRCLE            "বৃত্ত"
-#define GFX_STD_CIRCLE_LINE       "বৃত্ত_রেখা"
-#define GFX_STD_CLEAR             "পরিষ্কার"
-#define GFX_STD_TEXT              "লেখা"
-#define GFX_STD_PRESSED           "বোতাম_চাপা"
-#define GFX_STD_DOWN              "বোতাম_চাপা_আছে"
-#define GFX_STD_RELEASED          "বোতাম_ছাড়া"
-#define GFX_STD_UP                "বোতাম_ছাড়া_আছে"
-#define GFX_STD_LOAD_IMAGE        "ছবি_আনয়ন"
-#define GFX_STD_DRAW_IMAGE        "ছবি_আঁকো"
-#define GFX_STD_MOUSE             "মাউস_অবস্থান"
-#define GFX_STD_MOUSE_PRESSED     "মাউস_চাপা"
-#define GFX_STD_MOUSE_DOWN        "মাউস_চাপা_আছে"
-#define GFX_STD_MOUSE_RELEASED    "মাউস_ছাড়া"
-#define GFX_STD_MOUSE_UP          "মাউস_ছাড়া_আছে"
+#define GFX_STD_NEW                 "নতুন"
+#define GFX_STD_STOP                "বন্ধ"
+#define GFX_STD_RUNNING             "চলমান"
+#define GFX_STD_DRAWSTART           "আঁকা_শুরু"
+#define GFX_STD_DRAWFINISH          "আঁকা_শেষ"
+#define GFX_STD_LINE                "রেখা"
+#define GFX_STD_PIXEL               "বিন্দু"
+#define GFX_STD_RECT                "আয়তক্ষেত্র"
+#define GFX_STD_RECT_LINE           "আয়তক্ষেত্র_রেখা"
+#define GFX_STD_CIRCLE              "বৃত্ত"
+#define GFX_STD_CIRCLE_LINE         "বৃত্ত_রেখা"
+#define GFX_STD_CLEAR               "পরিষ্কার"
+#define GFX_STD_TEXT                "লেখা"
+#define GFX_STD_PRESSED             "বোতাম_চাপা"
+#define GFX_STD_DOWN                "বোতাম_চাপা_আছে"
+#define GFX_STD_RELEASED            "বোতাম_ছাড়া"
+#define GFX_STD_UP                  "বোতাম_ছাড়া_আছে"
+#define GFX_STD_LOAD_IMAGE          "ছবি_আনয়ন"
+#define GFX_STD_DRAW_IMAGE          "ছবি_আঁকো"
+#define GFX_STD_MOUSE               "মাউস_অবস্থান"
+#define GFX_STD_MOUSE_PRESSED       "মাউস_চাপা"
+#define GFX_STD_MOUSE_DOWN          "মাউস_চাপা_আছে"
+#define GFX_STD_MOUSE_RELEASED      "মাউস_ছাড়া"
+#define GFX_STD_MOUSE_UP            "মাউস_ছাড়া_আছে"
 
-#define GFX_STD_COLLIDE_RECT      "স্পর্শ_আয়তক্ষেত্র"
-#define GFX_STD_COLLIDE_POINTRECT "স্পর্শ_বিন্দু_আয়তক্ষেত্র"
-#define GFX_STD_DELTA             "ডেল্টা"
+#define GFX_STD_COLLIDE_RECT        "স্পর্শ_আয়তক্ষেত্র"
+#define GFX_STD_COLLIDE_POINTRECT   "স্পর্শ_বিন্দু_আয়তক্ষেত্র"
+#define GFX_STD_COLLIDE_CIRCLE_RECT "স্পর্শ_বৃত্ত_আয়তক্ষেত্র"
+#define GFX_STD_DELTA               "ডেল্টা"
 
 void PushStdlibGraphics(PVm *vm, SymbolTable *table) {
     StdlibEntry entries[] = {
@@ -406,6 +422,9 @@ void PushStdlibGraphics(PVm *vm, SymbolTable *table) {
         MakeStdlibEntry(GFX_STD_MOUSE_UP, gfx_IsMouseButtonUp, 1),
         MakeStdlibEntry(GFX_STD_COLLIDE_RECT, gfx_Is2RectCollision, 8),
         MakeStdlibEntry(GFX_STD_COLLIDE_POINTRECT, gfx_IsPointRectCollision, 6),
+        MakeStdlibEntry(
+            GFX_STD_COLLIDE_CIRCLE_RECT, gfx_IsCircleRectCollision, 7
+        ),
         MakeStdlibEntry(GFX_STD_DELTA, gfx_GetDelta, 0)
     };
     int count = ArrCount(entries);
