@@ -95,7 +95,7 @@ fmt:
 
 .PHONY: valgrind
 valgrind: build
-	valgrind --leak-check=full --show-leak-kinds=all -s $(CMAKE_OUTPUT)
+	valgrind --leak-check=full --show-leak-kinds=all -s $(CMAKE_OUTPUT) $(FILE)
 
 .PHONY: cmake_tcc
 cmake_tcc:

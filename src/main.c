@@ -5,6 +5,7 @@
 #include "include/terminal.h"
 #include "include/utils.h"
 #include <locale.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #ifdef PANKTI_OS_WIN
@@ -58,10 +59,15 @@ int main(int argc, char **argv) {
         case PARGS_OK: break;
     }
 
+    if (!InitPrintBuffer()) {
+        printf("Fatal Memory Error : Failed to initialize print buffer\n");
+        return EXIT_FAILURE;
+    }
     if (args.scriptPath != NULL) {
         const char *filePath = args.scriptPath;
         if (!DoesFileExists(filePath)) {
             PanPrint("Failed to open file : '%s'\n", filePath);
+            DestroyPrintBuffer();
             return EXIT_FAILURE;
         }
 
@@ -69,13 +75,17 @@ int main(int argc, char **argv) {
 
         if (core == NULL) {
             PanPrint("Error: Failed to initialize Pankti Runtime\n");
+
+            DestroyPrintBuffer();
             return EXIT_FAILURE;
         }
         core->scriptArgCount = args.scriptArgCount;
         core->scriptArgs = args.scriptArgs;
         RunCore(core);
+        PanFlushStdout();
         FreeCore(core);
     }
 
+    DestroyPrintBuffer();
     return EXIT_SUCCESS;
 }

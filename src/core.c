@@ -285,6 +285,8 @@ PCoreErrorType RunCore(PanktiCore *core) {
 #endif
     if (core->caughtError) {
         PanPrint("Runtime Error found!\n");
+
+        PanFlushStdout();
         FreeCore(core);
         exit(1);
         return PCERR_RUNTIME;
@@ -405,6 +407,7 @@ static void printErrMsg(
 }
 
 void CoreRuntimeError(PanktiCore *core, Token *token, const char *msg) {
+    PanFlushStdout();
     u64 line = 0;
     u64 col = 0;
     u64 gcol = 0;
@@ -428,6 +431,7 @@ void CoreRuntimeError(PanktiCore *core, Token *token, const char *msg) {
 void CoreParserError(
     PanktiCore *core, Token *token, const char *msg, bool fatal
 ) {
+    PanFlushStdout();
     u64 line = 0;
     u64 col = 0;
     u64 gcol = 0;
@@ -451,6 +455,7 @@ void CoreParserError(
 void CoreLexerError(
     PanktiCore *core, u64 line, u64 col, u64 len, const char *msg
 ) {
+    PanFlushStdout();
     u64 _line = (line != UINT64_MAX) ? line : 0;
     u64 _col = (col != UINT64_MAX) ? col : 0;
     u64 _len = (len > 0) ? len : 1;
@@ -464,6 +469,7 @@ void CoreLexerError(
 }
 
 void CoreCompilerError(PanktiCore *core, Token *token, const char *msg) {
+    PanFlushStdout();
     u64 line = 0;
     u64 col = 0;
     u64 gcol = 0;
