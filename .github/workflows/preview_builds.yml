@@ -62,18 +62,13 @@ jobs:
     needs: [check-trigger]
     if: needs.check-trigger.outputs.should_run == 'true'
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      
-      - name: Fetch tags
-        run: git fetch --tags --unshallow
-      
       - name: Install deps
         run: |
           apt-get update
           apt-get install -y build-essential \
+          git \
+          cmake \
+          ca-certificates \
           libasound2-dev \
           libx11-dev \
           libxrandr-dev \
@@ -84,6 +79,14 @@ jobs:
           libxinerama-dev \
           libwayland-dev \
           libxkbcommon-dev
+          
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      
+      - name: Fetch tags
+        run: git fetch --tags --unshallow
       
       - name: Setup CMake
         run: |
