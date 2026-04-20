@@ -64,6 +64,8 @@ jobs:
     steps:
       - name: Install deps
         run: |
+          export DEBIAN_FRONTEND=noninteractive
+          export TZ=Asia/Kolkata
           apt-get update
           apt-get install -y build-essential \
           git \
