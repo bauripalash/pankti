@@ -3,6 +3,7 @@
 #include "../include/alloc.h"
 #include "../include/flags.h"
 #include "../include/opcode.h"
+#include "../include/printer.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -10,7 +11,6 @@
 #include <time.h>
 
 #if defined(PANKTI_BUILD_DEBUG)
-#include "../include/printer.h"
 #include "../include/terminal.h"
 #endif
 
