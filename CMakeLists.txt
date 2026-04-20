@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.24...3.30)
+cmake_minimum_required(VERSION 3.16...3.30)
 
 project(pankti C)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
