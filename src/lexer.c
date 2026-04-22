@@ -5,6 +5,7 @@
 #include <uchar.h>
 
 #include "external/stb/stb_ds.h"
+#include "gen/kwlookup.h"
 #include "include/alloc.h"
 #include "include/bengali.h"
 #include "include/core.h"
@@ -306,7 +307,8 @@ static void readNumber(Lexer *lx) {
     addTokenWithLexeme(lx, T_NUM, lexeme, lx->current - lx->start);
 }
 
-static PTokenType getIdentType(const char *str) {
+static PTokenType getIdentType(const char *str, u64 len) {
+#ifdef PANKTI_IDENT_MATCH_STRCMP
     if (MatchKW(str, KW_EN_LET, KW_PN_LET, KW_BN_LET)) {
         return T_LET;
     } else if (MatchKW(str, KW_EN_AND, KW_PN_AND, KW_BN_AND)) {
@@ -344,6 +346,14 @@ static PTokenType getIdentType(const char *str) {
     }
 
     return T_IDENT;
+#else
+    const struct PanktiKeyword *kw = PanktiKeywordLookup(str, len);
+    if (kw != NULL) {
+        return kw->ttype;
+    } else {
+        return T_IDENT;
+    }
+#endif
 }
 
 static void readIdent(Lexer *lx) {
@@ -352,7 +362,8 @@ static void readIdent(Lexer *lx) {
     }
 
     char *lexeme = SubString(lx->source, lx->start, lx->current);
-    PTokenType identType = getIdentType(lexeme);
+    u64 lexemeLen = lx->current - lx->start;
+    PTokenType identType = getIdentType(lexeme, lexemeLen);
     addTokenWithLexeme(lx, identType, lexeme, lx->current - lx->start);
 }
 

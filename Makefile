@@ -41,6 +41,9 @@ SAMPLES_DIR=tests/runtime/samples
 FRONTEND_TEST_ARGS=
 RUNTIME_TEST_ARGS=
 
+KWLOOKUP_OUTPUT:=src/gen/kwlookup.h
+KWLOOKUP_TEMPLATE:=src/templates/kwlookup.gperf
+
 
 HEADERS:= $(shell find src/include -path 'src/external' -prune -o -path 'src/include/exported' -prune -o -name '*.h' -print)
 SOURCES:= $(shell find src/ -path 'src/external' -prune -o -name '*.c' -print)
@@ -162,6 +165,10 @@ run_benchmarks: build_rls
 .PHONY: infer
 infer: cmake_clean
 	infer run --compilation-database build/compile_commands.json
+
+.PHONY: gen_kwlookup
+gen_kwlookup:
+	./scripts/kwgperfgen.py src/include/keywords.h $(KWLOOKUP_TEMPLATE) $(KWLOOKUP_OUTPUT)
 
 .PHONY: clean
 clean: cmake_clean
