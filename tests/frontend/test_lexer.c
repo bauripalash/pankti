@@ -107,3 +107,14 @@ UTEST_F(LexerTest, MixedKeywords) {
 
     CheckTokens(utest_fixture->lx, types);
 }
+
+UTEST_F(LexerTest, IdentKeywordMix){
+	char * src = "dhori dhoridhori যদি যদিযদি এবং এ ব ং kro করো কর কর ো";
+	SetupLexer(src);
+	PTokenType types[] = {
+        T_LET, T_IDENT, T_IF, T_IDENT, T_AND, T_IDENT, T_IDENT, T_IDENT,
+        T_IDENT, T_DO, T_IDENT, T_IDENT, T_IDENT,
+        T_EOF
+	};
+	CheckTokens(utest_fixture->lx, types);
+}
