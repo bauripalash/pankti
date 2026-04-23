@@ -1,5 +1,5 @@
 If:
-  PathMatch: src/include/exported/*.h
+  PathMatch: src/gen/*.h
 Index:
   Background: Skip
 
