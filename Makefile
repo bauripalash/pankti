@@ -159,7 +159,7 @@ run_clangtidy:
 
 .PHONY: run_benchmarks
 run_benchmarks: build_rls
-	bash run_benchmarks.sh $(CMAKE_OUTPUT)
+	bash scripts/run_benchmarks.sh $(CMAKE_OUTPUT)
 	pandoc -f markdown -t html -o benchmarks/results/benchmarks.html benchmarks/results/benchmark_results.md
 
 .PHONY: infer
