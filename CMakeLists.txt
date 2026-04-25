@@ -257,6 +257,7 @@ endif()
 # ================== END LINKER FLAGS ==================
 
 add_executable(${PROJECT_NAME})
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 add_subdirectory(src)
 add_compile_definitions(USING_CMAKE_BUILD=1)
 add_subdirectory(src/external/libgrapheme)
