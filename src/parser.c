@@ -231,7 +231,7 @@ static PExpr *rFactor(Parser *p) {
         Token *op = previous(p);
         PExpr *right = rUnary(p);
         if (right == NULL) {
-            error(p, NULL, PARSER_ERR_INVALID_FACT_EXPR);
+            error(p, NULL, PARSER_ERR_INVALID_RIGHT_FACT_EXPR);
         }
         expr = NewBinaryExpr(p->gc, expr, op, right);
         if (expr == NULL) {
@@ -266,7 +266,7 @@ static PExpr *rExponent(Parser *p) {
         // but without it `a ** -b()` throws error, cause the unary getting
         // skipped as the parser directly going to the call
         if (right == NULL) {
-            error(p, NULL, PARSER_ERR_INVALID_EXPR_EXPO);
+            error(p, NULL, PARSER_ERR_INVALID_RIGHT_EXPR_EXPO);
         }
         expr = NewBinaryExpr(p->gc, expr, op, right);
         if (expr == NULL) {
