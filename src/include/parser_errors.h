@@ -5,8 +5,16 @@
 extern "C" {
 #endif
 
+
 /* clang-format off */
-#define PARSER_ERR_IME "অভ্যন্তরীণ গোলমাল : "
+
+
+#define PARSER_ERR_IME "অভ্যন্তরীণ গোলমাল: "
+
+#define PERR_EXPECT(ctx, thing) ctx "-এর পর " thing " পাওয়া উচিত ছিল"
+#define PERR_CREATE_FAIL(thing) "অভ্যন্তরীণ গোলমাল: " thing " তৈরি বিফল হয়েছে"
+#define PERR_CREATE_FAIL_AT(ctx, thing) "অভ্যন্তরীণ গোলমাল: " ctx " পড়ার সময় " thing " তৈরি বিফল হয়েছে"
+
 #define PARSER_ERR_SEMICOLON "সেমিকোলন ';' পাওয়া উচিত ছিল"
 #define PARSER_ERR_IME_FAIL_LOGICAL_AT_AND PARSER_ERR_IME "'এবং'/'and'/'ebong' পড়ার সময় যৌক্তিক রাশিমালা তৈরি বিফল হয়েছে"
 #define PARSER_ERR_IME_FAIL_LOGICAL_AT_OR PARSER_ERR_IME "'বা'/'or'/'ba' পড়ার সময় যৌক্তিক রাশিমালা তৈরি বিফল হয়েছে"
@@ -20,14 +28,14 @@ extern "C" {
 #define PARSER_ERR_IME_FAIL_UNARY PARSER_ERR_IME "একমুখী রাশিমালা তৈরি বিফল হয়েছে"
 #define PARSER_ERR_INVALID_RIGHT_EXPR_EXPO "ঘাত রাশিমালা পড়ার সময় দ্বিমুখী রাশিমালার ডান দিক থেকে অবৈধ রাশিমালা পাওয়া গেছে"
 #define PARSER_ERR_IME_FAIL_BINARY_AT_EXPO PARSER_ERR_IME "ঘাত রাশিমালা পড়ার সময় দ্বিমুখী রাশিমালা তৈরি বিফল হয়েছে"
-#define PARSER_ERR_CALL_CANT_TOOMANY_ARGS "কাজ চালানোর রাশিতে ২৫৫-টির বেশি প্রেরণ মান ব্যবহার করা যায় না"
+#define PARSER_ERR_CALL_CANT_TOOMANY_ARGS "কাজ চালানোর রাশিমালাতে ২৫৫-টির বেশি প্রেরণ মান ব্যবহার করা যায় না"
 
 
-#define PARSER_ERR_EXPECT_RPAREN_ARGS "প্রেরণমানগুলির পরে প্রথম বন্ধনী ')' পাওয়া উচিত ছিল"
-#define PARSER_ERR_IME_FAIL_CALL_EXPR PARSER_ERR_IME "কাজ চালানোর রাশি তৈরি বিফল হয়েছে"
+#define PARSER_ERR_EXPECT_RPAREN_ARGS "প্রেরণ-মানগুলির পরে প্রথম বন্ধনী ')' পাওয়া উচিত ছিল"
+#define PARSER_ERR_IME_FAIL_CALL_EXPR PARSER_ERR_IME "কাজ চালানোর রাশিমালা তৈরি বিফল হয়েছে"
 #define PARSER_ERR_INVALID_SUBS_IDX "সূচকীয় মানে অবৈধ সূচক"
 #define PARSER_ERR_EXPECT_RSBRACK_SUBS "সূচকীয় রাশির পর দ্বিতীয় বন্ধনী ']' পাওয়া উচিত ছিল"
-#define PARSER_ERR_IME_FAIL_SUBS_EXPR PARSER_ERR_IME "সূচকীয় মান রাশিমালা তৈরি বিফল হয়েছে"
+#define PARSER_ERR_IME_FAIL_SUBS_EXPR PARSER_ERR_IME "সূচকীয় রাশিমালা তৈরি বিফল হয়েছে"
 
 #define PARSER_ERR_EXPECT_MOD_CHILD "উৎসের সদস্যের নাম পাওয়া উচিত ছিল"
 #define PARSER_ERR_IME_FAIL_MOD_CHILD PARSER_ERR_IME "উৎসের সদস্য রাশি তৈরি বিফল হয়েছে"
@@ -55,7 +63,7 @@ extern "C" {
 #define PARSER_ERR_EXPECT_IDENT_LET "'ধরি'/'let'/'dhori' এর পর চলরাশির নাম পাওয়া উচিত ছিল"
 #define PARSER_ERR_EXPECT_EQ_IDENT_LET "চলরাশি তৈরি বিবৃতির চলরাশির নামের পর সমান চিহ্ন '=' পাওয়া উচিত ছিল"
 #define PARSER_ERR_IME_FAIL_LETSTMT PARSER_ERR_IME "চলরাশি তৈরি বিবৃতি তৈরি বিফল হয়েছে"
-#define PARSER_ERR_EXPECT_RBRACE_BLK PARSER_ERR_IME "বিবৃতি গুচ্ছের পর তৃতীয় বন্ধনী '}' পাওয়া উচিত ছিল"
+#define PARSER_ERR_EXPECT_RBRACE_BLK "বিবৃতি গুচ্ছের পর তৃতীয় বন্ধনী '}' পাওয়া উচিত ছিল"
 #define PARSER_ERR_IME_FAIL_BLKSTMT PARSER_ERR_IME "বিবৃতি গুচ্ছ তৈরি বিফল হয়েছে"
 #define PARSER_ERR_EXPECT_END_BLK "বিবৃতি গুচ্ছের পর 'শেষ'/'end'/'shesh' পাওয়া উচিত"
 #define PARSER_ERR_NOP_ELSE_BLOCK "বিবৃতি গুচ্ছের পর 'নাহলে'/'else'/'nahole' পাওয়া উচিত"
@@ -73,7 +81,7 @@ extern "C" {
 #define PARSER_ERR_EXPECT_FN_NAME_FUNC "'কাজ'/'func'/'kaj' এর পর কাজের নাম পাওয়া উচিত ছিল"
 #define PARSER_ERR_EXPECT_LPAREN_FN_NAME "কাজের নামের পর প্রথম বন্ধনী '(' পাওয়া উচিত ছিল"
 #define PARSER_ERR_EXPECT_PARAM_FNPRM "কাজের নামের পর প্রাপ্তিমান পাওয়া উচিত ছিল"
-#define PARSER_ERR_EXPECT_RPAREN_FN_PARM "প্রাপ্তিমানগুলির পর প্রথম বন্ধনী ')' পাওয়া উচিত ছিল"
+#define PARSER_ERR_EXPECT_RPAREN_FN_PARM "প্রাপ্তি-মানগুলির পর প্রথম বন্ধনী ')' পাওয়া উচিত ছিল"
 
 #define PARSER_ERR_IME_FAIL_FNCSTMT PARSER_ERR_IME "কাজ বিবৃতি তৈরি বিফল হয়েছে"
 #define PARSER_ERR_IME_FAIL_IMPSTMT PARSER_ERR_IME "আনয়ন বিবৃতি তৈরি বিফল হয়েছে"
