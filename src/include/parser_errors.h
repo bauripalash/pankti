@@ -5,12 +5,8 @@
 extern "C" {
 #endif
 
-
 /* clang-format off */
-
-
 #define PARSER_ERR_IME "অভ্যন্তরীণ গোলমাল: "
-
 #define PERR_EXPECT(ctx, thing) ctx "-এর পর " thing " পাওয়া উচিত ছিল"
 #define PERR_CREATE_FAIL(thing) "অভ্যন্তরীণ গোলমাল: " thing " তৈরি বিফল হয়েছে"
 #define PERR_CREATE_FAIL_AT(ctx, thing) "অভ্যন্তরীণ গোলমাল: " ctx " পড়ার সময় " thing " তৈরি বিফল হয়েছে"
