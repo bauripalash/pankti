@@ -42,7 +42,6 @@ FRONTEND_TEST_ARGS=
 RUNTIME_TEST_ARGS=
 
 KWLOOKUP_OUTPUT:=src/gen/kwlookup.h
-KWLOOKUP_TEMPLATE:=src/templates/kwlookup.gperf
 
 
 HEADERS:= $(shell find src/include -path 'src/external' -prune -o -path 'src/include/exported' -prune -o -name '*.h' -print)
@@ -168,7 +167,7 @@ infer: cmake_clean
 
 .PHONY: gen_kwlookup
 gen_kwlookup:
-	./scripts/kwgperfgen.py src/include/keywords.h $(KWLOOKUP_TEMPLATE) $(KWLOOKUP_OUTPUT)
+	./scripts/kwgperfgen.py src/include/keywords.h $(KWLOOKUP_OUTPUT)
 
 .PHONY: clean
 clean: cmake_clean
