@@ -49,6 +49,9 @@ set(PANKTI_SRC_FILES
   "${CMAKE_CURRENT_LIST_DIR}/external/stb/stb_ds_impl.c"
   "${CMAKE_CURRENT_LIST_DIR}/external/gb/gb_string_impl.c"
   "${CMAKE_CURRENT_LIST_DIR}/external/xxhash/xxhash.c"
+
+  # Generated Stuff
+  "${CMAKE_CURRENT_LIST_DIR}/gen/diagon.c"
 )
 
 set(PANKTI_HEADER_FILES

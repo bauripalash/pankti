@@ -17,6 +17,7 @@ struct PanktiKeyword{
 };
 %%"""
 
+
 # Return keyword defines from header file
 # Result =>
 # "LET:<TOKEN TYPE>" {
@@ -34,11 +35,10 @@ def process_header(header_path: str = "") -> dict[str, dict[str, str]]:
             for line in lines:
                 rematch = def_reg.search(line)
                 if rematch:
-                    _,lang, name, value = rematch.groups()
+                    _, lang, name, value = rematch.groups()
                     if name not in result:
                         result[name] = {}
                     result[name][lang] = value
-
 
     except FileNotFoundError:
         print(f"Error : Header '{header_path}' not found!")
@@ -46,8 +46,9 @@ def process_header(header_path: str = "") -> dict[str, dict[str, str]]:
 
     return result
 
-def define_gperf(defines : dict[str, dict[str,str]]) -> str:
-    lines : list[str] = []
+
+def define_gperf(defines: dict[str, dict[str, str]]) -> str:
+    lines: list[str] = []
     lines.append(GPERF_TEMPLATE)
     for name, langs in defines.items():
         token = f"T_{name}"
@@ -56,19 +57,21 @@ def define_gperf(defines : dict[str, dict[str,str]]) -> str:
         for lang in ["BN", "EN", "PN"]:
             if lang in langs:
                 kw = langs[lang]
-                kwinfo += f"\"'\"KW_{lang}_{name}\"'/\""
+                kwinfo += f'"\'"KW_{lang}_{name}"\'/"'
                 lines.append(f"{kw}, {token}")
         # Remove this comment to generate kwinfo lines
-        #print(f"#define KWINFO_{name} {kwinfo[:]}")
+        # print(f"#define KWINFO_{name} {kwinfo[:]}")
     lines.append("%%\n")
     return "\n".join(lines)
 
+
 def get_gperffile() -> str:
     header_path = sys.argv[1]
-    #gperf_path = sys.argv[2]
+    # gperf_path = sys.argv[2]
     defines = process_header(header_path)
     return define_gperf(defines)
-    #return process_gperffile(defines, gperf_path)
+    # return process_gperffile(defines, gperf_path)
+
 
 def run_gperf():
     gperf_exe = shutil.which("gperf")
@@ -78,26 +81,28 @@ def run_gperf():
     gperf_input = get_gperffile()
     cmd = [
         gperf_exe,
-        "-L", "ANSI-C",
+        "-L",
+        "ANSI-C",
         "-C",
         "-D",
         "-t",
         "-l",
-        "-N", "PanktiKeywordLookup"
+        "-N",
+        "PanktiKeywordLookup",
     ]
 
     try:
         proc = subprocess.run(
-            cmd, 
-            input=gperf_input, 
-            stdout=subprocess.PIPE, 
-            stderr=subprocess.PIPE, 
+            cmd,
+            input=gperf_input,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             text=True,
-            encoding="utf-8"
+            encoding="utf-8",
         )
     except Exception as e:
         print("Error : Failed to run gperf : ", e)
-        
+
         raise SystemExit(1)
 
     if proc.returncode != 0:
@@ -119,6 +124,7 @@ def main():
     outpath = sys.argv[2]
     with open(outpath, "w") as f:
         _ = f.write(result)
+
 
 if __name__ == "__main__":
     main()

@@ -44,8 +44,8 @@ RUNTIME_TEST_ARGS=
 KWLOOKUP_OUTPUT:=src/gen/kwlookup.h
 
 
-HEADERS:= $(shell find src/include -path 'src/external' -prune -o -path 'src/include/exported' -prune -o -name '*.h' -print)
-SOURCES:= $(shell find src/ -path 'src/external' -prune -o -name '*.c' -print)
+HEADERS:= $(shell find src/include -path 'src/gen' -prune -o -path 'src/external' -prune -o -path 'src/tmpl' -prune -o -name '*.h' -print)
+SOURCES:= $(shell find src/ -path 'src/gen' -prune -o -path 'src/external' -prune -o -path 'src/tmpl' -prune -o -name '*.c' -print)
 
 
 all: run
