@@ -3,7 +3,7 @@
 #include "include/alloc.h"
 #include "include/ast.h"
 #include "include/compiler_errors.h"
-#include "include/errctx.h"
+#include "include/diagonctx.h"
 #include "include/flags.h"
 #include "include/gc.h"
 #include "include/object.h"
@@ -38,7 +38,7 @@ PCompiler *dummyCompiler(
     PCompiler *enclosing,
     PCompFuncType ftype,
     Token *name,
-    PErrorCtx errCtx
+    PDiagonCtx errCtx
 ) {
     PCompiler *c = PCreate(PCompiler);
     if (c == NULL) {
@@ -82,7 +82,7 @@ PCompiler *dummyCompiler(
     return c;
 }
 
-PCompiler *NewCompiler(Pgc *gc, PErrorCtx errCtx) {
+PCompiler *NewCompiler(Pgc *gc, PDiagonCtx errCtx) {
     PCompiler *c = dummyCompiler(gc, NULL, COMP_FN_SCRIPT, NULL, errCtx);
     if (c == NULL) {
         return NULL;
@@ -92,7 +92,11 @@ PCompiler *NewCompiler(Pgc *gc, PErrorCtx errCtx) {
 }
 
 PCompiler *NewEnclosedCompiler(
-    Pgc *gc, PCompiler *comp, PCompFuncType ftype, Token *name, PErrorCtx errCtx
+    Pgc *gc,
+    PCompiler *comp,
+    PCompFuncType ftype,
+    Token *name,
+    PDiagonCtx errCtx
 ) {
 
     PCompiler *c = dummyCompiler(gc, comp, COMP_FN_FUNCTION, name, errCtx);

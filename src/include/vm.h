@@ -1,7 +1,7 @@
 #ifndef VM_H
 #define VM_H
 
-#include "errctx.h"
+#include "diagonctx.h"
 #include "object.h"
 #include "ptypes.h"
 #include "symtable.h"
@@ -73,7 +73,7 @@ typedef struct PVm {
     PObj *openUpvals;
 
     // Error context
-    PErrorCtx errCtx;
+    PDiagonCtx errCtx;
 
     // Path to the script path which is running
     const char *scriptPath;
@@ -84,7 +84,7 @@ typedef struct PVm {
 } PVm;
 
 // Create an empty VM Object
-PVm *NewVm(Pgc *gc, PErrorCtx errCtx);
+PVm *NewVm(Pgc *gc, PDiagonCtx errCtx);
 // Setup VM with bytecode, constants, gc etc.
 void SetupVm(
     PVm *vm, PObj *func, const char *scriptPath, int sArgc, char **sArgs

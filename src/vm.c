@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-PVm *NewVm(Pgc *gc, PErrorCtx errCtx) {
+PVm *NewVm(Pgc *gc, PDiagonCtx errCtx) {
     PVm *vm = PCreate(PVm);
     vm->sp = vm->stack;
     vm->gc = gc;

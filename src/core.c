@@ -3,7 +3,7 @@
 #include "include/alloc.h"
 #include "include/ast.h"
 #include "include/compiler.h"
-#include "include/errctx.h"
+#include "include/diagonctx.h"
 #include "include/flags.h"
 #include "include/gc.h"
 #include "include/lexer.h"
@@ -85,7 +85,7 @@ PanktiCore *NewCore(const char *scriptPath) {
     }
     core->lexer->timestamp = core->gc->timestamp;
     core->compiler = NewCompiler(
-        core->gc, (PErrorCtx){.report = coreCompilerErrorBridge, .ctx = core}
+        core->gc, (PDiagonCtx){.report = coreCompilerErrorBridge, .ctx = core}
     );
 
     if (core->compiler == NULL) {
@@ -101,7 +101,7 @@ PanktiCore *NewCore(const char *scriptPath) {
         return NULL;
     }
     core->vm = NewVm(
-        core->gc, (PErrorCtx){.report = coreRuntimeErrorBridge, .ctx = core}
+        core->gc, (PDiagonCtx){.report = coreRuntimeErrorBridge, .ctx = core}
     );
 
     if (core->vm == NULL) {
@@ -203,7 +203,7 @@ PCoreErrorType RunCore(PanktiCore *core) {
 
     core->parser = NewParser(core->gc, core->lexer);
     core->parser->errCtx =
-        (PErrorCtx){.report = coreParserErrorBridge, .ctx = core};
+        (PDiagonCtx){.report = coreParserErrorBridge, .ctx = core};
 
 #if defined(PANKTI_BUILD_DEBUG)
     if (FLAG_DEBUG_TIMES) {

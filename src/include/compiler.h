@@ -2,7 +2,7 @@
 #define COMPILER_H
 
 #include "ast.h"
-#include "errctx.h"
+#include "diagonctx.h"
 #include "object.h"
 #include "opcode.h"
 #include "ptypes.h"
@@ -62,7 +62,7 @@ typedef struct PCompiler {
 
     Token *dummyToken;
 
-    PErrorCtx errCtx;
+    PDiagonCtx errCtx;
 
     // Pointer to garbage collector
     Pgc *gc;
@@ -78,9 +78,13 @@ typedef struct PCompiler {
 } PCompiler;
 
 // Create a new compiler object
-PCompiler *NewCompiler(Pgc *gc, PErrorCtx errCtx);
+PCompiler *NewCompiler(Pgc *gc, PDiagonCtx errCtx);
 PCompiler *NewEnclosedCompiler(
-    Pgc *gc, PCompiler *comp, PCompFuncType ftype, Token *name, PErrorCtx errCtx
+    Pgc *gc,
+    PCompiler *comp,
+    PCompFuncType ftype,
+    Token *name,
+    PDiagonCtx errCtx
 );
 
 // Free the compiler
