@@ -16,7 +16,7 @@ C_CATEGORY_MAP = {
     "lexer": "PAN_DIAG_LEXER",
     "parser": "PAN_DIAG_PARSER",
     "compiler": "PAN_DIAG_COMPILER",
-    "runime": "PAN_DIAG_RUNTIME",
+    "rt": "PAN_DIAG_RUNTIME",
     "str": "PAN_DIAG_STRESCAPE",
 }
 
@@ -53,7 +53,9 @@ class DiagonInfo:
         c_msg = f'"{self.msg}"'
         c_hint = f'"{self.hint}"'
         result = "    {"
-        result += f"{c_code}, {c_category}, {c_severity}, {c_formatted}, {c_msg}, {c_hint}"
+        result += (
+            f"{c_code}, {c_category}, {c_severity}, {c_formatted}, {c_msg}, {c_hint}"
+        )
 
         result += "},"
         return result

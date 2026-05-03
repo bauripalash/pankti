@@ -65,3 +65,89 @@ parser|err|expect_invalid_assign|অবৈধ মান নির্ধারণ
 |parser|err|invlid_muldiv_right|গুণ-ভাগ-ভাগশেষ রাশিমালা পড়ার সময় দ্বিমুখী রাশিমালার ডান দিক থেকে অবৈধ রাশিমালা পাওয়া গেছে|
 parser|err|invalid_expo_right|ঘাত রাশিমালা পড়ার সময় দ্বিমুখী রাশিমালার ডান দিক থেকে অবৈধ রাশিমালা পাওয়া গেছে|
 parser|err|malformed_number|অবৈধ সংখ্যা পাওয়া গেছে|
+
+// Compiler Diagnostics
+
+compiler|err|ime_string|স্ট্রিং তৈরি বিফল হয়েছে|
+compiler|err|left_binary|দ্বিমুখী রাশিমালার বামদিকের রাশিমালা কম্পাইল বিফল হয়েছে|
+compiler|err|right_binary|দ্বিমুখী রাশিমালার ডানদিকের রাশিমালা কম্পাইল বিফল হয়েছে|
+compiler|err|left_logical|যৌক্তিক রাশিমালার বামদিকের রাশিমালা কম্পাইল বিফল হয়েছে|
+compiler|err|right_logical|যৌক্তিক রাশিমালার ডানদিকের রাশিমালা কম্পাইল বিফল হয়েছে|
+compiler|err|unary_expr|একমুখী রাশিমালা কম্পাইল বিফল হয়েছে|
+compiler|err|array_item|তালিকার উপাদান রাশি কম্পাইল বিফল হয়েছে|
+compiler|err|map_key|ছকের সূচক রাশি কম্পাইল বিফল হয়েছে|
+compiler|err|map_value|ছকের মান রাশি কম্পাইল বিফল হয়েছে|
+compiler|err|top_stmt|প্রাথমিক স্তরের বিবৃতি কম্পাইল বিফল হয়েছে|
+compiler|err|assign_value|মান নির্ধারণ রাশিমালার মান কম্পাইল বিফল হয়েছে|
+compiler|err|sub_assign_subindex|মান নির্ধারণের রাশিমালার সূচকীয় রাশির সূচক কম্পাইল বিফল হয়েছে|
+compiler|err|sub_assign_subvalue|মান নির্ধারণ রাশিমালার সূচকীয় রাশির মুল মান কম্পাইল বিফল হয়েছে|
+compiler|err|sub_assign_value|মান নির্ধারণ রাশিমালার সূচকীয় রাশির নতুন মান কম্পাইল বিফল হয়েছে|
+compiler|err|call_expr_calle|কাজের ডাক রাশিমালার কাজের নাম রাশিমালা কম্পাইল বিফল হয়েছে|
+compiler|err|call_expr_arg|কাজের ডাক রাশিমালার প্রেরণমান রাশিমালা কম্পাইল বিফল হয়েছে|
+compiler|err|mod_expr|উৎসের সদস্য ব্যবহারের রাশিমালা কম্পাইল বিফল হয়েছে|
+compiler|err|expr_stmt|রাশিমালা বিবৃতি কম্পাইল বিফল হয়েছে|
+compiler|err|debug_stmt|পরিচিতি বিবৃতি কম্পাইল বিফল হয়েছে|
+compiler|err|let_stmt|চলরাশি তৈরির বিবৃতি কম্পাইল বিফল হয়েছে|
+compiler|err|block_stmt|বিবৃতি গুচ্ছ কম্পাইল বিফল হয়েছে|
+compiler|err|if_cond|যদি-তাহলে বিবৃতির শর্ত রাশিমালা কম্পাইল বিফল হয়েছে|
+compiler|err|if_then_block|যদি-তাহলে বিবৃতির তাহলে -র বিবৃতি গুচ্ছ কম্পাইল বিফল হয়েছে|
+compiler|err|if_else_block|যদি-তাহলে বিবৃতির নাহলে -র বিবৃতি গুচ্ছ কম্পাইল বিফল হয়েছে|
+compiler|err|while_cond|যতক্ষণ-করো বিবৃতির শর্ত রাশিমালা কম্পাইল বিফল হয়েছে|
+compiler|err|while_block|যতক্ষণ-করো বিবৃতির বিবৃতিগুচ্ছ কম্পাইল বিফল হয়েছে|
+compiler|err|func_block|কাজের বিবৃতিগুচ্ছ কম্পাইল বিফল হয়েছে|
+compiler|err|func_stmt|কাজ বিবৃতি কম্পাইল বিফল হয়েছে|
+compiler|err|return_stmt|ফেরাও বিবৃতির রাশিমালা কম্পাইল বিফল হয়েছে|
+compiler|err|module_stmt|উৎস আনয়ন বিবৃতি কম্পাইল বিফল হয়েছে|
+compiler|err|break_stmt|ভাঙো বিবৃতি কম্পাইল বিফল হয়েছে|
+compiler|err|continue_stmt|চালাও বিবৃতি কম্পাইল বিফল হয়েছে|
+compiler|err|cond_jump_big|শর্তজাতিয় বিবৃতি গুচ্ছের সংখ্যা অনেক বেশি|
+compiler|err|var_own_init|চলরাশি তৈরির সময় চলরাশির মান সেই নামের চলরাশির মান হতে পারে না|
+compiler|err|invalid_expr|অবৈধ রাশিমালা পাওয়া গেছে|
+compiler|err|var_exists|'%s' নামের চলরাশি এইখানে আগের থেকেই আছে |
+compiler|err|local_too_many|অনেক বেশি স্থানীয় চলরাশি পাওয়া গেছে|
+compiler|err|while_block_ctx|যতক্ষণ-করো বিবৃতি কম্পাইল করার জন্য কিছু প্রয়োজন অভ্যন্তরীণ তথ্য তৈরি বিফল হয়েছে|
+compiler|err|return_top_level|প্রাথমিক স্তরে ফেরাও বিবৃতি ব্যবহার করা যায় না|ফেরাও বিবৃতি শুধুমাত্র কাজের ক্ষেত্রে প্রযোজ্য
+
+// String Escape Diagnostics
+
+str|err|unknown_escape|লেখার মধ্যে অজানা বিশেষ চিহ্ন পাওয়া গেছে|
+str|err|invalid_hex|লেখার মধ্যে বিশেষ চিহ্নে অবৈধ হেক্স অক্ষর পাওয়া গেছে|
+str|err|ime_escaped_str|বিশেষ চিহ্নযুক্ত লেখা রাশিমালা তৈরি বিফল হয়েছে|
+str|err|incomplete_escape_str|লেখার শেষে অসম্পূর্ণ বিশেষ চিহ্ন পাওয়া গেছে|
+str|err|no_low_surrogate|\\uHHHH -জাতিয় বিশেষ চিহ্ন পড়ার সময় তার low-surrogate \\uHHHH চিহ্ন আশা করা হয়েছিল কিন্তু তা পাওয়া যায়নি|
+str|err|lone_low_surrogate|\\uHHHH -জাতিয় বিশেষ চিহ্নে শুধুমাত্র একলা low-surrogate পাওয়া গেছে|
+str|err|invalid_low_surrogate|অবৈধ \\uHHHH -জাতিয় low-surrogate চিহ্ন পাওয়া গেছে|
+str|err|invalid_h8|লেখার মধ্যে অবৈধ \\uHHHHHHHH -জাতিয় বিশেষ চিহ্ন পাওয়া গেছে|
+str|err|ime_escaped_output|বিশেষ চিহ্নযুক্ত লেখা রাশিমালার জন্য প্রয়োজনীয় মেমোরি পাওয়া যায়নি|
+
+// VM/Runtime Diagnostics
+
+rt|err|div_zero|শুন্য দিয়ে ভাগ করা সম্ভব নয়|গণিতের নিয়ম অনুযায়ী কোনো সংখ্যাকে শূন্য দিয়ে ভাগ করলে তার মান অসজ্ঞাত হয়
+rt|err|arg_param_noteq|কাজের ডাকের প্রেরণমান আর কাজের প্রাপ্তিমানের সংখ্যা সমান নয়ঃ কাজের জন্য %llu-টি প্রেরণমান দরকার ছিল কিন্তু %llu-টি দেওয়া হয়েছে|
+rt|err|arr_index|তালিকার জন্য সূচক ধনাত্মক পূর্ণসংখ্যা হওয়া উচিত ছিল কিন্তু প্রাপ্ত সূচক হল '%f'|
+rt|err|arr_index_out_range|তালিকার সূচকের মান তালিকার উপাদান সংখ্যার বেশি, এই তালিকার বৈধ সূচক হল ০ থেকে %llu|
+rt|err|map_key|ছকের সূচকীয় মানে সূচকটি অবৈধ|শুধুমাত্র বিশেষ কিছু রাশিই সূচক হিসাবে ব্যবহার করা যায় যথা - সংখ্যা, লেখা, সত্যমান
+rt|err|map_key_not_found|ছকের মধ্যে সূচকের মান খুঁজে পাওয়া গেল না|
+rt|err|invalid_subs|সূচকীয় মান শুধুমাত্র তালিকা, ছকের ক্ষেত্রে ব্যবহার করা যায়|
+rt|err|invalid_subassign|অবৈধ সূচকীয় মান নির্ধারণ|শুধুমাত্র তালিকা এবং ছকের সূচকীয় মান নির্ধারণ করা যায়
+rt|err|invalid_compare|অবৈধ তুলনা|
+rt|err|invalid_import_path|উৎস আনয়নের উৎসের স্থান একটি লেখা হওয়া উচিত ছিল|উৎস আনয়ন এইভাবে লিখতে হয় - আনো গণিত \"গণিত\"
+rt|err|only_stdlib|বর্তমানে শুধুমাত্র সাধারণ উৎসগুলি ব্যবহার করা যায়|
+rt|err|ime_module|উৎস আনয়নের জন্য প্রয়োজনীয় প্রস্তুতি বিফল হয়েছে|
+rt|err|ime_closure|স্থানীয় মান ব্যবহারের জন্য প্রয়োজনীয় প্রস্তুতি বিফল হয়েছে|
+rt|err|ime_noctx|প্রয়োজনীয় প্রস্তুতি ছাড়াই পঙক্তি চালু হয়েছে|
+rt|err|invalid_assign|%s রাশির মান নির্ধারণ সম্ভব নয়|
+rt|err|undef_variable|%s নামের কোনো চলরাশি খুঁজে পাওয়া গেল না|
+rt|err|unknown_set_var|%s নামের চলরাশির মান নির্ধারণ সম্ভব নয়, এই নামের কোনো চলরাশি খুঁজে পাওয়া গেল না|
+rt|err|only_func_call|শুধুমাত্র কাজ কে ডাকা বা চালানো যায়|
+rt|err|ime_array|তালিকা তৈরি বিফল হয়েছে|
+rt|err|call_stack|প্রচুর পরিমাণে কাজ পাওয়া গেছে|
+rt|err|invalid_call|কাজের ডাক বিফল হয়েছে|
+rt|err|closure|কাজ তৈরি অভ্যন্তরীণ প্রস্তুতি বিফল হয়েছে|
+rt|err|invalid_map_key|এই মান ছকের সূচক হিসাবে ব্যবহার সম্ভব নয়|শুধুমাত্র সংখ্যা, সত্যমান, লেখা ছকের সূচক হিসাবে ব্যবহার করা যাবে
+rt|err|ime_map|ছক তৈরি বিফল হয়েছে|
+rt|err|only_child_for_mod|শুধুমাত্র উৎস থেকেই সদস্য পাওয়া যায়|
+rt|err|invalid_mod_child|অবৈধ উৎসের সদস্য|
+rt|err|unknown_mod|অজানা উৎস পাওয়া গেছে|উৎস আনয়ন করা হয়েছে তো?
+rt|err|unknown_child|উৎসের অজানা সদস্য পাওয়া গেছে|
+rt|err|||rt|err|||rt|err|||rt|err|||rt|err|||
