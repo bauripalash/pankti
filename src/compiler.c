@@ -1,5 +1,6 @@
 #include "include/compiler.h"
 #include "external/stb/stb_ds.h"
+#include "gen/diagon.h"
 #include "include/alloc.h"
 #include "include/ast.h"
 #include "include/compiler_errors.h"
@@ -151,8 +152,9 @@ void CompilerMarkRoots(Pgc *gc, void *ctx) {
     }
 }
 
-static void cmpError(PCompiler *comp, Token *token, const char *msg) {
-    comp->errCtx.report(comp->errCtx.ctx, token, msg, true);
+static void cmpError(PCompiler *comp, Token *token, PanDiagCode code) {
+    //comp->errCtx.report(comp->errCtx.ctx, token, code);
+	ReportDiag(comp->errCtx.ctx, token, code);
 }
 
 // Get Current Compiling Bytecode object
@@ -188,7 +190,7 @@ static u16 emitJump(PCompiler *comp, Token *tok, PanOpCode op) {
 static void patchJump(PCompiler *comp, int offset) {
     int jump = getbt(comp)->codeCount - offset - 2;
     if (jump > UINT16_MAX) {
-        cmpError(comp, NULL, CMP_ERR_JUMP_TOO_BIG);
+        cmpError(comp, NULL, COMPILER_COND_JUMP_BIG);
         return;
     }
 
@@ -242,7 +244,7 @@ static int findLocal(PCompiler *comp, Token *name) {
 
         if (lcl->name != NULL && isIdentTokenEqual(name, lcl->name)) {
             if (lcl->depth == -1) {
-                cmpError(comp, name, CMP_ERR_VAR_OWN_INIT);
+                cmpError(comp, name, COMPILER_VAR_OWN_INIT);
                 return -2;
             }
             return i;
@@ -275,8 +277,7 @@ static int addUpvalue(PCompiler *comp, u16 index, bool isLocal) {
 
     if (upvalCount == UINT8_MAX) {
         cmpError(
-            comp, compFun->rawName,
-            "Internal Error : Too many closure variables in function"
+            comp, compFun->rawName, COMPILER_CLOSURE_TOO_MANY
         );
         return 0;
     }
@@ -365,8 +366,7 @@ PObj *GetCompiledFunction(PCompiler *comp) {
 bool CompilerCompile(PCompiler *compiler, PStmt **prog) {
     if (compiler->errCtx.report == NULL) {
         PanPrint(
-            "Fatal Internal Error : Compiler Started Running Before Error "
-            "Context Was Set\n"
+            NO_ERR_CTX_ERR
         );
         exit(EXIT_FAILURE);
     }
@@ -375,7 +375,7 @@ bool CompilerCompile(PCompiler *compiler, PStmt **prog) {
 
     for (u64 i = 0; i < compiler->progCount; i++) {
         if (!compileStmt(compiler, prog[i])) {
-            cmpError(compiler, prog[i]->op, CMP_ERR_FAIL_TOP_LVL_STMT);
+            cmpError(compiler, prog[i]->op, COMPILER_TOP_STMT);
             return false;
         }
     }
@@ -397,42 +397,42 @@ static char *readStringEscapes(PCompiler *comp, Token *tok) {
     switch (err) {
         case SESC_OK: break;
         case SESC_UNKNOWN_ESCAPE: {
-            cmpError(comp, tok, CMP_ERR_SESC_UNKN_ESC);
+            cmpError(comp, tok, STR_UNKNOWN_ESCAPE);
             break;
         }
         case SESC_INVALID_HEX_CHAR: {
-            cmpError(comp, tok, CMP_ERR_SESC_INVLD_HEX);
+            cmpError(comp, tok, STR_INVALID_HEX);
             break;
         }
 
         case SESC_BUFFER_NOT_ENOUGH: {
-            cmpError(comp, tok, CMP_ERR_SESC_BFR_NOT_ENGH);
+            cmpError(comp, tok, STR_IME_ESCAPED_OUTPUT);
             break;
         }
         case SESC_INPUT_FINISHED_EARLY: {
-            cmpError(comp, tok, CMP_ERR_SESC_FNSH_ERLY);
+            cmpError(comp, tok, STR_INCOMPLETE_ESCAPE_STR);
             break;
         }
 
         case SESC_NO_LOW_SURROGATE: {
-            cmpError(comp, tok, CMP_ERR_SESC_NO_LO_SRGT);
+            cmpError(comp, tok, STR_NO_LOW_SURROGATE);
             break;
         }
         case SESC_LONE_LOW_SURROGATE: {
-            cmpError(comp, tok, CMP_ERR_SESC_LN_LOW_SURROGATE);
+            cmpError(comp, tok, STR_LONE_LOW_SURROGATE);
             break;
         }
 
         case SESC_INVALID_LOW_SURROGATE: {
-            cmpError(comp, tok, CMP_ERR_SESC_INVLD_LO_SRGT);
+            cmpError(comp, tok, STR_INVALID_LOW_SURROGATE);
             break;
         }
         case SESC_8_INVALID_CP: {
-            cmpError(comp, tok, CMP_ERR_SESC_INVALID_8_CP);
+            cmpError(comp, tok, STR_INVALID_H8);
             break;
         }
         case SESC_NULL_PTR: {
-            cmpError(comp, tok, CMP_ERR_SESC_NUL_PTR);
+            cmpError(comp, tok, STR_IME_ESCAPED_STR);
             break;
         }
     }
@@ -457,7 +457,7 @@ static bool compileLitExpr(PCompiler *comp, PExpr *expr) {
             PObj *strObj = NewStrObject(comp->gc, expr->op, escapedStr, true);
 
             if (strObj == NULL) {
-                cmpError(comp, expr->op, CMP_ERR_IME_FAIL_STROBJ_LIT);
+                cmpError(comp, expr->op, COMPILER_IME_STRING);
                 return false;
             }
             u16 constIdx = addConstant(comp, MakeObject(strObj));
@@ -474,7 +474,7 @@ static bool compileLitExpr(PCompiler *comp, PExpr *expr) {
         }
 
         default: {
-            cmpError(comp, lit->op, CMP_ERR_INVALID_EXPR);
+            cmpError(comp, lit->op, COMPILER_INVALID_EXPR);
             return false;
             break;
         }
@@ -488,12 +488,12 @@ static bool compileBinExpr(PCompiler *comp, PExpr *expr) {
     struct EBinary *bin = &expr->exp.EBinary;
 
     if (!compileExpr(comp, bin->left)) {
-        cmpError(comp, bin->left->op, CMP_ERR_LEFT_BIN_EXPR);
+        cmpError(comp, bin->left->op, COMPILER_LEFT_BINARY);
         return false;
     }
 
     if (!compileExpr(comp, bin->right)) {
-        cmpError(comp, bin->right->op, CMP_ERR_RIGHT_BIN_EXPR);
+        cmpError(comp, bin->right->op, COMPILER_RIGHT_BINARY);
         return false;
     }
 
@@ -533,21 +533,21 @@ static bool compileLogicalExpr(PCompiler *comp, PExpr *expr) {
     struct ELogical *logic = &expr->exp.ELogical;
 
     if (!compileExpr(comp, logic->left)) {
-        cmpError(comp, logic->left->op, CMP_ERR_LEFT_LGC_EXPR);
+        cmpError(comp, logic->left->op, COMPILER_LEFT_LOGICAL);
         return false;
     }
 
     if (logic->op->type == T_AND) {
         u16 endJump = emitJump(comp, logic->op, OP_POP_JUMP_IF_FALSE);
         if (!compileExpr(comp, logic->right)) {
-            cmpError(comp, logic->right->op, CMP_ERR_RIGHT_LGC_EXPR);
+            cmpError(comp, logic->right->op, COMPILER_RIGHT_LOGICAL);
             return false;
         }
         patchJump(comp, endJump);
     } else if (logic->op->type == T_OR) {
         u16 endJump = emitJump(comp, logic->op, OP_POP_JUMP_IF_TRUE);
         if (!compileExpr(comp, logic->right)) {
-            cmpError(comp, logic->right->op, CMP_ERR_RIGHT_LGC_EXPR);
+            cmpError(comp, logic->right->op, COMPILER_RIGHT_LOGICAL);
             return false;
         }
         patchJump(comp, endJump);
@@ -560,7 +560,7 @@ static bool compileUnaryExpr(PCompiler *comp, PExpr *expr) {
     struct EUnary *unary = &expr->exp.EUnary;
 
     if (!compileExpr(comp, unary->right)) {
-        cmpError(comp, unary->right->op, CMP_ERR_UNARY_EXPR);
+        cmpError(comp, unary->right->op, COMPILER_UNARY_EXPR);
         return false;
     }
     switch (unary->op->type) {
@@ -576,7 +576,7 @@ static bool compileArrayExpr(PCompiler *comp, PExpr *expr) {
     u64 itemCount = arr->count;
     for (u64 i = 0; i < itemCount; i++) {
         if (!compileExpr(comp, arr->items[i])) {
-            cmpError(comp, arr->items[i]->op, CMP_ERR_ARR_ITEM_EXPR);
+            cmpError(comp, arr->items[i]->op, COMPILER_ARRAY_ITEM);
             return false;
         }
     }
@@ -592,12 +592,12 @@ static bool compileMapExpr(PCompiler *comp, PExpr *expr) {
     u64 pairCount = itemCount / 2;
     for (u64 i = 0; i < itemCount; i += 2) {
         if (!compileExpr(comp, map->etable[i])) {
-            cmpError(comp, map->etable[i]->op, CMP_ERR_MAP_KEY_EXPR);
+            cmpError(comp, map->etable[i]->op, COMPILER_MAP_KEY);
             return false;
         }
 
         if (!compileExpr(comp, map->etable[i + 1])) {
-            cmpError(comp, map->etable[i + 1]->op, CMP_ERR_MAP_VAL_EXPR);
+            cmpError(comp, map->etable[i + 1]->op, COMPILER_MAP_VALUE);
             return false;
         }
     }
@@ -614,7 +614,7 @@ static u16 addIdentConst(PCompiler *comp, Token *tok) {
 
     PObj *strObj = NewStrObject(comp->gc, tok, tok->lexeme, false);
     if (strObj == NULL) {
-        cmpError(comp, tok, CMP_ERR_IME_FAIL_STR_IDENT);
+        cmpError(comp, tok, COMPILER_IDENT_NAME);
         return 0;
     }
     PValue strVal = MakeObject(strObj);
@@ -647,7 +647,7 @@ static bool compileVariableExpr(PCompiler *comp, PExpr *expr) {
 static bool cmpVariableAssign(PCompiler *comp, PExpr *expr) {
     struct EAssign *assign = &expr->exp.EAssign;
     if (!compileExpr(comp, assign->value)) {
-        cmpError(comp, assign->op, CMP_ERR_ASN_VAL);
+        cmpError(comp, assign->op, COMPILER_ASSIGN_VALUE);
         return false;
     }
 
@@ -673,17 +673,17 @@ static bool cmpSubsAssign(PCompiler *comp, PExpr *expr) {
     struct EAssign *assign = &expr->exp.EAssign;
     struct ESubscript *subExpr = &assign->name->exp.ESubscript;
     if (!compileExpr(comp, subExpr->value)) {
-        cmpError(comp, subExpr->value->op, CMP_ERR_SUBS_ASN_VAL);
+        cmpError(comp, subExpr->value->op, COMPILER_SUB_ASSIGN_SUBVALUE);
         return false;
     }
 
     if (!compileExpr(comp, subExpr->index)) {
-        cmpError(comp, subExpr->index->op, CMP_ERR_SUBS_ASN_IDX);
+        cmpError(comp, subExpr->index->op, COMPILER_SUB_ASSIGN_SUBINDEX);
         return false;
     }
 
     if (!compileExpr(comp, assign->value)) {
-        cmpError(comp, assign->value->op, CMP_ERR_SUBS_ASN_ASNVAL);
+        cmpError(comp, assign->value->op, COMPILER_SUB_ASSIGN_VALUE);
         return false;
     }
 
@@ -706,12 +706,12 @@ static bool compileAssignExpr(PCompiler *comp, PExpr *expr) {
 static bool compileCallExpr(PCompiler *comp, PExpr *expr) {
     struct ECall *call = &expr->exp.ECall;
     if (!compileExpr(comp, call->callee)) {
-        cmpError(comp, call->callee->op, CMP_ERR_CALL_CALLEE);
+        cmpError(comp, call->callee->op, COMPILER_CALL_EXPR_CALLE);
         return false;
     }
     for (u64 i = 0; i < call->argCount; i++) {
         if (!compileExpr(comp, call->args[i])) {
-            cmpError(comp, call->args[i]->op, CMP_ERR_CALL_ARG);
+            cmpError(comp, call->args[i]->op, COMPILER_CALL_EXPR_ARG);
             return false;
         }
     }
@@ -724,12 +724,12 @@ static bool compileCallExpr(PCompiler *comp, PExpr *expr) {
 static bool compileSubscriptExpr(PCompiler *comp, PExpr *expr) {
     struct ESubscript *subExpr = &expr->exp.ESubscript;
     if (!compileExpr(comp, subExpr->value)) {
-        cmpError(comp, subExpr->value->op, CMP_ERR_SUBS_VAL);
+        cmpError(comp, subExpr->value->op, COMPILER_SUBS_VALUE);
         return false;
     }
 
     if (!compileExpr(comp, subExpr->index)) {
-        cmpError(comp, subExpr->index->op, CMP_ERR_SUBS_IDX);
+        cmpError(comp, subExpr->index->op, COMPILER_SUBS_INDEX);
         return false;
     }
 
@@ -741,7 +741,7 @@ static bool compileSubscriptExpr(PCompiler *comp, PExpr *expr) {
 static bool compileModgetExpr(PCompiler *comp, PExpr *expr) {
     struct EModget *modgetExpr = &expr->exp.EModget;
     if (!compileExpr(comp, modgetExpr->module)) {
-        cmpError(comp, modgetExpr->module->op, CMP_ERR_MOD_EXPR);
+        cmpError(comp, modgetExpr->module->op, COMPILER_MOD_EXPR);
         return false;
     }
 
@@ -779,7 +779,7 @@ static bool compileExpr(PCompiler *comp, PExpr *expr) {
 static bool compileExprStmt(PCompiler *comp, PStmt *stmt) {
     struct SExpr *expr = &stmt->stmt.SExpr;
     if (!compileExpr(comp, stmt->stmt.SExpr.expr)) {
-        cmpError(comp, expr->op, CMP_ERR_EXPR_STMT);
+        cmpError(comp, expr->op, COMPILER_EXPR_STMT);
         return false;
     }
 
@@ -789,7 +789,7 @@ static bool compileExprStmt(PCompiler *comp, PStmt *stmt) {
 
 static bool compileDebugStmt(PCompiler *comp, PStmt *stmt) {
     if (!compileExpr(comp, stmt->stmt.SDebug.expr)) {
-        cmpError(comp, stmt->stmt.SDebug.expr->op, CMP_ERR_DBG_STMT);
+        cmpError(comp, stmt->stmt.SDebug.expr->op, COMPILER_DEBUG_STMT);
         return false;
     }
 
@@ -825,12 +825,14 @@ static void tryLocalDeclare(PCompiler *comp, Token *name) {
         return;
     }
     if (doesLocalExists(comp, name) != -1) {
-        const char *errMsg = StrFormat(CMP_ERR_VAR_EXIST_SCOPE, name->lexeme);
-        cmpError(comp, name, errMsg);
+		//TODO: Need Wrapper?
+		ReportDiagF(&comp->errCtx, name, COMPILER_VAR_EXISTS, name->lexeme);
+        //const char *errMsg = StrFormat(CMP_ERR_VAR_EXIST_SCOPE, name->lexeme);
+        //cmpError(comp, name, errMsg);
         return;
     }
     if (comp->localCount >= MAX_COMPILER_LOCAL_COUNT) {
-        cmpError(comp, name, CMP_ERR_TOO_MANY_LOCAL);
+        cmpError(comp, name, COMPILER_LOCAL_TOO_MANY);
         return; // todo error
     }
     PLocal *local = &comp->locals[comp->localCount++];
@@ -867,7 +869,7 @@ static bool compileLetStmt(PCompiler *comp, PStmt *stmt) {
     struct SLet *let = &stmt->stmt.SLet;
     u16 globNameIndex = readVariableName(comp, let->name);
     if (!compileExpr(comp, let->expr)) {
-        cmpError(comp, let->expr->op, CMP_ERR_LET_STMT);
+        cmpError(comp, let->expr->op, COMPILER_LET_STMT);
         return false;
     }
     defineVariable(comp, globNameIndex, let->name);
@@ -882,7 +884,7 @@ static bool compileBlockStmt(PCompiler *comp, PStmt *stmt) {
     for (u64 i = 0; i < stmtCount; i++) {
         if (!compileStmt(comp, block->stmts[i])) {
             endScope(comp, block->op);
-            cmpError(comp, block->stmts[i]->op, CMP_ERR_BLK_STMT);
+            cmpError(comp, block->stmts[i]->op, COMPILER_BLOCK_STMT);
             return false;
         }
     }
@@ -893,14 +895,14 @@ static bool compileBlockStmt(PCompiler *comp, PStmt *stmt) {
 static bool compileIfStmt(PCompiler *comp, PStmt *stmt) {
     struct SIf *ifstmt = &stmt->stmt.SIf;
     if (!compileExpr(comp, ifstmt->cond)) {
-        cmpError(comp, ifstmt->cond->op, CMP_ERR_IF_COND);
+        cmpError(comp, ifstmt->cond->op, COMPILER_IF_COND);
         return false;
     }
     int thenJump = emitJump(comp, ifstmt->op, OP_JUMP_IF_FALSE);
     emitBt(comp, ifstmt->op, OP_POP);
 
     if (!compileStmt(comp, ifstmt->thenBranch)) {
-        cmpError(comp, ifstmt->thenBranch->op, CMP_ERR_IF_THEN);
+        cmpError(comp, ifstmt->thenBranch->op, COMPILER_IF_THEN_BLOCK);
         return false;
     }
 
@@ -910,7 +912,7 @@ static bool compileIfStmt(PCompiler *comp, PStmt *stmt) {
 
     if (ifstmt->elseBranch != NULL) {
         if (!compileStmt(comp, ifstmt->elseBranch)) {
-            cmpError(comp, ifstmt->elseBranch->op, CMP_ERR_IF_ELSE);
+            cmpError(comp, ifstmt->elseBranch->op, COMPILER_IF_ELSE_BLOCK);
             return false;
         }
     }
@@ -965,12 +967,12 @@ static bool compileWhileStmt(PCompiler *comp, PStmt *stmt) {
 
     PCompLoopCtx *loopCtx = enterLoop(comp, loopStart);
     if (loopCtx == NULL) {
-        cmpError(comp, whileStmt->op, CMP_ERR_IME_FAIL_LPCTX_WHL);
+        cmpError(comp, whileStmt->op, COMPILER_WHILE_BLOCK_CTX);
         return false;
     }
 
     if (!compileExpr(comp, whileStmt->cond)) {
-        cmpError(comp, whileStmt->cond->op, CMP_ERR_WHL_COND);
+        cmpError(comp, whileStmt->cond->op, COMPILER_WHILE_COND);
         return false;
     }
 
@@ -979,7 +981,7 @@ static bool compileWhileStmt(PCompiler *comp, PStmt *stmt) {
     emitBt(comp, whileStmt->op, OP_POP);
 
     if (!compileStmt(comp, whileStmt->body)) {
-        cmpError(comp, whileStmt->body->op, CMP_ERR_WHL_BODY);
+        cmpError(comp, whileStmt->body->op, COMPILER_WHILE_BLOCK);
         return false;
     }
 
@@ -995,7 +997,7 @@ static bool compileBreakStmt(PCompiler *comp, PStmt *stmt) {
     struct SBreak *breakStmt = &stmt->stmt.SBreak;
 
     if (comp->loopCtx == NULL) {
-        cmpError(comp, breakStmt->op, CMP_ERR_IME_FAIL_ACS_LPCTX_BRK);
+        cmpError(comp, breakStmt->op, COMPILER_BREAK_STMT);
         return false;
     }
     u16 jumpPos = emitJump(comp, breakStmt->op, OP_JUMP);
@@ -1007,7 +1009,7 @@ static bool compileContinueStmt(PCompiler *comp, PStmt *stmt) {
     struct SContinue *contStmt = &stmt->stmt.SContinue;
 
     if (comp->loopCtx == NULL) {
-        cmpError(comp, contStmt->op, CMP_ERR_IME_FAIL_ACS_LPCTX_CNT);
+        cmpError(comp, contStmt->op, COMPILER_BREAK_STMT);
         return false;
     }
     emitLoop(comp, contStmt->op, comp->loopCtx->loopStart);
@@ -1018,7 +1020,7 @@ static bool compileFuncBody(PCompiler *comp, PStmt **stmts) {
     u64 stmtCount = arrlen(stmts);
     for (u64 i = 0; i < stmtCount; i++) {
         if (!compileStmt(comp, stmts[i])) {
-            cmpError(comp, stmts[i]->op, CMP_ERR_FNC_BODY_STMT);
+            cmpError(comp, stmts[i]->op, COMPILER_FUNC_BLOCK);
             return false;
         }
     }
@@ -1033,7 +1035,7 @@ static bool compileFunc(PCompiler *comp, PStmt *stmt) {
         comp->gc, comp, COMP_FN_FUNCTION, fnStmt->name, comp->errCtx
     );
     if (fComp == NULL) {
-        cmpError(comp, fnStmt->name, CMP_ERR_IME_FAIL_FNC_CMP);
+        cmpError(comp, fnStmt->name, COMPILER_FUNC_STMT);
         return false;
     }
 
@@ -1043,12 +1045,12 @@ static bool compileFunc(PCompiler *comp, PStmt *stmt) {
         defineVariable(fComp, paramIndex, fnStmt->params[i]);
     }
     if (!compileFuncBody(fComp, fnStmt->body->stmt.SBlock.stmts)) {
-        cmpError(comp, fnStmt->body->stmt.SBlock.op, CMP_ERR_FNC_BODY);
+        cmpError(comp, fnStmt->body->stmt.SBlock.op, COMPILER_FUNC_BLOCK);
         return false;
     }
     PObj *fnObj = GetCompiledFunction(fComp);
     if (fnObj == NULL) {
-        cmpError(comp, fnStmt->name, CMP_ERR_FNC_ACS_CMPFNC);
+        cmpError(comp, fnStmt->name, COMPILER_FUNC_STMT);
         return false;
     }
     fnObj->v.OComFunction.paramCount = fnStmt->paramCount;
@@ -1083,12 +1085,12 @@ static bool compileFuncStmt(PCompiler *comp, PStmt *stmt) {
 static bool compileReturnStmt(PCompiler *comp, PStmt *stmt) {
     struct SReturn *retStmt = &stmt->stmt.SReturn;
     if (comp->funcType == COMP_FN_SCRIPT) {
-        cmpError(comp, retStmt->op, CMP_ERR_RET_TOP_LVL);
+        cmpError(comp, retStmt->op, COMPILER_RETURN_TOP_LEVEL);
         return false;
     }
     if (retStmt->value != NULL) {
         if (!compileExpr(comp, retStmt->value)) {
-            cmpError(comp, retStmt->value->op, CMP_ERR_RET_VAL);
+            cmpError(comp, retStmt->value->op, COMPILER_RETURN_STMT);
             return false;
         }
     } else {
@@ -1103,7 +1105,7 @@ static bool compileImportStmt(PCompiler *comp, PStmt *stmt) {
     struct SImport *importStmt = &stmt->stmt.SImport;
     u16 customNameIndex = readVariableName(comp, importStmt->name);
     if (!compileExpr(comp, importStmt->path)) {
-        cmpError(comp, importStmt->op, CMP_ERR_IMPRT_PATH);
+        cmpError(comp, importStmt->op, COMPILER_IMPORT_PATH);
         return false;
     }
 

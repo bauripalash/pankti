@@ -4,6 +4,7 @@
 #include "compiler.h"
 #include "vm.h"
 #include <stdbool.h>
+#include <stdio.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -67,15 +68,15 @@ PCoreErrorType RunCore(PanktiCore *core);
 // `token` = Token where the runtime error occurred; can be NULL if something
 // out of the world or something ambiguous happened.
 // `msg` = Error Message
-void CoreRuntimeError(PanktiCore *core, Token *token, const char *msg);
-
+//void CoreRuntimeError(PanktiCore *core, Token *token, const char *msg);
+void CoreRuntimeError(PanktiCore *core, Token *token, PanDiagCode code, va_list args);
 // Throw Parser/Syntax Error and Continue parsing the code.
 // `core` = Interpreter Core
 // `token` = Token where the runtime error occurred; can be NULL if something
 // out of the world or something ambiguous happened.
 // `msg` = Error Message
 void CoreParserError(
-    PanktiCore *core, Token *token, const char *msg, bool fatal
+    PanktiCore *core, Token *token, PanDiagCode code, va_list args
 );
 
 // Throw Lexer/Syntax Error and Continue scanning for tokens to catch as many as
@@ -88,7 +89,7 @@ void CoreLexerError(
     PanktiCore *core, u64 line, u64 col, u64 len, const char *msg
 );
 
-void CoreCompilerError(PanktiCore *core, Token *token, const char *msg);
+void CoreCompilerError(PanktiCore *core, Token *token, PanDiagCode code, va_list args);
 #ifdef __cplusplus
 }
 #endif

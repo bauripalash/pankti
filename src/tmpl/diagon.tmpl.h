@@ -7,6 +7,8 @@ extern "C" {
 
 #include <stdbool.h>
 
+#define NO_ERR_CTX_ERR "প্রয়োজনীয় প্রস্তুতি ছাড়াই পঙক্তি চালু হয়েছে"
+
 typedef enum PanDiagCat{
 	PAN_DIAG_LEXER = 0,
 	PAN_DIAG_PARSER = 1,

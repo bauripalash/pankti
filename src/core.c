@@ -1,5 +1,6 @@
 #include "include/core.h"
 #include "external/stb/stb_ds.h"
+#include "gen/diagon.h"
 #include "include/alloc.h"
 #include "include/ast.h"
 #include "include/compiler.h"
@@ -28,21 +29,21 @@
 #endif
 
 static void coreRuntimeErrorBridge(
-    void *ctx, Token *tok, const char *msg, bool fatal
+    void *ctx, Token *tok, PanDiagCode code, va_list args
 ) {
-    CoreRuntimeError((PanktiCore *)ctx, tok, msg);
+    CoreRuntimeError((PanktiCore *)ctx, tok, code,args);
 }
 
 static void coreCompilerErrorBridge(
-    void *ctx, Token *tok, const char *msg, bool fatal
+    void *ctx, Token *tok, PanDiagCode code, va_list args
 ) {
-    CoreCompilerError((PanktiCore *)ctx, tok, msg);
+    CoreCompilerError((PanktiCore *)ctx, tok, code, args);
 }
 
 static void coreParserErrorBridge(
-    void *ctx, Token *tok, const char *msg, bool fatal
+    void *ctx, Token *tok, PanDiagCode code, va_list args
 ) {
-    CoreParserError((PanktiCore *)ctx, tok, msg, fatal);
+    CoreParserError((PanktiCore *)ctx, tok, code, args);
 }
 
 PanktiCore *NewCore(const char *scriptPath) {
@@ -406,7 +407,7 @@ static void printErrMsg(
     );
 }
 
-void CoreRuntimeError(PanktiCore *core, Token *token, const char *msg) {
+void CoreRuntimeError(PanktiCore *core, Token *token, PanDiagCode code, va_list args) {
     PanFlushStdout();
     u64 line = 0;
     u64 col = 0;
@@ -420,7 +421,16 @@ void CoreRuntimeError(PanktiCore *core, Token *token, const char *msg) {
         len = token->len;
     }
 
-    printErrMsg(core, line, gcol, msg, PCERR_RUNTIME);
+	const PanDiagInfo * info = DiagGetInfo(code);
+	char msgBuf[1024];
+
+	if (info->formatted) {
+		vsnprintf(msgBuf, sizeof(msgBuf), info->msg, args);
+	}else{
+		snprintf(msgBuf, sizeof(msgBuf), "%s" ,info->msg);
+	}
+
+    printErrMsg(core, line, gcol, msgBuf, PCERR_RUNTIME);
     printSourceLine(core, line, col, len);
     PanFPrint(stderr, "\n");
     VmPrintStackTrace(core->vm);
@@ -429,7 +439,7 @@ void CoreRuntimeError(PanktiCore *core, Token *token, const char *msg) {
 }
 
 void CoreParserError(
-    PanktiCore *core, Token *token, const char *msg, bool fatal
+    PanktiCore *core, Token *token, PanDiagCode code, va_list args
 ) {
     PanFlushStdout();
     u64 line = 0;
@@ -443,13 +453,18 @@ void CoreParserError(
         gcol = token->gcol;
         len = token->len;
     }
+	const PanDiagInfo * info = DiagGetInfo(code);
+	char msgBuf[1024];
 
-    printErrMsg(core, line, gcol, msg, PCERR_PARSER);
+	if (info->formatted) {
+		vsnprintf(msgBuf, sizeof(msgBuf), info->msg, args);
+	}else{
+		snprintf(msgBuf, sizeof(msgBuf), "%s" ,info->msg);
+	}
+    printErrMsg(core, line, gcol, msgBuf, PCERR_PARSER);
     printSourceLine(core, line, col, len);
-    if (fatal) {
-        FreeCore(core);
-        exit(EXIT_FAILURE);
-    }
+    FreeCore(core);
+    exit(EXIT_FAILURE);
 }
 
 void CoreLexerError(
@@ -468,7 +483,7 @@ void CoreLexerError(
     }
 }
 
-void CoreCompilerError(PanktiCore *core, Token *token, const char *msg) {
+void CoreCompilerError(PanktiCore *core, Token *token, PanDiagCode code, va_list args) {
     PanFlushStdout();
     u64 line = 0;
     u64 col = 0;
@@ -481,8 +496,16 @@ void CoreCompilerError(PanktiCore *core, Token *token, const char *msg) {
         gcol = token->gcol;
         len = token->len;
     }
+	const PanDiagInfo * info = DiagGetInfo(code);
+	char msgBuf[1024];
 
-    printErrMsg(core, line, gcol, msg, PCERR_COMPILER);
+	if (info->formatted) {
+		vsnprintf(msgBuf, sizeof(msgBuf), info->msg, args);
+	}else{
+		snprintf(msgBuf, sizeof(msgBuf), "%s" ,info->msg);
+	}
+
+    printErrMsg(core, line, gcol, msgBuf, PCERR_COMPILER);
     printSourceLine(core, line, col, len);
 
     FreeCore(core);

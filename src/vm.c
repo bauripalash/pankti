@@ -1,7 +1,9 @@
 #include "include/vm.h"
 #include "external/stb/stb_ds.h"
+#include "gen/diagon.h"
 #include "include/alloc.h"
 #include "include/compiler.h"
+#include "include/diagonctx.h"
 #include "include/gc.h"
 #include "include/native.h"
 #include "include/object.h"
@@ -12,6 +14,7 @@
 #include "include/symtable.h"
 #include "include/utils.h"
 #include <math.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,10 +49,7 @@ void SetupVm(
     if (clsObj == NULL) {
         // Directly call to core runtime error
         // we cannot provide any stack trace yet
-        vm->errCtx.report(
-            vm->errCtx.ctx, func->v.OComFunction.rawName,
-            "Internal Memmory Error : Failed to create script closure", true
-        );
+		ReportDiag(&vm->errCtx, func->v.OComFunction.rawName, RT_IME_PRIMARY_SETUP);
         return;
     }
     VmPop(vm);
@@ -194,15 +194,28 @@ void VmPrintStackTrace(const PVm *vm) {
     }
 }
 
-void VmError(PVm *vm, const char *msg) {
+void VmError(PVm *vm, PanDiagCode code) {
 
     PCallFrame *frame = &vm->frames[vm->frameCount - 1];
     VmPosInfo posInfo = vmGetPosInfo(vm, frame);
     if (posInfo.found) {
-        vm->errCtx.report(vm->errCtx.ctx, posInfo.token, msg, true);
+        //vm->errCtx.report(vm->errCtx.ctx, posInfo.token, msg, true);
+		ReportDiag(&vm->errCtx, posInfo.token, code);
+
     } else {
-        vm->errCtx.report(vm->errCtx.ctx, NULL, msg, true);
+        //vm->errCtx.report(vm->errCtx.ctx, NULL, msg, true);
+		ReportDiag(&vm->errCtx, NULL, code);
     }
+}
+
+void VmErrorf(PVm * vm, PanDiagCode code, ...){
+    PCallFrame *frame = &vm->frames[vm->frameCount - 1];
+    VmPosInfo posInfo = vmGetPosInfo(vm, frame);
+	Token * tok = posInfo.found ? posInfo.token : NULL;
+	va_list args;
+	va_start(args, code);
+	ReportDiagV(&vm->errCtx, tok, code, args);
+	va_end(args);
 }
 
 static PModule *NewModule(PVm *vm, char *name) {
@@ -249,7 +262,7 @@ PValue VmGetLastPopped(const PVm *vm) { return MakeNil(); }
 
 bool VmPush(PVm *vm, PValue val) {
     if (vm->sp >= vm->stack + PVM_STACK_SIZE) {
-        VmError(vm, "Pankti VM Stack Overflow!");
+        VmError(vm, RT_STACK_OVERFLOW);
         return false;
     }
     *vm->sp = val;
@@ -259,7 +272,7 @@ bool VmPush(PVm *vm, PValue val) {
 
 PValue VmPop(PVm *vm) {
     if (vm->sp <= vm->stack) {
-        VmError(vm, "Pankti VM Stack Underflow!");
+        VmError(vm, RT_STACK_UNDERFLOW);
         return MakeNil();
     }
     vm->sp--;
@@ -282,7 +295,7 @@ static bool vmBinaryOpNumber(PVm *vm, PanOpCode op, PValue left, PValue right) {
         case OP_MUL: result = leftVal * rightVal; break;
         case OP_DIV: {
             if (rightVal == 0.0) {
-                VmError(vm, "Division by zero");
+                VmError(vm, RT_DIV_ZERO);
                 return false;
             }
             result = leftVal / rightVal;
@@ -290,7 +303,7 @@ static bool vmBinaryOpNumber(PVm *vm, PanOpCode op, PValue left, PValue right) {
         }
         case OP_MOD: {
             if (rightVal == 0.0) {
-                VmError(vm, "Division by zero");
+                VmError(vm, RT_DIV_ZERO);
                 return false;
             }
             result = fmod(leftVal, rightVal);
@@ -329,17 +342,17 @@ static bool vmBinaryOp(PVm *vm, PanOpCode op) {
     if (IsValueNum(left) && IsValueNum(right)) {
         bool isok = vmBinaryOpNumber(vm, op, left, right);
         if (!isok) {
-            VmError(vm, "Failed to binary operation");
+            VmError(vm, RT_BINARY_OP);
             return false;
         }
     } else if (IsValueObjType(left, OT_STR) && IsValueObjType(right, OT_STR)) {
         bool isok = vmBinaryOpString(vm, op, left, right);
         if (!isok) {
-            VmError(vm, "Failed to binary operation on string");
+            VmError(vm, RT_STR_BINARY_OP);
             return false; // todo handle better
         }
     } else {
-        VmError(vm, "Invalid Binary Operation");
+        VmError(vm, RT_INVALID_BINARY_OP);
         return false;
     }
 
@@ -367,7 +380,7 @@ static bool vmCompareOp(PVm *vm, PanOpCode op) {
         VmPush(vm, MakeBool(result));
         return true;
     } else {
-        VmError(vm, "Invalid Compare Operation");
+        VmError(vm, RT_INVALID_COMP_OP);
         return false;
     }
 }
@@ -375,7 +388,8 @@ static bool vmCompareOp(PVm *vm, PanOpCode op) {
 static bool vmCallFunction(PVm *vm, PObj *clsObj, int argCount) {
     struct OClosure *cls = &clsObj->v.OClosure;
     if (cls->function->v.OComFunction.paramCount != (u64)argCount) {
-        VmError(vm, "Function call argument count != function param count");
+        //VmError(vm, "Function call argument count != function param count");
+		VmErrorf(vm, RT_ARG_PARAM_NOTEQ, cls->function->v.OComFunction.paramCount, (u64)argCount);
         return false;
     }
     PCallFrame *frame = &vm->frames[vm->frameCount++];
@@ -389,12 +403,7 @@ static bool vmCallNative(PVm *vm, PObj *funcObj, int argc) {
     struct ONative *native = &funcObj->v.ONative;
     if (native->arity != -1 && native->arity != argc) {
         // PanPrint("%d != %d", argc, native->arity);
-        VmError(
-            vm, StrFormat(
-                    "%s wanted %d arguments but got %d", native->name,
-                    native->arity, argc
-                )
-        );
+		VmErrorf(vm, RT_NATIVE_ARG_PARAM_NOTEQ, native->name, native->arity, argc);
         // vmError(vm, "Native function arg count != param count");
         return false;
     }
@@ -428,13 +437,13 @@ static bool vmArraySubscript(PVm *vm, PValue target, bool assign) {
     PValue indexVal = vmGetSubIndex(vm, assign);
 
     if (!IsValueNum(indexVal)) {
-        VmError(vm, "Arrays can only be indexed with non-negative integers");
+		VmErrorf(vm, RT_INVALID_ARR_INDEX_NOTNUM, ValueTypeToStr(indexVal));
         return false;
     }
 
     double dblIndex = ValueAsNum(indexVal);
     if (dblIndex < 0 || !IsDoubleInt(dblIndex)) {
-        VmError(vm, "Arrays can only be indexed with non-negative integers");
+		VmErrorf(vm, RT_INVALID_ARR_INDEX, dblIndex);
         return false;
     }
     u64 index = (u64)floor(dblIndex);
@@ -442,7 +451,7 @@ static bool vmArraySubscript(PVm *vm, PValue target, bool assign) {
     struct OArray *arrObj = &ValueAsObj(target)->v.OArray;
 
     if (index >= arrObj->count) {
-        VmError(vm, "Arrays index out of range");
+		VmErrorf(vm, RT_ARR_INDEX_OUT_RANGE, arrObj->count - 1, index);
         return false;
     }
 
@@ -468,7 +477,7 @@ static bool vmMapSubscript(PVm *vm, PValue target, bool assign) {
     PValue keyVal = vmGetSubIndex(vm, assign);
 
     if (!CanValueBeKey(keyVal)) {
-        VmError(vm, "Subscript key is invalid as a map key");
+		VmErrorf(vm, RT_INVALID_MAP_KEY, ValueTypeToStr(keyVal));
         return false;
     }
 
@@ -486,7 +495,7 @@ static bool vmMapSubscript(PVm *vm, PValue target, bool assign) {
         bool found = false;
         result = MapObjGetValue(ValueAsObj(target), keyVal, keyHash, &found);
         if (!found) {
-            VmError(vm, "Key doesn't exist in map");
+            VmError(vm, RT_MAP_KEY_NOT_FOUND);
             return false;
         }
         VmPop(vm); // key
@@ -505,7 +514,7 @@ static bool vmSubscript(PVm *vm) {
     } else if (IsValueObjType(targetVal, OT_MAP)) {
         return vmMapSubscript(vm, targetVal, false);
     } else {
-        VmError(vm, "Invalid Subscript target");
+		VmErrorf(vm, RT_INVALID_SUBS_TARGET, ValueTypeToStr(targetVal));
         return false;
     }
 }
@@ -518,7 +527,7 @@ static bool vmSubscriptAssign(PVm *vm) {
     } else if (IsValueObjType(targetVal, OT_MAP)) {
         return vmMapSubscript(vm, targetVal, true);
     } else {
-        VmError(vm, "Invalid Subscript Assignment target");
+        VmErrorf(vm, RT_INVALID_SUBASSIGN, ValueTypeToStr(targetVal));
         return false;
     }
 }
@@ -526,7 +535,7 @@ static bool vmSubscriptAssign(PVm *vm) {
 static bool vmImportModule(PVm *vm, PValue name) {
     PValue importPath = VmPeek(vm, 0);
     if (!IsValueObjType(importPath, OT_STR)) {
-        VmError(vm, "Import Path must be a string");
+		VmErrorf(vm, RT_INVALID_IMPORT_PATH, ValueTypeToStr(importPath));
         return false;
     }
 
@@ -534,14 +543,15 @@ static bool vmImportModule(PVm *vm, PValue name) {
 
     StdlibMod stdmod = GetStdlibMod(pathStr);
     if (stdmod == STDLIB_NONE) {
-        VmError(vm, "Currently only stdlib imports are supported");
+        //VmError(vm, "Currently only stdlib imports are supported");
+		VmError(vm, RT_ONLY_STDLIB);
         return false;
     }
 
     PModule *mod = NewModule(vm, pathStr);
 
     if (mod == NULL) {
-        VmError(vm, "Failed to create module");
+        VmError(vm, RT_IME_MODULE);
         return false;
     }
 
@@ -578,7 +588,7 @@ static PObj *vmCaptureUpval(PVm *vm, PValue *local) {
 
     if (newUpval == NULL) {
         VmError(
-            vm, "Internal Memory Error : Failed to create closure variable"
+            vm, RT_IME_CLOSURE
         );
         return NULL;
     }
