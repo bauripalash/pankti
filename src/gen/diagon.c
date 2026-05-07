@@ -60,7 +60,7 @@ static const PanDiagInfo diagList[PANDIAG_CODE_COUNT] = {
     {PARSER_INVALID_MULDIV_RIGHT, PAN_DIAG_PARSER, PAN_DIAG_SEV_ERROR, false, "গুণ-ভাগ-ভাগশেষ রাশিমালা পড়ার সময় দ্বিমুখী রাশিমালার ডান দিক থেকে অবৈধ রাশিমালা পাওয়া গেছে", ""},
     {PARSER_INVALID_EXPO_RIGHT, PAN_DIAG_PARSER, PAN_DIAG_SEV_ERROR, false, "ঘাত রাশিমালা পড়ার সময় দ্বিমুখী রাশিমালার ডান দিক থেকে অবৈধ রাশিমালা পাওয়া গেছে", ""},
     {PARSER_MALFORMED_NUMBER, PAN_DIAG_PARSER, PAN_DIAG_SEV_ERROR, false, "অবৈধ সংখ্যা পাওয়া গেছে", ""},
-    {PARSER_EXPECT_IMPORT_NAME, PAN_DIAG_PARSER, PAN_DIAG_SEV_ERROR, false, "উৎস যে নামে আনা হবে তার নাম পাওয়া উচিত ছিল", "উৎস এভাবে আনতে হয় - আনো গণিত "গণিত" কিংবা আনো গ "গণিত""},
+    {PARSER_EXPECT_IMPORT_NAME, PAN_DIAG_PARSER, PAN_DIAG_SEV_ERROR, false, "উৎস যে নামে আনা হবে তার নাম পাওয়া উচিত ছিল", "উৎস এভাবে আনতে হয় - আনো গণিত \"গণিত\" কিংবা আনো গ \"গণিত\""},
     {COMPILER_IME_STRING, PAN_DIAG_COMPILER, PAN_DIAG_SEV_ERROR, false, "অভ্যন্তরীণ গোলমাল: স্ট্রিং তৈরি বিফল হয়েছে", ""},
     {COMPILER_LEFT_BINARY, PAN_DIAG_COMPILER, PAN_DIAG_SEV_ERROR, false, "দ্বিমুখী রাশিমালার বামদিকের রাশিমালা কম্পাইল বিফল হয়েছে", ""},
     {COMPILER_RIGHT_BINARY, PAN_DIAG_COMPILER, PAN_DIAG_SEV_ERROR, false, "দ্বিমুখী রাশিমালার ডানদিকের রাশিমালা কম্পাইল বিফল হয়েছে", ""},

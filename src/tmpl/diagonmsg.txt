@@ -65,7 +65,7 @@ parser|err|invalid_assign|অবৈধ মান নির্ধারণ রা
 parser|err|invalid_muldiv_right|গুণ-ভাগ-ভাগশেষ রাশিমালা পড়ার সময় দ্বিমুখী রাশিমালার ডান দিক থেকে অবৈধ রাশিমালা পাওয়া গেছে|
 parser|err|invalid_expo_right|ঘাত রাশিমালা পড়ার সময় দ্বিমুখী রাশিমালার ডান দিক থেকে অবৈধ রাশিমালা পাওয়া গেছে|
 parser|err|malformed_number|অবৈধ সংখ্যা পাওয়া গেছে|
-parser|err|expect_import_name|উৎস যে নামে আনা হবে তার নাম পাওয়া উচিত ছিল|উৎস এভাবে আনতে হয় - আনো গণিত "গণিত" কিংবা আনো গ "গণিত"
+parser|err|expect_import_name|উৎস যে নামে আনা হবে তার নাম পাওয়া উচিত ছিল|উৎস এভাবে আনতে হয় - আনো গণিত \"গণিত\" কিংবা আনো গ \"গণিত\"
 
 // Compiler Diagnostics
 
