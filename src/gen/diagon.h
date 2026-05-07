@@ -80,7 +80,7 @@ typedef enum PanDiagCode{
     // রাশিমালা পাওয়া উচিত ছিল
     PARSER_EXPECT_EXPR,
     // সেমিকোলন ';' পাওয়া উচিত ছিল
-    PARSER_EXPECT_SEMICOLOR,
+    PARSER_EXPECT_SEMICOLON,
     // 'কাজ'/'func'/'kaj' এর পরে কাজের নাম পাওয়া উচিত ছিল
     PARSER_EXPECT_FUNC_NAME,
     // কাজের নামের পর একটি প্রথম বন্ধনী '(' পাওয়া উচিত ছিল
@@ -130,11 +130,15 @@ typedef enum PanDiagCode{
     // কাজ চালানোর রাশিমালাতে ২৫৫-টির বেশি প্রেরণ মান ব্যবহার করা যায় না
     PARSER_CALL_TOOMANY_ARGS,
     // অবৈধ মান নির্ধারণ রাশিমালা, শুধুমাত্র চলরাশি এবং সূচকীয় রাশির মান নির্ধারণ করা যায়
-    PARSER_EXPECT_INVALID_ASSIGN,
+    PARSER_INVALID_ASSIGN,
+    // গুণ-ভাগ-ভাগশেষ রাশিমালা পড়ার সময় দ্বিমুখী রাশিমালার ডান দিক থেকে অবৈধ রাশিমালা পাওয়া গেছে
+    PARSER_INVALID_MULDIV_RIGHT,
     // ঘাত রাশিমালা পড়ার সময় দ্বিমুখী রাশিমালার ডান দিক থেকে অবৈধ রাশিমালা পাওয়া গেছে
     PARSER_INVALID_EXPO_RIGHT,
     // অবৈধ সংখ্যা পাওয়া গেছে
     PARSER_MALFORMED_NUMBER,
+    // উৎস যে নামে আনা হবে তার নাম পাওয়া উচিত ছিল
+    PARSER_EXPECT_IMPORT_NAME,
     // অভ্যন্তরীণ গোলমাল: স্ট্রিং তৈরি বিফল হয়েছে
     COMPILER_IME_STRING,
     // দ্বিমুখী রাশিমালার বামদিকের রাশিমালা কম্পাইল বিফল হয়েছে
