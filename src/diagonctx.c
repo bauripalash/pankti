@@ -13,6 +13,8 @@ void ReportDiagF(PDiagonCtx *ctx, Token *token, PanDiagCode code, ...) {
     va_end(args);
 }
 
-void ReportDiagV(PDiagonCtx *ctx, Token * token, PanDiagCode code, va_list args){
-	ctx->report(ctx->ctx, token, code, args);
+void ReportDiagV(
+    PDiagonCtx *ctx, Token *token, PanDiagCode code, va_list args
+) {
+    ctx->report(ctx->ctx, token, code, args);
 }

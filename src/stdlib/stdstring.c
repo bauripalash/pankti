@@ -10,7 +10,10 @@
 static PValue str_Index(PVm *vm, PValue *args, u64 argc) {
     PValue rawStr = args[0];
     if (!IsValueObjType(rawStr, OT_STR)) {
-        VmError(vm, "Index(...) function's first argument must be a string");
+        VmErrorf(
+            vm, RT_TEMPLATE,
+            "Index(...) function's first argument must be a string"
+        );
         return MakeNil();
     }
 
@@ -18,13 +21,17 @@ static PValue str_Index(PVm *vm, PValue *args, u64 argc) {
     u64 index = 0;
     if (!IsValueNum(rawIndex)) {
 
-        VmError(vm, "Index(...) index argument must be a non-negative integer");
+        VmErrorf(
+            vm, RT_TEMPLATE,
+            "Index(...) index argument must be a non-negative integer"
+        );
         return MakeNil();
     } else {
         double dIndex = ValueAsNum(rawIndex);
         if (!IsDoubleInt(dIndex)) {
-            VmError(
-                vm, "Index(...) index argument must be a non-negative integer"
+            VmErrorf(
+                vm, RT_TEMPLATE,
+                "Index(...) index argument must be a non-negative integer"
             );
             return MakeNil();
         }
@@ -40,12 +47,13 @@ static PValue str_Index(PVm *vm, PValue *args, u64 argc) {
 
     switch (err) {
         case GR_ERR_INDEX_OUT_RANGE: {
-            VmError(vm, "Index(...) index is out of range");
+            VmErrorf(vm, RT_TEMPLATE, "Index(...) index is out of range");
             return MakeNil();
         }; // error
         case GR_ERR_MEM: {
-            VmError(
-                vm, "Internal Error : Index(...) failed due to memory error"
+            VmErrorf(
+                vm, RT_TEMPLATE,
+                "Internal Error : Index(...) failed due to memory error"
             );
             return MakeNil();
         }; // error
@@ -66,7 +74,10 @@ static PValue str_Split(PVm *vm, PValue *args, u64 argc) {
     PValue rawStr = args[0];
     PValue rawDelim = args[1];
     if (!IsValueObjType(rawStr, OT_STR) || !IsValueObjType(rawDelim, OT_STR)) {
-        VmError(vm, "Split(...) function's both arguments must be string");
+        VmErrorf(
+            vm, RT_TEMPLATE,
+            "Split(...) function's both arguments must be string"
+        );
         return MakeNil();
     }
 
@@ -96,7 +107,10 @@ static PValue str_Split(PVm *vm, PValue *args, u64 argc) {
         return MakeObject(arr);
 
     } else {
-        VmError(vm, "Internal Error : Split(...) failed due to memory error");
+        VmErrorf(
+            vm, RT_TEMPLATE,
+            "Internal Error : Split(...) failed due to memory error"
+        );
         return MakeNil();
     }
 

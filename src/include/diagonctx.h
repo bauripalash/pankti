@@ -25,7 +25,7 @@ typedef struct PDiagonCtx {
 
 void ReportDiag(PDiagonCtx *ctx, Token *token, PanDiagCode code);
 void ReportDiagF(PDiagonCtx *ctx, Token *token, PanDiagCode code, ...);
-void ReportDiagV(PDiagonCtx *ctx, Token * token, PanDiagCode code, va_list args);
+void ReportDiagV(PDiagonCtx *ctx, Token *token, PanDiagCode code, va_list args);
 
 #ifdef __cplusplus
 }

@@ -153,8 +153,8 @@ void CompilerMarkRoots(Pgc *gc, void *ctx) {
 }
 
 static void cmpError(PCompiler *comp, Token *token, PanDiagCode code) {
-    //comp->errCtx.report(comp->errCtx.ctx, token, code);
-	ReportDiag(comp->errCtx.ctx, token, code);
+    // comp->errCtx.report(comp->errCtx.ctx, token, code);
+    ReportDiag(comp->errCtx.ctx, token, code);
 }
 
 // Get Current Compiling Bytecode object
@@ -276,9 +276,7 @@ static int addUpvalue(PCompiler *comp, u16 index, bool isLocal) {
     }
 
     if (upvalCount == UINT8_MAX) {
-        cmpError(
-            comp, compFun->rawName, COMPILER_CLOSURE_TOO_MANY
-        );
+        cmpError(comp, compFun->rawName, COMPILER_CLOSURE_TOO_MANY);
         return 0;
     }
 
@@ -365,9 +363,7 @@ PObj *GetCompiledFunction(PCompiler *comp) {
 
 bool CompilerCompile(PCompiler *compiler, PStmt **prog) {
     if (compiler->errCtx.report == NULL) {
-        PanPrint(
-            NO_ERR_CTX_ERR
-        );
+        PanPrint(NO_ERR_CTX_ERR);
         exit(EXIT_FAILURE);
     }
     compiler->prog = prog;
@@ -825,10 +821,10 @@ static void tryLocalDeclare(PCompiler *comp, Token *name) {
         return;
     }
     if (doesLocalExists(comp, name) != -1) {
-		//TODO: Need Wrapper?
-		ReportDiagF(&comp->errCtx, name, COMPILER_VAR_EXISTS, name->lexeme);
-        //const char *errMsg = StrFormat(CMP_ERR_VAR_EXIST_SCOPE, name->lexeme);
-        //cmpError(comp, name, errMsg);
+        // TODO: Need Wrapper?
+        ReportDiagF(&comp->errCtx, name, COMPILER_VAR_EXISTS, name->lexeme);
+        // const char *errMsg = StrFormat(CMP_ERR_VAR_EXIST_SCOPE,
+        // name->lexeme); cmpError(comp, name, errMsg);
         return;
     }
     if (comp->localCount >= MAX_COMPILER_LOCAL_COUNT) {

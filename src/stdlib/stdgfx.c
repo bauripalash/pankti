@@ -56,7 +56,7 @@ static PValue gfx_DrawLine(PVm *vm, PValue *args, u64 argc) {
     ColorStrError err = CLRSTR_OK;
     PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
-        VmError(vm, "Invalid Color");
+        VmErrorf(vm, RT_TEMPLATE, "Invalid Color");
         return MakeNil();
     }
 
@@ -72,7 +72,7 @@ static PValue gfx_DrawPixel(PVm *vm, PValue *args, u64 argc) {
     ColorStrError err = CLRSTR_OK;
     PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
-        VmError(vm, "Invalid Color");
+        VmErrorf(vm, RT_TEMPLATE, "Invalid Color");
         return MakeNil();
     }
     GfxDrawPixel(gcore, (int)xVal, (int)yVal, clr);
@@ -88,7 +88,7 @@ static PValue gfx_DrawRectangle(PVm *vm, PValue *args, u64 argc) {
     ColorStrError err = CLRSTR_OK;
     PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
-        VmError(vm, "Invalid Color");
+        VmErrorf(vm, RT_TEMPLATE, "Invalid Color");
         return MakeNil();
     }
 
@@ -106,7 +106,7 @@ static PValue gfx_DrawRectangleLines(PVm *vm, PValue *args, u64 argc) {
     ColorStrError err = CLRSTR_OK;
     PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
-        VmError(vm, "Invalid Color");
+        VmErrorf(vm, RT_TEMPLATE, "Invalid Color");
         return MakeNil();
     }
 
@@ -124,7 +124,7 @@ static PValue gfx_DrawCircle(PVm *vm, PValue *args, u64 argc) {
     ColorStrError err = CLRSTR_OK;
     PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
-        VmError(vm, "Invalid Color");
+        VmErrorf(vm, RT_TEMPLATE, "Invalid Color");
         return MakeNil();
     }
     GfxDrawCircle(gcore, (int)xVal, (int)yVal, (float)rVal, clr);
@@ -140,7 +140,7 @@ static PValue gfx_DrawCircleLines(PVm *vm, PValue *args, u64 argc) {
     ColorStrError err = CLRSTR_OK;
     PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
-        VmError(vm, "Invalid Color");
+        VmErrorf(vm, RT_TEMPLATE, "Invalid Color");
         return MakeNil();
     }
     GfxDrawCircleLine(
@@ -159,7 +159,7 @@ static PValue gfx_DrawText(PVm *vm, PValue *args, u64 argc) {
     ColorStrError err = CLRSTR_OK;
     PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
-        VmError(vm, "Invalid Color");
+        VmErrorf(vm, RT_TEMPLATE, "Invalid Color");
         return MakeNil();
     }
     GfxDrawText(gcore, xVal, yVal, text, (int)sizeVal, clr);
@@ -174,7 +174,7 @@ static PValue gfx_KeyPress(PVm *vm, PValue *args, u64 argc) {
     char *keyStr = ValueAsObj(args[0])->v.OString.value;
     PKey kbKey = PanStrToKeyboardKey(keyStr, -1);
     if (kbKey == 0) {
-        VmError(vm, "Invalid key");
+        VmErrorf(vm, RT_TEMPLATE, "Invalid key");
         return MakeNil();
     }
     return MakeBool(GfxKeyPressed(gcore, kbKey));
@@ -184,7 +184,7 @@ static PValue gfx_KeyDown(PVm *vm, PValue *args, u64 argc) {
     char *keyStr = ValueAsObj(args[0])->v.OString.value;
     PKey kbKey = PanStrToKeyboardKey(keyStr, -1);
     if (kbKey == 0) {
-        VmError(vm, "Invalid key");
+        VmErrorf(vm, RT_TEMPLATE, "Invalid key");
         return MakeNil();
     }
     return MakeBool(GfxKeyDown(gcore, kbKey));
@@ -194,7 +194,7 @@ static PValue gfx_KeyUp(PVm *vm, PValue *args, u64 argc) {
     char *keyStr = ValueAsObj(args[0])->v.OString.value;
     PKey kbKey = PanStrToKeyboardKey(keyStr, -1);
     if (kbKey == 0) {
-        VmError(vm, "Invalid key");
+        VmErrorf(vm, RT_TEMPLATE, "Invalid key");
         return MakeNil();
     }
     return MakeBool(GfxKeyUp(gcore, kbKey));
@@ -204,7 +204,7 @@ static PValue gfx_KeyReleased(PVm *vm, PValue *args, u64 argc) {
     char *keyStr = ValueAsObj(args[0])->v.OString.value;
     PKey kbKey = PanStrToKeyboardKey(keyStr, -1);
     if (kbKey == 0) {
-        VmError(vm, "Invalid key");
+        VmErrorf(vm, RT_TEMPLATE, "Invalid key");
         return MakeNil();
     }
     return MakeBool(GfxKeyReleased(gcore, kbKey));
@@ -213,7 +213,7 @@ static PValue gfx_KeyReleased(PVm *vm, PValue *args, u64 argc) {
 static PValue gfx_LoadImage(PVm *vm, PValue *args, u64 argc) {
     char *pathStr = ValueAsObj(args[0])->v.OString.value;
     if (!DoesFileExists(pathStr)) {
-        VmError(vm, "Image file cannot be found");
+        VmErrorf(vm, RT_TEMPLATE, "Image file cannot be found");
         return MakeNil();
     }
     Tigr *img = tigrLoadImage(pathStr);
@@ -221,13 +221,13 @@ static PValue gfx_LoadImage(PVm *vm, PValue *args, u64 argc) {
     bool ok = false;
     char *str = GfxGetImageString(gcore, index, &ok);
     if (!ok) {
-        VmError(vm, "Internal Error : Failed to load image");
+        VmErrorf(vm, RT_TEMPLATE, "Internal Error : Failed to load image");
         return MakeNil();
     }
     PObj *obj = NewStrObject(vm->gc, NULL, str, false);
 
     if (obj == NULL) {
-        VmError(vm, "Internal Error : Failed to load image");
+        VmErrorf(vm, RT_TEMPLATE, "Internal Error : Failed to load image");
         return MakeNil();
     }
 
@@ -241,13 +241,13 @@ static PValue gfx_DrawImage(PVm *vm, PValue *args, u64 argc) {
 
     i64 index = GfxCoreGetImageIndex(gcore, imgStrObj->value, -1);
     if (index == -1) {
-        VmError(vm, "Invalid image to draw");
+        VmErrorf(vm, RT_TEMPLATE, "Invalid image to draw");
         return MakeNil();
     }
     bool ok = false;
     Tigr *img = GfxGetImageFromIdx(gcore, index, &ok);
     if (!ok) {
-        VmError(vm, "Invalid image to draw");
+        VmErrorf(vm, RT_TEMPLATE, "Invalid image to draw");
         return MakeNil();
     }
     tigrBlit(gcore->screen, img, (int)xVal, (int)yVal, 0, 0, img->w, img->h);
@@ -270,7 +270,7 @@ static PValue gfx_IsMouseButtonPressed(PVm *vm, PValue *args, u64 argc) {
     char *keyStr = ValueAsObj(args[0])->v.OString.value;
     int btnInt = PanStrToMouseKey(keyStr, -1);
     if (btnInt == -1) {
-        VmError(vm, "Invalid mouse key name");
+        VmErrorf(vm, RT_TEMPLATE, "Invalid mouse key name");
         return MakeNil();
     }
 
@@ -282,7 +282,7 @@ static PValue gfx_IsMouseButtonDown(PVm *vm, PValue *args, u64 argc) {
     char *keyStr = ValueAsObj(args[0])->v.OString.value;
     int btnInt = PanStrToMouseKey(keyStr, -1);
     if (btnInt == -1) {
-        VmError(vm, "Invalid mouse key name");
+        VmErrorf(vm, RT_TEMPLATE, "Invalid mouse key name");
         return MakeNil();
     }
 
@@ -294,7 +294,7 @@ static PValue gfx_IsMouseButtonReleased(PVm *vm, PValue *args, u64 argc) {
     char *keyStr = ValueAsObj(args[0])->v.OString.value;
     int btnInt = PanStrToMouseKey(keyStr, -1);
     if (btnInt == -1) {
-        VmError(vm, "Invalid mouse key name");
+        VmErrorf(vm, RT_TEMPLATE, "Invalid mouse key name");
         return MakeNil();
     }
 
@@ -306,7 +306,7 @@ static PValue gfx_IsMouseButtonUp(PVm *vm, PValue *args, u64 argc) {
     char *keyStr = ValueAsObj(args[0])->v.OString.value;
     int btnInt = PanStrToMouseKey(keyStr, -1);
     if (btnInt == -1) {
-        VmError(vm, "Invalid mouse key name");
+        VmErrorf(vm, RT_TEMPLATE, "Invalid mouse key name");
         return MakeNil();
     }
 
