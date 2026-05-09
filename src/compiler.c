@@ -154,7 +154,7 @@ void CompilerMarkRoots(Pgc *gc, void *ctx) {
 
 static void cmpError(PCompiler *comp, Token *token, PanDiagCode code) {
     // comp->errCtx.report(comp->errCtx.ctx, token, code);
-    ReportDiag(comp->errCtx.ctx, token, code);
+    ReportDiag(&comp->errCtx, token, code);
 }
 
 // Get Current Compiling Bytecode object
@@ -1005,7 +1005,7 @@ static bool compileContinueStmt(PCompiler *comp, PStmt *stmt) {
     struct SContinue *contStmt = &stmt->stmt.SContinue;
 
     if (comp->loopCtx == NULL) {
-        cmpError(comp, contStmt->op, COMPILER_BREAK_STMT);
+        cmpError(comp, contStmt->op, COMPILER_CONTINUE_STMT);
         return false;
     }
     emitLoop(comp, contStmt->op, comp->loopCtx->loopStart);

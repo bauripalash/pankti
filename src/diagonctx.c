@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+// BUG: empty va_list, UB?
 void ReportDiag(PDiagonCtx *ctx, Token *token, PanDiagCode code) {
     va_list empty;
     ctx->report(ctx->ctx, token, code, empty);

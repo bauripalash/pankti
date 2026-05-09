@@ -156,7 +156,7 @@ static const PanDiagInfo diagList[PANDIAG_CODE_COUNT] = {
 };
 
 const PanDiagInfo *DiagGetInfo(PanDiagCode code) {
-    if (code < 0 || code > PANDIAG_CODE_COUNT) {
+    if (code < 0 || code >= PANDIAG_CODE_COUNT) {
         return NULL;
     }
 

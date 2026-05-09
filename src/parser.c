@@ -113,7 +113,7 @@ static bool matchOne(Parser *p, PTokenType type) {
 static inline void error(Parser *p, Token *tok, PanDiagCode code) {
     p->hasError = true;
     // p->errCtx.report(p->errCtx.ctx, tok, msg, false);
-    ReportDiag(p->errCtx.ctx, tok, code);
+    ReportDiag(&p->errCtx, tok, code);
 }
 
 /*

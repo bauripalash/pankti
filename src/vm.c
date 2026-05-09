@@ -409,7 +409,8 @@ static bool vmCallNative(PVm *vm, PObj *funcObj, int argc) {
     if (native->arity != -1 && native->arity != argc) {
         // PanPrint("%d != %d", argc, native->arity);
         VmErrorf(
-            vm, RT_NATIVE_ARG_PARAM_NOTEQ, native->name, native->arity, argc
+            vm, RT_NATIVE_ARG_PARAM_NOTEQ, native->name, (u64)native->arity,
+            argc
         );
         // vmError(vm, "Native function arg count != param count");
         return false;
@@ -458,7 +459,8 @@ static bool vmArraySubscript(PVm *vm, PValue target, bool assign) {
     struct OArray *arrObj = &ValueAsObj(target)->v.OArray;
 
     if (index >= arrObj->count) {
-        VmErrorf(vm, RT_ARR_INDEX_OUT_RANGE, arrObj->count - 1, index);
+        u64 maxIndex = arrObj->count == 0 ? 0 : arrObj->count - 1;
+        VmErrorf(vm, RT_ARR_INDEX_OUT_RANGE, maxIndex, index);
         return false;
     }
 
