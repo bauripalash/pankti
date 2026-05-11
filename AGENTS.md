@@ -31,8 +31,7 @@ Pankti supports three syntax modes that can be mixed freely.
 | Nil (null)           | `নিল`    | `nil`      | `nil`    |
 | Break                | `ভাঙো`   | `bhango`   | `break`  |
 | Continue             | `চালাও`   | `chalao`   | `continue`  |
-| Length/Size          | `আয়তন`   | `ayoton`   | `len`    |
-| Panic/Error          | `গোলযোগ` | `golmal`   | `panic`  |
+
 
 ### Operators
 
@@ -44,7 +43,8 @@ Pankti supports three syntax modes that can be mixed freely.
 | `-` | Subtraction |
 | `*` | Multiplication |
 | `/` | Division |
-| `**` | Exponentiation |
+| `**`| Exponentiation |
+| `%` | Modulo |
 
 #### Comparison
 
@@ -71,6 +71,7 @@ Pankti supports three syntax modes that can be mixed freely.
 | `আয়তন()` | `ayoton()` | `len()` | Get length of Array, Strings etc. | 1 |
 | `সংযোগ()` | `songjog()` | `append()`| Append value to array | 2 or more |
 | `সময়()` | `somoy()` | `clock()` | Get current time | 0 |
+| `গোলমাল()`| `golmal()`  | `error()`   | Throw a runtime error and halt execution |1|
 
 
 ### Data Types
@@ -217,37 +218,40 @@ Pankti source files use `.pn` extension. `.pank` are also valid for legacy purpo
 ```
 src/              
     include/
-        gfxfont.h           # Raylib+kb_text_shaping integration
-        parser_errors.h     # Parser errors
-        token.h             # Token definitions
-        interpreter.h       # Tree-Walking Interpreter (Deprecated)
-        ansicolors.h        # Color codes for Terminal
-        version.h           # Version definition
-        parser.h            # Parser
-        gfxhelper.h         # Graphics Helper/Utilities for Raylib
+        alloc.h             # Memory Allocation Utilities
+        argparse.h          # Argument Parsing System
         ast.h               # Abstract Syntax Tree definitions
-        symtable.h          # Symbol Table for Compiler/VM
-        keywords.h          # Keyword definitions (Bengali, English, Phonetic)
-        strescape.h         # Helper to escape characters like \n, \t \xHH, \uHHHH etc in strings
-        utils.h             # Utilities
         bengali.h           # Bengali characters handling
-        lexer.h             # Lexer interface
+        compiler.h          # Bytecode Compiler
         core.h              # Core runtime
         defaults.h          # Default values used across the project
-        system.h            # OS Detection and Other OS related utilities
-        printer.h           # Writing to output device interface
-        ustring.h           # Codepoint Iterator interface
-        env.h               # Environment for Tree-Walking Interpreter (Deprecated)
-        pstdlib.h           # Pankti Standard Library definition
-        vm.h                # Virtual Machine 
-        ptypes.h            # Type definitions (u8, u16, u32, u64)
-        compiler.h          # Bytecode Compiler
+        diagonctx.h         # Parsing, Compiling, Runtime Diagnostics handling
+        flags.h             # Feature flags for runtime
         gc.h                # Garbage Collector
-        object.h            # Object System (Values, Strings, Functions etc.)
-        alloc.h             # Memory Allocation Utilities
+        gfxcore.h           # Pankti to Graphics backend connector
+        gfxdraw.h           # Graphics Drawing functions
+        gfxfont.h           # Graphics Font handling utilities
+        gfxhelper.h         # Graphics Helper/Utilities for Graphics backend
+        keywords.h          # Keyword definitions (Bengali, English, Phonetic)
+        lexer.h             # Lexer interface
         native.h            # Native Functions
+        object.h            # Object System (Values, Strings, Functions etc.)
         opcode.h            # Bytecode Opcodes
+        parser.h            # Parser
+        printer.h           # Writing to output device interface
+        pstdlib.h           # Pankti Standard Library definitions
+        ptypes.h            # Type definitions (u8, u16, u32, u64)
+        strescape.h         # Helper to escape characters like \n, \t \xHH, \uHHHH etc in strings
+        strpool.h           # String Interning handler
+        symtable.h          # Symbol Table for Compiler/VM
+        system.h            # OS Detection and Other OS related utilities
+        terminal.h          # Terminal related utilities
+        token.h             # Token definitions
         unicode.h           # Unicode and Grapheme related utilities
+        ustring.h           # Codepoint Iterator interface
+        utils.h             # Utilities
+        version.h           # Version definition
+        vm.h                # Virtual Machine   
 ```
 
 ### Compilation Pipeline
@@ -256,6 +260,8 @@ src/
 3. Compiler (`src/compiler.c`): Generate Bytecode from AST
 4. Virtual Machine (`src/vm.c`): Stack-based virtual machine executing bytecode.
 
+### Graphics Backend
+For Standard Library's Graphics module pankti current uses Tigr library (https://github.com/erkkah/tigr).
 
 ## Build System
 
