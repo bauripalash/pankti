@@ -32,7 +32,7 @@ But National Education Policy 2020 aims to introduce coding way earlier, but a s
 উদাহরণ = 3.14
 ```
 
-#### Strings/লেখা: 
+#### Strings/কথা: 
 ```pankti
 ধরি উদাহরণ = "আমার নাম পলাশ বাউরি"
 উদাহরণ = "পঙক্তি প্রোগ্রামিং ভাষা"

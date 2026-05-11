@@ -224,7 +224,7 @@ static PValue gfx_LoadImage(PVm *vm, PValue *args, u64 argc) {
         VmErrorf(vm, RT_TEMPLATE, "Internal Error : Failed to load image");
         return MakeNil();
     }
-    PObj *obj = NewStrObject(vm->gc, NULL, str, false);
+    PObj *obj = NewStrObject(vm->gc, NULL, str, true);
 
     if (obj == NULL) {
         VmErrorf(vm, RT_TEMPLATE, "Internal Error : Failed to load image");

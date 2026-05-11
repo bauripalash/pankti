@@ -13,7 +13,7 @@ extern "C" {
 #define OS_STDLIB_NAME     "ওএস"
 #define MATH_STDLIB_NAME   "গণিত"
 #define MAP_STDLIB_NAME    "ছক"
-#define STRING_STDLIB_NAME "লেখা"
+#define STRING_STDLIB_NAME "কথা"
 #define ARRAY_STDLIB_NAME  "তালিকা"
 #define GFX_STDLIB_NAME    "পট"
 #define FILE_STDLIB_NAME   "file"

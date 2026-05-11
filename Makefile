@@ -169,6 +169,10 @@ infer: cmake_clean
 gen_kwlookup:
 	./scripts/kwgperfgen.py src/include/keywords.h $(KWLOOKUP_OUTPUT)
 
+.PHONY: gen_diagon
+gen_diagon:
+	./scripts/diagongen.py
+
 .PHONY: clean
 clean: cmake_clean
 	rm -rf .cache

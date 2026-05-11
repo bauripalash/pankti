@@ -3,7 +3,6 @@
 #include "gen/diagon.h"
 #include "include/alloc.h"
 #include "include/ast.h"
-#include "include/compiler_errors.h"
 #include "include/diagonctx.h"
 #include "include/flags.h"
 #include "include/gc.h"
