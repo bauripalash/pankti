@@ -12,4 +12,6 @@
 #include "test_closure.h"
 #include "test_while.h"
 #include "test_if.h"
+
+#include "errors/test_parser.h"
 UTEST_MAIN();

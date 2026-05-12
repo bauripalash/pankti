@@ -42,9 +42,64 @@ static inline char * trimSpaces(char * str){
     end[1] = '\0';
     return ptr;
 }
+
+static bool matchLines(FILE * inputPtr, FILE * goldenPtr, bool debug, int * line){
+	if (inputPtr == NULL || goldenPtr == NULL || line == NULL) {
+		return false;
+	}
+	char inputBuf[READ_BUFFER];
+	char goldenBuf[READ_BUFFER];
+
+	int ln = 1; 
+	bool hasInput = fgets(inputBuf, READ_BUFFER, inputPtr) != NULL;
+	bool hasGolden = fgets(goldenBuf, READ_BUFFER, goldenPtr) != NULL;
+
+	while(hasInput || hasGolden){
+		char * tempInput = hasInput ? trimSpaces(inputBuf) : "";
+		char * tempGolden = hasGolden ? trimSpaces(goldenBuf) : "";
+
+		int cmp = strcmp(tempGolden, tempInput);
+		if (cmp != 0) {
+		    printf("[ERROR] [Line %d] : Output Mismatch\n", ln);
+            printf("[ERROR] Expected : '%s'\n", tempGolden);
+            printf("[ERROR] Got      : '%s'\n", tempInput);
+			*line = ln;
+            return false;
+		}
+		if (debug) {
+			printf("[DEBUG] [Line %d] : Output Matched : '%s'\n", ln, tempGolden);
+		}
+		hasInput = fgets(inputBuf, READ_BUFFER, inputPtr) != NULL;
+		hasGolden = fgets(goldenBuf, READ_BUFFER, goldenPtr) != NULL;
+		ln++;
+	}
+	*line = ln;
+	return true;
+}
+
+static inline bool matchFiles(const char * inputFile, const char * goldenFile, bool debug){
+	FILE * inputFp = fopen(inputFile, "r");
+	if (inputFp == NULL) {
+		printf("Failed to read input file : %s\n", inputFile);
+		return false;
+	}
+
+	FILE * goldFp = fopen(goldenFile, "r");
+	if (goldFp == NULL) {
+		fclose(inputFp);
+		printf("Failed to read golden file : %s\n", goldenFile);
+		return false;
+	}
+
+	int line = 1;
+	bool match = matchLines(inputFp, goldFp, debug, &line);
+	fclose(inputFp);
+	fclose(goldFp);
+	return match;
+
+}
+
 static inline bool matchOutput(const char * cmd, const char * golden, bool debug){
-    char cmdBuf[READ_BUFFER];
-    char gldBuf[READ_BUFFER];
     FILE * cmdFp;
     FILE * gldFp;
     if ((cmdFp = popen(cmd, "r")) == NULL) {
@@ -57,33 +112,108 @@ static inline bool matchOutput(const char * cmd, const char * golden, bool debug
         return false;
     }
     int line = 1;
-    while (fgets(cmdBuf, READ_BUFFER, cmdFp) != NULL && fgets(gldBuf, READ_BUFFER, gldFp) != NULL) {
-        cmdBuf[strcspn(cmdBuf, "\n")] = '\0';
-        gldBuf[strcspn(gldBuf, "\n")] = '\0';
-        char * tempCmd = trimSpaces(cmdBuf);
-        char * tempGld = trimSpaces(gldBuf);
-        int cmpRes = strcmp(tempGld, tempCmd);
-        if (cmpRes != 0) {
-            printf("[ERROR] [Line %d] : Output Mismatch\n", line);
-            printf("[ERROR] Expected : '%s'\n", tempGld);
-            printf("[ERROR] Got      : '%s'\n", tempCmd);
-            return false;
-        }else{
-            if (debug) {
-                printf("[DEBUG] [Line %d] : Output Matched : '%s'\n", line, tempGld);
-            }
-        }
 
-        line++;
-    }
+	bool match = matchLines(cmdFp, gldFp, debug, &line);
+	if (!match) {
+		fclose(gldFp);
+		pclose(cmdFp);
+		return false;
+	}
 
     if (pclose(cmdFp) == -1) {
+		fclose(gldFp);
         printf("[ERROR] Command exited with error\n");
         return false;
     }
 
     fclose(gldFp);
     return true;
+}
+
+static inline bool RunErrorGolden(const char * script){
+    char * panktiPath = getenv("PANKTI_BIN");
+    if (panktiPath == NULL) {
+        printf("[ERROR] Pankti Binary Not Set\n");
+        return false;
+    }
+
+    char * dir = getenv("SAMPLES_DIR");
+    if (dir == NULL) {
+        printf("[ERROR] Samples Directory Not Set\n");
+        return false;
+    }
+
+    char * enableDebugEnv = getenv("DEBUG_TESTS");
+    bool enableDebug = (enableDebugEnv != NULL);
+
+	char errorsDir[COMMAND_BUFF_SIZE];
+	int errDirWrite = snprintf(errorsDir, COMMAND_BUFF_SIZE, "%s/errors", dir);
+	if (errDirWrite < 0 || errDirWrite >= COMMAND_BUFF_SIZE) {
+        printf("[ERROR] Failed to write error samples directory name\n");
+		return false;
+	}
+
+	struct stat dirInfo;
+	if (stat(errorsDir, &dirInfo) != 0) {
+	    printf("[ERROR] Failed to Access Samples Directory : '%s'\n", errorsDir);
+        return false;
+	}
+
+    char command[COMMAND_BUFF_SIZE];
+    char scriptPath[COMMAND_BUFF_SIZE];
+    char goldenPath[COMMAND_BUFF_SIZE];
+	char tmpPath[COMMAND_BUFF_SIZE];
+
+	int w = snprintf(scriptPath, COMMAND_BUFF_SIZE, "%s/%s.pn", errorsDir, script);
+	if (w < 0 || w >= COMMAND_BUFF_SIZE) {
+	    printf("[ERROR] Failed to create script path string\n");
+    	return false;
+	}
+	w = 0;
+	w = snprintf(goldenPath, COMMAND_BUFF_SIZE, "%s/%s.error.pn", errorsDir, script);
+	if (w < 0 || w >= COMMAND_BUFF_SIZE) {
+	    printf("[ERROR] Failed to create script path string\n");
+    	return false;
+	}
+
+	w = 0;
+
+#if defined (PANKTI_OS_WIN)
+	w = snprintf(tmpPath, COMMAND_BUFF_SIZE, "%s\\stderr.tmp", dir);
+#else
+	w = snprintf(tmpPath, COMMAND_BUFF_SIZE, "%s/stderr.tmp", dir);
+#endif
+	if (w < 0 || w >= COMMAND_BUFF_SIZE) {
+	    printf("[ERROR] Failed to create temporary file path string\n");
+    	return false;
+	}
+	w = 0;
+#if defined (PANKTI_OS_WIN)
+	w = snprintf(command, COMMAND_BUFF_SIZE, "%s %s 2>%s >NUL",panktiPath, scriptPath, tmpPath);
+#else
+	w = snprintf(command, COMMAND_BUFF_SIZE, "%s %s 2>%s >/dev/null",panktiPath, scriptPath, tmpPath);
+#endif
+	if (w < 0 || w >= COMMAND_BUFF_SIZE) {
+	    printf("[ERROR] Failed to create command string\n");
+    	return false;
+	}
+
+    if (enableDebug) {
+        printf("[INFO] Pankti Binary: '%s'\n", panktiPath);
+        printf("[INFO] Script Path: '%s'\n", scriptPath);
+        printf("[INFO] Golden Path: '%s'\n", goldenPath);
+		printf("[INFO] Command : '%s'\n", command);
+	}
+
+	int ret = system(command);
+	(void)ret;
+
+	bool result = matchFiles(tmpPath, goldenPath, enableDebug);
+
+	remove(tmpPath);
+
+	return result;
+	
 }
 
 static inline bool RunGolden(const char * script){
@@ -138,14 +268,9 @@ static inline bool RunGolden(const char * script){
         printf("[INFO] Golden Path: '%s'\n", goldenPath);
     }
     
-    //clock_t pTic = clock();
-    //printf("[RUNNING] : %s\n", name);
     if (matchOutput(command, goldenPath, enableDebug)){
-        //clock_t pToc = clock();
-        //printf("[PASSED] : %s (%f sec)\n",name, (double)(pToc - pTic) / CLOCKS_PER_SEC);
         return true;
     }else{
-        //printf("[Failed] : %s\n", name);
         return false;
     }
 
@@ -156,6 +281,14 @@ static inline bool RunGolden(const char * script){
     bool isok = RunGolden(script);\
     if (!isok){\
         ASSERT_TRUE_MSG(isok, "Golden Run Failed!");\
+    }\
+    }
+
+#define ErrorTest(script) \
+    {\
+    bool isok = RunErrorGolden(script);\
+    if (!isok){\
+        ASSERT_TRUE_MSG(isok, "Error Golden Run Failed!");\
     }\
     }
 
