@@ -6,32 +6,32 @@ lexer|err|invalid_char_at|অপরিচিত অক্ষর পাওয়া 
 // Parser Diagnoistics
 /// Parser Internal Memory Errors
 
-parser|err|ime_logical_expr|যৌক্তিক রাশিমালা তৈরি বিফল হয়েছে|
-parser|err|ime_assign_expr|মান নির্ধারণ রাশিমালা তৈরি বিফল হয়েছে|
-parser|err|ime_binary_expr|দ্বিমুখী রাশিমালা তৈরি বিফল হয়েছে|
-parser|err|ime_unary_expr|একমুখী রাশিমালা তৈরি বিফল হয়েছে|
-parser|err|ime_subscript_expr|সূচকীয় রাশিমালা তৈরি বিফল হয়েছে|
-parser|err|ime_bool_expr|সত্যমান রাশি তৈরি বিফল হয়েছে|
-parser|err|ime_nil_expr|নিল রাশি তৈরি বিফল হয়েছে|
-parser|err|ime_num_expr|সংখ্যা রাশি তৈরি বিফল হয়েছে|
-parser|err|ime_str_expr|কথা রাশি তৈরি বিফল হয়েছে|
-parser|err|ime_ident_expr|চলরাশি তৈরি বিফল হয়েছে|
-parser|err|ime_group_expr|গুচ্ছ রাশিমালা তৈরি বিফল হয়েছে|
-parser|err|ime_array_expr|তালিকা রাশিমালা তৈরি বিফল হয়েছে|
-parser|err|ime_map_expr|ছক রাইমালা তৈরি বিফল হয়েছে|
-parser|err|ime_call_expr|কাজের ডাক রাশিমালা তৈরি বিফল হয়েছে|
-parser|err|ime_return_stmt|ফেরাও বিবৃতি তৈরি বিফল হয়েছে|
-parser|err|ime_break_stmt|ভাঙো বিবৃতি তৈরি বিফল হয়েছে|
-parser|err|ime_continue_stmt|চালাও বিবৃতি তৈরি বিফল হয়েছে|
-parser|err|ime_func_stmt|কাজ বিবৃতি তৈরি বিফল হয়েছে|
-parser|err|ime_import_stmt|আনয়ন বিবৃতি তৈরি বিফল হয়েছে|
-parser|err|ime_if_stmt|যদি-তাহলে বিবৃতি তৈরি বিফল হয়েছে|
-parser|err|ime_while_stmt|যতক্ষণ-করো বিবৃতি তৈরি বিফল হয়েছে|
-parser|err|ime_let_stmt|চলরাশি তৈরি বিবৃতি তৈরি বিফল হয়েছে|
-parser|err|ime_expr_stmt|রাশিমালা বিবৃতি তৈরি বিফল হয়েছে|
-parser|err|ime_debug_stmt|পরিচিতি বিবৃতি তৈরি বিফল হয়েছে|
-parser|err|ime_block_stmt|বিবৃতি গুচ্ছ তৈরি বিফল হয়েছে|
-parser|err|ime_mod_child|উৎসের সদস্য রাশি তৈরি বিফল হয়েছে|
+parser|fatal|ime_logical_expr|যৌক্তিক রাশিমালা তৈরি বিফল হয়েছে|
+parser|fatal|ime_assign_expr|মান নির্ধারণ রাশিমালা তৈরি বিফল হয়েছে|
+parser|fatal|ime_binary_expr|দ্বিমুখী রাশিমালা তৈরি বিফল হয়েছে|
+parser|fatal|ime_unary_expr|একমুখী রাশিমালা তৈরি বিফল হয়েছে|
+parser|fatal|ime_subscript_expr|সূচকীয় রাশিমালা তৈরি বিফল হয়েছে|
+parser|fatal|ime_bool_expr|সত্যমান রাশি তৈরি বিফল হয়েছে|
+parser|fatal|ime_nil_expr|নিল রাশি তৈরি বিফল হয়েছে|
+parser|fatal|ime_num_expr|সংখ্যা রাশি তৈরি বিফল হয়েছে|
+parser|fatal|ime_str_expr|কথা রাশি তৈরি বিফল হয়েছে|
+parser|fatal|ime_ident_expr|চলরাশি তৈরি বিফল হয়েছে|
+parser|fatal|ime_group_expr|গুচ্ছ রাশিমালা তৈরি বিফল হয়েছে|
+parser|fatal|ime_array_expr|তালিকা রাশিমালা তৈরি বিফল হয়েছে|
+parser|fatal|ime_map_expr|ছক রাইমালা তৈরি বিফল হয়েছে|
+parser|fatal|ime_call_expr|কাজের ডাক রাশিমালা তৈরি বিফল হয়েছে|
+parser|fatal|ime_return_stmt|ফেরাও বিবৃতি তৈরি বিফল হয়েছে|
+parser|fatal|ime_break_stmt|ভাঙো বিবৃতি তৈরি বিফল হয়েছে|
+parser|fatal|ime_continue_stmt|চালাও বিবৃতি তৈরি বিফল হয়েছে|
+parser|fatal|ime_func_stmt|কাজ বিবৃতি তৈরি বিফল হয়েছে|
+parser|fatal|ime_import_stmt|আনয়ন বিবৃতি তৈরি বিফল হয়েছে|
+parser|fatal|ime_if_stmt|যদি-তাহলে বিবৃতি তৈরি বিফল হয়েছে|
+parser|fatal|ime_while_stmt|যতক্ষণ-করো বিবৃতি তৈরি বিফল হয়েছে|
+parser|fatal|ime_let_stmt|চলরাশি তৈরি বিবৃতি তৈরি বিফল হয়েছে|
+parser|fatal|ime_expr_stmt|রাশিমালা বিবৃতি তৈরি বিফল হয়েছে|
+parser|fatal|ime_debug_stmt|পরিচিতি বিবৃতি তৈরি বিফল হয়েছে|
+parser|fatal|ime_block_stmt|বিবৃতি গুচ্ছ তৈরি বিফল হয়েছে|
+parser|fatal|ime_mod_child|উৎসের সদস্য রাশি তৈরি বিফল হয়েছে|
 
 /// Parser Expect Errors
 

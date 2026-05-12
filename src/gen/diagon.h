@@ -19,7 +19,8 @@ typedef enum PanDiagCat{
 
 typedef enum PanDiagSeverity{
 	PAN_DIAG_SEV_WARN = 0,
-	PAN_DIAG_SEV_ERROR = 1,
+	PAN_DIAG_SEV_FATAL = 1,
+	PAN_DIAG_SEV_ERROR = 2,
 }PanDiagSeverity;
 
 typedef enum PanDiagCode{

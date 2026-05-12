@@ -20,7 +20,11 @@ C_CATEGORY_MAP = {
     "str": "PAN_DIAG_STRESCAPE",
 }
 
-C_SEVERITY_MAP = {"err": "PAN_DIAG_SEV_ERROR", "warn": "PAN_DIAG_SEV_WARN"}
+C_SEVERITY_MAP = {
+    "fatal": "PAN_DIAG_SEV_FATAL",
+    "err": "PAN_DIAG_SEV_ERROR",
+    "warn": "PAN_DIAG_SEV_WARN",
+}
 
 TemplateHeaderStr: str = ""
 TemplateScriptStr: str = ""

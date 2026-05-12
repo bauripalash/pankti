@@ -465,7 +465,7 @@ void CoreParserError(
     }
     printErrMsg(core, line, gcol, msgBuf, PCERR_PARSER);
     printSourceLine(core, line, col, len);
-    if (info->severity == PAN_DIAG_SEV_ERROR) {
+    if (info->severity == PAN_DIAG_SEV_FATAL) {
         FreeCore(core);
         exit(EXIT_FAILURE);
     }
