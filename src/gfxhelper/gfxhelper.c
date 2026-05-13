@@ -4,6 +4,7 @@
 #include "../include/alloc.h"
 #include "../include/gfxcore.h"
 #include "../include/utils.h"
+#include "../include/printer.h"
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -180,6 +181,10 @@ static void gfxSetX11Icon(PanGfxCore *core) {
     }
 
     long *icon = PMalloc(sizeof(long) * (w * h + 2));
+	if (icon == NULL) {
+		PanPrint("[WARN] Failed to set GUI icon");
+		return;
+	}
     icon[0] = w;
     icon[1] = h;
 
@@ -222,6 +227,10 @@ static void gfxSetWin32Icon(PanGfxCore *core) {
     }
 
     unsigned char *bgraIcon = PMalloc(w * h * 4);
+	if (bgraIcon == NULL) {
+		PanPrint("[WARN] Failed to set GUI icon");
+		return;
+	}
     for (int i = 0; i < w * h; ++i) {
         bgraIcon[i * 4 + 0] = img[i * 4 + 2];
         bgraIcon[i * 4 + 1] = img[i * 4 + 1];
