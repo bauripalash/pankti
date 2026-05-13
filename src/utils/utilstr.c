@@ -3,6 +3,7 @@
 #include "../include/alloc.h"
 #include "../include/utils.h"
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -87,7 +88,10 @@ const char *StrFormat(const char *text, ...) {
 
 char **StrSplitDelim(const char *str, const char *delim, u64 *count, bool *ok) {
     if (str == NULL || delim == NULL) {
-        *ok = false;
+        if (count != NULL)
+            *count = 0;
+        if (ok != NULL)
+            *ok = false;
         return NULL;
     }
 
@@ -96,23 +100,30 @@ char **StrSplitDelim(const char *str, const char *delim, u64 *count, bool *ok) {
     u64 slen = StrLength(str);
 
     if (slen == 0) {
-        *ok = false;
+        if (ok != NULL)
+            *ok = false;
+        if (count != NULL)
+            *count = 0;
         return NULL;
     }
 
     // if delimiter is empty or null
     // return a single item array containing the while string
-    if (delim == NULL || delim[0] == '\0') {
+    if (delim[0] == '\0') {
         char *dup = StrDuplicate(str, slen);
         if (dup == NULL) {
-            *ok = false;
-            *count = 0;
+            if (ok != NULL)
+                *ok = false;
+            if (count != NULL)
+                *count = 0;
             return NULL;
         }
 
         arrput(result, dup);
-        *count = 1;
-        *ok = true;
+        if (ok != NULL)
+            *ok = true;
+        if (count != NULL)
+            *count = 1;
         return result;
     }
     // delimiter string length
@@ -134,7 +145,10 @@ char **StrSplitDelim(const char *str, const char *delim, u64 *count, bool *ok) {
                 result = NULL;
             }
 
-            *ok = false;
+            if (ok != NULL)
+                *ok = false;
+            if (count != NULL)
+                *count = 0;
             return NULL;
         }
         memcpy(tokenStr, start, tokenLen);
@@ -146,13 +160,26 @@ char **StrSplitDelim(const char *str, const char *delim, u64 *count, bool *ok) {
     u64 lastLen = StrLength(start);
     if (lastLen > 0) {
         char *laststr = PMalloc(sizeof(char) * (lastLen + 1));
+        if (laststr == NULL) {
+            for (u64 i = 0; i < arrlen(result); i++) {
+                PFree(result[i]);
+            }
+            arrfree(result);
+            if (ok != NULL)
+                *ok = false;
+            if (count != NULL)
+                *count = 0;
+            return NULL;
+        }
         memcpy(laststr, start, lastLen);
         laststr[lastLen] = '\0';
         arrput(result, laststr);
     }
 
-    *count = arrlen(result);
-    *ok = true;
+    if (ok != NULL)
+        *ok = true;
+    if (count != NULL)
+        *count = arrlen(result);
     return result;
 }
 
