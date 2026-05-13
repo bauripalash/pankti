@@ -29,17 +29,17 @@ u64 GetGraphemeCount(const char *str, u64 len) {
 }
 char *GetGraphemeAt(const char *str, u64 len, u64 index, GraphemeError *err) {
     if (str == NULL || len == 0) {
-        *err = GR_ERR_EMPTY;
+        if (err != NULL) *err = GR_ERR_EMPTY;
         return NULL;
     }
 
     u64 count = GetGraphemeCount(str, len);
     if (count == 0) {
-        *err = GR_ERR_EMPTY;
+        if (err != NULL) *err = GR_ERR_EMPTY;
         return NULL;
     }
     if (index >= count) {
-        *err = GR_ERR_INDEX_OUT_RANGE;
+        if (err != NULL) *err = GR_ERR_INDEX_OUT_RANGE;
         return NULL;
     }
     count = 0;
@@ -55,31 +55,31 @@ char *GetGraphemeAt(const char *str, u64 len, u64 index, GraphemeError *err) {
         if (count == index) {
             char *temp = PMalloc(sizeof(char) * (glen + 1));
             if (temp == NULL) {
-                *err = GR_ERR_MEM;
+                if (err != NULL) *err = GR_ERR_MEM;
                 return NULL;
             }
 
             strncpy(temp, str + offset, glen);
             temp[glen] = '\0';
-            *err = GR_ERR_OK;
+            if (err != NULL) *err = GR_ERR_OK;
             return temp;
         }
 
         count++;
         offset += glen;
     }
-    *err = GR_ERR_EMPTY;
+    if (err != NULL) *err = GR_ERR_EMPTY;
     return NULL;
 }
 char **GetGraphemeArray(const char *str, u64 len, GraphemeError *err) {
     if (str == NULL || len == 0) {
-        *err = GR_ERR_EMPTY;
+        if (err != NULL) *err = GR_ERR_EMPTY;
         return NULL;
     }
 
     u64 count = GetGraphemeCount(str, len);
     if (count == 0) {
-        *err = GR_ERR_EMPTY;
+        if (err != NULL) *err = GR_ERR_EMPTY;
         return NULL;
     }
 
@@ -94,7 +94,18 @@ char **GetGraphemeArray(const char *str, u64 len, GraphemeError *err) {
             break;
         }
 
-        char *temp = PMalloc(sizeof(char) + (glen + 1));
+        char *temp = PMalloc(sizeof(char) * (glen + 1));
+        if (temp == NULL) {
+            if (result != NULL) {
+                u64 resultLen = (u64)arrlen(result);
+                for (u64 i = 0; i < resultLen; i++) {
+                    PFree(result[i]);
+                }
+                arrfree(result);
+            }
+            if (err != NULL) *err = GR_ERR_MEM;
+            return NULL;
+        }
         strncpy(temp, str + offset, glen);
         temp[glen] = '\0';
         arrput(result, temp);
@@ -102,10 +113,10 @@ char **GetGraphemeArray(const char *str, u64 len, GraphemeError *err) {
     }
 
     if (result == NULL) {
-        *err = GR_ERR_EMPTY;
+        if (err != NULL) *err = GR_ERR_EMPTY;
         return NULL;
     }
 
-    *err = GR_ERR_OK;
+    if (err != NULL) *err = GR_ERR_OK;
     return result;
 }

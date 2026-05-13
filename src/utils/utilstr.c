@@ -88,10 +88,8 @@ const char *StrFormat(const char *text, ...) {
 
 char **StrSplitDelim(const char *str, const char *delim, u64 *count, bool *ok) {
     if (str == NULL || delim == NULL) {
-        if (count != NULL)
-            *count = 0;
-        if (ok != NULL)
-            *ok = false;
+        if (count != NULL) *count = 0;
+        if (ok != NULL) *ok = false;
         return NULL;
     }
 
@@ -100,10 +98,8 @@ char **StrSplitDelim(const char *str, const char *delim, u64 *count, bool *ok) {
     u64 slen = StrLength(str);
 
     if (slen == 0) {
-        if (ok != NULL)
-            *ok = false;
-        if (count != NULL)
-            *count = 0;
+        if (ok != NULL) *ok = false;
+        if (count != NULL) *count = 0;
         return NULL;
     }
 
@@ -112,18 +108,14 @@ char **StrSplitDelim(const char *str, const char *delim, u64 *count, bool *ok) {
     if (delim[0] == '\0') {
         char *dup = StrDuplicate(str, slen);
         if (dup == NULL) {
-            if (ok != NULL)
-                *ok = false;
-            if (count != NULL)
-                *count = 0;
+            if (ok != NULL) *ok = false;
+            if (count != NULL) *count = 0;
             return NULL;
         }
 
         arrput(result, dup);
-        if (ok != NULL)
-            *ok = true;
-        if (count != NULL)
-            *count = 1;
+        if (ok != NULL) *ok = true;
+        if (count != NULL) *count = 1;
         return result;
     }
     // delimiter string length
@@ -145,10 +137,8 @@ char **StrSplitDelim(const char *str, const char *delim, u64 *count, bool *ok) {
                 result = NULL;
             }
 
-            if (ok != NULL)
-                *ok = false;
-            if (count != NULL)
-                *count = 0;
+            if (ok != NULL) *ok = false;
+            if (count != NULL) *count = 0;
             return NULL;
         }
         memcpy(tokenStr, start, tokenLen);
@@ -165,10 +155,8 @@ char **StrSplitDelim(const char *str, const char *delim, u64 *count, bool *ok) {
                 PFree(result[i]);
             }
             arrfree(result);
-            if (ok != NULL)
-                *ok = false;
-            if (count != NULL)
-                *count = 0;
+            if (ok != NULL) *ok = false;
+            if (count != NULL) *count = 0;
             return NULL;
         }
         memcpy(laststr, start, lastLen);
@@ -176,10 +164,8 @@ char **StrSplitDelim(const char *str, const char *delim, u64 *count, bool *ok) {
         arrput(result, laststr);
     }
 
-    if (ok != NULL)
-        *ok = true;
-    if (count != NULL)
-        *count = arrlen(result);
+    if (ok != NULL) *ok = true;
+    if (count != NULL) *count = arrlen(result);
     return result;
 }
 
