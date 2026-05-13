@@ -43,6 +43,8 @@ RUNTIME_TEST_ARGS=
 
 KWLOOKUP_OUTPUT:=src/gen/kwlookup.h
 
+CPPCHECK_BUILD_DIR=$(CMAKE_BUILD_DIR)/cppcheck
+
 
 HEADERS:= $(shell find src/include -path 'src/gen' -prune -o -path 'src/external' -prune -o -path 'src/tmpl' -prune -o -name '*.h' -print)
 SOURCES:= $(shell find src/ -path 'src/gen' -prune -o -path 'src/external' -prune -o -path 'src/tmpl' -prune -o -name '*.c' -print)
@@ -164,6 +166,11 @@ run_benchmarks: build_rls
 .PHONY: infer
 infer: cmake_clean
 	infer run --compilation-database build/compile_commands.json
+
+.PHONY: run_cppcheck
+run_cppcheck:
+	mkdir -p $(CPPCHECK_BUILD_DIR)
+	cppcheck --project=pankti.cppcheck
 
 .PHONY: gen_kwlookup
 gen_kwlookup:
