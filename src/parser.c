@@ -7,7 +7,6 @@
 #include "include/diagonctx.h"
 #include "include/gc.h"
 #include "include/lexer.h"
-// #include "include/parser_errors.h"
 #include "include/token.h"
 #include "include/utils.h"
 #include <assert.h>
@@ -112,17 +111,8 @@ static bool matchOne(Parser *p, PTokenType type) {
 
 static inline void error(Parser *p, Token *tok, PanDiagCode code) {
     p->hasError = true;
-    // p->errCtx.report(p->errCtx.ctx, tok, msg, false);
     ReportDiag(&p->errCtx, tok, code);
 }
-
-/*
-static inline void fatalError(Parser *p, Token *tok, char *msg) {
-    p->hasError = true;
-    //p->errCtx.report(p->errCtx.ctx, tok, msg, true);
-        ReportDiag()
-}
-*/
 
 static Token *eat(Parser *p, PTokenType t, PanDiagCode code) {
     if (check(p, t)) {
@@ -142,7 +132,6 @@ static PExpr *rAnd(Parser *p) {
         PExpr *right = rEquality(p);
         expr = NewLogical(p->gc, expr, op, right);
         if (expr == NULL) {
-            // fatalError(p, op, PARSER_ERR_IME_FAIL_LOGICAL_AT_AND);
             error(p, op, PARSER_IME_LOGICAL_EXPR);
             return NULL;
         }
@@ -157,7 +146,6 @@ static PExpr *rOr(Parser *p) {
         PExpr *right = rAnd(p);
         expr = NewLogical(p->gc, expr, op, right);
         if (expr == NULL) {
-            // fatalError(p, op, PARSER_ERR_IME_FAIL_LOGICAL_AT_OR);
             error(p, op, PARSER_IME_LOGICAL_EXPR);
             return NULL;
         }
@@ -174,7 +162,6 @@ static PExpr *rAssignment(Parser *p) {
         if (expr->type == EXPR_VARIABLE || expr->type == EXPR_SUBSCRIPT) {
             PExpr *assignExpr = NewAssignment(p->gc, op, expr, value);
             if (assignExpr == NULL) {
-                // fatalError(p, op, PARSER_ERR_IME_ASSIGN_EXPR);
                 error(p, op, PARSER_IME_ASSIGN_EXPR);
                 return NULL;
             }
@@ -196,7 +183,6 @@ static PExpr *rEquality(Parser *p) {
 
         expr = NewBinaryExpr(p->gc, expr, op, right);
         if (expr == NULL) {
-            // fatalError(p, op, PARSER_ERR_IME_FAIL_BINARY_AT_EQ);
             error(p, op, PARSER_IME_BINARY_EXPR);
             return NULL;
         }
@@ -212,8 +198,6 @@ static PExpr *rComparison(Parser *p) {
         PExpr *right = rTerm(p);
         expr = NewBinaryExpr(p->gc, expr, op, right);
         if (expr == NULL) {
-            // fatalError(p, op, PARSER_ERR_IME_FAIL_BINARY_AT_COMPR);
-
             error(p, op, PARSER_IME_BINARY_EXPR);
             return NULL;
         }
@@ -229,8 +213,6 @@ static PExpr *rTerm(Parser *p) {
         PExpr *right = rFactor(p);
         expr = NewBinaryExpr(p->gc, expr, op, right);
         if (expr == NULL) {
-            // fatalError(p, op, PARSER_ERR_IME_FAIL_BINARY_AT_ADDSUB);
-
             error(p, op, PARSER_IME_BINARY_EXPR);
             return NULL;
         }
@@ -249,8 +231,6 @@ static PExpr *rFactor(Parser *p) {
         }
         expr = NewBinaryExpr(p->gc, expr, op, right);
         if (expr == NULL) {
-            // fatalError(p, op, PARSER_ERR_IME_FAIL_BINARY_AT_MULDIV);
-
             error(p, op, PARSER_IME_BINARY_EXPR);
             return NULL;
         }
@@ -264,7 +244,6 @@ static PExpr *rUnary(Parser *p) {
         PExpr *right = rUnary(p);
         PExpr *unaryExpr = NewUnary(p->gc, op, right);
         if (unaryExpr == NULL) {
-            // fatalError(p, op, PARSER_ERR_IME_FAIL_UNARY);
             error(p, op, PARSER_IME_UNARY_EXPR);
             return NULL;
         }
@@ -287,7 +266,6 @@ static PExpr *rExponent(Parser *p) {
         }
         expr = NewBinaryExpr(p->gc, expr, op, right);
         if (expr == NULL) {
-            // fatalError(p, op, PARSER_ERR_IME_FAIL_BINARY_AT_EXPO);
             error(p, op, PARSER_IME_BINARY_EXPR);
             return NULL;
         }
@@ -406,7 +384,6 @@ static PExpr *rPrimary(Parser *p) {
         Token *op = previous(p);
         PExpr *e = NewLiteral(p->gc, previous(p), EXP_LIT_BOOL);
         if (e == NULL) {
-            // fatalError(p, op, PARSER_ERR_IME_FAIL_BOOL_LIT);
             error(p, op, PARSER_IME_BOOL_EXPR);
             return NULL;
         }
@@ -418,7 +395,6 @@ static PExpr *rPrimary(Parser *p) {
         Token *op = previous(p);
         PExpr *e = NewLiteral(p->gc, op, EXP_LIT_BOOL);
         if (e == NULL) {
-            // fatalError(p, op, PARSER_ERR_IME_FAIL_BOOL_LIT);
             error(p, op, PARSER_IME_BOOL_EXPR);
             return NULL;
         }
@@ -430,7 +406,6 @@ static PExpr *rPrimary(Parser *p) {
         Token *op = previous(p);
         PExpr *e = NewLiteral(p->gc, op, EXP_LIT_NIL);
         if (e == NULL) {
-            // fatalError(p, op, PARSER_ERR_IME_FAIL_NIL_LIT);
             error(p, op, PARSER_IME_NIL_EXPR);
         }
 
@@ -449,8 +424,6 @@ static PExpr *rPrimary(Parser *p) {
 
         PExpr *e = NewLiteral(p->gc, opTok, EXP_LIT_NUM);
         if (e == NULL) {
-            // fatalError(p, opTok, PARSER_ERR_IME_FAIL_NUM_LIT);
-
             error(p, opTok, PARSER_IME_NUM_EXPR);
             return NULL;
         }
@@ -543,7 +516,6 @@ static PStmt *rExprStmt(Parser *p) {
     PStmt *exprStmt = NewExprStmt(p->gc, op, value);
 
     if (exprStmt == NULL) {
-        // fatalError(p, op, PARSER_ERR_IME_FAIL_EXPSTMT);
         error(p, op, PARSER_IME_EXPR_STMT);
         return NULL;
     }
@@ -556,7 +528,6 @@ static PStmt *rDebugStmt(Parser *p) {
     Token *op = previous(p);
     PStmt *debugStmt = NewDebugStmt(p->gc, op, value);
     if (debugStmt == NULL) {
-        // fatalError(p, op, PARSER_ERR_IME_FAIL_DBGSTMT);
         error(p, op, PARSER_IME_DEBUG_STMT);
         return NULL;
     }
@@ -571,7 +542,6 @@ static PStmt *rLetStmt(Parser *p) {
     PStmt *letStmt = NewLetStmt(p->gc, name, value);
     if (letStmt == NULL) {
         error(p, name, PARSER_IME_LET_STMT);
-        // fatalError(p, name, PARSER_ERR_IME_FAIL_LETSTMT);
         return NULL;
     }
 
@@ -588,7 +558,6 @@ static PStmt *rBlockStmt(Parser *p) {
     eat(p, T_RIGHT_BRACE, PARSER_EXPECT_RBRACE_BLOCK);
     PStmt *block = NewBlockStmt(p->gc, curTok, stmtList);
     if (block == NULL) {
-        // fatalError(p, curTok, PARSER_ERR_IME_FAIL_BLKSTMT);
         error(p, curTok, PARSER_IME_BLOCK_STMT);
         return NULL;
     }
