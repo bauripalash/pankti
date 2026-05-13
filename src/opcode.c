@@ -62,6 +62,9 @@ POpDefinition GetOpDefinition(PanOpCode code) { return opDefs[code]; }
 
 PBytecode *NewBytecode(void) {
     PBytecode *b = PCreate(PBytecode);
+    if (b == NULL) {
+        return NULL;
+    }
     b->code = NULL;
     b->codeCount = 0;
     b->constPool = NULL;

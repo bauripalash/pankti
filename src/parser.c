@@ -15,6 +15,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define ERROR_UNICODE_CP 0xFFFD
 // Create New Let Statement;
@@ -42,6 +43,9 @@ static bool atEnd(const Parser *p);
 
 Parser *NewParser(Pgc *gc, Lexer *lexer) {
     Parser *parser = PCreate(Parser);
+    if (parser == NULL) {
+        return NULL;
+    }
     // ERROR HANDLE
     parser->lx = lexer;
     parser->tokens = lexer->tokens;

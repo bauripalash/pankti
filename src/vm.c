@@ -21,10 +21,20 @@
 
 PVm *NewVm(Pgc *gc, PDiagonCtx errCtx) {
     PVm *vm = PCreate(PVm);
+    if (vm == NULL) {
+        return NULL;
+    }
     vm->sp = vm->stack;
     vm->gc = gc;
     vm->frameCount = 0;
-    vm->globals = NewSymbolTable();
+
+    SymbolTable *globalsTable = NewSymbolTable();
+
+    if (globalsTable == NULL) {
+        PFree(vm);
+        return NULL;
+    }
+    vm->globals = globalsTable;
     vm->modCount = 0;
     vm->modules = NULL;
     vm->modProxiesCount = 0;

@@ -203,6 +203,10 @@ PCoreErrorType RunCore(PanktiCore *core) {
     }
 
     core->parser = NewParser(core->gc, core->lexer);
+    if (core->parser == NULL) {
+        PanPrint("Internal Error : Failed to create Pankti Parser\n");
+        return PCERR_CORE;
+    }
     core->parser->errCtx =
         (PDiagonCtx){.report = coreParserErrorBridge, .ctx = core};
 

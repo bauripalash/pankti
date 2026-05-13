@@ -24,6 +24,9 @@ static inline bool symCompareFn(PObj *key1, PObj *key2) {
 
 SymbolTable *NewSymbolTable(void) {
     SymbolTable *table = PCreate(SymbolTable);
+    if (table == NULL) {
+        return NULL;
+    }
     table->count = 0;
     SymTable_init(&table->table);
     return table;
