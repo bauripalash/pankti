@@ -16,7 +16,7 @@ const char *DiagGetMsg(PanDiagCode code) { return DiagGetInfo(code)->msg; }
 
 const char *DiagGetHint(PanDiagCode code) {
     const PanDiagInfo *info = DiagGetInfo(code);
-    if (info && info->hint) {
+    if (info && info->hinted && info->hint[0] != '\0') {
         return info->hint;
     } else {
         return NULL;

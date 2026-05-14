@@ -333,6 +333,7 @@ typedef struct PanDiagInfo{
 	PanDiagCat category;
 	PanDiagSeverity severity;
 	bool formatted;
+	bool hinted;
 	const char * msg;
 	const char * hint;
 }PanDiagInfo;

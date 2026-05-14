@@ -9,6 +9,7 @@
 #include "include/gc.h"
 #include "include/lexer.h"
 #include "include/object.h"
+#include "include/panktiterms.h"
 #include "include/parser.h"
 #include "include/printer.h"
 #include "include/ptypes.h"
@@ -404,11 +405,18 @@ static void printSourceLine(PanktiCore *core, u64 lineNum, u64 col, u64 len) {
 static void printErrMsg(
     PanktiCore *core, u64 line, u64 col, const char *msg, PCoreErrorType errtype
 ) {
-    PanFPrint(stderr, "\n");
+    // PanFPrint(stderr, "\n");
     PanFPrint(
         stderr, "%s%s Error: %s%s\n", TermRed(), coreErrorToStr(errtype), msg,
         TermReset()
     );
+}
+
+static void printHintMsg(PanktiCore *core, PanDiagCode code) {
+    const char *hint = DiagGetHint(code);
+    if (hint != NULL) {
+        PanFPrint(stderr, "\n[%s] %s\n\n", PANTERM_HINT, hint);
+    }
 }
 
 void CoreRuntimeError(
@@ -438,6 +446,7 @@ void CoreRuntimeError(
 
     printErrMsg(core, line, gcol, msgBuf, PCERR_RUNTIME);
     printSourceLine(core, line, col, len);
+    printHintMsg(core, code);
     PanFPrint(stderr, "\n");
     VmPrintStackTrace(core->vm);
     FreeCore(core);
@@ -469,6 +478,9 @@ void CoreParserError(
     }
     printErrMsg(core, line, gcol, msgBuf, PCERR_PARSER);
     printSourceLine(core, line, col, len);
+
+    printHintMsg(core, code);
+
     if (info->severity == PAN_DIAG_SEV_FATAL) {
         FreeCore(core);
         exit(EXIT_FAILURE);
@@ -517,6 +529,8 @@ void CoreCompilerError(
 
     printErrMsg(core, line, gcol, msgBuf, PCERR_COMPILER);
     printSourceLine(core, line, col, len);
+
+    printHintMsg(core, code);
 
     FreeCore(core);
     exit(EXIT_FAILURE);

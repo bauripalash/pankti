@@ -43,23 +43,23 @@ class DiagonInfo:
     code: str = ""
     msg: str = ""
     hint: str = ""
+    hinted: bool = False
     format: bool = False
 
     @override
     def __str__(self) -> str:
-        return f"[{self.category.upper()}_{self.code.upper()}][{self.severity}]:{self.msg}:{self.hint}:{self.format}"
+        return f"[{self.category.upper()}_{self.code.upper()}][{self.severity}]:{self.msg}:{self.hint}:{self.format}:{self.hinted}"
 
     def to_array_item(self) -> str:
         c_category = C_CATEGORY_MAP[self.category]
         c_severity = C_SEVERITY_MAP[self.severity]
         c_code = f"{self.category.upper()}_{self.code.upper()}"
         c_formatted = f"{str(self.format).lower()}"
+        c_hinted = f"{str(self.hinted).lower()}"
         c_msg = f'"{self.msg}"'
         c_hint = f'"{self.hint}"'
         result = "    {"
-        result += (
-            f"{c_code}, {c_category}, {c_severity}, {c_formatted}, {c_msg}, {c_hint}"
-        )
+        result += f"{c_code}, {c_category}, {c_severity}, {c_formatted}, {c_hinted}, {c_msg}, {c_hint}"
 
         result += "},"
         return result
@@ -104,6 +104,7 @@ def process_template(tmpl_path: str = INPUT_FILE):
                 dg.hint = ""
             else:
                 dg.hint = hint.strip()
+            dg.hinted = len(dg.hint) != 0
             DiagonList.append(dg)
 
 
