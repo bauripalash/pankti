@@ -21,10 +21,11 @@ static finline u64 getArrIndex(PObj *arr, PValue val, bool *found) {
     return UINT64_MAX;
 }
 
+// Check if value as arg1 exists in array as arg0
 static PValue array_Exists(PVm *vm, PValue *args, u64 argc) {
     PValue rawArray = args[0];
     if (!IsValueObjType(rawArray, OT_ARR)) {
-        VmError(vm, RT_TEMPLATE, "Exists only takes array");
+        VmError(vm, RT_STDARR_EXISTS_FIRST_ARR, ValueTypeToStr(rawArray));
         return MakeNil();
     }
 
@@ -35,62 +36,43 @@ static PValue array_Exists(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue array_Add(PVm *vm, PValue *args, u64 argc) {
-
     PValue rawArray = args[0];
     if (!IsValueObjType(rawArray, OT_ARR)) {
-        VmError(vm, RT_TEMPLATE, "add only takes array");
+        VmError(vm, RT_STDARR_ADD_FIRST_ARR, ValueTypeToStr(rawArray));
         return MakeNil();
     }
 
     PValue rawIndex = args[1];
-    double dblIndex = -1;
-    if (IsValueNum(rawIndex)) {
-        dblIndex = ValueAsNum(rawIndex);
 
-        if (dblIndex < 0) {
-            VmError(
-                vm, RT_TEMPLATE,
-                "add(array, index, value) -> index must be a "
-                "non-negative integer"
-            );
-            return MakeNil();
-        }
-
-        if (!IsDoubleInt(dblIndex)) {
-            VmError(
-                vm, RT_TEMPLATE,
-                "add(array, index, value) -> index must be a "
-                "non-negative integer"
-            );
-            return MakeNil();
-        }
-    } else {
-
-        VmError(
-            vm, RT_TEMPLATE,
-            "add(array, index, value) -> index must be a non-negative integer"
-        );
+    if (!IsValueNum(rawIndex)) {
+        VmError(vm, RT_STDARR_ADD_INVALID_IDX_TYPE, ValueTypeToStr(rawIndex));
         return MakeNil();
     }
+
+    double dblIndex = ValueAsNum(rawIndex);
+
+    if (dblIndex < 0 || !IsDoubleInt(dblIndex)) {
+        VmError(vm, RT_STDARR_ADD_INVALID_NUMIDX, dblIndex);
+        return MakeNil();
+    }
+
     u64 arrIndex = (u64)floor(dblIndex);
     struct OArray *arr = &ValueAsObj(rawArray)->v.OArray;
+    PValue val = args[2];
 
     if (arrIndex >= arr->count) {
-        VmError(vm, RT_TEMPLATE, "add(....) index out of range");
+        u64 indexLimit = arr->count == 0 ? 0 : arr->count - 1;
+        VmError(vm, RT_STDARR_ADD_INDEX_OUT_RANGE, indexLimit);
         return MakeNil();
     }
 
-    if (arrIndex > 0 && arr->items == NULL) {
-        // TODO: Error handle on NULL
-        VmError(
-            vm, RT_TEMPLATE,
-            "Internal Error : Failed to add item at index `<TODO>` as "
-            "the array is null? <TODO>"
-        );
+    if (arr->items == NULL) {
+        // if reached here it means the array count and array items are either
+        // out of sync, or somehow items array is corrupted.
+        VmError(vm, RT_IME_STDARR_ADD_ARRAY_ITEMS_OUTSYNC);
         return MakeNil();
     }
 
-    PValue val = args[2];
     arrins(arr->items, arrIndex, val);
     arr->count = arrlen(arr->items);
     return MakeNumber((double)arr->count);
@@ -99,7 +81,7 @@ static PValue array_Add(PVm *vm, PValue *args, u64 argc) {
 static PValue array_Index(PVm *vm, PValue *args, u64 argc) {
     PValue rawArray = args[0];
     if (!IsValueObjType(rawArray, OT_ARR)) {
-        VmError(vm, RT_TEMPLATE, "Index only takes array");
+        VmError(vm, RT_STDARR_INDEX_FIRST_ARR, ValueTypeToStr(rawArray));
         return MakeNil();
     }
 
@@ -114,86 +96,80 @@ static PValue array_Index(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue array_Delete(PVm *vm, PValue *args, u64 argc) {
-    if (argc != 1 && argc != 2) {
-        VmError(
-            vm, RT_TEMPLATE, "pop functions can take either 1 or two arguments"
-        );
-    }
-
     PValue rawArray = args[0];
     if (!IsValueObjType(rawArray, OT_ARR)) {
-        VmError(vm, RT_TEMPLATE, "delete only works on arrays");
+        VmError(vm, RT_STDARR_DELETE_FIRST_ARR, ValueTypeToStr(rawArray));
         return MakeNil();
     }
-    bool hasIndex = false;
-    double rawIndex = 0.0;
-    if (argc == 2) {
-        hasIndex = true;
-        if (IsValueNum(args[1])) {
-            rawIndex = ValueAsNum(args[1]);
-        } else {
-            VmError(
-                vm, RT_TEMPLATE,
-                "delete(array, index) -> index must be a number"
-            );
-            return MakeNil();
-        }
+
+    PValue rawIndex = args[1];
+    if (!IsValueNum(rawIndex)) {
+        VmError(
+            vm, RT_STDARR_DELETE_INVALID_IDX_TYPE, ValueTypeToStr(rawIndex)
+        );
+        return MakeNil();
+    }
+
+    double dblIndex = ValueAsNum(rawIndex);
+    if (dblIndex < 0 || !IsDoubleInt(dblIndex)) {
+        VmError(vm, RT_STDARR_DELETE_INVALID_NUMIDX, dblIndex);
+        return MakeNil();
+    }
+
+    u64 arrIndex = (u64)floor(dblIndex);
+    struct OArray *arr = &ValueAsObj(rawArray)->v.OArray;
+
+    if (arrIndex >= arr->count) {
+        u64 indexLimit = arr->count == 0 ? 0 : arr->count - 1;
+        VmError(vm, RT_STDARR_DELETE_INDEX_OUT_RANGE, indexLimit);
+        return MakeNil();
+    }
+
+    if (arr->items == NULL) {
+        VmError(vm, RT_IME_STDARR_DELETE_ARRAY_ITEMS_OUTSYNC);
+        return MakeNil();
+    }
+
+    PValue result = arr->items[arrIndex];
+    arrdel(arr->items, arrIndex);
+    arr->count = arrlen(arr->items);
+    return result;
+}
+
+static PValue array_Trim(PVm *vm, PValue *args, u64 argc) {
+    PValue rawArray = args[0];
+    if (!IsValueObjType(rawArray, OT_ARR)) {
+        VmError(vm, RT_STDARR_TRIM_FIRST_ARR, ValueTypeToStr(rawArray));
+        return MakeNil();
     }
 
     struct OArray *arr = &ValueAsObj(rawArray)->v.OArray;
-
-    if (hasIndex) {
-        if (rawIndex < 0) {
-            VmError(
-                vm, RT_TEMPLATE,
-                "delete(array, index) -> index must be a non-negative integer"
-            );
-            return MakeNil();
-        }
-
-        if (!IsDoubleInt(rawIndex)) {
-            VmError(
-                vm, RT_TEMPLATE,
-                "delete(array, index) -> index must be a non-negative integer"
-            );
-            return MakeNil();
-        }
-
-        u64 index = (u64)floor(rawIndex);
-
-        if (index >= arr->count) {
-            VmError(vm, RT_TEMPLATE, "delete(....) index out of range");
-            return MakeNil();
-        }
-
-        // TODO: Null Check when null and index is greater than 0
-        PValue result = arr->items[index];
-        arrdel(arr->items, index);
-        arr->count = arrlen(arr->items);
-        return result;
-    } else {
-        if (arr->count == 0) {
-            return MakeNil(); // empty array
-        }
-
-        PValue result = arrpop(arr->items);
-        arr->count = arrlen(arr->items);
-
-        return result;
+    if (arr->count == 0) {
+        VmError(vm, RT_STDARR_TRIM_ARR_EMPTY);
+        return MakeNil();
     }
+
+    if (arr->items == NULL) {
+        VmError(vm, RT_IME_STDARR_TRIM_ARRAY_ITEMS_OUTSYNC);
+        return MakeNil();
+    }
+
+    return arrpop(arr->items);
 }
 
 #define ARRAY_STD_EXISTS "বর্তমান"
 #define ARRAY_STD_INDEX  "সূচক"
 #define ARRAY_STD_ADD    "সংযোগ"
 #define ARRAY_STD_DELETE "বিয়োগ"
+#define ARRAY_STD_TRIM   "কাটো"
 
 void PushStdlibArray(PVm *vm, SymbolTable *table) {
     StdlibEntry entries[] = {
         MakeStdlibEntry(ARRAY_STD_EXISTS, array_Exists, 2),
         MakeStdlibEntry(ARRAY_STD_INDEX, array_Index, 2),
         MakeStdlibEntry(ARRAY_STD_ADD, array_Add, 3),
-        MakeStdlibEntry(ARRAY_STD_DELETE, array_Delete, -1),
+        MakeStdlibEntry(ARRAY_STD_DELETE, array_Delete, 2),
+        MakeStdlibEntry(ARRAY_STD_TRIM, array_Trim, 1),
     };
 
     int count = ArrCount(entries);

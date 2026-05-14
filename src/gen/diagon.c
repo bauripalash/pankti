@@ -152,6 +152,22 @@ static const PanDiagInfo diagList[PANDIAG_CODE_COUNT] = {
     {RT_UNKNOWN_MOD, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, true, "অজানা উৎস %s পাওয়া গেছে", "উৎস আনয়ন করা হয়েছে তো?"},
     {RT_UNKNOWN_CHILD, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, true, "উৎসের অজানা সদস্য পাওয়া গেছে", "সাধারণ উৎসের কী কী সদস্য আছে তার তথ্য পঙক্তির পরিচিতিতে আছে এবং অন্যান্য উৎসের ক্ষেত্রে সেই উৎসটি ভালো করে পর্যবেক্ষণ করা প্রয়োজন"},
     {RT_TEMPLATE, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "%s", ""},
+    {RT_STDARR_EXISTS_TWO_ARGS, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "তালিকা.বর্তমান(তালিকার_নাম, উপাদান) কাজে দুটি প্রেরণমান পাওয়া উচিত ছিল, কিন্তু %lluটি প্রেরণ মান দেওয়া হয়েছে", ""},
+    {RT_STDARR_EXISTS_FIRST_ARR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "'তালিকা.বর্তমান(তালিকার_নাম, উপাদান)' কাজের প্রথম প্রেরণমান একটি তালিকা হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি পাওয়া গেছে", ""},
+    {RT_STDARR_ADD_FIRST_ARR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "তালিকা.সংযোগ(তালিকার_নাম, সূচক, উপাদান) কাজের প্রথম প্রেরণমান একটি তালিকা হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি পাওয়া", ""},
+    {RT_STDARR_ADD_INVALID_IDX_TYPE, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "তালিকা.সংযোগ(তালিকার_নাম, সূচক, উপাদান) কাজের সূচকটি একটি সংখ্যা উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি পাওয়া গেছে", ""},
+    {RT_STDARR_ADD_INVALID_NUMIDX, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "তালিকা.সংযোগ(তালিকার_নাম, সূচক, উপাদান) কাজের সূচকটি একটি ধনাত্মক পূর্ণ সংখ্যা সংখ্যা হওয়া উচিত ছিল কিন্তু %f পাওয়া গেছে", ""},
+    {RT_STDARR_ADD_INDEX_OUT_RANGE, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "তালিকা.সংযোগ(তালিকার_নাম, সূচক, উপাদান) কাজের সূচকটি তালিকার আয়তনের থেকে বড়, বৈধ সূচক হল ০ থেকে %llu", ""},
+    {RT_IME_STDARR_ADD_ARRAY_ITEMS_OUTSYNC, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "অভ্যন্তরীণ গোলমাল: তালিকা.সংযোগ(তালিকার_নাম, সূচক, উপাদান) কাজে প্রদত্ত তালিকার মধ্যে উপাদানগুলি খুঁজে পাওয়া গেলো না", ""},
+    {RT_STDARR_INDEX_FIRST_ARR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "তালিকা.সূচক(তালিকার_নাম, উপাদান) কাজের প্রথম প্রেরণমান একটি তালিকা হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি পাওয়া", ""},
+    {RT_STDARR_DELETE_FIRST_ARR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "তালিকা.বিয়োগ(তালিকার_নাম, সূচক) কাজের প্রথম প্রেরণমান একটি তালিকা হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি পাওয়া", ""},
+    {RT_STDARR_DELETE_INVALID_IDX_TYPE, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "তালিকা.বিয়োগ(তালিকার_নাম, সূচক) কাজের সূচকটি একটি সংখ্যা উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি পাওয়া গেছে", ""},
+    {RT_STDARR_DELETE_INVALID_NUMIDX, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "তালিকা.বিয়োগ(তালিকার_নাম, সূচক) কাজের সূচকটি একটি ধনাত্মক পূর্ণ সংখ্যা সংখ্যা হওয়া উচিত ছিল কিন্তু %f পাওয়া গেছে", ""},
+    {RT_STDARR_DELETE_INDEX_OUT_RANGE, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "তালিকা.বিয়োগ(তালিকার_নাম, সূচক) কাজের সূচকটি তালিকার আয়তনের থেকে বড়, বৈধ সূচক হল ০ থেকে %llu", ""},
+    {RT_IME_STDARR_DELETE_ARRAY_ITEMS_OUTSYNC, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "অভ্যন্তরীণ গোলমাল: তালিকা.বিয়োগ(তালিকার_নাম, সূচক) কাজে প্রদত্ত তালিকার মধ্যে উপাদানগুলি খুঁজে পাওয়া গেলো না", ""},
+    {RT_STDARR_TRIM_FIRST_ARR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "তালিকা.কাটো(তালিকার_নাম) কাজের প্রথম প্রেরণমান একটি তালিকা হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি পাওয়া", ""},
+    {RT_STDARR_TRIM_ARR_EMPTY, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "তালিকা.কাটো(তালিকার_নাম) কাজের মধ্যে দেওয়া তালিকাতে কোনো উপাদান নেই", ""},
+    {RT_IME_STDARR_TRIM_ARRAY_ITEMS_OUTSYNC, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "অভ্যন্তরীণ গোলমাল: তালিকা.কাটো(তালিকার_নাম) কাজে প্রদত্ত তালিকার মধ্যে উপাদানগুলি খুঁজে পাওয়া গেলো না", ""},
 
 };
 
