@@ -31,9 +31,7 @@ static PValue math_Sqrt(PVm *vm, PValue *args, u64 argc) {
     PValue rawVal = args[0];
     if (!IsValueNum(rawVal)) {
 
-        VmErrorf(
-            vm, RT_TEMPLATE, "Square root can only calculated for numbers"
-        );
+        VmError(vm, RT_TEMPLATE, "Square root can only calculated for numbers");
         return MakeNil();
     }
     double result = sqrt(ValueAsNum(rawVal));
@@ -44,7 +42,7 @@ static PValue math_Log10(PVm *vm, PValue *args, u64 argc) {
     PValue rawVal = args[0];
     if (!IsValueNum(rawVal)) {
 
-        VmErrorf(vm, RT_TEMPLATE, "log can only be calculated for numbers");
+        VmError(vm, RT_TEMPLATE, "log can only be calculated for numbers");
         return MakeNil();
     }
     double result = log10(ValueAsNum(rawVal));
@@ -53,7 +51,7 @@ static PValue math_Log10(PVm *vm, PValue *args, u64 argc) {
 static PValue math_Log(PVm *vm, PValue *args, u64 argc) {
     PValue rawVal = args[0];
     if (!IsValueNum(rawVal)) {
-        VmErrorf(vm, RT_TEMPLATE, "log can only be calculated for numbers");
+        VmError(vm, RT_TEMPLATE, "log can only be calculated for numbers");
         return MakeNil();
     }
     double result = log(ValueAsNum(rawVal));
@@ -64,7 +62,7 @@ static PValue math_LogBase(PVm *vm, PValue *args, u64 argc) {
     PValue rawNum = args[1];
 
     if (!IsValueNum(rawBase) || !IsValueNum(rawNum)) {
-        VmErrorf(vm, RT_TEMPLATE, "log can only be calculated for numbers");
+        VmError(vm, RT_TEMPLATE, "log can only be calculated for numbers");
         return MakeNil();
     }
     double result = log(ValueAsNum(rawNum)) / log(ValueAsNum(rawBase));
@@ -140,7 +138,7 @@ static PValue math_Number(PVm *vm, PValue *args, u64 argc) {
     PValue rawStr = args[0];
 
     if (!IsValueObjType(rawStr, OT_STR)) {
-        VmErrorf(vm, RT_TEMPLATE, "Only string can be converted to numbers");
+        VmError(vm, RT_TEMPLATE, "Only string can be converted to numbers");
         return MakeNil();
     }
 
@@ -150,7 +148,7 @@ static PValue math_Number(PVm *vm, PValue *args, u64 argc) {
     result = NumberFromStr(strObj->value, StrLength(strObj->value), &isok);
 
     if (!isok) {
-        VmErrorf(vm, RT_TEMPLATE, "Failed to convert string to number");
+        VmError(vm, RT_TEMPLATE, "Failed to convert string to number");
         return MakeNil();
     }
 

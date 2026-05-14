@@ -7,7 +7,7 @@
 static PValue file_Exists(PVm *vm, PValue *args, u64 argc) {
     PValue rawFilePath = args[0];
     if (!IsValueObjType(rawFilePath, OT_STR)) {
-        VmErrorf(vm, RT_TEMPLATE, "File path must be string");
+        VmError(vm, RT_TEMPLATE, "File path must be string");
         return MakeNil();
     }
 
@@ -20,27 +20,27 @@ static PValue file_Exists(PVm *vm, PValue *args, u64 argc) {
 static PValue file_ReadAsString(PVm *vm, PValue *args, u64 argc) {
     PValue rawFilePath = args[0];
     if (!IsValueObjType(rawFilePath, OT_STR)) {
-        VmErrorf(vm, RT_TEMPLATE, "File path must be string");
+        VmError(vm, RT_TEMPLATE, "File path must be string");
         return MakeNil();
     }
 
     char *filePathStr = ValueAsObj(rawFilePath)->v.OString.value;
     if (!DoesFileExists(filePathStr)) {
         const char *err = StrFormat("'%s' file doesn't exist", filePathStr);
-        VmErrorf(vm, RT_TEMPLATE, (char *)err);
+        VmError(vm, RT_TEMPLATE, (char *)err);
         return MakeNil();
     }
 
     if (!PanIsPathFile(filePathStr)) {
         const char *err = StrFormat("'%s' is not a file", filePathStr);
-        VmErrorf(vm, RT_TEMPLATE, (char *)err);
+        VmError(vm, RT_TEMPLATE, (char *)err);
         return MakeNil();
     }
 
     char *fileStr = PanReadFile(filePathStr);
     if (fileStr == NULL) {
         const char *err = StrFormat("failed to read file '%s' ", filePathStr);
-        VmErrorf(vm, RT_TEMPLATE, (char *)err);
+        VmError(vm, RT_TEMPLATE, (char *)err);
         return MakeNil();
     }
 
@@ -49,7 +49,7 @@ static PValue file_ReadAsString(PVm *vm, PValue *args, u64 argc) {
         const char *err = StrFormat(
             "failed to create string while reading file '%s' ", filePathStr
         );
-        VmErrorf(vm, RT_TEMPLATE, (char *)err);
+        VmError(vm, RT_TEMPLATE, (char *)err);
         return MakeNil();
     }
     return MakeObject(strObj);
@@ -59,32 +59,32 @@ static PValue file_WriteStringToFile(PVm *vm, PValue *args, u64 argc) {
     PValue rawFilePath = args[0];
     PValue rawContent = args[1];
     if (!IsValueObjType(rawFilePath, OT_STR)) {
-        VmErrorf(vm, RT_TEMPLATE, "File path must be string");
+        VmError(vm, RT_TEMPLATE, "File path must be string");
         return MakeNil();
     }
 
     if (!IsValueObjType(rawContent, OT_STR)) {
-        VmErrorf(vm, RT_TEMPLATE, "File content must be a string");
+        VmError(vm, RT_TEMPLATE, "File content must be a string");
         return MakeNil();
     }
 
     char *filePathStr = ValueAsObj(rawFilePath)->v.OString.value;
     if (!DoesFileExists(filePathStr)) {
         const char *err = StrFormat("'%s' file doesn't exist", filePathStr);
-        VmErrorf(vm, RT_TEMPLATE, (char *)err);
+        VmError(vm, RT_TEMPLATE, (char *)err);
         return MakeNil();
     }
 
     if (!PanIsPathFile(filePathStr)) {
         const char *err = StrFormat("'%s' is not a file", filePathStr);
-        VmErrorf(vm, RT_TEMPLATE, (char *)err);
+        VmError(vm, RT_TEMPLATE, (char *)err);
         return MakeNil();
     }
 
     char *contentStr = ValueAsObj(rawContent)->v.OString.value;
     if (!PanWriteFile(filePathStr, contentStr)) {
         const char *err = StrFormat("failed to write file '%s' ", filePathStr);
-        VmErrorf(vm, RT_TEMPLATE, (char *)err);
+        VmError(vm, RT_TEMPLATE, (char *)err);
         return MakeNil();
     }
     return MakeNil();
@@ -94,7 +94,7 @@ static PValue file_CreateFile(PVm *vm, PValue *args, u64 argc) {
     PValue rawFilePath = args[0];
 
     if (!IsValueObjType(rawFilePath, OT_STR)) {
-        VmErrorf(vm, RT_TEMPLATE, "File path must be string");
+        VmError(vm, RT_TEMPLATE, "File path must be string");
         return MakeNil();
     }
 
@@ -107,7 +107,7 @@ static PValue file_CreateDir(PVm *vm, PValue *args, u64 argc) {
     PValue rawFilePath = args[0];
 
     if (!IsValueObjType(rawFilePath, OT_STR)) {
-        VmErrorf(vm, RT_TEMPLATE, "Directory path must be string");
+        VmError(vm, RT_TEMPLATE, "Directory path must be string");
         return MakeNil();
     }
 

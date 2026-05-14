@@ -58,16 +58,12 @@ static PValue ntvShow(PVm *vm, PValue *args, u64 argc) {
 static PValue ntvLen(PVm *vm, PValue *args, u64 argc) {
     PValue target = args[0];
     if (!IsValueObj(target)) {
-        VmErrorf(
-            vm, RT_TEMPLATE, "Length can not be calculated for this value"
-        );
+        VmError(vm, RT_TEMPLATE, "Length can not be calculated for this value");
         return MakeNil();
     }
     PObj *targetObj = ValueAsObj(target);
     if (!ObjectHasLen(targetObj)) {
-        VmErrorf(
-            vm, RT_TEMPLATE, "Length can not be calculated for this value"
-        );
+        VmError(vm, RT_TEMPLATE, "Length can not be calculated for this value");
         return MakeNil();
     }
     return MakeNumber(GetObjectLength(targetObj));
@@ -76,7 +72,7 @@ static PValue ntvLen(PVm *vm, PValue *args, u64 argc) {
 static PValue ntvAppend(PVm *vm, PValue *args, u64 argc) {
 
     if (argc < 2) {
-        VmErrorf(
+        VmError(
             vm, RT_TEMPLATE,
             "append(...) needs atleast two arguments, for appending to array"
             " Or 3 arguments for adding new pair to a map"
@@ -94,7 +90,7 @@ static PValue ntvAppend(PVm *vm, PValue *args, u64 argc) {
         for (u64 i = 0; i < elmCount; i++) {
             PValue elm = args[i + 1];
             if (!ArrayObjPushValue(obj, elm)) {
-                VmErrorf(
+                VmError(
                     vm, RT_TEMPLATE,
                     "Interenal Error : Failed to append item to array"
                 );
@@ -105,7 +101,7 @@ static PValue ntvAppend(PVm *vm, PValue *args, u64 argc) {
         return MakeNumber((double)obj->v.OArray.count);
     } else if (IsValueObjType(target, OT_MAP)) {
         if (argc != 3) {
-            VmErrorf(
+            VmError(
                 vm, RT_TEMPLATE,
                 "append(...) needs atleast 3 arguments, map and a "
                 "key-value pair"
@@ -118,7 +114,7 @@ static PValue ntvAppend(PVm *vm, PValue *args, u64 argc) {
         PValue value = args[2];
 
         if (!MapObjPushPair(obj, key, value, vm->gc->timestamp)) {
-            VmErrorf(
+            VmError(
                 vm, RT_TEMPLATE,
                 "Interenal Error : Failed to append key-value pair to map"
             );
@@ -128,7 +124,7 @@ static PValue ntvAppend(PVm *vm, PValue *args, u64 argc) {
         return MakeNumber((double)obj->v.OMap.count);
     }
 
-    VmErrorf(
+    VmError(
         vm, RT_TEMPLATE, "append(...) function only works on arrays and maps"
     );
     return MakeNil();
@@ -137,12 +133,12 @@ static PValue ntvAppend(PVm *vm, PValue *args, u64 argc) {
 static PValue ntvError(PVm *vm, PValue *args, u64 argc) {
     PValue rawMsg = args[0];
     if (!IsValueObjType(rawMsg, OT_STR)) {
-        VmErrorf(vm, RT_TEMPLATE, "Error message must be a string");
+        VmError(vm, RT_TEMPLATE, "Error message must be a string");
         return MakeNil();
     }
     struct OString *strObj = &ValueAsObj(rawMsg)->v.OString;
 
-    VmErrorf(vm, RT_TEMPLATE, strObj->value);
+    VmError(vm, RT_TEMPLATE, strObj->value);
     return MakeNil();
 }
 
@@ -157,7 +153,7 @@ static PValue ntvGetArgs(PVm *vm, PValue *args, u64 argc) {
         PObj *emptyArray = NewArrayObject(vm->gc, NULL, NULL, 0);
 
         if (emptyArray == NULL) {
-            VmErrorf(
+            VmError(
                 vm, RT_TEMPLATE, "Failed to create array for arguments list"
             );
             return MakeNil();

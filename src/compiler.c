@@ -15,6 +15,7 @@
 #include "include/utils.h"
 #include "include/vm.h"
 #include <math.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -151,9 +152,12 @@ void CompilerMarkRoots(Pgc *gc, void *ctx) {
     }
 }
 
-static void cmpError(PCompiler *comp, Token *token, PanDiagCode code) {
+static void cmpError(PCompiler *comp, Token *token, PanDiagCode code, ...) {
     // comp->errCtx.report(comp->errCtx.ctx, token, code);
-    ReportDiag(&comp->errCtx, token, code);
+    va_list args;
+    va_start(args, code);
+    ReportDiagV(&comp->errCtx, token, code, args);
+    va_end(args);
 }
 
 // Get Current Compiling Bytecode object
@@ -820,10 +824,7 @@ static void tryLocalDeclare(PCompiler *comp, Token *name) {
         return;
     }
     if (doesLocalExists(comp, name) != -1) {
-        // TODO: Need Wrapper?
-        ReportDiagF(&comp->errCtx, name, COMPILER_VAR_EXISTS, name->lexeme);
-        // const char *errMsg = StrFormat(CMP_ERR_VAR_EXIST_SCOPE,
-        // name->lexeme); cmpError(comp, name, errMsg);
+        cmpError(comp, name, COMPILER_VAR_EXISTS, name->lexeme);
         return;
     }
     if (comp->localCount >= MAX_COMPILER_LOCAL_COUNT) {

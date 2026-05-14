@@ -11,6 +11,7 @@
 #include "include/utils.h"
 #include <assert.h>
 #include <math.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -113,9 +114,12 @@ static bool matchOne(Parser *p, PTokenType type) {
     return false;
 }
 
-static inline void error(Parser *p, Token *tok, PanDiagCode code) {
+static inline void error(Parser *p, Token *tok, PanDiagCode code, ...) {
     p->hasError = true;
-    ReportDiag(&p->errCtx, tok, code);
+    va_list args;
+    va_start(args, code);
+    ReportDiagV(&p->errCtx, tok, code, args);
+    va_end(args);
 }
 
 static Token *eat(Parser *p, PTokenType t, PanDiagCode code) {

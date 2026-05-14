@@ -206,6 +206,7 @@ void VmPrintStackTrace(const PVm *vm) {
     }
 }
 
+/*
 void VmError(PVm *vm, PanDiagCode code) {
 
     PCallFrame *frame = &vm->frames[vm->frameCount - 1];
@@ -219,8 +220,9 @@ void VmError(PVm *vm, PanDiagCode code) {
         ReportDiag(&vm->errCtx, NULL, code);
     }
 }
+*/
 
-void VmErrorf(PVm *vm, PanDiagCode code, ...) {
+void VmError(PVm *vm, PanDiagCode code, ...) {
     PCallFrame *frame = &vm->frames[vm->frameCount - 1];
     VmPosInfo posInfo = vmGetPosInfo(vm, frame);
     Token *tok = posInfo.found ? posInfo.token : NULL;
@@ -401,7 +403,7 @@ static bool vmCallFunction(PVm *vm, PObj *clsObj, int argCount) {
     struct OClosure *cls = &clsObj->v.OClosure;
     if (cls->function->v.OComFunction.paramCount != (u64)argCount) {
         // VmError(vm, "Function call argument count != function param count");
-        VmErrorf(
+        VmError(
             vm, RT_ARG_PARAM_NOTEQ, cls->function->v.OComFunction.paramCount,
             (u64)argCount
         );
@@ -418,7 +420,7 @@ static bool vmCallNative(PVm *vm, PObj *funcObj, int argc) {
     struct ONative *native = &funcObj->v.ONative;
     if (native->arity != -1 && native->arity != argc) {
         // PanPrint("%d != %d", argc, native->arity);
-        VmErrorf(
+        VmError(
             vm, RT_NATIVE_ARG_PARAM_NOTEQ, native->name, (u64)native->arity,
             argc
         );
@@ -455,13 +457,13 @@ static bool vmArraySubscript(PVm *vm, PValue target, bool assign) {
     PValue indexVal = vmGetSubIndex(vm, assign);
 
     if (!IsValueNum(indexVal)) {
-        VmErrorf(vm, RT_INVALID_ARR_INDEX_NOTNUM, ValueTypeToStr(indexVal));
+        VmError(vm, RT_INVALID_ARR_INDEX_NOTNUM, ValueTypeToStr(indexVal));
         return false;
     }
 
     double dblIndex = ValueAsNum(indexVal);
     if (dblIndex < 0 || !IsDoubleInt(dblIndex)) {
-        VmErrorf(vm, RT_INVALID_ARR_INDEX, dblIndex);
+        VmError(vm, RT_INVALID_ARR_INDEX, dblIndex);
         return false;
     }
     u64 index = (u64)floor(dblIndex);
@@ -470,7 +472,7 @@ static bool vmArraySubscript(PVm *vm, PValue target, bool assign) {
 
     if (index >= arrObj->count) {
         u64 maxIndex = arrObj->count == 0 ? 0 : arrObj->count - 1;
-        VmErrorf(vm, RT_ARR_INDEX_OUT_RANGE, maxIndex, index);
+        VmError(vm, RT_ARR_INDEX_OUT_RANGE, maxIndex, index);
         return false;
     }
 
@@ -496,7 +498,7 @@ static bool vmMapSubscript(PVm *vm, PValue target, bool assign) {
     PValue keyVal = vmGetSubIndex(vm, assign);
 
     if (!CanValueBeKey(keyVal)) {
-        VmErrorf(vm, RT_INVALID_MAP_KEY, ValueTypeToStr(keyVal));
+        VmError(vm, RT_INVALID_MAP_KEY, ValueTypeToStr(keyVal));
         return false;
     }
 
@@ -533,7 +535,7 @@ static bool vmSubscript(PVm *vm) {
     } else if (IsValueObjType(targetVal, OT_MAP)) {
         return vmMapSubscript(vm, targetVal, false);
     } else {
-        VmErrorf(vm, RT_INVALID_SUBS_TARGET, ValueTypeToStr(targetVal));
+        VmError(vm, RT_INVALID_SUBS_TARGET, ValueTypeToStr(targetVal));
         return false;
     }
 }
@@ -546,7 +548,7 @@ static bool vmSubscriptAssign(PVm *vm) {
     } else if (IsValueObjType(targetVal, OT_MAP)) {
         return vmMapSubscript(vm, targetVal, true);
     } else {
-        VmErrorf(vm, RT_INVALID_SUBASSIGN, ValueTypeToStr(targetVal));
+        VmError(vm, RT_INVALID_SUBASSIGN, ValueTypeToStr(targetVal));
         return false;
     }
 }
@@ -554,7 +556,7 @@ static bool vmSubscriptAssign(PVm *vm) {
 static bool vmImportModule(PVm *vm, PValue name) {
     PValue importPath = VmPeek(vm, 0);
     if (!IsValueObjType(importPath, OT_STR)) {
-        VmErrorf(vm, RT_INVALID_IMPORT_PATH, ValueTypeToStr(importPath));
+        VmError(vm, RT_INVALID_IMPORT_PATH, ValueTypeToStr(importPath));
         return false;
     }
 
@@ -812,7 +814,7 @@ void VmRun(PVm *vm) {
             case OP_DEFINE_GLOBAL: {
                 PObj *nameObj = vmReadObjConst(vm, frame);
                 if (nameObj->type != OT_STR) {
-                    VmErrorf(
+                    VmError(
                         vm, RT_INVALID_VAR_DECLARE,
                         ObjTypeToString(nameObj->type)
                     );
@@ -829,7 +831,7 @@ void VmRun(PVm *vm) {
                 bool found = false;
                 PValue val = SymbolTableFind(vm->globals, nameObj, &found);
                 if (!found) {
-                    VmErrorf(vm, RT_UNDEF_GET_VAR, nameObj->v.OString.value);
+                    VmError(vm, RT_UNDEF_GET_VAR, nameObj->v.OString.value);
                     return;
                 }
 
@@ -844,7 +846,7 @@ void VmRun(PVm *vm) {
                     SymbolTableSet(vm->globals, nameObj, VmPeek(vm, 0));
                     break;
                 } else {
-                    VmErrorf(vm, RT_UNDEF_SET_VAR, nameObj->v.OString.value);
+                    VmError(vm, RT_UNDEF_SET_VAR, nameObj->v.OString.value);
                     return;
                 }
                 break;
@@ -905,7 +907,7 @@ void VmRun(PVm *vm) {
                 if (!IsValueObjType(callee, OT_CLOSURE) &&
                     !IsValueObjType(callee, OT_NATIVE)) {
                     // VmError(vm, "Can only call functions");
-                    VmErrorf(vm, RT_INVALID_CALLEE, ValueTypeToStr(callee));
+                    VmError(vm, RT_INVALID_CALLEE, ValueTypeToStr(callee));
                     return;
                 }
 
@@ -927,7 +929,7 @@ void VmRun(PVm *vm) {
             case OP_CLOSURE: {
                 PValue funcVal = vmReadConst(vm, frame);
                 if (!IsValueObjType(funcVal, OT_COMFNC)) {
-                    VmErrorf(vm, RT_ONLY_FUNC_CLOSURE, ValueTypeToStr(funcVal));
+                    VmError(vm, RT_ONLY_FUNC_CLOSURE, ValueTypeToStr(funcVal));
                     return;
                 }
 
@@ -1002,7 +1004,7 @@ void VmRun(PVm *vm) {
 
                     if (!CanValueBeKey(key)) {
                         hmfree(entries);
-                        VmErrorf(vm, RT_INVALID_MAP_KEY, ValueTypeToStr(key));
+                        VmError(vm, RT_INVALID_MAP_KEY, ValueTypeToStr(key));
                         return;
                     }
 
@@ -1039,18 +1041,18 @@ void VmRun(PVm *vm) {
                 PValue child = vmReadConst(vm, frame);
                 PValue moduleVal = VmPeek(vm, 0);
                 if (!IsValueObjType(moduleVal, OT_MODULE)) {
-                    VmErrorf(vm, RT_ONLY_MOD_CHILD, ValueTypeToStr(moduleVal));
+                    VmError(vm, RT_ONLY_MOD_CHILD, ValueTypeToStr(moduleVal));
                     return;
                 }
                 if (!IsValueObjType(child, OT_STR)) {
-                    VmErrorf(vm, RT_INVALID_MOD_CHILD, ValueTypeToStr(child));
+                    VmError(vm, RT_INVALID_MOD_CHILD, ValueTypeToStr(child));
                     return;
                 }
                 PObj *childObj = ValueAsObj(child);
                 PObj *modObj = ValueAsObj(moduleVal);
                 u64 nameHash = modObj->v.OModule.nameHash;
                 if (hmgeti(vm->modProxies, nameHash) < 0) {
-                    VmErrorf(vm, RT_UNKNOWN_MOD, modObj->v.OModule.path);
+                    VmError(vm, RT_UNKNOWN_MOD, modObj->v.OModule.path);
                 }
 
                 ModProxyEntry proxy = hmgets(vm->modProxies, nameHash);

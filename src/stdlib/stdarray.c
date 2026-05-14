@@ -24,7 +24,7 @@ static finline u64 getArrIndex(PObj *arr, PValue val, bool *found) {
 static PValue array_Exists(PVm *vm, PValue *args, u64 argc) {
     PValue rawArray = args[0];
     if (!IsValueObjType(rawArray, OT_ARR)) {
-        VmErrorf(vm, RT_TEMPLATE, "Exists only takes array");
+        VmError(vm, RT_TEMPLATE, "Exists only takes array");
         return MakeNil();
     }
 
@@ -38,7 +38,7 @@ static PValue array_Add(PVm *vm, PValue *args, u64 argc) {
 
     PValue rawArray = args[0];
     if (!IsValueObjType(rawArray, OT_ARR)) {
-        VmErrorf(vm, RT_TEMPLATE, "add only takes array");
+        VmError(vm, RT_TEMPLATE, "add only takes array");
         return MakeNil();
     }
 
@@ -48,7 +48,7 @@ static PValue array_Add(PVm *vm, PValue *args, u64 argc) {
         dblIndex = ValueAsNum(rawIndex);
 
         if (dblIndex < 0) {
-            VmErrorf(
+            VmError(
                 vm, RT_TEMPLATE,
                 "add(array, index, value) -> index must be a "
                 "non-negative integer"
@@ -57,7 +57,7 @@ static PValue array_Add(PVm *vm, PValue *args, u64 argc) {
         }
 
         if (!IsDoubleInt(dblIndex)) {
-            VmErrorf(
+            VmError(
                 vm, RT_TEMPLATE,
                 "add(array, index, value) -> index must be a "
                 "non-negative integer"
@@ -66,7 +66,7 @@ static PValue array_Add(PVm *vm, PValue *args, u64 argc) {
         }
     } else {
 
-        VmErrorf(
+        VmError(
             vm, RT_TEMPLATE,
             "add(array, index, value) -> index must be a non-negative integer"
         );
@@ -76,13 +76,13 @@ static PValue array_Add(PVm *vm, PValue *args, u64 argc) {
     struct OArray *arr = &ValueAsObj(rawArray)->v.OArray;
 
     if (arrIndex >= arr->count) {
-        VmErrorf(vm, RT_TEMPLATE, "add(....) index out of range");
+        VmError(vm, RT_TEMPLATE, "add(....) index out of range");
         return MakeNil();
     }
 
     if (arrIndex > 0 && arr->items == NULL) {
         // TODO: Error handle on NULL
-        VmErrorf(
+        VmError(
             vm, RT_TEMPLATE,
             "Internal Error : Failed to add item at index `<TODO>` as "
             "the array is null? <TODO>"
@@ -99,7 +99,7 @@ static PValue array_Add(PVm *vm, PValue *args, u64 argc) {
 static PValue array_Index(PVm *vm, PValue *args, u64 argc) {
     PValue rawArray = args[0];
     if (!IsValueObjType(rawArray, OT_ARR)) {
-        VmErrorf(vm, RT_TEMPLATE, "Index only takes array");
+        VmError(vm, RT_TEMPLATE, "Index only takes array");
         return MakeNil();
     }
 
@@ -115,14 +115,14 @@ static PValue array_Index(PVm *vm, PValue *args, u64 argc) {
 
 static PValue array_Delete(PVm *vm, PValue *args, u64 argc) {
     if (argc != 1 && argc != 2) {
-        VmErrorf(
+        VmError(
             vm, RT_TEMPLATE, "pop functions can take either 1 or two arguments"
         );
     }
 
     PValue rawArray = args[0];
     if (!IsValueObjType(rawArray, OT_ARR)) {
-        VmErrorf(vm, RT_TEMPLATE, "delete only works on arrays");
+        VmError(vm, RT_TEMPLATE, "delete only works on arrays");
         return MakeNil();
     }
     bool hasIndex = false;
@@ -132,7 +132,7 @@ static PValue array_Delete(PVm *vm, PValue *args, u64 argc) {
         if (IsValueNum(args[1])) {
             rawIndex = ValueAsNum(args[1]);
         } else {
-            VmErrorf(
+            VmError(
                 vm, RT_TEMPLATE,
                 "delete(array, index) -> index must be a number"
             );
@@ -144,7 +144,7 @@ static PValue array_Delete(PVm *vm, PValue *args, u64 argc) {
 
     if (hasIndex) {
         if (rawIndex < 0) {
-            VmErrorf(
+            VmError(
                 vm, RT_TEMPLATE,
                 "delete(array, index) -> index must be a non-negative integer"
             );
@@ -152,7 +152,7 @@ static PValue array_Delete(PVm *vm, PValue *args, u64 argc) {
         }
 
         if (!IsDoubleInt(rawIndex)) {
-            VmErrorf(
+            VmError(
                 vm, RT_TEMPLATE,
                 "delete(array, index) -> index must be a non-negative integer"
             );
@@ -162,7 +162,7 @@ static PValue array_Delete(PVm *vm, PValue *args, u64 argc) {
         u64 index = (u64)floor(rawIndex);
 
         if (index >= arr->count) {
-            VmErrorf(vm, RT_TEMPLATE, "delete(....) index out of range");
+            VmError(vm, RT_TEMPLATE, "delete(....) index out of range");
             return MakeNil();
         }
 

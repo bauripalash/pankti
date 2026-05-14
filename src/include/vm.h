@@ -102,9 +102,8 @@ void VmPrintStackTrace(const PVm *vm);
 void VmRun(PVm *vm);
 
 // Throw VM Runtime Error
-void VmError(PVm *vm, PanDiagCode code);
-
-void VmErrorf(PVm *vm, PanDiagCode code, ...);
+// void VmError(PVm *vm, PanDiagCode code);
+void VmError(PVm *vm, PanDiagCode code, ...);
 
 // Push Value to VM Stack
 bool VmPush(PVm *vm, PValue val);
