@@ -154,14 +154,16 @@ static PValue array_Trim(PVm *vm, PValue *args, u64 argc) {
         return MakeNil();
     }
 
-    return arrpop(arr->items);
+    PValue popped = arrpop(arr->items);
+    arr->count = arrlen(arr->items);
+    return popped;
 }
 
 #define ARRAY_STD_EXISTS "বর্তমান"
 #define ARRAY_STD_INDEX  "সূচক"
 #define ARRAY_STD_ADD    "সংযোগ"
 #define ARRAY_STD_DELETE "বিয়োগ"
-#define ARRAY_STD_TRIM   "কাটো"
+#define ARRAY_STD_TRIM   "শেষবাদ"
 
 void PushStdlibArray(PVm *vm, SymbolTable *table) {
     StdlibEntry entries[] = {
