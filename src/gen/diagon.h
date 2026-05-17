@@ -356,6 +356,18 @@ typedef enum PanDiagCode{
     RT_STDARR_TRIM_ARR_EMPTY,
     // অভ্যন্তরীণ গোলমাল: তালিকা.কাটো(তালিকার_নাম) কাজে প্রদত্ত তালিকার মধ্যে উপাদানগুলি খুঁজে পাওয়া গেলো না
     RT_IME_STDARR_TRIM_ARRAY_ITEMS_OUTSYNC,
+    // নথি.বর্তমান(নাম) কাজের প্রথম প্রেরণমান কথারাশি হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি পাওয়া
+    RT_STDFILE_EXISTS_FIRST_STR,
+    // নথি.পড়ো(নাম) কাজের প্রথম প্রেরণমান কথারাশি হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি পাওয়া
+    RT_STDFILE_READ_FIRST_STR,
+    // নথি.পড়ো(নাম) কাজে প্রদত্ত নথি '%s' খুঁজে পাওয়া গেলো না
+    RT_STDFILE_READ_FILE_NOT_FOUND,
+    // নথি.পড়ো(নাম) কাজে প্রদত্ত নথির পথ '%s' ফাইল নয়
+    RT_STDFILE_READ_ISNOT_FILE,
+    // অভ্যন্তরীণ গোলমাল: নথি.পড়ো(নাম) কাজে দেওয়া নথি '%s' পড়া বিফল হয়েছে
+    RT_IME_STDFILE_FILE_READ_FILE,
+    // অভ্যন্তরীণ গোলমাল: নথি.পড়ো(নাম) কাজের নথি পড়ার সময় নথির তথ্যের কথারাশি তৈরি বিফল হয়েছে
+    RT_IME_STDFILE_READ_STR,
 
 	PANDIAG_CODE_COUNT
 }PanDiagCode;

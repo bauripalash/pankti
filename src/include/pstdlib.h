@@ -16,7 +16,7 @@ extern "C" {
 #define STRING_STDLIB_NAME "কথা"
 #define ARRAY_STDLIB_NAME  "তালিকা"
 #define GFX_STDLIB_NAME    "পট"
-#define FILE_STDLIB_NAME   "file"
+#define FILE_STDLIB_NAME   "নথি"
 
 typedef enum StdlibMod {
     STDLIB_NONE = 0,

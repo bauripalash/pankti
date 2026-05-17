@@ -7,7 +7,7 @@
 static PValue file_Exists(PVm *vm, PValue *args, u64 argc) {
     PValue rawFilePath = args[0];
     if (!IsValueObjType(rawFilePath, OT_STR)) {
-        VmError(vm, RT_TEMPLATE, "File path must be string");
+        VmError(vm, RT_STDFILE_EXISTS_FIRST_STR, ValueTypeToStr(rawFilePath));
         return MakeNil();
     }
 
@@ -26,30 +26,24 @@ static PValue file_ReadAsString(PVm *vm, PValue *args, u64 argc) {
 
     char *filePathStr = ValueAsObj(rawFilePath)->v.OString.value;
     if (!DoesFileExists(filePathStr)) {
-        const char *err = StrFormat("'%s' file doesn't exist", filePathStr);
-        VmError(vm, RT_TEMPLATE, (char *)err);
+        VmError(vm, RT_STDFILE_READ_FILE_NOT_FOUND, filePathStr);
         return MakeNil();
     }
 
     if (!PanIsPathFile(filePathStr)) {
-        const char *err = StrFormat("'%s' is not a file", filePathStr);
-        VmError(vm, RT_TEMPLATE, (char *)err);
+        VmError(vm, RT_STDFILE_READ_ISNOT_FILE, filePathStr);
         return MakeNil();
     }
 
     char *fileStr = PanReadFile(filePathStr);
     if (fileStr == NULL) {
-        const char *err = StrFormat("failed to read file '%s' ", filePathStr);
-        VmError(vm, RT_TEMPLATE, (char *)err);
+        VmError(vm, RT_IME_STDFILE_FILE_READ_FILE, filePathStr);
         return MakeNil();
     }
 
     PObj *strObj = NewStrObject(vm->gc, NULL, fileStr, true);
     if (strObj == NULL) {
-        const char *err = StrFormat(
-            "failed to create string while reading file '%s' ", filePathStr
-        );
-        VmError(vm, RT_TEMPLATE, (char *)err);
+        VmError(vm, RT_IME_STDFILE_READ_STR);
         return MakeNil();
     }
     return MakeObject(strObj);
@@ -116,11 +110,11 @@ static PValue file_CreateDir(PVm *vm, PValue *args, u64 argc) {
     return MakeNil();
 }
 
-#define FILE_STD_EXISTS      "exists"
-#define FILE_STD_READ        "read"
-#define FILE_STD_WRITE       "write"
-#define FILE_STD_CREATE_FILE "newfile"
-#define FILE_STD_CREATE_DIR  "newdir"
+#define FILE_STD_EXISTS      "বর্তমান"
+#define FILE_STD_READ        "পড়ো"
+#define FILE_STD_WRITE       "লেখো"
+#define FILE_STD_CREATE_FILE "নতুন"
+#define FILE_STD_CREATE_DIR  "নতুন_ফোল্ডার"
 
 void PushStdlibFile(PVm *vm, SymbolTable *table) {
     StdlibEntry entries[] = {

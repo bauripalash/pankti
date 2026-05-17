@@ -168,6 +168,12 @@ static const PanDiagInfo diagList[PANDIAG_CODE_COUNT] = {
     {RT_STDARR_TRIM_FIRST_ARR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "তালিকা.কাটো(তালিকার_নাম) কাজের প্রথম প্রেরণমান একটি তালিকা হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি পাওয়া", ""},
     {RT_STDARR_TRIM_ARR_EMPTY, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "তালিকা.কাটো(তালিকার_নাম) কাজের মধ্যে দেওয়া তালিকাতে কোনো উপাদান নেই", ""},
     {RT_IME_STDARR_TRIM_ARRAY_ITEMS_OUTSYNC, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "অভ্যন্তরীণ গোলমাল: তালিকা.কাটো(তালিকার_নাম) কাজে প্রদত্ত তালিকার মধ্যে উপাদানগুলি খুঁজে পাওয়া গেলো না", ""},
+    {RT_STDFILE_EXISTS_FIRST_STR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "নথি.বর্তমান(নাম) কাজের প্রথম প্রেরণমান কথারাশি হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি পাওয়া", ""},
+    {RT_STDFILE_READ_FIRST_STR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "নথি.পড়ো(নাম) কাজের প্রথম প্রেরণমান কথারাশি হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি পাওয়া", ""},
+    {RT_STDFILE_READ_FILE_NOT_FOUND, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "নথি.পড়ো(নাম) কাজে প্রদত্ত নথি '%s' খুঁজে পাওয়া গেলো না", ""},
+    {RT_STDFILE_READ_ISNOT_FILE, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "নথি.পড়ো(নাম) কাজে প্রদত্ত নথির পথ '%s' ফাইল নয়", ""},
+    {RT_IME_STDFILE_FILE_READ_FILE, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "অভ্যন্তরীণ গোলমাল: নথি.পড়ো(নাম) কাজে দেওয়া নথি '%s' পড়া বিফল হয়েছে", ""},
+    {RT_IME_STDFILE_READ_STR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "অভ্যন্তরীণ গোলমাল: নথি.পড়ো(নাম) কাজের নথি পড়ার সময় নথির তথ্যের কথারাশি তৈরি বিফল হয়েছে", ""},
 
 };
 
