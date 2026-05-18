@@ -26,7 +26,11 @@ path = 'github.com/alex-shpak/hugo-book'
 
 [markup.highlight]
     codeFences = false
-  #style = 'base16-snazzy'
+    #style = 'base16-snazzy'
+
+[markup.tableOfContents]
+    startLevel = 1
+    endLevel = 4
 
 [menu]
 [[menu.home]]

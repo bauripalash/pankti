@@ -1,0 +1,10 @@
+{{- $module := .Get "module" -}} 
+{{- $func := .Get "fn" -}} 
+{{- $rawparams := .Get "params" | default "" -}}
+
+## {{ $module }}.**{{ $func }}()** {.stdfunc}
+
+> {{ $rawparams }}
+
+
+

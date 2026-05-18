@@ -20,7 +20,7 @@ static PValue file_Exists(PVm *vm, PValue *args, u64 argc) {
 static PValue file_ReadAsString(PVm *vm, PValue *args, u64 argc) {
     PValue rawFilePath = args[0];
     if (!IsValueObjType(rawFilePath, OT_STR)) {
-        VmError(vm, RT_TEMPLATE, "File path must be string");
+        VmError(vm, RT_STDFILE_EXISTS_FIRST_STR, ValueTypeToStr(rawFilePath));
         return MakeNil();
     }
 
@@ -53,32 +53,29 @@ static PValue file_WriteStringToFile(PVm *vm, PValue *args, u64 argc) {
     PValue rawFilePath = args[0];
     PValue rawContent = args[1];
     if (!IsValueObjType(rawFilePath, OT_STR)) {
-        VmError(vm, RT_TEMPLATE, "File path must be string");
+        VmError(vm, RT_STDFILE_WRITE_FILENAME_STR, ValueTypeToStr(rawFilePath));
         return MakeNil();
     }
 
     if (!IsValueObjType(rawContent, OT_STR)) {
-        VmError(vm, RT_TEMPLATE, "File content must be a string");
+        VmError(vm, RT_STDFILE_WRITE_CONTENT_STR, ValueTypeToStr(rawContent));
         return MakeNil();
     }
 
     char *filePathStr = ValueAsObj(rawFilePath)->v.OString.value;
     if (!DoesFileExists(filePathStr)) {
-        const char *err = StrFormat("'%s' file doesn't exist", filePathStr);
-        VmError(vm, RT_TEMPLATE, (char *)err);
+        VmError(vm, RT_STDFILE_WRITE_FILE_NOT_FOUND, filePathStr);
         return MakeNil();
     }
 
     if (!PanIsPathFile(filePathStr)) {
-        const char *err = StrFormat("'%s' is not a file", filePathStr);
-        VmError(vm, RT_TEMPLATE, (char *)err);
+        VmError(vm, RT_STDFILE_WRITE_ISNOT_FILE, filePathStr);
         return MakeNil();
     }
 
     char *contentStr = ValueAsObj(rawContent)->v.OString.value;
     if (!PanWriteFile(filePathStr, contentStr)) {
-        const char *err = StrFormat("failed to write file '%s' ", filePathStr);
-        VmError(vm, RT_TEMPLATE, (char *)err);
+        VmError(vm, RT_IME_STDFILE_WRITE_WRITE_FAIL, filePathStr);
         return MakeNil();
     }
     return MakeNil();
@@ -88,12 +85,17 @@ static PValue file_CreateFile(PVm *vm, PValue *args, u64 argc) {
     PValue rawFilePath = args[0];
 
     if (!IsValueObjType(rawFilePath, OT_STR)) {
-        VmError(vm, RT_TEMPLATE, "File path must be string");
+        VmError(
+            vm, RT_STDFILE_CREATEFILE_FILENAME_STR, ValueTypeToStr(rawFilePath)
+        );
         return MakeNil();
     }
 
     char *filePathStr = ValueAsObj(rawFilePath)->v.OString.value;
-    PanCreateFile(filePathStr);
+    if (!PanCreateFile(filePathStr)) {
+        VmError(vm, RT_IME_STDFILE_WRITE_WRITE_FAIL, filePathStr);
+        return MakeNil();
+    }
     return MakeNil();
 }
 
@@ -101,12 +103,15 @@ static PValue file_CreateDir(PVm *vm, PValue *args, u64 argc) {
     PValue rawFilePath = args[0];
 
     if (!IsValueObjType(rawFilePath, OT_STR)) {
-        VmError(vm, RT_TEMPLATE, "Directory path must be string");
+        VmError(vm, RT_STDFILE_CREATEDIR_FILENAME_STR);
         return MakeNil();
     }
 
     char *filePathStr = ValueAsObj(rawFilePath)->v.OString.value;
-    PanCreateDir(filePathStr);
+    if (!PanCreateDir(filePathStr)) {
+        VmError(vm, RT_IME_STDFILE_CREATEDIR_CREATE_FAIL);
+        return MakeNil();
+    }
     return MakeNil();
 }
 
