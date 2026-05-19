@@ -257,6 +257,31 @@ PValue MapObjGetValue(PObj *map, PValue key, u64 keyHash, bool *found) {
     return MakeNil();
 }
 
+PValue MapObjRemoveKey(PObj *map, PValue key, u64 keyHash, bool *ok) {
+    assert(map->type == OT_MAP);
+    if (map == NULL || ok == NULL) {
+        return MakeNil();
+    }
+    struct OMap *mapobj = &map->v.OMap;
+
+    bool found = false;
+    PValue result = MapObjGetValue(map, key, keyHash, &found);
+
+    if (!found) {
+        *ok = false;
+        return MakeNil();
+    }
+
+    if (hmdel(mapobj->table, keyHash)) {
+        mapobj->count = (u64)hmlen(mapobj->table);
+        *ok = true;
+        return result;
+    }
+
+    *ok = false;
+    return MakeNil();
+}
+
 void PrintObject(const PObj *o) {
     if (o == NULL) {
         return;

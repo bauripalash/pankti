@@ -300,6 +300,10 @@ bool MapObjSetValue(PObj *o, PValue key, u64 keyHash, PValue value);
 bool MapObjPushPair(PObj *o, PValue key, PValue value, u64 seed);
 // Get Value from Map
 PValue MapObjGetValue(PObj *map, PValue key, u64 keyHash, bool *found);
+// Remove Key:Value pair from map and return it's value
+// If the key doesn't exist, ok is set to false, and Nil value is returned
+PValue MapObjRemoveKey(PObj *map, PValue key, u64 keyHash, bool *ok);
+
 bool ArrayObjInsValue(PObj *o, int index, PValue value);
 // Push new item to array. Return false if failed to push value.
 bool ArrayObjPushValue(PObj *o, PValue value);

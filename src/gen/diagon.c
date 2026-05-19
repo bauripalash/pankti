@@ -184,10 +184,14 @@ static const PanDiagInfo diagList[PANDIAG_CODE_COUNT] = {
     {RT_STDFILE_CREATEDIR_FILENAME_STR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "নথি.নতুন_ফোল্ডার(ফোল্ডার_পথ) কাজের প্রথম প্রেরণমান অর্থাৎ ফোল্ডারের পথ একটি কথারাশি হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি পাওয়া", ""},
     {RT_IME_STDFILE_CREATEDIR_CREATE_FAIL, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "অভ্যন্তরীণ গোলমাল: নথি.নতুন_ফোল্ডার(ফোল্ডার_পথ) কাজে '%s' ফোল্ডার তৈরি বিফল হয়েছে", ""},
     {RT_STDMAP_EXISTS_FIRST_NOTMAP, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "ছক.বর্তমান(ছকের_নাম, সূচক) কাজের প্রথম প্রেরণমান অর্থাৎ ছকের_নাম একটি ছক হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি পাওয়া", ""},
+    {RT_STDMAP_EXISTS_INVALID_KEY, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, true, "ছক.বর্তমান(ছকের_নাম, সূচক) কাজের দ্বিতীয় প্রেরণমান অর্থাৎ সূচক একটি %s-জাতিয় রাশি যা ছকের সূচক হওয়ার অনুপযোগী", "শুধুমাত্র কথারাশি, সংখ্যা, সত্যমান এবং নিল হল ছকের সূচক হওয়ার উপযোগী"},
     {RT_STDMAP_KEYS_FIRST_NOTMAP, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "ছক.সূচকগুলি(ছকের_নাম) কাজের প্রথম প্রেরণমান অর্থাৎ ছকের_নাম একটি ছক হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি পাওয়া", ""},
     {RT_IME_STDMAP_KEYS_ARR_CREATE, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "অভ্যন্তরীণ গোলমাল: ছক.সূচকগুলি(ছকের_নাম) কাজে সূচকগুলি নিয়ে একটি তালিকা তৈরি বিফল হয়েছে", ""},
     {RT_STDMAP_VALUES_FIRST_NOTMAP, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "ছক.মানগুলি(ছকের_নাম) কাজের প্রথম প্রেরণমান অর্থাৎ ছকের_নাম একটি ছক হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি পাওয়া", ""},
     {RT_IME_STDMAP_VALUES_ARR_CREATE, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "অভ্যন্তরীণ গোলমাল: ছক.মানগুলি(ছকের_নাম) কাজে মানগুলি নিয়ে একটি তালিকা তৈরি বিফল হয়েছে", ""},
+    {RT_STDMAP_DELETE_FIRST_NOTMAP, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "ছক.বিয়োগ(ছকের_নাম, সূচক) কাজের প্রথম প্রেরণমান অর্থাৎ ছকের_নাম একটি ছক হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি পাওয়া", ""},
+    {RT_STDMAP_DELETE_INVALID_KEY, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, true, "ছক.বিয়োগ(ছকের_নাম, সূচক) কাজের দ্বিতীয় প্রেরণমান অর্থাৎ সূচক একটি %s-জাতিয় রাশি যা ছকের সূচক হওয়ার অনুপযোগী", "শুধুমাত্র কথারাশি, সংখ্যা, সত্যমান এবং নিল হল ছকের সূচক হওয়ার উপযোগী"},
+    {RT_STDMAP_DELETE_KEY_NOTFOUND, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "ছক.বিয়োগ(ছকের_নাম, সূচক) কাজে ছকের মধ্যে সূচক খুঁজে পাওয়া গেলো না", ""},
 
 };
 

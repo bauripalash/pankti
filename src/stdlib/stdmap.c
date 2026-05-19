@@ -3,7 +3,6 @@
 #include "../include/pstdlib.h"
 #include "../include/vm.h"
 #include <stdbool.h>
-#include <stdlib.h>
 
 // Fetch map items as array, if needKeys is true returns the keys list
 // if needKeys is false returns value list
@@ -34,6 +33,12 @@ static PValue map_Exists(PVm *vm, PValue *args, u64 argc) {
 
     PObj *map = ValueAsObj(rawMap);
     PValue key = args[1];
+
+    if (!CanValueBeKey(key)) {
+        VmError(vm, RT_STDMAP_EXISTS_INVALID_KEY, ValueTypeToStr(key));
+        return MakeNil();
+    }
+
     u64 keyHash = GetValueHash(key, vm->gc->timestamp);
     bool hasKey = MapObjHasKey(map, key, keyHash);
 
@@ -73,15 +78,39 @@ static PValue map_Values(PVm *vm, PValue *args, u64 argc) {
     return MakeObject(arrObj);
 }
 
+static PValue map_Delete(PVm *vm, PValue *args, u64 argc) {
+    PValue rawMap = args[0];
+    if (!IsValueObjType(rawMap, OT_MAP)) {
+        VmError(vm, RT_STDMAP_DELETE_FIRST_NOTMAP, ValueTypeToStr(rawMap));
+        return MakeNil();
+    }
+    PValue key = args[1];
+    if (!CanValueBeKey(key)) {
+        VmError(vm, RT_STDMAP_DELETE_INVALID_KEY, ValueTypeToStr(key));
+        return MakeNil();
+    }
+    u64 keyHash = GetValueHash(key, vm->gc->timestamp);
+    PObj *map = ValueAsObj(rawMap);
+    bool ok = false;
+    PValue result = MapObjRemoveKey(map, key, keyHash, &ok);
+    if (!ok) {
+        VmError(vm, RT_STDMAP_DELETE_KEY_NOTFOUND);
+        return MakeNil();
+    }
+    return result;
+}
+
 #define MAP_STD_EXISTS "বর্তমান"
 #define MAP_STD_KEYS   "সূচকগুলি"
 #define MAP_STD_VALUES "মানগুলি"
+#define MAP_STD_DELETE "বিয়োগ"
 
 void PushStdlibMap(PVm *vm, SymbolTable *table) {
     StdlibEntry entries[] = {
         MakeStdlibEntry(MAP_STD_EXISTS, map_Exists, 2),
         MakeStdlibEntry(MAP_STD_KEYS, map_Keys, 1),
         MakeStdlibEntry(MAP_STD_VALUES, map_Values, 1),
+        MakeStdlibEntry(MAP_STD_DELETE, map_Delete, 2),
     };
     int count = ArrCount(entries);
 
