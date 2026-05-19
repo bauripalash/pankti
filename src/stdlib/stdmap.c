@@ -28,7 +28,7 @@ static PValue map_Exists(PVm *vm, PValue *args, u64 argc) {
     PValue rawMap = args[0];
 
     if (!IsValueObjType(rawMap, OT_MAP)) {
-        VmError(vm, RT_TEMPLATE, "exists(...) only works with maps");
+        VmError(vm, RT_STDMAP_EXISTS_FIRST_NOTMAP, ValueTypeToStr(rawMap));
         return MakeNil();
     }
 
@@ -43,14 +43,14 @@ static PValue map_Keys(PVm *vm, PValue *args, u64 argc) {
     PValue rawMap = args[0];
 
     if (!IsValueObjType(rawMap, OT_MAP)) {
-        VmError(vm, RT_TEMPLATE, "keys(...) only works with maps");
+        VmError(vm, RT_STDMAP_KEYS_FIRST_NOTMAP, ValueTypeToStr(rawMap));
         return MakeNil();
     }
     u64 count = 0;
     PValue *items = mapItemsAsArray(ValueAsObj(rawMap), &count, true);
     PObj *arrObj = NewArrayObject(vm->gc, NULL, items, count);
     if (arrObj == NULL) {
-        VmError(vm, RT_IME_ARRAY);
+        VmError(vm, RT_IME_STDMAP_KEYS_ARR_CREATE);
 
         return MakeNil();
     }
@@ -60,24 +60,22 @@ static PValue map_Values(PVm *vm, PValue *args, u64 argc) {
     PValue rawMap = args[0];
 
     if (!IsValueObjType(rawMap, OT_MAP)) {
-        VmError(vm, RT_TEMPLATE, "values(...) only works with maps");
+        VmError(vm, RT_STDMAP_VALUES_FIRST_NOTMAP, ValueTypeToStr(rawMap));
         return MakeNil();
     }
     u64 count = 0;
     PValue *items = mapItemsAsArray(ValueAsObj(rawMap), &count, false);
     PObj *arrObj = NewArrayObject(vm->gc, NULL, items, count);
     if (arrObj == NULL) {
-        VmError(
-            vm, RT_TEMPLATE, "Internal Error : Failed to Create Values Array"
-        );
+        VmError(vm, RT_IME_STDMAP_VALUES_ARR_CREATE);
         return MakeNil();
     }
     return MakeObject(arrObj);
 }
 
 #define MAP_STD_EXISTS "বর্তমান"
-#define MAP_STD_KEYS   "সূচক"
-#define MAP_STD_VALUES "মান"
+#define MAP_STD_KEYS   "সূচকগুলি"
+#define MAP_STD_VALUES "মানগুলি"
 
 void PushStdlibMap(PVm *vm, SymbolTable *table) {
     StdlibEntry entries[] = {
