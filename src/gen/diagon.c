@@ -221,6 +221,20 @@ static const PanDiagInfo diagList[PANDIAG_CODE_COUNT] = {
     {RT_IME_STDSYS_USERNAME_STR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "অভ্যন্তরীণ গোলমাল: পরিবেশ.ব্যবহারকারী() কাজে অপারেটিং সিস্টেমের ব্যবহারকারীর নামের কথারাশি তৈরি বিফল হয়েছে", ""},
     {RT_IME_STDSYS_HOMEDIR_STR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "অভ্যন্তরীণ গোলমাল: পরিবেশ.ঘর() কাজে অপারেটিং সিস্টেমের ব্যবহারকারীর হোম ডাইরেক্টরি/ফোল্ডারের নামের কথারাশি তৈরি বিফল হয়েছে", ""},
     {RT_IME_STDSYS_CURDIR_STR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "অভ্যন্তরীণ গোলমাল: পরিবেশ.অবস্থান() কাজে বর্তমান ডাইরেক্টরি/ফোল্ডারের নামের কথারাশি তৈরি বিফল হয়েছে", ""},
+    {RT_STDSTR_INDEX_STR_NOT_STRING, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "কথা.সূচক(ক, সূচক) কাজে প্রথম প্রেরণমান অর্থাৎ ক একটি কথারাশি হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি দেওয়া হয়েছে", ""},
+    {RT_STDSTR_INDEX_INVALID_IDX_TYPE, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "কথা.সূচক(ক, সূচক) কাজে দ্বিতীয় প্রেরণমান অর্থাৎ সূচক একটি সংখ্যা রাশি হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি দেওয়া হয়েছে", ""},
+    {RT_STDSTR_INDEX_INVALID_IDX_NUMTYPE, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "কথা.সূচক(ক, সূচক) কাজে দ্বিতীয় প্রেরণমান অর্থাৎ সূচক একটি ধনাত্মক পূর্ণসংখ্যা হওয়া উচিত ছিল কিন্তু %f দেওয়া হয়েছে", ""},
+    {RT_STDSTR_INDEX_INDEX_OUT_RANGE, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "কথা.সূচক(ক, সূচক) কাজের সূচকটি কথারাশিতে বর্তমান অক্ষরগুলির মোটসংখ্যার থেকে বড়, বৈধ সূচক হল ০ থেকে %llu", ""},
+    {RT_IME_STDSTR_INDEX_GRAPHEME_MEM, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "অভ্যন্তরীণ গোলমাল: কথা.সূচক(ক, সূচক) কাজে সূচকীয় অক্ষর খোঁজা বিফল হয়েছে", ""},
+    {RT_IME_STDSTR_INDEX_RESULT_STR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "অভ্যন্তরীণ গোলমাল: কথা.সূচক(ক, সূচক) কাজে ফেরত মান কথারাশি তৈরি বিফল হয়েছে", ""},
+    {RT_IME_STDSTR_INDEX_UNREACHABLE, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "অভ্যন্তরীণ গোলমাল: কথা.সূচক(ক, সূচক) কাজে সূচকীয় অক্ষর খোঁজা বিফল হয়েছে", ""},
+    {RT_STDSTR_SPLIT_STR_NOT_STRING, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "কথা.ভাগ(ক, বিভাজক) কাজের প্রথম প্রেরণমান অর্থাৎ ক একটি কথারাশি হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি দেওয়া হয়েছে", ""},
+    {RT_STDSTR_SPLIT_DELIM_NOT_STRING, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "কথা.ভাগ(ক, বিভাজক) কাজের দ্বিতীয় প্রেরণমান অর্থাৎ বিভাজক একটি কথারাশি হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি দেওয়া হয়েছে", ""},
+    {RT_IME_STDSTR_SPLIT_MEM, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "অভ্যন্তরীণ গোলমাল: কথা.ভাগ(ক, বিভাজক) কাজে 'ক' কথারাশিকে ভাগ করা বিফল হয়েছে", ""},
+    {RT_IME_STDSTR_SPLIT_TEMPSTR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "অভ্যন্তরীণ গোলমাল: কথা.ভাগ(ক, বিভাজক) কাজে ফেরত মানের খণ্ডগুলি তৈরি বিফল হয়েছে", ""},
+    {RT_IME_STDSTR_SPLIT_RESULTARR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "অভ্যন্তরীণ গোলমাল: কথা.ভাগ(ক, বিভাজক) কাজে ফেরত মানের তালিকা তৈরি বিফল হয়েছে", ""},
+    {RT_IME_STDSTR_STR_VALTOSTR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "অভ্যন্তরীণ গোলমাল: কথা.পরিবর্তন(মান) কাজে দেওয়া %s-জাতিয় প্রেরণমানকে কথারাশিতে পরিবর্তন বিফল হয়েছে", ""},
+    {RT_IME_STDSTR_STR_RESULT, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "অভ্যন্তরীণ গোলমাল: কথা.পরিবর্তন(মান) কাজে দেওয়া %s-জাতিয় প্রেরণমানকে কথারাশিতে পরিবর্তন করে ফেরত মান তৈরি বিফল হয়েছে", ""},
 
 };
 

@@ -5,39 +5,27 @@
 #include "../include/vm.h"
 #include <math.h>
 #include <stdbool.h>
-#include <stdlib.h>
+#include <stdio.h>
 
 static PValue str_Index(PVm *vm, PValue *args, u64 argc) {
     PValue rawStr = args[0];
     if (!IsValueObjType(rawStr, OT_STR)) {
-        VmError(
-            vm, RT_TEMPLATE,
-            "Index(...) function's first argument must be a string"
-        );
+        VmError(vm, RT_STDSTR_INDEX_STR_NOT_STRING, ValueTypeToStr(rawStr));
         return MakeNil();
     }
 
     PValue rawIndex = args[1];
-    u64 index = 0;
+
     if (!IsValueNum(rawIndex)) {
-
-        VmError(
-            vm, RT_TEMPLATE,
-            "Index(...) index argument must be a non-negative integer"
-        );
+        VmError(vm, RT_STDSTR_INDEX_INVALID_IDX_TYPE, ValueTypeToStr(rawIndex));
         return MakeNil();
-    } else {
-        double dIndex = ValueAsNum(rawIndex);
-        if (!IsDoubleInt(dIndex)) {
-            VmError(
-                vm, RT_TEMPLATE,
-                "Index(...) index argument must be a non-negative integer"
-            );
-            return MakeNil();
-        }
-
-        index = (u64)floor(dIndex);
     }
+    double dblIndex = ValueAsNum(rawIndex);
+    if (dblIndex < 0 || !IsDoubleInt(dblIndex)) {
+        VmError(vm, RT_STDSTR_INDEX_INVALID_IDX_NUMTYPE, dblIndex);
+        return MakeNil();
+    }
+    u64 index = (u64)floor(dblIndex);
 
     struct OString *str = &ValueAsObj(rawStr)->v.OString;
 
@@ -47,37 +35,46 @@ static PValue str_Index(PVm *vm, PValue *args, u64 argc) {
 
     switch (err) {
         case GR_ERR_INDEX_OUT_RANGE: {
-            VmError(vm, RT_TEMPLATE, "Index(...) index is out of range");
+            u64 graphemeCount = GetGraphemeCount(str->value, len);
+            u64 maxIdx = graphemeCount == 0 ? 0 : graphemeCount - 1;
+            VmError(vm, RT_STDSTR_INDEX_INDEX_OUT_RANGE, maxIdx);
             return MakeNil();
         }; // error
         case GR_ERR_MEM: {
-            VmError(
-                vm, RT_TEMPLATE,
-                "Internal Error : Index(...) failed due to memory error"
-            );
+            VmError(vm, RT_IME_STDSTR_INDEX_GRAPHEME_MEM);
             return MakeNil();
         }; // error
         case GR_ERR_EMPTY: {
-            return MakeNil(); // return empty string
+            char *emptyStr = StrDuplicate("", 0);
+            PObj *obj = NewStrObject(vm->gc, NULL, emptyStr, false);
+            if (obj == NULL) {
+                VmError(vm, RT_IME_STDSTR_INDEX_RESULT_STR);
+                return MakeNil();
+            }
+            return MakeObject(obj);
         }; // empty string
         case GR_ERR_OK: {
             PObj *obj = NewStrObject(vm->gc, NULL, result, false);
-            // todo: null check
+            if (obj == NULL) {
+                VmError(vm, RT_IME_STDSTR_INDEX_RESULT_STR);
+                return MakeNil();
+            }
             return MakeObject(obj);
         }
     }
-
+    VmError(vm, RT_IME_STDSTR_INDEX_UNREACHABLE);
     return MakeNil(); // should never reach here
 }
 
 static PValue str_Split(PVm *vm, PValue *args, u64 argc) {
     PValue rawStr = args[0];
     PValue rawDelim = args[1];
-    if (!IsValueObjType(rawStr, OT_STR) || !IsValueObjType(rawDelim, OT_STR)) {
-        VmError(
-            vm, RT_TEMPLATE,
-            "Split(...) function's both arguments must be string"
-        );
+    if (!IsValueObjType(rawStr, OT_STR)) {
+        VmError(vm, RT_STDSTR_SPLIT_STR_NOT_STRING, ValueTypeToStr(rawStr));
+        return MakeNil();
+    }
+    if (!IsValueObjType(rawDelim, OT_STR)) {
+        VmError(vm, RT_STDSTR_SPLIT_DELIM_NOT_STRING, ValueTypeToStr(rawDelim));
         return MakeNil();
     }
 
@@ -87,34 +84,31 @@ static PValue str_Split(PVm *vm, PValue *args, u64 argc) {
     bool isok = true;
     u64 count = 0;
     char **result = StrSplitDelim(str->value, delim->value, &count, &isok);
-
-    if (isok) {
-
-        PValue *items = NULL;
-        for (u64 i = 0; i < count; i++) {
-            PObj *tempStr = NewStrObject(vm->gc, NULL, result[i], false);
-            if (tempStr == NULL) {
-                return MakeNil(); // memory error //todo
-            }
-
-            arrput(items, MakeObject(tempStr));
-        }
-
-        PObj *arr = NewArrayObject(vm->gc, NULL, items, count);
-        arrfree(
-            result
-        ); // we don't need to free the substrings, arr items now own them
-        return MakeObject(arr);
-
-    } else {
-        VmError(
-            vm, RT_TEMPLATE,
-            "Internal Error : Split(...) failed due to memory error"
-        );
+    if (!isok) {
+        VmError(vm, RT_IME_STDSTR_SPLIT_MEM);
         return MakeNil();
     }
 
-    return MakeNil(); // should never reach here
+    PValue *items = NULL;
+    for (u64 i = 0; i < count; i++) {
+        PObj *tempStr = NewStrObject(vm->gc, NULL, result[i], false);
+        if (tempStr == NULL) {
+            VmError(vm, RT_IME_STDSTR_SPLIT_TEMPSTR);
+            return MakeNil();
+            // we just return here, the orpahned objects will handled by the gc
+        }
+
+        arrput(items, MakeObject(tempStr));
+    }
+
+    PObj *arr = NewArrayObject(vm->gc, NULL, items, count);
+    if (arr == NULL) {
+        VmError(vm, RT_IME_STDSTR_SPLIT_RESULTARR);
+        return MakeNil();
+    }
+    arrfree(result);
+    // we don't need to free the substrings, arr items now own them
+    return MakeObject(arr);
 }
 
 static PValue str_String(PVm *vm, PValue *args, u64 argc) {
@@ -122,10 +116,15 @@ static PValue str_String(PVm *vm, PValue *args, u64 argc) {
     char *str = ValueToString(target); // we don't need to free this
     // as ownership is given to string object crated below
     if (str == NULL) {
+        VmError(vm, RT_IME_STDSTR_STR_VALTOSTR, ValueTypeToStr(target));
         return MakeNil(); // error
     }
 
     PObj *strObj = NewStrObject(vm->gc, NULL, str, true);
+    if (strObj == NULL) {
+        VmError(vm, RT_IME_STDSTR_STR_RESULT, ValueTypeToStr(target));
+        return MakeNil();
+    }
     return MakeObject(strObj);
 }
 
