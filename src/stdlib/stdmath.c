@@ -30,8 +30,7 @@ static inline double getRandNumRange(double min, double max) {
 static PValue math_Sqrt(PVm *vm, PValue *args, u64 argc) {
     PValue rawVal = args[0];
     if (!IsValueNum(rawVal)) {
-
-        VmError(vm, RT_TEMPLATE, "Square root can only calculated for numbers");
+        VmError(vm, RT_STDMATH_SQRT_NOT_NUM, ValueTypeToStr(rawVal));
         return MakeNil();
     }
     double result = sqrt(ValueAsNum(rawVal));
@@ -41,8 +40,7 @@ static PValue math_Sqrt(PVm *vm, PValue *args, u64 argc) {
 static PValue math_Log10(PVm *vm, PValue *args, u64 argc) {
     PValue rawVal = args[0];
     if (!IsValueNum(rawVal)) {
-
-        VmError(vm, RT_TEMPLATE, "log can only be calculated for numbers");
+        VmError(vm, RT_STDMATH_LOG10_NOT_NUM, ValueTypeToStr(rawVal));
         return MakeNil();
     }
     double result = log10(ValueAsNum(rawVal));
@@ -51,7 +49,7 @@ static PValue math_Log10(PVm *vm, PValue *args, u64 argc) {
 static PValue math_Log(PVm *vm, PValue *args, u64 argc) {
     PValue rawVal = args[0];
     if (!IsValueNum(rawVal)) {
-        VmError(vm, RT_TEMPLATE, "log can only be calculated for numbers");
+        VmError(vm, RT_STDMATH_LOG_NOT_NUM, ValueTypeToStr(rawVal));
         return MakeNil();
     }
     double result = log(ValueAsNum(rawVal));
@@ -61,8 +59,13 @@ static PValue math_LogBase(PVm *vm, PValue *args, u64 argc) {
     PValue rawBase = args[0];
     PValue rawNum = args[1];
 
-    if (!IsValueNum(rawBase) || !IsValueNum(rawNum)) {
-        VmError(vm, RT_TEMPLATE, "log can only be calculated for numbers");
+    if (!IsValueNum(rawBase)) {
+        VmError(vm, RT_STDMATH_LOGBASE_BASE_NOT_NUM, ValueTypeToStr(rawBase));
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawNum)) {
+        VmError(vm, RT_STDMATH_LOGBASE_NUMBER_NOT_NUM, ValueTypeToStr(rawNum));
         return MakeNil();
     }
     double result = log(ValueAsNum(rawNum)) / log(ValueAsNum(rawBase));
@@ -72,8 +75,13 @@ static PValue math_GCD(PVm *vm, PValue *args, u64 argc) {
     PValue rawA = args[0];
     PValue rawB = args[1];
 
-    if (!IsValueNum(rawA) || !IsValueNum(rawB)) {
-        // Make Error
+    if (!IsValueNum(rawA)) {
+        VmError(vm, RT_STDMATH_GCD_A_NOT_NUM, ValueTypeToStr(rawA));
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawB)) {
+        VmError(vm, RT_STDMATH_GCD_B_NOT_NUM, ValueTypeToStr(rawB));
         return MakeNil();
     }
 
@@ -84,8 +92,12 @@ static PValue math_LCM(PVm *vm, PValue *args, u64 argc) {
     PValue rawA = args[0];
     PValue rawB = args[1];
 
-    if (!IsValueNum(rawA) || !IsValueNum(rawB)) {
-        // Make Error
+    if (!IsValueNum(rawA)) {
+        VmError(vm, RT_STDMATH_LCM_A_NOT_NUM, ValueTypeToStr(rawA));
+        return MakeNil();
+    }
+    if (!IsValueNum(rawB)) {
+        VmError(vm, RT_STDMATH_LCM_B_NOT_NUM, ValueTypeToStr(rawB));
         return MakeNil();
     }
 
@@ -97,7 +109,8 @@ static PValue math_LCM(PVm *vm, PValue *args, u64 argc) {
 static PValue math_Sine(PVm *vm, PValue *args, u64 argc) {
     PValue raw = args[0];
     if (!IsValueNum(raw)) {
-        return MakeNil(); // error
+        VmError(vm, RT_STDMATH_SIN_NOT_NUM, ValueTypeToStr(raw));
+        return MakeNil();
     }
     double result = sin(ValueAsNum(raw));
     return MakeNumber(result);
@@ -105,7 +118,8 @@ static PValue math_Sine(PVm *vm, PValue *args, u64 argc) {
 static PValue math_Cosine(PVm *vm, PValue *args, u64 argc) {
     PValue raw = args[0];
     if (!IsValueNum(raw)) {
-        return MakeNil(); // error
+        VmError(vm, RT_STDMATH_COS_NOT_NUM, ValueTypeToStr(raw));
+        return MakeNil();
     }
     double result = cos(ValueAsNum(raw));
     return MakeNumber(result);
@@ -113,7 +127,8 @@ static PValue math_Cosine(PVm *vm, PValue *args, u64 argc) {
 static PValue math_Tangent(PVm *vm, PValue *args, u64 argc) {
     PValue raw = args[0];
     if (!IsValueNum(raw)) {
-        return MakeNil(); // error
+        VmError(vm, RT_STDMATH_TAN_NOT_NUM, ValueTypeToStr(raw));
+        return MakeNil();
     }
     double result = tan(ValueAsNum(raw));
     return MakeNumber(result);
@@ -121,7 +136,8 @@ static PValue math_Tangent(PVm *vm, PValue *args, u64 argc) {
 static PValue math_Degree(PVm *vm, PValue *args, u64 argc) {
     PValue raw = args[0];
     if (!IsValueNum(raw)) {
-        return MakeNil(); // error
+        VmError(vm, RT_STDMATH_DEG_NOT_NUM, ValueTypeToStr(raw));
+        return MakeNil();
     }
     double result = ValueAsNum(raw) * (180.0 / CONST_PI);
     return MakeNumber(result);
@@ -129,7 +145,8 @@ static PValue math_Degree(PVm *vm, PValue *args, u64 argc) {
 static PValue math_Radians(PVm *vm, PValue *args, u64 argc) {
     PValue raw = args[0];
     if (!IsValueNum(raw)) {
-        return MakeNil(); // error
+        VmError(vm, RT_STDMATH_RAD_NOT_NUM, ValueTypeToStr(raw));
+        return MakeNil();
     }
     double result = ValueAsNum(raw) * (CONST_PI / 180.0);
     return MakeNumber(result);
@@ -138,7 +155,7 @@ static PValue math_Number(PVm *vm, PValue *args, u64 argc) {
     PValue rawStr = args[0];
 
     if (!IsValueObjType(rawStr, OT_STR)) {
-        VmError(vm, RT_TEMPLATE, "Only string can be converted to numbers");
+        VmError(vm, RT_STDMATH_NUMBER_NOT_NUM, ValueTypeToStr(rawStr));
         return MakeNil();
     }
 
@@ -148,7 +165,7 @@ static PValue math_Number(PVm *vm, PValue *args, u64 argc) {
     result = NumberFromStr(strObj->value, StrLength(strObj->value), &isok);
 
     if (!isok) {
-        VmError(vm, RT_TEMPLATE, "Failed to convert string to number");
+        VmError(vm, RT_IME_STDMATH_NUMBER_CONVERT_FAIL);
         return MakeNil();
     }
 
@@ -157,7 +174,8 @@ static PValue math_Number(PVm *vm, PValue *args, u64 argc) {
 static PValue math_Abs(PVm *vm, PValue *args, u64 argc) {
     PValue raw = args[0];
     if (!IsValueNum(raw)) {
-        return MakeNil(); // error
+        VmError(vm, RT_STDMATH_ABS_NOT_NUM, ValueTypeToStr(raw));
+        return MakeNil();
     }
     double result = fabs(ValueAsNum(raw));
     return MakeNumber(result);
@@ -165,7 +183,8 @@ static PValue math_Abs(PVm *vm, PValue *args, u64 argc) {
 static PValue math_Round(PVm *vm, PValue *args, u64 argc) {
     PValue raw = args[0];
     if (!IsValueNum(raw)) {
-        return MakeNil(); // error
+        VmError(vm, RT_STDMATH_ROUND_NOT_NUM, ValueTypeToStr(raw));
+        return MakeNil();
     }
     double result = round(ValueAsNum(raw));
     return MakeNumber(result);
@@ -173,7 +192,8 @@ static PValue math_Round(PVm *vm, PValue *args, u64 argc) {
 static PValue math_Floor(PVm *vm, PValue *args, u64 argc) {
     PValue raw = args[0];
     if (!IsValueNum(raw)) {
-        return MakeNil(); // error
+        VmError(vm, RT_STDMATH_FLOOR_NOT_NUM, ValueTypeToStr(raw));
+        return MakeNil();
     }
     double result = floor(ValueAsNum(raw));
     return MakeNumber(result);
@@ -181,7 +201,8 @@ static PValue math_Floor(PVm *vm, PValue *args, u64 argc) {
 static PValue math_Ceil(PVm *vm, PValue *args, u64 argc) {
     PValue raw = args[0];
     if (!IsValueNum(raw)) {
-        return MakeNil(); // error
+        VmError(vm, RT_STDMATH_CEIL_NOT_NUM, ValueTypeToStr(raw));
+        return MakeNil();
     }
     double result = ceil(ValueAsNum(raw));
     return MakeNumber(result);
@@ -191,7 +212,13 @@ static PValue math_Random(PVm *vm, PValue *args, u64 argc) {
     PValue rawMin = args[0];
     PValue rawMax = args[1];
 
-    if (!IsValueNum(rawMin) || !IsValueNum(rawMax)) {
+    if (!IsValueNum(rawMin)) {
+        VmError(vm, RT_STDMATH_RANDOM_MIN_NOT_NUM, ValueTypeToStr(rawMin));
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawMax)) {
+        VmError(vm, RT_STDMATH_RANDOM_MAX_NOT_NUM, ValueTypeToStr(rawMax));
         return MakeNil();
     }
 
@@ -244,8 +271,16 @@ void PushStdlibMath(PVm *vm, SymbolTable *table) {
 
     PushStdlibEntries(vm, table, MATH_STDLIB_NAME, entries, count);
     PObj *piNameObj = NewStrObject(vm->gc, NULL, MATH_STD_PI, false);
+    if (piNameObj == NULL) {
+        VmError(vm, RT_IME_STDMATH_PI_STR);
+        return;
+    }
     VmPush(vm, MakeObject(piNameObj));
     PObj *eNameObj = NewStrObject(vm->gc, NULL, MATH_STD_E, false);
+    if (eNameObj == NULL) {
+        VmError(vm, RT_IME_STDMATH_E_STR);
+        return;
+    }
     VmPush(vm, MakeObject(eNameObj));
     SymbolTableSet(table, piNameObj, MakeNumber(CONST_PI));
     SymbolTableSet(table, eNameObj, MakeNumber(CONST_E));
