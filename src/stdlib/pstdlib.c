@@ -14,7 +14,7 @@ void PushStdlib(PVm *vm, SymbolTable *table, const char *name, StdlibMod mod) {
         return;
     }
     switch (mod) {
-        case STDLIB_OS: PushStdlibOs(vm, table); break;
+        case STDLIB_SYSTEM: PushStdlibSystem(vm, table); break;
         case STDLIB_MATH: PushStdlibMath(vm, table); break;
         case STDLIB_MAP: PushStdlibMap(vm, table); break;
         case STDLIB_STRING: PushStdlibString(vm, table); break;

@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-#define OS_STDLIB_NAME     "ওএস"
+#define SYSTEM_STDLIB_NAME "পরিবেশ"
 #define MATH_STDLIB_NAME   "গণিত"
 #define MAP_STDLIB_NAME    "ছক"
 #define STRING_STDLIB_NAME "কথা"
@@ -20,7 +20,7 @@ extern "C" {
 
 typedef enum StdlibMod {
     STDLIB_NONE = 0,
-    STDLIB_OS,
+    STDLIB_SYSTEM,
     STDLIB_MATH,
     STDLIB_MAP,
     STDLIB_ARRAY,
@@ -44,8 +44,8 @@ typedef struct StdlibEntry {
 typedef struct PVm PVm;
 
 static inline StdlibMod GetStdlibMod(const char *name) {
-    if (StrEqual(name, OS_STDLIB_NAME)) {
-        return STDLIB_OS;
+    if (StrEqual(name, SYSTEM_STDLIB_NAME)) {
+        return STDLIB_SYSTEM;
     } else if (StrEqual(name, MATH_STDLIB_NAME)) {
         return STDLIB_MATH;
     } else if (StrEqual(name, MAP_STDLIB_NAME)) {
@@ -67,7 +67,7 @@ static inline StdlibMod GetStdlibMod(const char *name) {
 }
 
 void PushStdlib(PVm *vm, SymbolTable *table, const char *name, StdlibMod mod);
-void PushStdlibOs(PVm *vm, SymbolTable *table);
+void PushStdlibSystem(PVm *vm, SymbolTable *table);
 void PushStdlibMath(PVm *vm, SymbolTable *table);
 void PushStdlibMap(PVm *vm, SymbolTable *table);
 void PushStdlibArray(PVm *vm, SymbolTable *table);

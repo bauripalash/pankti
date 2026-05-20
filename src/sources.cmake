@@ -23,14 +23,14 @@ set(PANKTI_SRC_FILES
   "${CMAKE_CURRENT_LIST_DIR}/compiler.c"
   "${CMAKE_CURRENT_LIST_DIR}/symtable.c"
   "${CMAKE_CURRENT_LIST_DIR}/vm.c"
-  
+
 
   # Utilities
 
   "${CMAKE_CURRENT_LIST_DIR}/utils/utilfiles.c"
   "${CMAKE_CURRENT_LIST_DIR}/utils/utilnums.c"
   "${CMAKE_CURRENT_LIST_DIR}/utils/utilstr.c"
-  
+
 
   "${CMAKE_CURRENT_LIST_DIR}/gc/gc.c"
   "${CMAKE_CURRENT_LIST_DIR}/gc/gcexpr.c"
@@ -42,7 +42,7 @@ set(PANKTI_SRC_FILES
   "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdmap.c"
   "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdarray.c"
   "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdmath.c"
-  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdos.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdsystem.c"
   "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdstring.c"
   "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdfile.c"
 

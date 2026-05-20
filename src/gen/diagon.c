@@ -216,6 +216,11 @@ static const PanDiagInfo diagList[PANDIAG_CODE_COUNT] = {
     {RT_STDMATH_CEIL_NOT_NUM, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "গণিত.আসন্ন_বড়(ক) কাজের প্রেরণমান 'ক' একটি সংখ্যা হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি দেওয়া হয়েছে", ""},
     {RT_STDMATH_RANDOM_MIN_NOT_NUM, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "গণিত.এলোমেলো(সর্বনিম্ন, সর্বোচ্চ) কাজের প্রেরণমান 'সর্বনিম্ন' একটি সংখ্যা হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি দেওয়া হয়েছে", ""},
     {RT_STDMATH_RANDOM_MAX_NOT_NUM, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "গণিত.এলোমেলো(সর্বনিম্ন, সর্বোচ্চ) কাজের প্রেরণমান 'সর্বোচ্চ' একটি সংখ্যা হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি দেওয়া হয়েছে", ""},
+    {RT_IME_STDSYS_NAME_STR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "অভ্যন্তরীণ গোলমাল: পরিবেশ.নাম() কাজে অপারেটিং সিস্টেমের নামের কথারাশি তৈরি বিফল হয়েছে", ""},
+    {RT_IME_STDSYS_ARCH_STR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "অভ্যন্তরীণ গোলমাল: পরিবেশ.আর্চ() কাজে অপারেটিং সিস্টেমের আর্চের নামের কথারাশি তৈরি বিফল হয়েছে", ""},
+    {RT_IME_STDSYS_USERNAME_STR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "অভ্যন্তরীণ গোলমাল: পরিবেশ.ব্যবহারকারী() কাজে অপারেটিং সিস্টেমের ব্যবহারকারীর নামের কথারাশি তৈরি বিফল হয়েছে", ""},
+    {RT_IME_STDSYS_HOMEDIR_STR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "অভ্যন্তরীণ গোলমাল: পরিবেশ.ঘর() কাজে অপারেটিং সিস্টেমের ব্যবহারকারীর হোম ডাইরেক্টরি/ফোল্ডারের নামের কথারাশি তৈরি বিফল হয়েছে", ""},
+    {RT_IME_STDSYS_CURDIR_STR, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, false, false, "অভ্যন্তরীণ গোলমাল: পরিবেশ.অবস্থান() কাজে বর্তমান ডাইরেক্টরি/ফোল্ডারের নামের কথারাশি তৈরি বিফল হয়েছে", ""},
 
 };
 
