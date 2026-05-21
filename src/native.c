@@ -39,8 +39,8 @@
 #define NAME_ERROR_PN      "golmal"
 
 #define NAME_ARGS_EN       "args"
-#define NAME_ARGS_BN       "args"
-#define NAME_ARGS_PN       "args"
+#define NAME_ARGS_BN       "প্রেরণমান"
+#define NAME_ARGS_PN       "preronman"
 
 #define NATIVE_MODULE_NAME "সাধারণ"
 
