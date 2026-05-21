@@ -6,6 +6,7 @@
 //    TestStdlib();
 //}
 #include "../include/utest.h"
+#include "test_internal.h"
 #include "test_stdlib.h"
 #include "test_bench.h"
 #include "test_arithmetic.h"

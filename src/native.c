@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <time.h>
 
 #define NAME_CLOCK_EN      "clock"
@@ -20,6 +21,10 @@
 #define NAME_SHOW_EN       "show"
 #define NAME_SHOW_BN       "দেখাও"
 #define NAME_SHOW_PN       "dekhao"
+
+#define NAME_TYPE_EN       "type"
+#define NAME_TYPE_BN       "প্রকার"
+#define NAME_TYPE_PN       "prokar"
 
 #define NAME_LEN_EN        "len"
 #define NAME_LEN_BN        "আয়তন"
@@ -53,6 +58,17 @@ static PValue ntvShow(PVm *vm, PValue *args, u64 argc) {
         }
     }
     return MakeNil();
+}
+
+static PValue ntvType(PVm *vm, PValue *args, u64 argc) {
+    PValue target = args[0];
+    const char *typeName = ValueTypeToStr(target);
+    PObj *typeStrObj = NewStrObject(vm->gc, NULL, typeName, false);
+    if (typeStrObj == NULL) {
+        return MakeNil(); // todo error
+    }
+
+    return MakeObject(typeStrObj);
 }
 
 static PValue ntvLen(PVm *vm, PValue *args, u64 argc) {
@@ -195,6 +211,9 @@ void RegisterNatives(PVm *vm) {
         MakeStdlibEntry(NAME_SHOW_EN, ntvShow, -1),
         MakeStdlibEntry(NAME_SHOW_BN, ntvShow, -1),
         MakeStdlibEntry(NAME_SHOW_PN, ntvShow, -1),
+        MakeStdlibEntry(NAME_TYPE_EN, ntvType, 1),
+        MakeStdlibEntry(NAME_TYPE_BN, ntvType, 1),
+        MakeStdlibEntry(NAME_TYPE_PN, ntvType, 1),
         MakeStdlibEntry(NAME_LEN_EN, ntvLen, 1),
         MakeStdlibEntry(NAME_LEN_BN, ntvLen, 1),
         MakeStdlibEntry(NAME_LEN_PN, ntvLen, 1),

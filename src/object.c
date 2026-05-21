@@ -9,8 +9,8 @@
 #include "external/stb/stb_ds.h"
 #include "external/xxhash/xxhash.h"
 #include "include/alloc.h"
-#include "include/keywords.h"
 #include "include/object.h"
+#include "include/panktiterms.h"
 #include "include/printer.h"
 #include "include/ptypes.h"
 #include "include/utils.h"
@@ -33,13 +33,13 @@ void PrintValue(PValue val) {
             PanPrint("%f", num);
         }
     } else if (IsValueBool(val)) {
-        PanPrint("%s", ValueAsBool(val) ? KW_BN_TRUE : KW_BN_FALSE);
+        PanPrint("%s", ValueAsBool(val) ? PANTERM_TRUE : PANTERM_FALSE);
     } else if (IsValueNil(val)) {
-        PanPrint(KW_BN_NIL);
+        PanPrint(PANTERM_NIL);
     } else if (IsValueObj(val)) {
         PrintObject(ValueAsObj(val));
     } else {
-        PanPrint("Unknown");
+        PanPrint(PANTERM_UNKNOWN);
     }
 }
 
@@ -57,13 +57,13 @@ PValueType GetValueType(PValue value) {
 
 const char *ValueTypeToStr(PValue val) {
     switch (GetValueType(val)) {
-        case PVAL_NUM: return "Number";
-        case PVAL_BOOL: return "Bool";
-        case PVAL_NIL: return "Nil";
+        case PVAL_NUM: return PANTERM_NUMBER;
+        case PVAL_BOOL: return PANTERM_BOOLEAN;
+        case PVAL_NIL: return PANTERM_NIL;
         case PVAL_OBJ: return ObjTypeToString(ValueAsObj(val)->type);
     }
 
-    return "Unknown";
+    return PANTERM_UNKNOWN;
 }
 
 bool CanObjectBeKey(PObjType type) {
@@ -100,7 +100,7 @@ u64 GetValueHash(PValue val, u64 seed) {
             return CONST_ZERO_HASH;
         }
         if (isnan(value)) {
-            return CONST_ZERO_HASH;
+            return CONST_NAN_HASH;
         }
         u64 bits;
         memcpy(&bits, &value, sizeof(bits));
@@ -293,7 +293,7 @@ void PrintObject(const PObj *o) {
             if (str->value != NULL) {
                 PanPrint("%s", str->value);
             } else {
-                PanPrint("<INVALID STRING>");
+                PanPrint("<" PANTERM_UNKNOWN ">");
             }
 
             break;
@@ -301,9 +301,12 @@ void PrintObject(const PObj *o) {
         case OT_COMFNC: {
             const struct OComFunction *func = &o->v.OComFunction;
             if (func->strName != NULL) {
-                PanPrint("<fn %s>", func->strName->v.OString.value);
+                PanPrint(
+                    "<%s '%s'>", PANTERM_FUNCTION,
+                    func->strName->v.OString.value
+                );
             } else {
-                PanPrint("<script>");
+                PanPrint("<%s>", PANTERM_SCRIPT);
             }
             break;
         }
@@ -329,8 +332,8 @@ void PrintObject(const PObj *o) {
         }
         case OT_NATIVE: {
             PanPrint(
-                "<native %s>",
-                o->v.ONative.name != NULL ? o->v.ONative.name : "unknown"
+                "<%s '%s'>", PANTERM_NATIVE_FUNC,
+                o->v.ONative.name != NULL ? o->v.ONative.name : PANTERM_UNKNOWN
             );
             break;
         }
@@ -360,11 +363,14 @@ void PrintObject(const PObj *o) {
                 name = mod->customName;
             }
 
-            PanPrint("<Module %s>", name != NULL ? name : "null");
+            PanPrint(
+                "<%s '%s'>", PANTERM_MODULE,
+                name != NULL ? name : PANTERM_UNKNOWN
+            );
             break;
         }
         case OT_UPVAL: {
-            PanPrint("<UpValue>");
+            PanPrint("<" PANTERM_UPVALUE ">");
             break;
         }
     }
@@ -386,12 +392,12 @@ char *ValueToString(PValue val) {
 
     } else if (IsValueBool(val)) {
         if (ValueAsBool(val) == true) { // just make it more verbose
-            result = StrDuplicate(KW_BN_TRUE, StrLength(KW_BN_TRUE));
+            result = StrDuplicate(PANTERM_TRUE, StrLength(PANTERM_TRUE));
         } else {
-            result = StrDuplicate(KW_BN_FALSE, StrLength(KW_BN_FALSE));
+            result = StrDuplicate(PANTERM_FALSE, StrLength(PANTERM_FALSE));
         }
     } else if (IsValueNil(val)) {
-        result = StrDuplicate(KW_BN_NIL, StrLength(KW_BN_NIL));
+        result = StrDuplicate(PANTERM_NIL, StrLength(PANTERM_NIL));
     } else if (IsValueObj(val)) {
         result = ObjToString(ValueAsObj(val));
     }
@@ -415,12 +421,15 @@ char *ObjToString(PObj *obj) {
             struct OComFunction *fn = &obj->v.OComFunction;
             if (fn->strName != NULL) {
                 const char *temp = StrFormat(
-                    "<%s '%s'>", KW_BN_FUNC,
-                    fn->strName != NULL ? fn->strName->v.OString.value : "null"
+                    "<%s '%s'>", PANTERM_FUNCTION,
+                    fn->strName != NULL ? fn->strName->v.OString.value
+                                        : PANTERM_UNKNOWN
                 );
                 result = StrDuplicate(temp, StrLength(temp));
             } else {
-                result = StrDuplicate("<script>", StrLength("<script>"));
+                result = StrDuplicate(
+                    "<" PANTERM_SCRIPT ">", StrLength("<" PANTERM_SCRIPT ">")
+                );
             }
 
             break;
@@ -493,7 +502,8 @@ char *ObjToString(PObj *obj) {
         case OT_NATIVE: {
             struct ONative *nfn = &obj->v.ONative;
             const char *temp = StrFormat(
-                "<Native '%s'>", nfn->name != NULL ? nfn->name : "unknown"
+                "<%s '%s'>", PANTERM_NATIVE_FUNC,
+                nfn->name != NULL ? nfn->name : PANTERM_UNKNOWN
             );
             result = StrDuplicate(temp, strlen(temp));
             break;
@@ -505,13 +515,14 @@ char *ObjToString(PObj *obj) {
                 name = obj->v.OModule.customName;
                 hasName = true;
             }
-            const char *temp =
-                StrFormat("<Module '%s'>", hasName ? name : "null");
+            const char *temp = StrFormat(
+                "<%s '%s'>", PANTERM_MODULE, hasName ? name : PANTERM_UNKNOWN
+            );
             result = StrDuplicate(temp, StrLength(temp));
             break;
         }
         case OT_UPVAL: {
-            const char *temp = StrFormat("<UpValue '%s'>", "<todo>");
+            const char *temp = StrFormat("<" PANTERM_UPVALUE ">");
             result = StrDuplicate(temp, strlen(temp));
             break;
         }
@@ -522,17 +533,18 @@ char *ObjToString(PObj *obj) {
 
 char *ObjTypeToString(PObjType type) {
     switch (type) {
-        case OT_STR: return "String";
-        // case OT_FNC: return "Function";
-        case OT_ARR: return "Array";
-        case OT_MAP: return "HashMap";
-        case OT_NATIVE: return "Native Func";
-        case OT_MODULE: return "Module";
-        case OT_UPVAL: return "Upvalue";
-        case OT_COMFNC: return "Function";
-        case OT_CLOSURE: return "Closure";
+        case OT_STR: return PANTERM_STRING;
+        case OT_ARR: return PANTERM_ARRAY;
+        case OT_MAP: return PANTERM_MAP;
+        case OT_NATIVE: return PANTERM_NATIVE_FUNC;
+        case OT_MODULE: return PANTERM_MODULE;
+        case OT_UPVAL: return PANTERM_UPVALUE;
+        case OT_COMFNC:
+            return PANTERM_FUNCTION;
+            // To users functions and closures are not different
+        case OT_CLOSURE: return PANTERM_FUNCTION;
     }
-    return "Unknown"; // should never reach here
+    return PANTERM_UNKNOWN; // should never reach here
 }
 
 bool IsObjEqual(const PObj *a, const PObj *b) {
