@@ -63,7 +63,11 @@ static PValue ntvShow(PVm *vm, PValue *args, u64 argc) {
 static PValue ntvType(PVm *vm, PValue *args, u64 argc) {
     PValue target = args[0];
     const char *typeName = ValueTypeToStr(target);
-    PObj *typeStrObj = NewStrObject(vm->gc, NULL, typeName, false);
+    char *typeNameMlcd = StrDuplicate(typeName, StrLength(typeName));
+    if (typeNameMlcd == NULL) {
+        return MakeNil(); // todo error
+    }
+    PObj *typeStrObj = NewStrObject(vm->gc, NULL, typeNameMlcd, true);
     if (typeStrObj == NULL) {
         return MakeNil(); // todo error
     }
