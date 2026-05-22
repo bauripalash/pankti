@@ -37,11 +37,6 @@ PColor ParseColorString(const char *str, ColorStrError *err) {
         return GFX_COLOR_BLANK_CODE;
     }
 
-    int rVal = 0;
-    int gVal = 0;
-    int bVal = 0;
-    int aVal = 255;
-
     bool numParseOk = false;
     double rawRed =
         NumberFromStr(clrValues[0], StrLength(clrValues[0]), &numParseOk);
@@ -78,10 +73,10 @@ PColor ParseColorString(const char *str, ColorStrError *err) {
         }
     }
 
-    rVal = round(ClampDouble(rawRed, 0, 255));
-    gVal = round(ClampDouble(rawGreen, 0, 255));
-    bVal = round(ClampDouble(rawBlue, 0, 255));
-    aVal = round(ClampDouble(rawAlpha, 0, 255));
+    int rVal = round(ClampDouble(rawRed, 0, 255));
+    int gVal = round(ClampDouble(rawGreen, 0, 255));
+    int bVal = round(ClampDouble(rawBlue, 0, 255));
+    int aVal = round(ClampDouble(rawAlpha, 0, 255));
     *err = CLRSTR_OK;
     return (PColor){rVal, gVal, bVal, aVal};
 }
