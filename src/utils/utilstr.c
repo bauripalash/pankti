@@ -122,7 +122,7 @@ char **StrSplitDelim(const char *str, const char *delim, u64 *count, bool *ok) {
     u64 dlen = StrLength(delim);
 
     const char *start = str;
-    char *token = "";
+    const char *token = "";
 
     while ((token = strstr(start, delim)) != NULL) {
         u64 tokenLen = token - start;
