@@ -46,7 +46,7 @@ static const PanDiagInfo diagList[PANDIAG_CODE_COUNT] = {
     {PARSER_EXPECT_RBRACE_BLOCK, PAN_DIAG_PARSER, PAN_DIAG_SEV_ERROR, false, false, "বিবৃতি গুচ্ছের পর তৃতীয় বন্ধনী '}' পাওয়া উচিত ছিল", ""},
     {PARSER_EXPECT_DO_WHILECOND, PAN_DIAG_PARSER, PAN_DIAG_SEV_ERROR, false, true, "যতক্ষণ-করো বিবৃতির শর্তের পর 'করো'/'do'/'koro' পাওয়া উচিত ছিল", "যতক্ষণ-করো বিবৃতি এইভাবে লিখতে হয় - যতক্ষণ <শর্ত> করো...শেষ"},
     {PARSER_EXPECT_SEMICOLON_NILRETURN, PAN_DIAG_PARSER, PAN_DIAG_SEV_ERROR, false, false, "খালি ফেরাও এর পর একটি সেমিকোলন ';' পাওয়া উচিত ছিল", ""},
-    {PARSER_EXPECT_RPAREN_GROUP, PAN_DIAG_PARSER, PAN_DIAG_SEV_ERROR, false, true, "গুচ্ছ রাশিমালার পর প্রথম বন্ধনী ')' পাওয়া উচিত ছিল", "গুচ্ছ রাশি এইভাবে লিখতে হয় - (রাশি, রাশি, রাশি)"},
+    {PARSER_EXPECT_RPAREN_GROUP, PAN_DIAG_PARSER, PAN_DIAG_SEV_ERROR, false, true, "গুচ্ছ রাশিমালার পর প্রথম বন্ধনী ')' পাওয়া উচিত ছিল", "গুচ্ছ রাশি এইভাবে লিখতে হয় - (1+2)"},
     {PARSER_EXPECT_RBRACE_MAP, PAN_DIAG_PARSER, PAN_DIAG_SEV_ERROR, false, true, "ছকের সূচক-মান যুগলগুলির শেষে তৃতীয় বন্ধনী '}' পাওয়া উচিত ছিল", "ছক এইভাবে লিখতে হয় - {সূচক : মান}"},
     {PARSER_EXPECT_COMMA_MAPPAIR, PAN_DIAG_PARSER, PAN_DIAG_SEV_ERROR, false, true, "ছকের সূচক-মান যুগলের পর কমা ',' পাওয়া উচিত ছিল", "ছক এইভাবে লিখতে হয় - {সূচক : মান, সূচক : মান}"},
     {PARSER_EXPECT_COLON_MAPKEY, PAN_DIAG_PARSER, PAN_DIAG_SEV_ERROR, false, true, "ছকের সূচকের পর কোলন ':' পাওয়া উচিত ছিল", "ছক এইভাবে লিখতে হয় - {সূচক : মান}"},
