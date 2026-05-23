@@ -24,6 +24,10 @@ static inline double getGcd(double a, double b) {
     return x;
 }
 
+static inline double toDeg(double rad) { return rad * (180.0 / CONST_PI); }
+
+static inline double toRad(double deg) { return deg * (CONST_PI / 180.0); }
+
 static inline double getRandNumRange(double min, double max) {
     double scale = (double)rand() / (double)RAND_MAX;
     return min + scale * (max - min);
@@ -114,7 +118,8 @@ static PValue math_Sine(PVm *vm, PValue *args, u64 argc) {
         VmError(vm, RT_STDMATH_SIN_NOT_NUM, ValueTypeToStr(raw));
         return MakeNil();
     }
-    double result = sin(ValueAsNum(raw));
+    double target = toRad(ValueAsNum(raw));
+    double result = sin(target);
     return MakeNumber(result);
 }
 static PValue math_Cosine(PVm *vm, PValue *args, u64 argc) {
@@ -123,7 +128,8 @@ static PValue math_Cosine(PVm *vm, PValue *args, u64 argc) {
         VmError(vm, RT_STDMATH_COS_NOT_NUM, ValueTypeToStr(raw));
         return MakeNil();
     }
-    double result = cos(ValueAsNum(raw));
+    double target = toRad(ValueAsNum(raw));
+    double result = cos(target);
     return MakeNumber(result);
 }
 static PValue math_Tangent(PVm *vm, PValue *args, u64 argc) {
@@ -132,7 +138,18 @@ static PValue math_Tangent(PVm *vm, PValue *args, u64 argc) {
         VmError(vm, RT_STDMATH_TAN_NOT_NUM, ValueTypeToStr(raw));
         return MakeNil();
     }
-    double result = tan(ValueAsNum(raw));
+    double degValue = ValueAsNum(raw);
+
+    // tan result invalid on odd multiples of 90
+    double norm = fmod(fabs(degValue), 180.0);
+    if (norm == 90.0) {
+        VmError(vm, RT_STDMATH_TAN_RESULT_INVALID, degValue);
+        return MakeNil();
+    }
+
+    double target = toRad(degValue);
+    double result = tan(target);
+
     return MakeNumber(result);
 }
 static PValue math_Degree(PVm *vm, PValue *args, u64 argc) {

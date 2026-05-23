@@ -206,6 +206,7 @@ static const PanDiagInfo diagList[PANDIAG_CODE_COUNT] = {
     {RT_STDMATH_SIN_NOT_NUM, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "গণিত.সাইন(ক) কাজের প্রেরণমান 'ক' একটি সংখ্যা হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি দেওয়া হয়েছে", ""},
     {RT_STDMATH_COS_NOT_NUM, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "গণিত.কস(ক) কাজের প্রেরণমান 'ক' একটি সংখ্যা হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি দেওয়া হয়েছে", ""},
     {RT_STDMATH_TAN_NOT_NUM, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "গণিত.ট্যান(ক) কাজের প্রেরণমান 'ক' একটি সংখ্যা হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি দেওয়া হয়েছে", ""},
+    {RT_STDMATH_TAN_RESULT_INVALID, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "গণিত.ট্যান(ক) কাজে %f ডিগ্রির মান অসংজ্ঞায়িত", ""},
     {RT_STDMATH_DEG_NOT_NUM, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "গণিত.ডিগ্রি(ক) কাজের প্রেরণমান 'ক' একটি সংখ্যা হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি দেওয়া হয়েছে", ""},
     {RT_STDMATH_RAD_NOT_NUM, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "গণিত.রেডিয়ান(ক) কাজের প্রেরণমান 'ক' একটি সংখ্যা হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি দেওয়া হয়েছে", ""},
     {RT_STDMATH_NUMBER_NOT_NUM, PAN_DIAG_RUNTIME, PAN_DIAG_SEV_ERROR, true, false, "গণিত.সংখ্যা(ক) কাজের প্রেরণমান 'ক' একটি কথারাশি হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি দেওয়া হয়েছে", ""},

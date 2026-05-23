@@ -134,6 +134,9 @@ bool IsValueEqual(PValue a, PValue b) {
         return IsObjEqual(ValueAsObj(a), ValueAsObj(b));
     } else {
 #if defined(USE_NAN_BOXING)
+        if (IsValueNum(a)) {
+            return ValueAsNum(a) == ValueAsNum(b);
+        }
         return a == b;
 #else
         if (a.type == PVAL_NIL) {
