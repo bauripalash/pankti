@@ -104,6 +104,8 @@ char *BoolToString(bool v);
 
 double NumberFromStr(const char *lexeme, u64 len, bool *ok);
 
+bool FormatDouble(double num, char *buf, int bufsize);
+
 double ClampDouble(double value, double min, double max);
 i64 ClampInt(i64 value, i64 min, i64 max);
 

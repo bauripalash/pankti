@@ -4,7 +4,34 @@
 #include "../include/ustring.h"
 #include <ctype.h>
 #include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
 
+bool FormatDouble(double num, char *buf, int bufsize) {
+    // from prec 1 to 17 (possible max)
+    // we convert it to string then convert it to double again and match
+    // it with `num`. if it matches means we got the shortest length
+    // otherwise (which doesn't seem to possible in practice) we return the
+    // whole thing converted to string
+    //
+    // Here how it works
+    // target=1.2345
+    // prec=1 -> 1 -> match -> false -> continue
+    // prec=2 -> 1.2 -> match -> false -> continue
+    // prec=3 -> 1.23 -> match -> false -> continue
+    // ...
+    // prec=5 -> 1.2345 -> match -> true -> return
+    for (int prec = 1; prec <= 17; prec++) {
+        snprintf(buf, (size_t)bufsize, "%.*g", prec, num);
+        if (strtod(buf, NULL) == num) {
+            return true;
+        }
+    }
+    snprintf(buf, (size_t)bufsize, "%.17g", num);
+    return true;
+}
 double NumberFromStr(const char *lexeme, u64 len, bool *ok) {
     char *buf = PCalloc(len + 1, sizeof(char));
     if (buf == NULL) {

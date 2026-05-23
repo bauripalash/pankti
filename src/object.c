@@ -24,13 +24,17 @@
 #define CONST_BOOL_FALSE_HASH 0x0
 #define CONST_NIL_HASH        0x2
 
+#define NUM_STR_BUF_SIZE      64
+
 void PrintValue(PValue val) {
     if (IsValueNum(val)) {
         double num = ValueAsNum(val);
         if (IsDoubleInt(num)) {
             PanPrint("%0.f", num);
         } else {
-            PanPrint("%f", num);
+            char buf[NUM_STR_BUF_SIZE];
+            FormatDouble(num, buf, NUM_STR_BUF_SIZE);
+            PanPrint("%s", buf);
         }
     } else if (IsValueBool(val)) {
         PanPrint("%s", ValueAsBool(val) ? PANTERM_TRUE : PANTERM_FALSE);
@@ -387,7 +391,9 @@ char *ValueToString(PValue val) {
         if (IsDoubleInt(dblNum)) {
             str = gb_make_string(StrFormat("%d", (int)floor(dblNum)));
         } else {
-            str = gb_make_string(StrFormat("%f", ValueAsNum(val)));
+            char buf[NUM_STR_BUF_SIZE];
+            FormatDouble(dblNum, buf, NUM_STR_BUF_SIZE);
+            str = gb_make_string(StrFormat("%s", buf));
         }
         result = StrDuplicate(str, (u64)gb_string_length(str));
         gb_free_string(str);
