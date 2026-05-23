@@ -147,6 +147,8 @@ static PValue math_Tangent(PVm *vm, PValue *args, u64 argc) {
         return MakeNil();
     }
 
+    if (norm == 0.0) return MakeNumber(0.0);
+
     double target = toRad(degValue);
     double result = tan(target);
 
