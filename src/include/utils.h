@@ -11,9 +11,9 @@ extern "C" {
 #endif
 
 // Constant value of Pi used across the codebase
-#define CONST_PI 3.14159265358979323846f
+#define CONST_PI 3.141592653589793
 // Constant value of e used across the codebase
-#define CONST_E            2.71828182845904523536f
+#define CONST_E            2.718281828459045
 
 #define MAX_STRFORMAT_BUF  4
 #define MAX_STRSPLIT_COUNT 128
