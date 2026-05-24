@@ -32,6 +32,25 @@ bool FormatDouble(double num, char *buf, int bufsize) {
     snprintf(buf, (size_t)bufsize, "%.17g", num);
     return true;
 }
+
+void NumberStrToBnStr(const char *en, char *buf, int bufSize) {
+    // write index
+    size_t wi = 0;
+    for (size_t ri = 0; en[ri] != '\0'; ri++) {
+        char ch = en[ri];
+        if (ch >= '0' && ch <= '9') {
+            if (wi + 3 >= bufSize) break;
+            buf[wi++] = (char)0xE0;
+            buf[wi++] = (char)0xA7;
+            buf[wi++] = (char)(0xA6 + (ch - '0'));
+        } else {
+            if (wi + 1 >= bufSize) break;
+            buf[wi++] = (char)ch;
+        }
+    }
+    buf[wi] = '\0';
+}
+
 double NumberFromStr(const char *lexeme, u64 len, bool *ok) {
     char *buf = PCalloc(len + 1, sizeof(char));
     if (buf == NULL) {

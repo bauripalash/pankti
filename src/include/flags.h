@@ -14,6 +14,7 @@ typedef struct PanDebugFlags {
     bool times;
     bool gc;
     bool stressGc;
+    bool englishNum;
 } PanDebugFlags;
 
 extern PanDebugFlags panDebugFlags;
@@ -28,6 +29,7 @@ void PrintDebugFlags(void);
 #define FLAG_DEBUG_TIMES    (panDebugFlags.times)
 #define FLAG_DEBUG_GC       (panDebugFlags.gc)
 #define FLAG_STRESS_GC      (panDebugFlags.stressGc)
+#define FLAG_ENGLISH_NUM    (panDebugFlags.englishNum)
 #else
 
 #define FLAG_DEBUG_LEXER    0
@@ -36,6 +38,7 @@ void PrintDebugFlags(void);
 #define FLAG_DEBUG_TIMES    0
 #define FLAG_DEBUG_GC       0
 #define FLAG_STRESS_GC      0
+#define FLAG_ENGLISH_NUM    0
 
 static inline void InitDebugFlags(void) {}
 static inline void PrintDebugFlags(void) {}

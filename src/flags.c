@@ -11,6 +11,7 @@
 #define DEBUG_TIMES_ENV    "DEBUG_TIMES"
 #define DEBUG_GC_ENV       "DEBUG_GC"
 #define STRESS_GC_ENV      "STRESS_GC"
+#define ENGLISH_NUM_ENV    "ENGLISH_NUM"
 
 PanDebugFlags panDebugFlags = {0};
 
@@ -33,6 +34,7 @@ void InitDebugFlags(void) {
     panDebugFlags.times = readEnvFlag(DEBUG_TIMES_ENV);
     panDebugFlags.gc = readEnvFlag(DEBUG_GC_ENV);
     panDebugFlags.stressGc = readEnvFlag(STRESS_GC_ENV);
+    panDebugFlags.englishNum = readEnvFlag(ENGLISH_NUM_ENV);
 }
 
 void PrintDebugFlags(void) {
@@ -47,6 +49,9 @@ void PrintDebugFlags(void) {
     PanPrint("    DEBUG_GC       = %s\n", panDebugFlags.gc ? "on" : "off");
     PanPrint(
         "    STRESS_GC      = %s\n", panDebugFlags.stressGc ? "on" : "off"
+    );
+    PanPrint(
+        "    ENGLISH_NUM      = %s\n", panDebugFlags.stressGc ? "on" : "off"
     );
 }
 #else

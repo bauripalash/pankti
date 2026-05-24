@@ -102,8 +102,17 @@ char32_t U8ToU32(const unsigned char *str);
 // Convert Bool to String; `"true"` or `"false"`
 char *BoolToString(bool v);
 
+// Get Number From String (Bengali & English both)
+// set ok accordingly
 double NumberFromStr(const char *lexeme, u64 len, bool *ok);
 
+// Given a number string convert it to bengali number string
+// into buf
+void NumberStrToBnStr(const char *en, char *buf, int bufSize);
+
+// Write the shortest possible double number representation to buf
+// Example: 1.0100 -> 1.01 (strips trailing zeros)
+// Example: 11.110011 -> 11.110011 (nothing to strip)
 bool FormatDouble(double num, char *buf, int bufsize);
 
 double ClampDouble(double value, double min, double max);

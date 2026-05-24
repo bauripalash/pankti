@@ -3,12 +3,14 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "external/gb/gb_string.h"
 #include "external/stb/stb_ds.h"
 #include "external/xxhash/xxhash.h"
 #include "include/alloc.h"
+#include "include/flags.h"
 #include "include/object.h"
 #include "include/panktiterms.h"
 #include "include/printer.h"
@@ -25,17 +27,35 @@
 #define CONST_NIL_HASH        0x2
 
 #define NUM_STR_BUF_SIZE      64
+#define BN_NUM_STR_BUF_SIZE   NUM_STR_BUF_SIZE * 3
 
 void PrintValue(PValue val) {
     if (IsValueNum(val)) {
         double num = ValueAsNum(val);
+
+        char enBuf[NUM_STR_BUF_SIZE];
+
         if (IsDoubleInt(num)) {
-            PanPrint("%0.f", num);
+            snprintf(enBuf, NUM_STR_BUF_SIZE, "%0.f", num);
         } else {
-            char buf[NUM_STR_BUF_SIZE];
-            FormatDouble(num, buf, NUM_STR_BUF_SIZE);
-            PanPrint("%s", buf);
+            FormatDouble(num, enBuf, NUM_STR_BUF_SIZE);
         }
+
+#if defined(PANKTI_BUILD_DEBUG)
+        if (FLAG_ENGLISH_NUM) {
+            PanPrint("%s", enBuf);
+        } else {
+            char bnBuf[BN_NUM_STR_BUF_SIZE];
+            NumberStrToBnStr(enBuf, bnBuf, BN_NUM_STR_BUF_SIZE);
+            PanPrint("%s", bnBuf);
+        }
+#else
+        char bnBuf[BN_NUM_STR_BUF_SIZE];
+        NumberStrToBnStr(enBuf, bnBuf, BN_NUM_STR_BUF_SIZE);
+        PanPrint("%s", bnBuf);
+
+#endif
+
     } else if (IsValueBool(val)) {
         PanPrint("%s", ValueAsBool(val) ? PANTERM_TRUE : PANTERM_FALSE);
     } else if (IsValueNil(val)) {
@@ -384,20 +404,36 @@ void PrintObject(const PObj *o) {
 }
 
 char *ValueToString(PValue val) {
+
     char *result = NULL;
+
     if (IsValueNum(val)) {
-        gbString str;
         double dblNum = ValueAsNum(val);
+
+        char enBuf[NUM_STR_BUF_SIZE];
+
         if (IsDoubleInt(dblNum)) {
-            str = gb_make_string(StrFormat("%d", (int)floor(dblNum)));
+            snprintf(enBuf, NUM_STR_BUF_SIZE, "%0.f", dblNum);
         } else {
-            char buf[NUM_STR_BUF_SIZE];
-            FormatDouble(dblNum, buf, NUM_STR_BUF_SIZE);
-            str = gb_make_string(StrFormat("%s", buf));
+            FormatDouble(dblNum, enBuf, NUM_STR_BUF_SIZE);
         }
-        result = StrDuplicate(str, (u64)gb_string_length(str));
-        gb_free_string(str);
+
+#if defined(PANKTI_BUILD_DEBUG)
+        if (FLAG_ENGLISH_NUM) {
+            result = StrDuplicate(enBuf, StrLength(enBuf));
+            return result;
+        } else {
+            char bnBuf[BN_NUM_STR_BUF_SIZE];
+            NumberStrToBnStr(enBuf, bnBuf, BN_NUM_STR_BUF_SIZE);
+            result = StrDuplicate(bnBuf, StrLength(bnBuf));
+            return result;
+        }
+#else
+        char bnBuf[BN_NUM_STR_BUF_SIZE];
+        NumberStrToBnStr(enBuf, bnBuf, BN_NUM_STR_BUF_SIZE);
+        result = StrDuplicate(bnBuf, StrLength(bnBuf));
         return result;
+#endif
 
     } else if (IsValueBool(val)) {
         if (ValueAsBool(val) == true) { // just make it more verbose

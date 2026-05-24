@@ -10,7 +10,7 @@
 
 #if defined(PANKTI_BUILD_DEBUG)
 #include "include/flags.h"
-#define PANKTI_SHORT_ARGS "hvLPBTGS"
+#define PANKTI_SHORT_ARGS "hvLPBTGSE"
 #else
 #define PANKTI_SHORT_ARGS "hv"
 #endif
@@ -26,6 +26,7 @@ static const struct optparse_long PANKTI_LONG_OPTS[] = {
     {"debug-times", 'T', OPTPARSE_NONE},
     {"debug-gc", 'G', OPTPARSE_NONE},
     {"stress-gc", 'S', OPTPARSE_NONE},
+    {"english-num", 'E', OPTPARSE_NONE},
 #endif
 
     {0}
@@ -93,6 +94,10 @@ PanArgsResult ParsePanArgs(int argc, char **argv, PanktiArgs *out) {
                 panDebugFlags.stressGc = true;
                 break;
             }
+            case 'E': {
+                panDebugFlags.englishNum = true;
+                break;
+            }
 #endif
 
             case '?': {
@@ -145,11 +150,13 @@ static const char *HelpInfo =
     "   -T, --debug-times       Print Times for Lexing, Parsing...etc.\n"
     "   -G, --debug-gc          Print Debug Events\n"
     "   -S, --stress-gc         Stress GC to to run on every allocation\n"
+    "   -E, --english-num       Output English/Arabic numbers\n"
     "\n"
     "Environment Variables:\n"
     "(Debugging features can be turned on with environment variables)\n"
     "   DEBUG_LEXER=1   DEBUG_PARSER=1  DEBUG_BYTECODE=1\n"
     "   DEBUG_TIMES=1   DEBUG_GC=1      STRESS_GC=1\n"
+    "   ENGLISH_NUM=1\n"
 #endif
     ;
 
