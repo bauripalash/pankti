@@ -14,12 +14,31 @@ static PanGfxCore *gcore = NULL;
 float deltaTime = 0.0;
 
 static PValue gfx_New(PVm *vm, PValue *args, u64 argc) {
-    double winW = ValueAsNum(args[0]);
-    double winH = ValueAsNum(args[1]);
-    char *title = ValueAsObj(args[2])->v.OString.value;
+    PValue rawWinH = args[0];
+    if (!IsValueNum(rawWinH)) {
+        VmError(vm, RT_STDGFX_NEW_HEIGHT_INVALID_TYPE, ValueTypeToStr(rawWinH));
+        return MakeNil();
+    }
+
+    PValue rawWinW = args[1];
+    if (!IsValueNum(rawWinW)) {
+        VmError(vm, RT_STDGFX_NEW_WIDTH_INVALID_TYPE, ValueTypeToStr(rawWinW));
+        return MakeNil();
+    }
+
+    PValue rawTitle = args[2];
+    if (!IsValueObjType(rawTitle, OT_STR)) {
+        VmError(vm, RT_STDGFX_NEW_TITLE_INVALID_TYPE, ValueTypeToStr(rawTitle));
+        return MakeNil();
+    }
+    double winW = ValueAsNum(rawWinW);
+    double winH = ValueAsNum(rawWinH);
+    char *title = ValueAsObj(rawTitle)->v.OString.value;
+
     if (gcore == NULL) {
         gcore = NewGfxCore(winW, winH, title, -1);
     }
+
     StartGfxProcess(gcore);
     return MakeNil();
 }
@@ -47,16 +66,27 @@ static PValue gfx_DrawFinish(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_DrawLine(PVm *vm, PValue *args, u64 argc) {
-    double x1Val = ValueAsNum(args[0]);
-    double y1Val = ValueAsNum(args[1]);
-    double x2Val = ValueAsNum(args[2]);
-    double y2Val = ValueAsNum(args[3]);
+    PValue rawX1 = args[0];
+    PValue rawY1 = args[1];
+    PValue rawX2 = args[2];
+    PValue rawY2 = args[3];
+    PValue rawColor = args[4];
 
-    char *colorStr = ValueAsObj(args[4])->v.OString.value;
+    if (!IsValueNum(rawX1)) {
+        VmError(vm, RT_STDGFX_LINE_X1_INVALID_TYPE, ValueTypeToStr(rawX1));
+        return MakeNil();
+    }
+
+    double x1Val = ValueAsNum(rawX1);
+    double y1Val = ValueAsNum(rawY1);
+    double x2Val = ValueAsNum(rawX2);
+    double y2Val = ValueAsNum(rawY2);
+
+    char *colorStr = ValueAsObj(rawColor)->v.OString.value;
     ColorStrError err = CLRSTR_OK;
     PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
-        VmError(vm, RT_TEMPLATE, "Invalid Color");
+        VmError(vm, RT_STDGFX_LINE_COLOR_INVALID_VALUE, colorStr);
         return MakeNil();
     }
 
@@ -66,13 +96,35 @@ static PValue gfx_DrawLine(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_DrawPixel(PVm *vm, PValue *args, u64 argc) {
-    double xVal = ValueAsNum(args[0]);
-    double yVal = ValueAsNum(args[1]);
-    char *colorStr = ValueAsObj(args[2])->v.OString.value;
+    PValue rawX = args[0];
+    PValue rawY = args[1];
+    PValue rawColor = args[2];
+
+    if (!IsValueNum(rawX)) {
+        VmError(vm, RT_STDGFX_PIXEL_X_INVALID_TYPE, ValueTypeToStr(rawX));
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawY)) {
+        VmError(vm, RT_STDGFX_PIXEL_Y_INVALID_TYPE, ValueTypeToStr(rawY));
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawColor)) {
+        VmError(
+            vm, RT_STDGFX_PIXEL_COLOR_INVALID_TYPE, ValueTypeToStr(rawColor)
+        );
+        return MakeNil();
+    }
+
+    double xVal = ValueAsNum(rawX);
+    double yVal = ValueAsNum(rawY);
+    char *colorStr = ValueAsObj(rawColor)->v.OString.value;
+
     ColorStrError err = CLRSTR_OK;
     PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
-        VmError(vm, RT_TEMPLATE, "Invalid Color");
+        VmError(vm, RT_STDGFX_PIXEL_COLOR_INVALID_VALUE, colorStr);
         return MakeNil();
     }
     GfxDrawPixel(gcore, (int)xVal, (int)yVal, clr);
@@ -80,15 +132,44 @@ static PValue gfx_DrawPixel(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_DrawRectangle(PVm *vm, PValue *args, u64 argc) {
-    double xVal = ValueAsNum(args[0]);
-    double yVal = ValueAsNum(args[1]);
-    double wVal = ValueAsNum(args[2]);
-    double hVal = ValueAsNum(args[3]);
-    char *colorStr = ValueAsObj(args[4])->v.OString.value;
+    PValue rawX = args[0];
+    PValue rawY = args[1];
+    PValue rawH = args[2];
+    PValue rawW = args[3];
+    PValue rawColor = args[4];
+
+    if (!IsValueNum(rawX)) {
+        VmError(vm, RT_STDGFX_DRAWRECT_X_INVALID_TYPE, ValueTypeToStr(rawX));
+        return MakeNil();
+    }
+    if (!IsValueNum(rawY)) {
+        VmError(vm, RT_STDGFX_DRAWRECT_Y_INVALID_TYPE, ValueTypeToStr(rawY));
+        return MakeNil();
+    }
+    if (!IsValueNum(rawH)) {
+        VmError(vm, RT_STDGFX_DRAWRECT_H_INVALID_TYPE, ValueTypeToStr(rawH));
+        return MakeNil();
+    }
+    if (!IsValueNum(rawW)) {
+        VmError(vm, RT_STDGFX_DRAWRECT_W_INVALID_TYPE, ValueTypeToStr(rawW));
+        return MakeNil();
+    }
+    if (!IsValueObjType(rawColor, OT_STR)) {
+        VmError(
+            vm, RT_STDGFX_DRAWRECT_COLOR_INVALID_TYPE, ValueTypeToStr(rawColor)
+        );
+        return MakeNil();
+    }
+
+    double xVal = ValueAsNum(rawX);
+    double yVal = ValueAsNum(rawY);
+    double wVal = ValueAsNum(rawW);
+    double hVal = ValueAsNum(rawH);
+    char *colorStr = ValueAsObj(rawColor)->v.OString.value;
     ColorStrError err = CLRSTR_OK;
     PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
-        VmError(vm, RT_TEMPLATE, "Invalid Color");
+        VmError(vm, RT_STDGFX_DRAWRECT_COLOR_INVALID_VALUE, colorStr);
         return MakeNil();
     }
 
@@ -97,16 +178,68 @@ static PValue gfx_DrawRectangle(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_DrawRectangleLines(PVm *vm, PValue *args, u64 argc) {
-    double xVal = ValueAsNum(args[0]);
-    double yVal = ValueAsNum(args[1]);
-    double wVal = ValueAsNum(args[2]);
-    double hVal = ValueAsNum(args[3]);
-    double thickVal = ValueAsNum(args[4]);
-    char *colorStr = ValueAsObj(args[5])->v.OString.value;
+    PValue rawX = args[0];
+    PValue rawY = args[1];
+    PValue rawH = args[2];
+    PValue rawW = args[3];
+    PValue rawThick = args[4];
+    PValue rawColor = args[5];
+
+    if (!IsValueNum(rawX)) {
+        VmError(
+            vm, RT_STDGFX_DRAWRECTLINE_X_INVALID_TYPE, ValueTypeToStr(rawX)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawY)) {
+        VmError(
+            vm, RT_STDGFX_DRAWRECTLINE_Y_INVALID_TYPE, ValueTypeToStr(rawY)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawW)) {
+        VmError(
+            vm, RT_STDGFX_DRAWRECTLINE_W_INVALID_TYPE, ValueTypeToStr(rawW)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawH)) {
+        VmError(
+            vm, RT_STDGFX_DRAWRECTLINE_H_INVALID_TYPE, ValueTypeToStr(rawH)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawThick)) {
+        VmError(
+            vm, RT_STDGFX_DRAWRECTLINE_THICK_INVALID_TYPE,
+            ValueTypeToStr(rawThick)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueObjType(rawColor, OT_STR)) {
+        VmError(
+            vm, RT_STDGFX_DRAWRECTLINE_COLOR_INVALID_TYPE,
+            ValueTypeToStr(rawColor)
+        );
+        return MakeNil();
+    }
+
+    double xVal = ValueAsNum(rawX);
+    double yVal = ValueAsNum(rawY);
+    double wVal = ValueAsNum(rawW);
+    double hVal = ValueAsNum(rawH);
+    double thickVal = ValueAsNum(rawThick);
+    char *colorStr = ValueAsObj(rawColor)->v.OString.value;
+
     ColorStrError err = CLRSTR_OK;
     PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
-        VmError(vm, RT_TEMPLATE, "Invalid Color");
+        VmError(vm, RT_STDGFX_DRAWRECTLINE_COLOR_INVALID_VALUE, colorStr);
         return MakeNil();
     }
 
@@ -117,14 +250,42 @@ static PValue gfx_DrawRectangleLines(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_DrawCircle(PVm *vm, PValue *args, u64 argc) {
-    double xVal = ValueAsNum(args[0]);
-    double yVal = ValueAsNum(args[1]);
-    double rVal = ValueAsNum(args[2]);
-    char *colorStr = ValueAsObj(args[3])->v.OString.value;
+    PValue rawX = args[0];
+    PValue rawY = args[1];
+    PValue rawR = args[2];
+    PValue rawColor = args[3];
+
+    if (!IsValueNum(rawX)) {
+        VmError(vm, RT_STDGFX_CIRCLE_X_INVALID_TYPE, ValueTypeToStr(rawX));
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawY)) {
+        VmError(vm, RT_STDGFX_CIRCLE_Y_INVALID_TYPE, ValueTypeToStr(rawY));
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawR)) {
+        VmError(vm, RT_STDGFX_CIRCLE_R_INVALID_TYPE, ValueTypeToStr(rawR));
+        return MakeNil();
+    }
+
+    if (!IsValueObjType(rawColor, OT_STR)) {
+        VmError(
+            vm, RT_STDGFX_CIRCLE_COLOR_INVALID_TYPE, ValueTypeToStr(rawColor)
+        );
+        return MakeNil();
+    }
+
+    double xVal = ValueAsNum(rawX);
+    double yVal = ValueAsNum(rawY);
+    double rVal = ValueAsNum(rawR);
+    char *colorStr = ValueAsObj(rawColor)->v.OString.value;
+
     ColorStrError err = CLRSTR_OK;
     PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
-        VmError(vm, RT_TEMPLATE, "Invalid Color");
+        VmError(vm, RT_STDGFX_CIRCLE_COLOR_INVALID_VALUE, colorStr);
         return MakeNil();
     }
     GfxDrawCircle(gcore, (int)xVal, (int)yVal, (float)rVal, clr);
@@ -132,15 +293,53 @@ static PValue gfx_DrawCircle(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_DrawCircleLines(PVm *vm, PValue *args, u64 argc) {
-    double xVal = ValueAsNum(args[0]);
-    double yVal = ValueAsNum(args[1]);
-    double rVal = ValueAsNum(args[2]);
-    double thickVal = ValueAsNum(args[3]);
-    char *colorStr = ValueAsObj(args[4])->v.OString.value;
+    PValue rawX = args[0];
+    PValue rawY = args[1];
+    PValue rawR = args[2];
+    PValue rawThick = args[3];
+    PValue rawColor = args[4];
+
+    if (!IsValueNum(rawX)) {
+        VmError(vm, RT_STDGFX_CIRCLELINE_X_INVALID_TYPE, ValueTypeToStr(rawX));
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawY)) {
+        VmError(vm, RT_STDGFX_CIRCLELINE_Y_INVALID_TYPE, ValueTypeToStr(rawY));
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawR)) {
+        VmError(vm, RT_STDGFX_CIRCLELINE_R_INVALID_TYPE, ValueTypeToStr(rawR));
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawThick)) {
+        VmError(
+            vm, RT_STDGFX_CIRCLELINE_THICK_INVALID_TYPE,
+            ValueTypeToStr(rawThick)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueObj(rawColor)) {
+        VmError(
+            vm, RT_STDGFX_CIRCLELINE_COLOR_INVALID_TYPE,
+            ValueTypeToStr(rawColor)
+        );
+        return MakeNil();
+    }
+
+    double xVal = ValueAsNum(rawX);
+    double yVal = ValueAsNum(rawY);
+    double rVal = ValueAsNum(rawR);
+    double thickVal = ValueAsNum(rawThick);
+    char *colorStr = ValueAsObj(rawColor)->v.OString.value;
+
     ColorStrError err = CLRSTR_OK;
     PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
-        VmError(vm, RT_TEMPLATE, "Invalid Color");
+        VmError(vm, RT_STDGFX_CIRCLELINE_COLOR_INVALID_VALUE, colorStr);
         return MakeNil();
     }
     GfxDrawCircleLine(
@@ -151,11 +350,18 @@ static PValue gfx_DrawCircleLines(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_DrawText(PVm *vm, PValue *args, u64 argc) {
-    double xVal = ValueAsNum(args[0]);
-    double yVal = ValueAsNum(args[1]);
-    char *text = ValueAsObj(args[2])->v.OString.value;
-    double sizeVal = ValueAsNum(args[3]);
-    char *colorStr = ValueAsObj(args[4])->v.OString.value;
+    PValue rawX = args[0];
+    PValue rawY = args[1];
+    PValue rawText = args[2];
+    PValue rawSize = args[3];
+    PValue rawColor = args[4];
+
+    double xVal = ValueAsNum(rawX);
+    double yVal = ValueAsNum(rawY);
+    char *text = ValueAsObj(rawText)->v.OString.value;
+    double sizeVal = ValueAsNum(rawSize);
+    char *colorStr = ValueAsObj(rawColor)->v.OString.value;
+
     ColorStrError err = CLRSTR_OK;
     PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
@@ -171,7 +377,10 @@ static PValue gfx_Clear(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_KeyPress(PVm *vm, PValue *args, u64 argc) {
-    char *keyStr = ValueAsObj(args[0])->v.OString.value;
+    PValue rawKey = args[0];
+
+    char *keyStr = ValueAsObj(rawKey)->v.OString.value;
+
     PKey kbKey = PanStrToKeyboardKey(keyStr, -1);
     if (kbKey == 0) {
         VmError(vm, RT_TEMPLATE, "Invalid key");
@@ -181,7 +390,10 @@ static PValue gfx_KeyPress(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_KeyDown(PVm *vm, PValue *args, u64 argc) {
-    char *keyStr = ValueAsObj(args[0])->v.OString.value;
+    PValue rawKey = args[0];
+
+    char *keyStr = ValueAsObj(rawKey)->v.OString.value;
+
     PKey kbKey = PanStrToKeyboardKey(keyStr, -1);
     if (kbKey == 0) {
         VmError(vm, RT_TEMPLATE, "Invalid key");
@@ -191,7 +403,10 @@ static PValue gfx_KeyDown(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_KeyUp(PVm *vm, PValue *args, u64 argc) {
-    char *keyStr = ValueAsObj(args[0])->v.OString.value;
+    PValue rawKey = args[0];
+
+    char *keyStr = ValueAsObj(rawKey)->v.OString.value;
+
     PKey kbKey = PanStrToKeyboardKey(keyStr, -1);
     if (kbKey == 0) {
         VmError(vm, RT_TEMPLATE, "Invalid key");
@@ -201,7 +416,10 @@ static PValue gfx_KeyUp(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_KeyReleased(PVm *vm, PValue *args, u64 argc) {
-    char *keyStr = ValueAsObj(args[0])->v.OString.value;
+    PValue rawKey = args[0];
+
+    char *keyStr = ValueAsObj(rawKey)->v.OString.value;
+
     PKey kbKey = PanStrToKeyboardKey(keyStr, -1);
     if (kbKey == 0) {
         VmError(vm, RT_TEMPLATE, "Invalid key");
@@ -211,7 +429,10 @@ static PValue gfx_KeyReleased(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_LoadImage(PVm *vm, PValue *args, u64 argc) {
-    char *pathStr = ValueAsObj(args[0])->v.OString.value;
+    PValue rawPath = args[0];
+
+    char *pathStr = ValueAsObj(rawPath)->v.OString.value;
+
     if (!DoesFileExists(pathStr)) {
         VmError(vm, RT_TEMPLATE, "Image file cannot be found");
         return MakeNil();
@@ -235,9 +456,13 @@ static PValue gfx_LoadImage(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_DrawImage(PVm *vm, PValue *args, u64 argc) {
-    double xVal = ValueAsNum(args[0]);
-    double yVal = ValueAsNum(args[1]);
-    struct OString *imgStrObj = &ValueAsObj(args[2])->v.OString;
+    PValue rawX = args[0];
+    PValue rawY = args[1];
+    PValue rawImg = args[2];
+
+    double xVal = ValueAsNum(rawX);
+    double yVal = ValueAsNum(rawY);
+    struct OString *imgStrObj = &ValueAsObj(rawImg)->v.OString;
 
     i64 index = GfxCoreGetImageIndex(gcore, imgStrObj->value, -1);
     if (index == -1) {
@@ -267,7 +492,10 @@ static PValue gfx_GetMousePos(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_IsMouseButtonPressed(PVm *vm, PValue *args, u64 argc) {
-    char *keyStr = ValueAsObj(args[0])->v.OString.value;
+    PValue rawKey = args[0];
+
+    char *keyStr = ValueAsObj(rawKey)->v.OString.value;
+
     int btnInt = PanStrToMouseKey(keyStr, -1);
     if (btnInt == -1) {
         VmError(vm, RT_TEMPLATE, "Invalid mouse key name");
@@ -279,7 +507,10 @@ static PValue gfx_IsMouseButtonPressed(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_IsMouseButtonDown(PVm *vm, PValue *args, u64 argc) {
-    char *keyStr = ValueAsObj(args[0])->v.OString.value;
+    PValue rawKey = args[0];
+
+    char *keyStr = ValueAsObj(rawKey)->v.OString.value;
+
     int btnInt = PanStrToMouseKey(keyStr, -1);
     if (btnInt == -1) {
         VmError(vm, RT_TEMPLATE, "Invalid mouse key name");
@@ -291,7 +522,10 @@ static PValue gfx_IsMouseButtonDown(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_IsMouseButtonReleased(PVm *vm, PValue *args, u64 argc) {
-    char *keyStr = ValueAsObj(args[0])->v.OString.value;
+    PValue rawKey = args[0];
+
+    char *keyStr = ValueAsObj(rawKey)->v.OString.value;
+
     int btnInt = PanStrToMouseKey(keyStr, -1);
     if (btnInt == -1) {
         VmError(vm, RT_TEMPLATE, "Invalid mouse key name");
@@ -303,7 +537,10 @@ static PValue gfx_IsMouseButtonReleased(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_IsMouseButtonUp(PVm *vm, PValue *args, u64 argc) {
-    char *keyStr = ValueAsObj(args[0])->v.OString.value;
+    PValue rawKey = args[0];
+
+    char *keyStr = ValueAsObj(rawKey)->v.OString.value;
+
     int btnInt = PanStrToMouseKey(keyStr, -1);
     if (btnInt == -1) {
         VmError(vm, RT_TEMPLATE, "Invalid mouse key name");
@@ -315,15 +552,25 @@ static PValue gfx_IsMouseButtonUp(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_Is2RectCollision(PVm *vm, PValue *args, u64 argc) {
-    double r1x = ValueAsNum(args[0]);
-    double r1y = ValueAsNum(args[1]);
-    double r1w = ValueAsNum(args[2]);
-    double r1h = ValueAsNum(args[3]);
+    PValue rawR1x = args[0];
+    PValue rawR1y = args[1];
+    PValue rawR1h = args[2];
+    PValue rawR1w = args[3];
 
-    double r2x = ValueAsNum(args[4]);
-    double r2y = ValueAsNum(args[5]);
-    double r2w = ValueAsNum(args[6]);
-    double r2h = ValueAsNum(args[7]);
+    PValue rawR2x = args[4];
+    PValue rawR2y = args[5];
+    PValue rawR2h = args[6];
+    PValue rawR2w = args[7];
+
+    double r1x = ValueAsNum(rawR1x);
+    double r1y = ValueAsNum(rawR1y);
+    double r1w = ValueAsNum(rawR1w);
+    double r1h = ValueAsNum(rawR1h);
+
+    double r2x = ValueAsNum(rawR2x);
+    double r2y = ValueAsNum(rawR2y);
+    double r2w = ValueAsNum(rawR2w);
+    double r2h = ValueAsNum(rawR2h);
 
     bool collide = Gfx2RectColsn(gcore, r1x, r1y, r1w, r1h, r2x, r2y, r2w, r2h);
 
@@ -331,14 +578,23 @@ static PValue gfx_Is2RectCollision(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_IsCircleRectCollision(PVm *vm, PValue *args, u64 argc) {
-    double cx = ValueAsNum(args[0]);
-    double cy = ValueAsNum(args[1]);
-    double cr = ValueAsNum(args[2]);
+    PValue rawCx = args[0];
+    PValue rawCy = args[1];
+    PValue rawCr = args[2];
 
-    double rx = ValueAsNum(args[3]);
-    double ry = ValueAsNum(args[4]);
-    double rw = ValueAsNum(args[5]);
-    double rh = ValueAsNum(args[6]);
+    PValue rawRx = args[3];
+    PValue rawRy = args[4];
+    PValue rawRh = args[5];
+    PValue rawRw = args[6];
+
+    double cx = ValueAsNum(rawCx);
+    double cy = ValueAsNum(rawCy);
+    double cr = ValueAsNum(rawCr);
+
+    double rx = ValueAsNum(rawRx);
+    double ry = ValueAsNum(rawRy);
+    double rw = ValueAsNum(rawRw);
+    double rh = ValueAsNum(rawRh);
 
     bool collide = GfxCircleRectColsn(gcore, cx, cy, cr, rx, ry, rw, rh);
 
@@ -346,13 +602,21 @@ static PValue gfx_IsCircleRectCollision(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue gfx_IsPointRectCollision(PVm *vm, PValue *args, u64 argc) {
-    double px = ValueAsNum(args[0]);
-    double py = ValueAsNum(args[1]);
+    PValue rawPx = args[0];
+    PValue rawPy = args[1];
 
-    double rx = ValueAsNum(args[2]);
-    double ry = ValueAsNum(args[3]);
-    double rw = ValueAsNum(args[4]);
-    double rh = ValueAsNum(args[5]);
+    PValue rawRx = args[2];
+    PValue rawRy = args[3];
+    PValue rawRh = args[4];
+    PValue rawRw = args[5];
+
+    double px = ValueAsNum(rawPx);
+    double py = ValueAsNum(rawPy);
+
+    double rx = ValueAsNum(rawRx);
+    double ry = ValueAsNum(rawRy);
+    double rw = ValueAsNum(rawRw);
+    double rh = ValueAsNum(rawRh);
 
     bool collide = GfxPointRectColsn(gcore, px, py, rx, ry, rw, rh);
 
