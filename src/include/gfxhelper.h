@@ -20,7 +20,7 @@ typedef struct PanGfxCore PanGfxCore;
 #define GFX_COLOR_PREFIX_EN    "color="
 #define GFX_COLOR_PREFIX_EN2   "colour="
 
-#define GFX_COLOR_GRAY_CODE    (PColor){255, 255, 255, 255}
+#define GFX_COLOR_GRAY_CODE    (PColor){128, 128, 128, 255}
 #define GFX_COLOR_GRAY_BN      "ধুসর"
 #define GFX_COLOR_GRAY_EN      "gray"
 
