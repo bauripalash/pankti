@@ -356,6 +356,28 @@ static PValue gfx_DrawText(PVm *vm, PValue *args, u64 argc) {
     PValue rawSize = args[3];
     PValue rawColor = args[4];
 
+    if (!IsValueNum(rawX)) {
+        VmError(vm, RT_STDGFX_TEXT_X_INVALID_TYPE, ValueTypeToStr(rawX));
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawY)) {
+        VmError(vm, RT_STDGFX_TEXT_Y_INVALID_TYPE, ValueTypeToStr(rawY));
+        return MakeNil();
+    }
+
+    if (!IsValueObjType(rawText, OT_STR)) {
+        VmError(vm, RT_STDGFX_TEXT_TEXT_INVALID_TYPE, ValueTypeToStr(rawText));
+        return MakeNil();
+    }
+
+    if (!IsValueObjType(rawColor, OT_STR)) {
+        VmError(
+            vm, RT_STDGFX_TEXT_COLOR_INVALID_TYPE, ValueTypeToStr(rawColor)
+        );
+        return MakeNil();
+    }
+
     double xVal = ValueAsNum(rawX);
     double yVal = ValueAsNum(rawY);
     char *text = ValueAsObj(rawText)->v.OString.value;
@@ -365,7 +387,7 @@ static PValue gfx_DrawText(PVm *vm, PValue *args, u64 argc) {
     ColorStrError err = CLRSTR_OK;
     PColor clr = PanStrToColor(colorStr, &err);
     if (err != CLRSTR_OK) {
-        VmError(vm, RT_TEMPLATE, "Invalid Color");
+        VmError(vm, RT_STDGFX_TEXT_COLOR_INVALID_VALUE, colorStr);
         return MakeNil();
     }
     GfxDrawText(gcore, xVal, yVal, text, (int)sizeVal, clr);
@@ -379,11 +401,18 @@ static PValue gfx_Clear(PVm *vm, PValue *args, u64 argc) {
 static PValue gfx_KeyPress(PVm *vm, PValue *args, u64 argc) {
     PValue rawKey = args[0];
 
+    if (!IsValueObjType(rawKey, OT_STR)) {
+        VmError(
+            vm, RT_STDGFX_KEYPRESS_KEY_INVALID_TYPE, ValueTypeToStr(rawKey)
+        );
+        return MakeNil();
+    }
+
     char *keyStr = ValueAsObj(rawKey)->v.OString.value;
 
     PKey kbKey = PanStrToKeyboardKey(keyStr, -1);
     if (kbKey == 0) {
-        VmError(vm, RT_TEMPLATE, "Invalid key");
+        VmError(vm, RT_STDGFX_KEYPRESS_KEY_INVALID_VALUE, keyStr);
         return MakeNil();
     }
     return MakeBool(GfxKeyPressed(gcore, kbKey));
@@ -392,11 +421,16 @@ static PValue gfx_KeyPress(PVm *vm, PValue *args, u64 argc) {
 static PValue gfx_KeyDown(PVm *vm, PValue *args, u64 argc) {
     PValue rawKey = args[0];
 
+    if (!IsValueObjType(rawKey, OT_STR)) {
+        VmError(vm, RT_STDGFX_KEYDOWN_KEY_INVALID_TYPE, ValueTypeToStr(rawKey));
+        return MakeNil();
+    }
+
     char *keyStr = ValueAsObj(rawKey)->v.OString.value;
 
     PKey kbKey = PanStrToKeyboardKey(keyStr, -1);
     if (kbKey == 0) {
-        VmError(vm, RT_TEMPLATE, "Invalid key");
+        VmError(vm, RT_STDGFX_KEYDOWN_KEY_INVALID_VALUE, keyStr);
         return MakeNil();
     }
     return MakeBool(GfxKeyDown(gcore, kbKey));
@@ -405,11 +439,16 @@ static PValue gfx_KeyDown(PVm *vm, PValue *args, u64 argc) {
 static PValue gfx_KeyUp(PVm *vm, PValue *args, u64 argc) {
     PValue rawKey = args[0];
 
+    if (!IsValueObjType(rawKey, OT_STR)) {
+        VmError(vm, RT_STDGFX_KEYUP_KEY_INVALID_TYPE, ValueTypeToStr(rawKey));
+        return MakeNil();
+    }
+
     char *keyStr = ValueAsObj(rawKey)->v.OString.value;
 
     PKey kbKey = PanStrToKeyboardKey(keyStr, -1);
     if (kbKey == 0) {
-        VmError(vm, RT_TEMPLATE, "Invalid key");
+        VmError(vm, RT_STDGFX_KEYUP_KEY_INVALID_VALUE, keyStr);
         return MakeNil();
     }
     return MakeBool(GfxKeyUp(gcore, kbKey));
@@ -418,11 +457,18 @@ static PValue gfx_KeyUp(PVm *vm, PValue *args, u64 argc) {
 static PValue gfx_KeyReleased(PVm *vm, PValue *args, u64 argc) {
     PValue rawKey = args[0];
 
+    if (!IsValueObjType(rawKey, OT_STR)) {
+        VmError(
+            vm, RT_STDGFX_KEYRELEASED_KEY_INVALID_TYPE, ValueTypeToStr(rawKey)
+        );
+        return MakeNil();
+    }
+
     char *keyStr = ValueAsObj(rawKey)->v.OString.value;
 
     PKey kbKey = PanStrToKeyboardKey(keyStr, -1);
     if (kbKey == 0) {
-        VmError(vm, RT_TEMPLATE, "Invalid key");
+        VmError(vm, RT_STDGFX_KEYRELEASED_KEY_INVALID_VALUE, keyStr);
         return MakeNil();
     }
     return MakeBool(GfxKeyReleased(gcore, kbKey));
@@ -430,6 +476,13 @@ static PValue gfx_KeyReleased(PVm *vm, PValue *args, u64 argc) {
 
 static PValue gfx_LoadImage(PVm *vm, PValue *args, u64 argc) {
     PValue rawPath = args[0];
+
+    if (!IsValueObjType(rawPath, OT_STR)) {
+        VmError(
+            vm, RT_STDGFX_LOADIMG_PATH_INVALID_TYPE, ValueTypeToStr(rawPath)
+        );
+        return MakeNil();
+    }
 
     char *pathStr = ValueAsObj(rawPath)->v.OString.value;
 
@@ -442,13 +495,13 @@ static PValue gfx_LoadImage(PVm *vm, PValue *args, u64 argc) {
     bool ok = false;
     char *str = GfxGetImageString(gcore, index, &ok);
     if (!ok) {
-        VmError(vm, RT_TEMPLATE, "Internal Error : Failed to load image");
+        VmError(vm, RT_IME_STDGFX_LOADIMG_FAILED_FETCH_IMAGE);
         return MakeNil();
     }
     PObj *obj = NewStrObject(vm->gc, NULL, str, true);
 
     if (obj == NULL) {
-        VmError(vm, RT_TEMPLATE, "Internal Error : Failed to load image");
+        VmError(vm, RT_IME_STDGFX_LOADIMG_FAILED_IMAGE_STR);
         return MakeNil();
     }
 
@@ -460,19 +513,34 @@ static PValue gfx_DrawImage(PVm *vm, PValue *args, u64 argc) {
     PValue rawY = args[1];
     PValue rawImg = args[2];
 
+    if (!IsValueNum(rawX)) {
+        VmError(vm, RT_STDGFX_DRAWIMG_X_INVALID_TYPE, ValueTypeToStr(rawX));
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawY)) {
+        VmError(vm, RT_STDGFX_DRAWIMG_Y_INVALID_TYPE, ValueTypeToStr(rawY));
+        return MakeNil();
+    }
+
+    if (!IsValueObjType(rawImg, OT_STR)) {
+        VmError(vm, RT_STDGFX_DRAWIMG_IMG_INVALID_TYPE, ValueTypeToStr(rawImg));
+        return MakeNil();
+    }
+
     double xVal = ValueAsNum(rawX);
     double yVal = ValueAsNum(rawY);
     struct OString *imgStrObj = &ValueAsObj(rawImg)->v.OString;
 
     i64 index = GfxCoreGetImageIndex(gcore, imgStrObj->value, -1);
     if (index == -1) {
-        VmError(vm, RT_TEMPLATE, "Invalid image to draw");
+        VmError(vm, RT_STDGFX_DRAWIMG_IMG_INVALID_VALUE);
         return MakeNil();
     }
     bool ok = false;
     Tigr *img = GfxGetImageFromIdx(gcore, index, &ok);
     if (!ok) {
-        VmError(vm, RT_TEMPLATE, "Invalid image to draw");
+        VmError(vm, RT_IME_STDGFX_DRAWIMG_IMG_FETCH_FAIL);
         return MakeNil();
     }
     tigrBlit(gcore->screen, img, (int)xVal, (int)yVal, 0, 0, img->w, img->h);
@@ -493,12 +561,18 @@ static PValue gfx_GetMousePos(PVm *vm, PValue *args, u64 argc) {
 
 static PValue gfx_IsMouseButtonPressed(PVm *vm, PValue *args, u64 argc) {
     PValue rawKey = args[0];
+    if (!IsValueObjType(rawKey, OT_STR)) {
+        VmError(
+            vm, RT_STDGFX_MOUSEPRESSED_KEY_INVALID_TYPE, ValueTypeToStr(rawKey)
+        );
+        return MakeNil();
+    }
 
     char *keyStr = ValueAsObj(rawKey)->v.OString.value;
 
     int btnInt = PanStrToMouseKey(keyStr, -1);
     if (btnInt == -1) {
-        VmError(vm, RT_TEMPLATE, "Invalid mouse key name");
+        VmError(vm, RT_STDGFX_MOUSEPRESSED_KEY_INVALID_VALUE, keyStr);
         return MakeNil();
     }
 
@@ -508,12 +582,18 @@ static PValue gfx_IsMouseButtonPressed(PVm *vm, PValue *args, u64 argc) {
 
 static PValue gfx_IsMouseButtonDown(PVm *vm, PValue *args, u64 argc) {
     PValue rawKey = args[0];
+    if (!IsValueObjType(rawKey, OT_STR)) {
+        VmError(
+            vm, RT_STDGFX_MOUSEDOWN_KEY_INVALID_TYPE, ValueTypeToStr(rawKey)
+        );
+        return MakeNil();
+    }
 
     char *keyStr = ValueAsObj(rawKey)->v.OString.value;
 
     int btnInt = PanStrToMouseKey(keyStr, -1);
     if (btnInt == -1) {
-        VmError(vm, RT_TEMPLATE, "Invalid mouse key name");
+        VmError(vm, RT_STDGFX_MOUSEDOWN_KEY_INVALID_VALUE, keyStr);
         return MakeNil();
     }
 
@@ -523,12 +603,18 @@ static PValue gfx_IsMouseButtonDown(PVm *vm, PValue *args, u64 argc) {
 
 static PValue gfx_IsMouseButtonReleased(PVm *vm, PValue *args, u64 argc) {
     PValue rawKey = args[0];
+    if (!IsValueObjType(rawKey, OT_STR)) {
+        VmError(
+            vm, RT_STDGFX_MOUSERELEASED_KEY_INVALID_TYPE, ValueTypeToStr(rawKey)
+        );
+        return MakeNil();
+    }
 
     char *keyStr = ValueAsObj(rawKey)->v.OString.value;
 
     int btnInt = PanStrToMouseKey(keyStr, -1);
     if (btnInt == -1) {
-        VmError(vm, RT_TEMPLATE, "Invalid mouse key name");
+        VmError(vm, RT_STDGFX_MOUSERELEASED_KEY_INVALID_VALUE, keyStr);
         return MakeNil();
     }
 
@@ -538,12 +624,16 @@ static PValue gfx_IsMouseButtonReleased(PVm *vm, PValue *args, u64 argc) {
 
 static PValue gfx_IsMouseButtonUp(PVm *vm, PValue *args, u64 argc) {
     PValue rawKey = args[0];
+    if (!IsValueObjType(rawKey, OT_STR)) {
+        VmError(vm, RT_STDGFX_MOUSEUP_KEY_INVALID_TYPE, ValueTypeToStr(rawKey));
+        return MakeNil();
+    }
 
     char *keyStr = ValueAsObj(rawKey)->v.OString.value;
 
     int btnInt = PanStrToMouseKey(keyStr, -1);
     if (btnInt == -1) {
-        VmError(vm, RT_TEMPLATE, "Invalid mouse key name");
+        VmError(vm, RT_STDGFX_MOUSEUP_KEY_INVALID_VALUE, keyStr);
         return MakeNil();
     }
 
@@ -562,6 +652,62 @@ static PValue gfx_Is2RectCollision(PVm *vm, PValue *args, u64 argc) {
     PValue rawR2h = args[6];
     PValue rawR2w = args[7];
 
+    if (!IsValueNum(rawR1x)) {
+        VmError(
+            vm, RT_STDGFX_2RECTCOLS_R1X_INVALID_TYPE, ValueTypeToStr(rawR1x)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawR1y)) {
+        VmError(
+            vm, RT_STDGFX_2RECTCOLS_R1Y_INVALID_TYPE, ValueTypeToStr(rawR1y)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawR1h)) {
+        VmError(
+            vm, RT_STDGFX_2RECTCOLS_R1H_INVALID_TYPE, ValueTypeToStr(rawR1h)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawR1w)) {
+        VmError(
+            vm, RT_STDGFX_2RECTCOLS_R1W_INVALID_TYPE, ValueTypeToStr(rawR1w)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawR2x)) {
+        VmError(
+            vm, RT_STDGFX_2RECTCOLS_R2X_INVALID_TYPE, ValueTypeToStr(rawR2x)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawR2y)) {
+        VmError(
+            vm, RT_STDGFX_2RECTCOLS_R2Y_INVALID_TYPE, ValueTypeToStr(rawR2y)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawR2h)) {
+        VmError(
+            vm, RT_STDGFX_2RECTCOLS_R2H_INVALID_TYPE, ValueTypeToStr(rawR2h)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawR2w)) {
+        VmError(
+            vm, RT_STDGFX_2RECTCOLS_R2W_INVALID_TYPE, ValueTypeToStr(rawR2w)
+        );
+        return MakeNil();
+    }
+
     double r1x = ValueAsNum(rawR1x);
     double r1y = ValueAsNum(rawR1y);
     double r1w = ValueAsNum(rawR1w);
@@ -577,6 +723,70 @@ static PValue gfx_Is2RectCollision(PVm *vm, PValue *args, u64 argc) {
     return MakeBool(collide);
 }
 
+static PValue gfx_IsPointRectCollision(PVm *vm, PValue *args, u64 argc) {
+    PValue rawPx = args[0];
+    PValue rawPy = args[1];
+
+    PValue rawRx = args[2];
+    PValue rawRy = args[3];
+    PValue rawRh = args[4];
+    PValue rawRw = args[5];
+
+    if (!IsValueNum(rawPx)) {
+        VmError(
+            vm, RT_STDGFX_POINTRECTCOLS_PX_INVALID_TYPE, ValueTypeToStr(rawPx)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawPy)) {
+        VmError(
+            vm, RT_STDGFX_POINTRECTCOLS_PY_INVALID_TYPE, ValueTypeToStr(rawPy)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawRx)) {
+        VmError(
+            vm, RT_STDGFX_POINTRECTCOLS_RX_INVALID_TYPE, ValueTypeToStr(rawRx)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawRy)) {
+        VmError(
+            vm, RT_STDGFX_POINTRECTCOLS_RY_INVALID_TYPE, ValueTypeToStr(rawRy)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawRh)) {
+        VmError(
+            vm, RT_STDGFX_POINTRECTCOLS_RH_INVALID_TYPE, ValueTypeToStr(rawRh)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawRw)) {
+        VmError(
+            vm, RT_STDGFX_POINTRECTCOLS_RW_INVALID_TYPE, ValueTypeToStr(rawRw)
+        );
+        return MakeNil();
+    }
+
+    double px = ValueAsNum(rawPx);
+    double py = ValueAsNum(rawPy);
+
+    double rx = ValueAsNum(rawRx);
+    double ry = ValueAsNum(rawRy);
+    double rw = ValueAsNum(rawRw);
+    double rh = ValueAsNum(rawRh);
+
+    bool collide = GfxPointRectColsn(gcore, px, py, rx, ry, rw, rh);
+
+    return MakeBool(collide);
+}
+
 static PValue gfx_IsCircleRectCollision(PVm *vm, PValue *args, u64 argc) {
     PValue rawCx = args[0];
     PValue rawCy = args[1];
@@ -586,6 +796,55 @@ static PValue gfx_IsCircleRectCollision(PVm *vm, PValue *args, u64 argc) {
     PValue rawRy = args[4];
     PValue rawRh = args[5];
     PValue rawRw = args[6];
+
+    if (!IsValueNum(rawCx)) {
+        VmError(
+            vm, RT_STDGFX_CIRCLERECTCOLS_CX_INVALID_TYPE, ValueTypeToStr(rawCx)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawCy)) {
+        VmError(
+            vm, RT_STDGFX_CIRCLERECTCOLS_CY_INVALID_TYPE, ValueTypeToStr(rawCy)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawCr)) {
+        VmError(
+            vm, RT_STDGFX_CIRCLERECTCOLS_CR_INVALID_TYPE, ValueTypeToStr(rawCr)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawRx)) {
+        VmError(
+            vm, RT_STDGFX_CIRCLERECTCOLS_RX_INVALID_TYPE, ValueTypeToStr(rawRx)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawRy)) {
+        VmError(
+            vm, RT_STDGFX_CIRCLERECTCOLS_RY_INVALID_TYPE, ValueTypeToStr(rawRy)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawRh)) {
+        VmError(
+            vm, RT_STDGFX_CIRCLERECTCOLS_RH_INVALID_TYPE, ValueTypeToStr(rawRh)
+        );
+        return MakeNil();
+    }
+
+    if (!IsValueNum(rawRw)) {
+        VmError(
+            vm, RT_STDGFX_CIRCLERECTCOLS_RW_INVALID_TYPE, ValueTypeToStr(rawRw)
+        );
+        return MakeNil();
+    }
 
     double cx = ValueAsNum(rawCx);
     double cy = ValueAsNum(rawCy);
@@ -597,28 +856,6 @@ static PValue gfx_IsCircleRectCollision(PVm *vm, PValue *args, u64 argc) {
     double rh = ValueAsNum(rawRh);
 
     bool collide = GfxCircleRectColsn(gcore, cx, cy, cr, rx, ry, rw, rh);
-
-    return MakeBool(collide);
-}
-
-static PValue gfx_IsPointRectCollision(PVm *vm, PValue *args, u64 argc) {
-    PValue rawPx = args[0];
-    PValue rawPy = args[1];
-
-    PValue rawRx = args[2];
-    PValue rawRy = args[3];
-    PValue rawRh = args[4];
-    PValue rawRw = args[5];
-
-    double px = ValueAsNum(rawPx);
-    double py = ValueAsNum(rawPy);
-
-    double rx = ValueAsNum(rawRx);
-    double ry = ValueAsNum(rawRy);
-    double rw = ValueAsNum(rawRw);
-    double rh = ValueAsNum(rawRh);
-
-    bool collide = GfxPointRectColsn(gcore, px, py, rx, ry, rw, rh);
 
     return MakeBool(collide);
 }
