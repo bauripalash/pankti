@@ -23,6 +23,8 @@ path = 'github.com/alex-shpak/hugo-book'
 [markup]
 [markup.goldmark.renderer]
   unsafe = true
+[markup.goldmark.parser.attribute]
+  block = true
 
 [markup.highlight]
     codeFences = false

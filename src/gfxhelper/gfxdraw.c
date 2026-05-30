@@ -5,7 +5,11 @@
 #include <stdlib.h>
 
 static void drawpx(PanGfxCore *core, int x, int y, int size, PColor clr) {
-    tigrFillRect(core->screen, x, y, size, size, clr);
+    if (size == 1) {
+        tigrPlot(core->screen, x, y, clr);
+    } else {
+        tigrFillRect(core->screen, x, y, size, size, clr);
+    }
 }
 
 bool GfxDrawText(

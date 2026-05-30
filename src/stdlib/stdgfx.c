@@ -110,7 +110,7 @@ static PValue gfx_DrawPixel(PVm *vm, PValue *args, u64 argc) {
         return MakeNil();
     }
 
-    if (!IsValueNum(rawColor)) {
+    if (!IsValueObjType(rawColor, OT_STR)) {
         VmError(
             vm, RT_STDGFX_PIXEL_COLOR_INVALID_TYPE, ValueTypeToStr(rawColor)
         );
