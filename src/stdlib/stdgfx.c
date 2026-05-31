@@ -887,7 +887,7 @@ static PValue gfx_GetDelta(PVm *vm, PValue *args, u64 argc) {
 #define GFX_STD_MOUSE               "মাউস_অবস্থান"
 #define GFX_STD_MOUSE_PRESSED       "মাউস_চাপা"
 #define GFX_STD_MOUSE_DOWN          "মাউস_চাপা_আছে"
-#define GFX_STD_MOUSE_RELEASED      "মাউস_ছাড়া"
+#define GFX_STD_MOUSE_RELEASED      "মাউস_ছাড়া"
 #define GFX_STD_MOUSE_UP            "মাউস_ছাড়া_আছে"
 
 #define GFX_STD_COLLIDE_RECT        "স্পর্শ_আয়তক্ষেত্র"
