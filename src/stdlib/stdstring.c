@@ -46,7 +46,12 @@ static PValue str_Index(PVm *vm, PValue *args, u64 argc) {
         }; // error
         case GR_ERR_EMPTY: {
             char *emptyStr = StrDuplicate("", 0);
-            PObj *obj = NewStrObject(vm->gc, NULL, emptyStr, false);
+            if (emptyStr == NULL) {
+                VmError(vm, RT_IME_STDSTR_INDEX_RESULT_STR);
+                return MakeNil();
+            }
+
+            PObj *obj = NewStrObject(vm->gc, NULL, emptyStr, true);
             if (obj == NULL) {
                 VmError(vm, RT_IME_STDSTR_INDEX_RESULT_STR);
                 return MakeNil();
@@ -54,7 +59,7 @@ static PValue str_Index(PVm *vm, PValue *args, u64 argc) {
             return MakeObject(obj);
         }; // empty string
         case GR_ERR_OK: {
-            PObj *obj = NewStrObject(vm->gc, NULL, result, false);
+            PObj *obj = NewStrObject(vm->gc, NULL, result, true);
             if (obj == NULL) {
                 VmError(vm, RT_IME_STDSTR_INDEX_RESULT_STR);
                 return MakeNil();
@@ -91,7 +96,7 @@ static PValue str_Split(PVm *vm, PValue *args, u64 argc) {
 
     PValue *items = NULL;
     for (u64 i = 0; i < count; i++) {
-        PObj *tempStr = NewStrObject(vm->gc, NULL, result[i], false);
+        PObj *tempStr = NewStrObject(vm->gc, NULL, result[i], true);
         if (tempStr == NULL) {
             VmError(vm, RT_IME_STDSTR_SPLIT_TEMPSTR);
             return MakeNil();
