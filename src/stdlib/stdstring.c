@@ -1,4 +1,5 @@
 #include "../external/stb/stb_ds.h"
+#include "../include/alloc.h"
 #include "../include/gc.h"
 #include "../include/pstdlib.h"
 #include "../include/unicode.h"
@@ -98,6 +99,12 @@ static PValue str_Split(PVm *vm, PValue *args, u64 argc) {
     for (u64 i = 0; i < count; i++) {
         PObj *tempStr = NewStrObject(vm->gc, NULL, result[i], true);
         if (tempStr == NULL) {
+            // we need to free the result and its substrings which were after
+            // this specific substring
+            for (u64 j = i + 1; j < count; j++) {
+                PFree(result[j]);
+            }
+            arrfree(result);
             VmError(vm, RT_IME_STDSTR_SPLIT_TEMPSTR);
             return MakeNil();
             // we just return here, the orpahned objects will handled by the gc
