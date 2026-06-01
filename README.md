@@ -112,7 +112,7 @@ But National Education Policy 2020 aims to introduce coding way earlier, but a s
 * <https://pankti.palashbauri.in>
 
 ## Project Status
-> Pre-alpha. Under heavy development
+> Alpha. Under heavy development, but fully functional.
 
 ## LICENSE
 > MPL v2
