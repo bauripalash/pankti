@@ -1,0 +1,19 @@
+ধরি ক = ১০০
+dhori b = 200
+let c = 300
+
+let গ = ক + b + c
+
+kaj তিনগুন(x)
+    return x * ৩
+end
+
+?তিনগুন(গ)
+
+jodi গ > ১০০ then
+    ?"বড়"
+নাহলে if গ > ২ tahole
+    ?"bigger"
+else
+    ?"বৃহত্তম"
+sesh

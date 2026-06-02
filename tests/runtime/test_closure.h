@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 UTEST(RuntimeTest, Nested_Closure){ GoldenTest("nested_closure"); }
-
+UTEST(RuntimeTest, Mutating_Closure){ GoldenTest("closure_mutation"); }
 
 
 #ifdef __cplusplus

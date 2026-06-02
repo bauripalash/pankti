@@ -7,7 +7,8 @@
 extern "C" {
 #endif
 
-UTEST(RuntimeTest, InternalTypes){ GoldenTest("types"); }
+UTEST(RuntimeTest, Internal_Types){ GoldenTest("types"); }
+UTEST(RuntimeTest, Internal_ScriptWithBOM){ GoldenTest("arithmetic_bom"); }
 
 
 #ifdef __cplusplus
