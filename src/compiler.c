@@ -661,6 +661,7 @@ static bool cmpVariableAssign(PCompiler *comp, PExpr *expr) {
     int upvalIndex = findUpvalue(comp, varName);
     if (upvalIndex != -1) {
         emitBtU16(comp, varName, OP_SET_UPVAL, upvalIndex);
+        return true;
     }
 
     u16 constIndex = addIdentConst(comp, assign->name->exp.EVariable.name);
