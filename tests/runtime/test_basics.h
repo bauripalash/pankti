@@ -13,7 +13,8 @@ UTEST(RuntimeTest, LogicalOps){ GoldenTest("logical_ops"); }
 UTEST(RuntimeTest, NestedData){ GoldenTest("nested_data"); }
 UTEST(RuntimeTest, SubscriptAssign){ GoldenTest("subscript_assign"); }
 UTEST(RuntimeTest, MixedSyntax){ GoldenTest("mixed_syntax"); }
-
+UTEST(RuntimeTest, Truthiness){ GoldenTest("truthiness"); }
+UTEST(RuntimeTest, FuncFirstClass){ GoldenTest("func_firstclass"); }
 
 
 #ifdef __cplusplus
