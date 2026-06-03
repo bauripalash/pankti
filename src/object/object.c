@@ -65,6 +65,19 @@ bool IsValueEqual(PValue a, PValue b) {
     return false;
 }
 
+bool IsValueObjType(PValue val, PObjType otype) {
+    if (!IsValueObj(val)) {
+        return false;
+    }
+
+    PObj *obj = ValueAsObj(val);
+    if (obj->type == otype) {
+        return true;
+    }
+
+    return false;
+}
+
 bool ObjectHasLen(PObj *obj) {
     if (obj == NULL) {
         return false;
@@ -140,4 +153,23 @@ bool IsObjEqual(const PObj *a, const PObj *b) {
     }
 
     return result;
+}
+
+bool SeenSetEnter(ObjSeenSet *set, const PObj *obj) {
+    for (int i = 0; i < set->len; i++) {
+        if (set->buf[i] == obj) {
+            return true; // already seen (cyclic)
+        }
+    }
+    if (set->len < OBJ_SEEN_CAP) {
+        set->buf[set->len++] = obj;
+    }
+    return false;
+}
+void SeenSetExit(ObjSeenSet *set, const PObj *obj) {
+    for (int i = 0; i < set->len; i++) {
+        if (set->buf[i] == obj) {
+            set->buf[i] = set->buf[--set->len]; // swap last and shrink len
+        }
+    }
 }

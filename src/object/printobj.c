@@ -8,7 +8,23 @@
 
 #include <stdio.h>
 
+static void internalPrintValue(PValue val, ObjSeenSet *seen);
+static void internalPrintObj(const PObj *obj, ObjSeenSet *seen);
+
 void PrintValue(PValue val) {
+    ObjSeenSet seen = {0};
+    internalPrintValue(val, &seen);
+}
+
+void PrintObject(const PObj *o) {
+    if (o == NULL) {
+        return;
+    }
+    ObjSeenSet seen = {0};
+    internalPrintObj(o, &seen);
+}
+
+static void internalPrintValue(PValue val, ObjSeenSet *seen) {
     if (IsValueNum(val)) {
         double num = ValueAsNum(val);
 
@@ -40,18 +56,19 @@ void PrintValue(PValue val) {
     } else if (IsValueNil(val)) {
         PanPrint(PANTERM_NIL);
     } else if (IsValueObj(val)) {
-        PrintObject(ValueAsObj(val));
+        internalPrintObj(ValueAsObj(val), seen);
     } else {
         PanPrint(PANTERM_UNKNOWN);
     }
 }
 
-void PrintObject(const PObj *o) {
+static void internalPrintObj(const PObj *o, ObjSeenSet *seen) {
     if (o == NULL) {
         return;
     }
 
     switch (o->type) {
+            // Seen Guard Safe
         case OT_STR: {
             const struct OString *str = &o->v.OString;
             if (str->value != NULL) {
@@ -76,22 +93,7 @@ void PrintObject(const PObj *o) {
         }
         case OT_CLOSURE: {
             const struct OClosure *cls = &o->v.OClosure;
-            PrintObject(cls->function);
-            break;
-        }
-        case OT_ARR: {
-            const struct OArray *arr = &o->v.OArray;
-            PanPrint("[");
-            if (arr->items != NULL) {
-                for (u64 i = 0; i < arrlen(arr->items); i++) {
-                    PValue val = arr->items[i];
-                    PrintValue(val);
-                    if (i != arr->count - 1) {
-                        PanPrint(", ");
-                    }
-                }
-            }
-            PanPrint("]");
+            internalPrintObj(cls->function, seen);
             break;
         }
         case OT_NATIVE: {
@@ -99,25 +101,6 @@ void PrintObject(const PObj *o) {
                 "<%s '%s'>", PANTERM_NATIVE_FUNC,
                 o->v.ONative.name != NULL ? o->v.ONative.name : PANTERM_UNKNOWN
             );
-            break;
-        }
-        case OT_MAP: {
-            PanPrint("{");
-            const struct OMap *map = &o->v.OMap;
-            if (map->table != NULL) {
-                for (int i = 0; i < map->count; i++) {
-                    PValue k = map->table[i].vkey;
-                    PValue v = map->table[i].value;
-                    PrintValue(k);
-                    PanPrint(" : ");
-                    PrintValue(v);
-                    if (i + 1 != map->count) {
-                        PanPrint(", ");
-                    }
-                }
-            }
-
-            PanPrint("}");
             break;
         }
         case OT_MODULE: {
@@ -135,6 +118,53 @@ void PrintObject(const PObj *o) {
         }
         case OT_UPVAL: {
             PanPrint("<" PANTERM_UPVALUE ">");
+            break;
+        }
+
+            // Needs Seen Guard
+        case OT_ARR: {
+            if (SeenSetEnter(seen, o)) {
+                PanPrint("[...]");
+                return;
+            }
+            const struct OArray *arr = &o->v.OArray;
+            PanPrint("[");
+            if (arr->items != NULL) {
+                for (u64 i = 0; i < arrlen(arr->items); i++) {
+                    PValue val = arr->items[i];
+                    internalPrintValue(val, seen);
+                    if (i != arr->count - 1) {
+                        PanPrint(", ");
+                    }
+                }
+            }
+            PanPrint("]");
+            SeenSetExit(seen, o);
+            break;
+        }
+
+        case OT_MAP: {
+            if (SeenSetEnter(seen, o)) {
+                PanPrint("{...}");
+                return;
+            }
+            const struct OMap *map = &o->v.OMap;
+            PanPrint("{");
+            if (map->table != NULL) {
+                for (int i = 0; i < map->count; i++) {
+                    PValue k = map->table[i].vkey;
+                    PValue v = map->table[i].value;
+                    internalPrintValue(k, seen);
+                    PanPrint(" : ");
+                    internalPrintValue(v, seen);
+                    if (i + 1 != map->count) {
+                        PanPrint(", ");
+                    }
+                }
+            }
+
+            PanPrint("}");
+            SeenSetExit(seen, o);
             break;
         }
     }

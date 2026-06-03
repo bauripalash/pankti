@@ -153,6 +153,12 @@ typedef struct PObj {
 
 } PObj;
 
+#define OBJ_SEEN_CAP 128
+typedef struct ObjSeenSet {
+    const PObj *buf[OBJ_SEEN_CAP];
+    int len;
+} ObjSeenSet;
+
 // Make a number value
 static inline PValue MakeNumber(double number) {
 #if defined USE_NAN_BOXING
@@ -256,20 +262,16 @@ static inline PValue MakeObject(PObj *obj) {
 #define ValueAsObj(val) ((PObj *)val.v.obj)
 #endif
 
+// Check if `obj` was already seen or not
+// return `true` if it was already seen
+// otherwise returns `false` and adds the obj to seen set
+bool SeenSetEnter(ObjSeenSet *set, const PObj *obj);
+
+// Remove the `obj` from seen set
+void SeenSetExit(ObjSeenSet *set, const PObj *obj);
+
 // Check if Value `val` is a object and it is a `otype` object
-static inline bool IsValueObjType(PValue val, PObjType otype) {
-    if (!IsValueObj(val)) {
-        return false;
-    }
-
-    PObj *obj = ValueAsObj(val);
-    if (obj->type == otype) {
-        return true;
-    }
-
-    return false;
-}
-
+bool IsValueObjType(PValue val, PObjType otype);
 // Check if value is truthy. Only bools are considered
 bool IsValueTruthy(PValue val);
 // Check if two values `a` and `b` are equal

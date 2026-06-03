@@ -1,4 +1,6 @@
 let a = [1, 2, 3]
 ?a
 a[2] = a
+?"hello"
 ?a
+?"hello"
