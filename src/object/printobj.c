@@ -121,7 +121,7 @@ static void internalPrintObj(const PObj *o, ObjSeenSet *seen) {
             break;
         }
 
-            // Needs Seen Guard
+        // Needs Seen Guard
         case OT_ARR: {
             if (SeenSetEnter(seen, o)) {
                 PanPrint("[...]");

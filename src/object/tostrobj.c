@@ -7,7 +7,23 @@
 #include "../include/panktiterms.h"
 #include "../include/utils.h"
 
+static char *internalValueToString(PValue val, ObjSeenSet *set);
+static char *internalObjToString(const PObj *obj, ObjSeenSet *set);
+
 char *ValueToString(PValue val) {
+    ObjSeenSet set = {0};
+    return internalValueToString(val, &set);
+}
+
+char *ObjToString(PObj *obj) {
+    if (obj == NULL) {
+        return NULL;
+    }
+    ObjSeenSet set = {0};
+    return internalObjToString(obj, &set);
+}
+
+char *internalValueToString(PValue val, ObjSeenSet *seen) {
     char *result = NULL;
     if (IsValueNum(val)) {
         double dblNum = ValueAsNum(val);
@@ -46,17 +62,18 @@ char *ValueToString(PValue val) {
     } else if (IsValueNil(val)) {
         result = StrDuplicate(PANTERM_NIL, StrLength(PANTERM_NIL));
     } else if (IsValueObj(val)) {
-        result = ObjToString(ValueAsObj(val));
+        result = internalObjToString(ValueAsObj(val), seen);
     }
 
     return result;
 }
 
-char *ObjToString(PObj *obj) {
+static char *internalObjToString(const PObj *obj, ObjSeenSet *seen) {
     char *result = NULL;
     switch (obj->type) {
+            // Seen Set Safe
         case OT_STR: {
-            struct OString *str = &obj->v.OString;
+            const struct OString *str = &obj->v.OString;
             if (str->value == NULL) {
                 return NULL;
             }
@@ -65,7 +82,7 @@ char *ObjToString(PObj *obj) {
             break;
         }
         case OT_COMFNC: {
-            struct OComFunction *fn = &obj->v.OComFunction;
+            const struct OComFunction *fn = &obj->v.OComFunction;
             if (fn->strName != NULL) {
                 const char *temp = StrFormat(
                     "<%s '%s'>", PANTERM_FUNCTION,
@@ -82,18 +99,50 @@ char *ObjToString(PObj *obj) {
             break;
         }
         case OT_CLOSURE: {
-            struct OClosure *cls = &obj->v.OClosure;
-            result = ObjToString(cls->function);
+            const struct OClosure *cls = &obj->v.OClosure;
+            result = internalObjToString(cls->function, seen);
             break;
         }
+
+        case OT_NATIVE: {
+            const struct ONative *nfn = &obj->v.ONative;
+            const char *temp = StrFormat(
+                "<%s '%s'>", PANTERM_NATIVE_FUNC,
+                nfn->name != NULL ? nfn->name : PANTERM_UNKNOWN
+            );
+            result = StrDuplicate(temp, strlen(temp));
+            break;
+        }
+        case OT_MODULE: {
+            const char *name = NULL;
+            bool hasName = false;
+            if (obj->v.OModule.customName != NULL) {
+                name = obj->v.OModule.customName;
+                hasName = true;
+            }
+            const char *temp = StrFormat(
+                "<%s '%s'>", PANTERM_MODULE, hasName ? name : PANTERM_UNKNOWN
+            );
+            result = StrDuplicate(temp, StrLength(temp));
+            break;
+        }
+        case OT_UPVAL: {
+            const char *temp = StrFormat("<" PANTERM_UPVALUE ">");
+            result = StrDuplicate(temp, strlen(temp));
+            break;
+        }
+            // Needs Seen Guard
         case OT_ARR: {
-            struct OArray *arr = &obj->v.OArray;
+            if (SeenSetEnter(seen, obj)) {
+                return StrDuplicate("[...]", 5);
+            }
+            const struct OArray *arr = &obj->v.OArray;
 
             gbString s = gb_make_string("[");
 
             for (u64 i = 0; i < arr->count; i++) {
                 PValue val = arr->items[i];
-                char *temp = ValueToString(val);
+                char *temp = internalValueToString(val, seen);
                 s = gb_append_cstring(s, temp);
 
                 if (i != arr->count - 1) {
@@ -104,18 +153,22 @@ char *ObjToString(PObj *obj) {
             s = gb_append_cstring(s, "]");
             result = StrDuplicate(s, (u64)gb_string_length(s));
             gb_free_string(s);
+            SeenSetExit(seen, obj);
             break;
         }
         case OT_MAP: {
-            struct OMap *map = &obj->v.OMap;
+            if (SeenSetEnter(seen, obj)) {
+                return StrDuplicate("{...}", 5);
+            }
+            const struct OMap *map = &obj->v.OMap;
             gbString s = gb_make_string("{");
             u64 count = map->count;
             for (u64 i = 0; i < count; i++) {
                 PValue key = map->table[i].vkey;
                 PValue val = map->table[i].value;
 
-                char *keyStr = ValueToString(key);
-                char *valStr = ValueToString(val);
+                char *keyStr = internalValueToString(key, seen);
+                char *valStr = internalValueToString(val, seen);
 
                 if (keyStr == NULL || valStr == NULL) {
                     gb_free_string(s);
@@ -144,33 +197,7 @@ char *ObjToString(PObj *obj) {
             s = gb_append_cstring(s, "}");
             result = StrDuplicate(s, (u64)gb_string_length(s));
             gb_free_string(s);
-            break;
-        }
-        case OT_NATIVE: {
-            struct ONative *nfn = &obj->v.ONative;
-            const char *temp = StrFormat(
-                "<%s '%s'>", PANTERM_NATIVE_FUNC,
-                nfn->name != NULL ? nfn->name : PANTERM_UNKNOWN
-            );
-            result = StrDuplicate(temp, strlen(temp));
-            break;
-        }
-        case OT_MODULE: {
-            const char *name = NULL;
-            bool hasName = false;
-            if (obj->v.OModule.customName != NULL) {
-                name = obj->v.OModule.customName;
-                hasName = true;
-            }
-            const char *temp = StrFormat(
-                "<%s '%s'>", PANTERM_MODULE, hasName ? name : PANTERM_UNKNOWN
-            );
-            result = StrDuplicate(temp, StrLength(temp));
-            break;
-        }
-        case OT_UPVAL: {
-            const char *temp = StrFormat("<" PANTERM_UPVALUE ">");
-            result = StrDuplicate(temp, strlen(temp));
+            SeenSetExit(seen, obj);
             break;
         }
     }
