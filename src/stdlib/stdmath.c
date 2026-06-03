@@ -24,8 +24,6 @@ static inline double getGcd(double a, double b) {
     return x;
 }
 
-static inline double toDeg(double rad) { return rad * (180.0 / CONST_PI); }
-
 static inline double toRad(double deg) { return deg * (CONST_PI / 180.0); }
 
 static inline double getRandNumRange(double min, double max) {
