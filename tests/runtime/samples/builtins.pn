@@ -1,0 +1,68 @@
+?clock
+?সময়
+?somoy
+
+?show
+?দেখাও
+?dekhao
+
+?type
+?প্রকার
+?prokar
+
+?len
+?আয়তন
+?ayoton
+
+?append
+?সংযোগ
+?songjog
+
+?error
+?গোলমাল
+?golmal
+
+?args
+?প্রেরণমান
+?preronman
+
+?type(clock())
+?প্রকার(সময়())
+?prokar(somoy())
+
+
+?show("Pankti Programming Language\n")
+?দেখাও("পঙক্তি প্রোগ্রামিং ভাষা\n")
+?dekhao("Pankti Programming Bhasa\n")
+
+?type(true)
+?প্রকার(সত্যি)
+?prokar(sotti)
+
+?len("hello")
+?আয়তন("হ্যালো")
+?ayoton("hello")
+
+let a_list = [1, 2, 3]
+ধরি একটি_তালিকা = [১, ২, ৩]
+?append(a_list, 4)
+?সংযোগ(একটি_তালিকা, ৪)
+?songjog(a_list, ৫)
+?a_list
+?একটি_তালিকা
+
+let a_map = {1: "hello", 2: "world"}
+ধরি একটি_ছক = {১ : "নমস্কার", ২ : "বিশ্ব"}
+
+?append(a_map, 3, "mango")
+?a_map
+
+?songjog(a_map, 4, true)
+?a_map
+
+?সংযোগ(একটি_ছক, ৩, "আম")
+?একটি_ছক
+
+?type(args())
+?প্রকার(প্রেরণমান())
+?prokar(preronman())
