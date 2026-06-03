@@ -12,7 +12,9 @@ UTEST(RuntimeTest, StdMath){ GoldenTest("stdmath"); }
 UTEST(RuntimeTest, StdMap){ GoldenTest("stdmap"); }
 UTEST(RuntimeTest, StdArray){ GoldenTest("stdarray"); }
 UTEST(RuntimeTest, StdFile){ GoldenTest("stdfile"); }
-//UTEST(RuntimeTest, StdSystem){ GoldenTest("stdsystem"); }
+UTEST(RuntimeTest, StdGraphics){ GoldenTest("stdgraphics"); }
+UTEST(RuntimeTest, StdSystem){ GoldenTest("stdsystem"); }
+
 
 
 #ifdef __cplusplus

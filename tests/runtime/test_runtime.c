@@ -6,6 +6,7 @@
 #include "test_closure.h"
 #include "test_if.h"
 #include "test_while.h"
+#include "test_imports.h"
 #include "test_stdlib.h"
 
 
