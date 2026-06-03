@@ -13,6 +13,9 @@ extern "C" {
 #include "ptypes.h"
 #include "token.h"
 
+#define NUM_STR_BUF_SIZE    64
+#define BN_NUM_STR_BUF_SIZE NUM_STR_BUF_SIZE * 3
+
 // Forward declaration for PObj
 typedef struct PObj PObj;
 typedef struct PInterpreter PInterpreter;

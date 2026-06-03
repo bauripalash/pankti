@@ -7,7 +7,6 @@ set(PANKTI_SRC_FILES
   "${CMAKE_CURRENT_LIST_DIR}/flags.c"
   "${CMAKE_CURRENT_LIST_DIR}/lexer.c"
   "${CMAKE_CURRENT_LIST_DIR}/native.c"
-  "${CMAKE_CURRENT_LIST_DIR}/object.c"
   "${CMAKE_CURRENT_LIST_DIR}/parser.c"
   "${CMAKE_CURRENT_LIST_DIR}/printer.c"
   "${CMAKE_CURRENT_LIST_DIR}/strescape.c"
@@ -17,6 +16,7 @@ set(PANKTI_SRC_FILES
   "${CMAKE_CURRENT_LIST_DIR}/unicode.c"
   "${CMAKE_CURRENT_LIST_DIR}/ustring.c"
 
+
   # Compiler Stuff
 
   "${CMAKE_CURRENT_LIST_DIR}/opcode.c"
@@ -24,6 +24,13 @@ set(PANKTI_SRC_FILES
   "${CMAKE_CURRENT_LIST_DIR}/symtable.c"
   "${CMAKE_CURRENT_LIST_DIR}/vm.c"
 
+  # Object
+
+  "${CMAKE_CURRENT_LIST_DIR}/object/object.c"
+  "${CMAKE_CURRENT_LIST_DIR}/object/arrayobj.c"
+  "${CMAKE_CURRENT_LIST_DIR}/object/mapobj.c"
+  "${CMAKE_CURRENT_LIST_DIR}/object/printobj.c"
+  "${CMAKE_CURRENT_LIST_DIR}/object/tostrobj.c"
 
   # Utilities
 
@@ -31,6 +38,7 @@ set(PANKTI_SRC_FILES
   "${CMAKE_CURRENT_LIST_DIR}/utils/utilnums.c"
   "${CMAKE_CURRENT_LIST_DIR}/utils/utilstr.c"
 
+  # Garbage Collector
 
   "${CMAKE_CURRENT_LIST_DIR}/gc/gc.c"
   "${CMAKE_CURRENT_LIST_DIR}/gc/gcexpr.c"
