@@ -7,10 +7,12 @@
 extern "C" {
 #endif
 
+UTEST(RuntimeTest, StdString){ GoldenTest("stdstring"); }
 UTEST(RuntimeTest, StdMath){ GoldenTest("stdmath"); }
 UTEST(RuntimeTest, StdMap){ GoldenTest("stdmap"); }
 UTEST(RuntimeTest, StdArray){ GoldenTest("stdarray"); }
-
+UTEST(RuntimeTest, StdFile){ GoldenTest("stdfile"); }
+//UTEST(RuntimeTest, StdSystem){ GoldenTest("stdsystem"); }
 
 
 #ifdef __cplusplus

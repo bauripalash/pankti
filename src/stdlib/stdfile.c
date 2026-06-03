@@ -103,13 +103,13 @@ static PValue file_CreateDir(PVm *vm, PValue *args, u64 argc) {
     PValue rawFilePath = args[0];
 
     if (!IsValueObjType(rawFilePath, OT_STR)) {
-        VmError(vm, RT_STDFILE_CREATEDIR_FILENAME_STR);
+        VmError(vm, RT_STDFILE_CREATEDIR_FILENAME_STR, ValueTypeToStr(rawFilePath));
         return MakeNil();
     }
 
     char *filePathStr = ValueAsObj(rawFilePath)->v.OString.value;
     if (!PanCreateDir(filePathStr)) {
-        VmError(vm, RT_IME_STDFILE_CREATEDIR_CREATE_FAIL);
+        VmError(vm, RT_IME_STDFILE_CREATEDIR_CREATE_FAIL, filePathStr);
         return MakeNil();
     }
     return MakeNil();

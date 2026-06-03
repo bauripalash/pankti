@@ -10,6 +10,7 @@ extern "C" {
 UTEST(RuntimeTest, Internal_Types){ GoldenTest("types"); }
 UTEST(RuntimeTest, Internal_ScriptWithBOM){ GoldenTest("arithmetic_bom"); }
 UTEST(RuntimeTest, Internal_NilBehavior){ GoldenTest("nil_behavior"); }
+UTEST(RuntimeTest, Internal_ValuePrint){ GoldenTest("valueprint"); }
 
 
 #ifdef __cplusplus
