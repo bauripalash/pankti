@@ -103,7 +103,9 @@ static PValue file_CreateDir(PVm *vm, PValue *args, u64 argc) {
     PValue rawFilePath = args[0];
 
     if (!IsValueObjType(rawFilePath, OT_STR)) {
-        VmError(vm, RT_STDFILE_CREATEDIR_FILENAME_STR, ValueTypeToStr(rawFilePath));
+        VmError(
+            vm, RT_STDFILE_CREATEDIR_FILENAME_STR, ValueTypeToStr(rawFilePath)
+        );
         return MakeNil();
     }
 
