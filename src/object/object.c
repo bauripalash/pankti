@@ -7,6 +7,59 @@
 #include "../include/panktiterms.h"
 #include "../include/utils.h"
 
+typedef struct ObjSeenPair {
+    const PObj *a[OBJ_SEEN_CAP];
+    const PObj *b[OBJ_SEEN_CAP];
+    int len;
+} ObjSeenPair;
+
+static bool internalIsValueEqual(PValue a, PValue b, ObjSeenPair *pair);
+static bool internalIsObjEqual(const PObj *a, const PObj *b, ObjSeenPair *pair);
+
+static bool SeenPairEnter(ObjSeenPair *pair, const PObj *a, const PObj *b) {
+    for (int i = 0; i < pair->len; i++) {
+        if (pair->a[i] == a && pair->b[i] == b) {
+            return true;
+        }
+    }
+    if (pair->len < OBJ_SEEN_CAP) {
+        pair->a[pair->len] = a;
+        pair->b[pair->len] = b;
+        pair->len++;
+    }
+    return false;
+}
+
+static void SeenPairExit(ObjSeenPair *pair, const PObj *a, const PObj *b) {
+    for (int i = 0; i < pair->len; i++) {
+        if (pair->a[i] == a && pair->b[i] == b) {
+            pair->a[i] = pair->a[pair->len - 1];
+            pair->b[i] = pair->b[pair->len - 1];
+            pair->len--;
+            return;
+        }
+    }
+}
+
+bool SeenSetEnter(ObjSeenSet *set, const PObj *obj) {
+    for (int i = 0; i < set->len; i++) {
+        if (set->buf[i] == obj) {
+            return true; // already seen (cyclic)
+        }
+    }
+    if (set->len < OBJ_SEEN_CAP) {
+        set->buf[set->len++] = obj;
+    }
+    return false;
+}
+void SeenSetExit(ObjSeenSet *set, const PObj *obj) {
+    for (int i = 0; i < set->len; i++) {
+        if (set->buf[i] == obj) {
+            set->buf[i] = set->buf[--set->len]; // swap last and shrink len
+        }
+    }
+}
+
 PValueType GetValueType(PValue value) {
     if (IsValueNum(value)) {
         return PVAL_NUM;
@@ -36,33 +89,6 @@ bool IsValueTruthy(PValue val) {
     } else {
         return false;
     }
-}
-
-bool IsValueEqual(PValue a, PValue b) {
-    if (GetValueType(a) != GetValueType(b)) {
-        return false;
-    }
-
-    if (IsValueObj(a)) {
-        return IsObjEqual(ValueAsObj(a), ValueAsObj(b));
-    } else {
-#if defined(USE_NAN_BOXING)
-        if (IsValueNum(a)) {
-            return ValueAsNum(a) == ValueAsNum(b);
-        }
-        return a == b;
-#else
-        if (a.type == PVAL_NIL) {
-            return true;
-        } else if (a.type == PVAL_NUM) {
-            return a.v.num == b.v.num;
-        } else if (a.type == PVAL_BOOL) {
-            return a.v.bl == b.v.bl;
-        }
-#endif
-    }
-
-    return false;
 }
 
 bool IsValueObjType(PValue val, PObjType otype) {
@@ -120,56 +146,128 @@ char *ObjTypeToString(PObjType type) {
     return PANTERM_UNKNOWN; // should never reach here
 }
 
+bool IsValueEqual(PValue a, PValue b) {
+    ObjSeenPair pair = {0};
+    return internalIsValueEqual(a, b, &pair);
+}
+
 bool IsObjEqual(const PObj *a, const PObj *b) {
+    ObjSeenPair pair = {0};
+    return internalIsObjEqual(a, b, &pair);
+}
+
+static bool internalIsValueEqual(PValue a, PValue b, ObjSeenPair *pair) {
+    if (GetValueType(a) != GetValueType(b)) {
+        return false;
+    }
+
+    if (IsValueObj(a)) {
+        return internalIsObjEqual(ValueAsObj(a), ValueAsObj(b), pair);
+    } else {
+#if defined(USE_NAN_BOXING)
+        if (IsValueNum(a)) {
+            return ValueAsNum(a) == ValueAsNum(b);
+        }
+        return a == b;
+#else
+        if (a.type == PVAL_NIL) {
+            return true;
+        } else if (a.type == PVAL_NUM) {
+            return a.v.num == b.v.num;
+        } else if (a.type == PVAL_BOOL) {
+            return a.v.bl == b.v.bl;
+        }
+#endif
+    }
+
+    return false;
+}
+
+static bool internalIsObjEqual(
+    const PObj *a, const PObj *b, ObjSeenPair *pair
+) {
     if (a->type != b->type) {
         return false;
     }
-    bool result = false;
     switch (a->type) {
-        case OT_STR: {
-            result = StrEqual(a->v.OString.value, b->v.OString.value);
-            break;
+        case OT_COMFNC:
+        case OT_CLOSURE:
+        case OT_UPVAL: {
+            return false;
         }
-
-        case OT_COMFNC: result = false; break;
-        case OT_CLOSURE: result = false; break;
-        case OT_ARR: result = false; break; // TODO: fix
-        case OT_NATIVE: result = (a->v.ONative.fn == b->v.ONative.fn); break;
-        case OT_MAP: result = false; break;
+        case OT_STR: {
+            return StrEqual(a->v.OString.value, b->v.OString.value);
+        }
+        case OT_NATIVE: {
+            return (a->v.ONative.fn == b->v.ONative.fn);
+        }
         case OT_MODULE: {
             if (a->v.OModule.path != NULL && b->v.OModule.path != NULL) {
-                result = StrEqual(a->v.OModule.path, b->v.OModule.path);
+                return StrEqual(a->v.OModule.path, b->v.OModule.path);
             } else {
-                result = false;
+                return false;
+            }
+        }
+
+        case OT_ARR: {
+            const struct OArray *arrA = &a->v.OArray;
+            const struct OArray *arrB = &b->v.OArray;
+
+            if (arrA->count != arrB->count) {
+                return false;
             }
 
-            break;
+            // checks if we already compared these objects in this cycle
+            if (SeenPairEnter(pair, a, b)) {
+                return true;
+            }
+
+            bool result = true;
+            for (u64 i = 0; i < arrA->count; i++) {
+                if (!internalIsValueEqual(
+                        arrA->items[i], arrB->items[i], pair
+                    )) {
+                    result = false;
+                    break;
+                }
+            }
+            SeenPairExit(pair, a, b);
+            return result;
         }
-        case OT_UPVAL: {
-            result = false;
-            // result = IsValueEqual(a->v.OUpval.value, b->v.OUpval.value);
-            break;
+        case OT_MAP: {
+            const struct OMap *mapA = &a->v.OMap;
+            const struct OMap *mapB = &b->v.OMap;
+
+            if (mapA->count != mapB->count) {
+                return false;
+            }
+
+            // checks if we already compared these objects in this cycle
+            if (SeenPairEnter(pair, a, b)) {
+                return true;
+            }
+
+            bool result = true;
+
+            for (u64 i = 0; i < mapA->count; i++) {
+                bool found = false;
+                // Searching in MapB with MapA's key at index
+                // we also do the key equality check
+                PValue valB = MapObjGetValue(
+                    (PObj *)b, mapA->table[i].vkey, mapA->table[i].key, &found
+                );
+                PValue valA = mapA->table[i].value;
+
+                if (!found || !internalIsValueEqual(valA, valB, pair)) {
+                    result = false;
+                    break;
+                }
+            }
+
+            SeenPairExit(pair, a, b);
+            return result;
         }
     }
 
-    return result;
-}
-
-bool SeenSetEnter(ObjSeenSet *set, const PObj *obj) {
-    for (int i = 0; i < set->len; i++) {
-        if (set->buf[i] == obj) {
-            return true; // already seen (cyclic)
-        }
-    }
-    if (set->len < OBJ_SEEN_CAP) {
-        set->buf[set->len++] = obj;
-    }
     return false;
-}
-void SeenSetExit(ObjSeenSet *set, const PObj *obj) {
-    for (int i = 0; i < set->len; i++) {
-        if (set->buf[i] == obj) {
-            set->buf[i] = set->buf[--set->len]; // swap last and shrink len
-        }
-    }
 }
