@@ -116,10 +116,6 @@ endif()
 # ================== READ VERSION INFORMATION ==================
 
 if(NOT NO_VERSION_FETCH)
-    include(cmake/parseversion.cmake)
-    ParseVersion("${CMAKE_SOURCE_DIR}/src/include/version.h")
-
-
     # ------------------ GIT INFO CHECK ------------------
 
     if(NOT NO_GIT_INFO)
@@ -127,15 +123,27 @@ if(NOT NO_VERSION_FETCH)
         GetGitInfo(GIT_COMMIT_HASH GIT_COMMIT_COUNT)
 
         if (NOT (GIT_COMMIT_HASH STREQUAL "_"))
+			set(PANKTI_GIT_HASH ${GIT_COMMIT_HASH})
             add_compile_definitions(PANKTI_GIT_HASH="${GIT_COMMIT_HASH}")
         endif()
 
         if (NOT (GIT_COMMIT_COUNT STREQUAL "_"))
+			set(PANKTI_GIT_COUNT ${GIT_COMMIT_COUNT})
             add_compile_definitions(PANKTI_GIT_COUNT=${GIT_COMMIT_COUNT})
         endif()
     endif()
 
     # ------------------ END GIT INFO CHECK ------------------
+
+    include(cmake/parseversion.cmake)
+    ParseVersion("${CMAKE_SOURCE_DIR}/src/include/version.h")
+
+
+	configure_file(
+		"${CMAKE_SOURCE_DIR}/cmake/version.txt.in"
+		"${CMAKE_BINARY_DIR}/version.txt"
+		@ONLY
+	)
 endif()
 
 # ================== END READ VERSION INFORMATION ==================
@@ -328,13 +336,11 @@ message(STATUS "")
 message(STATUS "")
 message(STATUS "======== Pankti Build Information ========")
 if(NOT NO_VERSION_FETCH)
-    message(STATUS  "Version : ${PANKTI_VERSION_MAJOR}.${PANKTI_VERSION_MINOR}.${PANKTI_VERSION_PATCH}")
-    if (NOT PANKTI_RELEASE_LEVEL STREQUAL "")
-        message(STATUS "Release Level : ${PANKTI_RELEASE_LEVEL}")
-    endif()
-    message(STATUS "Git Hash : ${GIT_COMMIT_HASH}")
-    message(STATUS "Git Count : ${GIT_COMMIT_COUNT}")
-	message(STATUS "Version String: ${PANKTI_VERSION_STRING_RC}")
+	message(STATUS "Version : ${PANKTI_VERSION_STRING}")
+    message(STATUS "Release Level : ${PANKTI_RELEASE_LEVEL}")
+	message(STATUS "Git Hash : ${PANKTI_GIT_HASH}")
+	message(STATUS "Git Count : ${PANKTI_GIT_COUNT_CLEAN}")
+	message(STATUS "Version Full: ${PANKTI_VERSION_FULL}")
 endif()
 
 if(USE_NAN_BOXING)
