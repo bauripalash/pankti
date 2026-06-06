@@ -288,7 +288,7 @@ static PValue gfx_DrawCircle(PVm *vm, PValue *args, u64 argc) {
         VmError(vm, RT_STDGFX_CIRCLE_COLOR_INVALID_VALUE, colorStr);
         return MakeNil();
     }
-    GfxDrawCircle(gcore, (int)xVal, (int)yVal, (float)rVal, clr);
+    GfxDrawCircle(gcore, (int)xVal, (int)yVal, (float)rVal, clr); //BUG: Int Overflow
     return MakeNil();
 }
 
