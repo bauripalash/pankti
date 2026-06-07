@@ -3,6 +3,7 @@
 #include "../include/ptypes.h"
 #include "../include/ustring.h"
 #include <ctype.h>
+#include <limits.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -98,6 +99,12 @@ i64 ClampInt(i64 value, i64 min, i64 max) {
 
     return value;
 }
+
+bool IsDoubleSafeInt(double d) {
+    return d >= (double)INT_MIN && d <= (double)INT_MAX;
+}
+bool IsU64SafeInt(u64 u) { return u <= (u64)INT_MAX; }
+bool IsI64SafeInt(i64 i) { return i >= (i64)INT_MIN && i <= (i64)INT_MAX; }
 
 bool IsDoubleInt(double d) { return (floor(d) == ceil(d)); }
 

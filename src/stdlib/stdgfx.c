@@ -20,9 +20,34 @@ static PValue gfx_New(PVm *vm, PValue *args, u64 argc) {
         return MakeNil();
     }
 
+    double winH = ValueAsNum(rawWinH);
+
+    if (!IsDoubleSafeInt(winH)) {
+        VmError(vm, RT_STDGFX_NEW_HEIGHT_INVALID_INT_RANGE, winH);
+        return MakeNil();
+    }
+
+    if (winH <= 0 || !IsDoubleInt(winH)) {
+        VmError(vm, RT_STDGFX_NEW_HEIGHT_NOT_POS_INT);
+        return MakeNil();
+    }
+
     PValue rawWinW = args[1];
+
     if (!IsValueNum(rawWinW)) {
         VmError(vm, RT_STDGFX_NEW_WIDTH_INVALID_TYPE, ValueTypeToStr(rawWinW));
+        return MakeNil();
+    }
+
+    double winW = ValueAsNum(rawWinW);
+
+    if (!IsDoubleSafeInt(winW)) {
+        VmError(vm, RT_STDGFX_NEW_WIDTH_INVALID_INT_RANGE, winW);
+        return MakeNil();
+    }
+
+    if (winW <= 0 || !IsDoubleInt(winW)) {
+        VmError(vm, RT_STDGFX_NEW_WIDTH_NOT_POS_INT);
         return MakeNil();
     }
 
@@ -31,8 +56,7 @@ static PValue gfx_New(PVm *vm, PValue *args, u64 argc) {
         VmError(vm, RT_STDGFX_NEW_TITLE_INVALID_TYPE, ValueTypeToStr(rawTitle));
         return MakeNil();
     }
-    double winW = ValueAsNum(rawWinW);
-    double winH = ValueAsNum(rawWinH);
+
     char *title = ValueAsObj(rawTitle)->v.OString.value;
 
     if (gcore == NULL) {
@@ -288,7 +312,9 @@ static PValue gfx_DrawCircle(PVm *vm, PValue *args, u64 argc) {
         VmError(vm, RT_STDGFX_CIRCLE_COLOR_INVALID_VALUE, colorStr);
         return MakeNil();
     }
-    GfxDrawCircle(gcore, (int)xVal, (int)yVal, (float)rVal, clr); //BUG: Int Overflow
+    GfxDrawCircle(
+        gcore, (int)xVal, (int)yVal, (float)rVal, clr
+    ); // BUG: Int Overflow
     return MakeNil();
 }
 

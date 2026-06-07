@@ -121,6 +121,13 @@ i64 ClampInt(i64 value, i64 min, i64 max);
 // Check if double is integer
 bool IsDoubleInt(double d);
 
+// Check if double can be safely casted to int
+bool IsDoubleSafeInt(double d);
+// Check if u64 can be safely casted to int
+bool IsU64SafeInt(u64 u);
+// Check if i64 can be safely casted to int
+bool IsI64SafeInt(i64 i);
+
 unsigned char ToHex2Bytes(char c1, char c2);
 unsigned char HexStrToByte(char *str, int len);
 
