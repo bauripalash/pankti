@@ -170,8 +170,6 @@ a.start-btn{
   font-size: 1.125rem;
 }
 
-.markdown .stdfunc {
-}
 
 .markdown .stdfunc strong {
     font-size: 1.8rem;
@@ -179,4 +177,60 @@ a.start-btn{
 
 .markdown .stdfunc em {
     font-size: 1.2rem;
+}
+
+table.args-table {
+    width: 100%;
+	font-size: 15px;
+	padding: 0px;
+    thead tr{
+        color: var(--c-vwhite);
+        background: var(--c-tgraylighter);
+		th {
+			padding: 3px 10px;
+
+			&:first-child{
+				font-weight: bold;
+			}
+		}
+    }
+
+	tbody{
+
+		td{
+			padding: 3px 10px;
+			&:first-child{
+				font-style: italic;
+			}
+			&:nth-child(2){
+				font-weight: bold;
+			}
+		}
+	}
+
+
+}
+
+table.return-table{
+    width: 100%;	
+	font-size: 15px;
+	padding: 0px;
+    thead tr{
+        color: var(--body-background);
+        background: var(--c-tgraylighter);
+		th {
+			padding: 3px 10px;
+
+			&:first-child{
+				font-weight: bold;
+			}
+		}
+    }
+
+	tbody{
+		font-weight: bolder;
+		td {
+			padding: 3px 10px;
+		}	
+	}
 }

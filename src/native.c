@@ -227,9 +227,9 @@ void RegisterNatives(PVm *vm) {
         MakeStdlibEntry(NAME_ERROR_EN, ntvError, 1),
         MakeStdlibEntry(NAME_ERROR_BN, ntvError, 1),
         MakeStdlibEntry(NAME_ERROR_PN, ntvError, 1),
-        MakeStdlibEntry(NAME_ARGS_EN, ntvGetArgs, -1),
-        MakeStdlibEntry(NAME_ARGS_BN, ntvGetArgs, -1),
-        MakeStdlibEntry(NAME_ARGS_PN, ntvGetArgs, -1),
+        MakeStdlibEntry(NAME_ARGS_EN, ntvGetArgs, 0),
+        MakeStdlibEntry(NAME_ARGS_BN, ntvGetArgs, 0),
+        MakeStdlibEntry(NAME_ARGS_PN, ntvGetArgs, 0),
     };
 
     u64 count = ArrCount(nativeEntries);

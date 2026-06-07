@@ -1,5 +1,5 @@
 +++
-title = "ছক (Hash Table)"
+title = "ছক (HashMap)"
 +++
 
 # ছক (হ্যাশ ম্যাপ)
