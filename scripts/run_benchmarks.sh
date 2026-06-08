@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 PANKTI_BIN=${1}
 BENCHMARKS_DIR="$(dirname "$0")/benchmarks"
 SAMPLES_DIR="$BENCHMARKS_DIR/samples"
