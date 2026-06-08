@@ -1,6 +1,6 @@
 #include <winver.h>
 
-// Icon — path relative to the build-time source dir
+// Icon - path relative to the build-time source dir
 IDI_APPICON ICON "@CMAKE_SOURCE_DIR@/images/pankti-logo.ico"
 
 VS_VERSION_INFO VERSIONINFO

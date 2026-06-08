@@ -114,11 +114,12 @@ But National Education Policy 2020 aims to introduce coding way earlier, but a s
 ## Project Status
 > Alpha. Under heavy development, but fully functional.
 
-## LICENSE
-> MPL v2
+## Licensing
+- **Source Code** - [Mozilla Public License v2.0](LICENSE)
+- **Documentation** - [CC BY-SA 4.0](LICENSE-DOCS)
+- **Logo** - Copyright (c) 2022 Palash Bauri. All Rights Reserved.
+- **Mascot (Buno the Heron)** - Copyright (c) 2022 Palash Bauri. Previously licensed under CC BY-NC-ND 4.0. All Rights Reserved as of 2026-06-08T18:09:03+05:30.
 
->Note: Buno the Heron, the mascot is created by me, Palash Bauri, and is
-licensed under [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International](https://creativecommons.org/licenses/by-nc-nd/4.0/?ref=chooser-v1)
 
 ## Special Thanks:
 Thorsten Ball for writing these amazing books, "Writing An Interpreter In Go" and "Writing A Compiler In Go", and Robert Nystrom for writing his awesome book, "Crafting Interpreters."
