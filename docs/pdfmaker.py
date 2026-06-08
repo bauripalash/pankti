@@ -13,6 +13,7 @@ ContentPages: list[str] = [
     "docs/basics/array.md",
     "docs/basics/if_else.md",
     "docs/basics/while_loop.md",
+    "docs/basics/builtins.md",
     "docs/stdlib/_index.md",
     "docs/stdlib/math.md",
     "docs/stdlib/map.md",
@@ -34,23 +35,31 @@ BengaliCodeFont = "Noto Serif Bengali"
 EnglishCodeFont = "monospace"
 
 PandocPDFEngine = "typst"
-PDFEngineTemplate = "article.typ"
+# PDFEngineTemplate = "pdftemplate.typ"
+PDFEngineCoverPage = "coverpage.typ"
+PDFEngineStyle = "pdfstyle.typ"
+
+MarkdownRemovePatterns = ["{.dh3}", "{.args-table}", "{.return-table}"]
 
 
 def strip_front_matter(content: str) -> str:
     front_pattern_toml = r"^(\+\+\+\n.*?\n\+\+\+\n)"
     front_pattern_yaml = r"^(\-\-\-\n.*?\n\-\-\-\n)"
-    result = re.sub(
-        front_pattern_toml, "", content, flags=re.DOTALL | re.MULTILINE
-    )
-    result = re.sub(
-        front_pattern_yaml, "", result, flags=re.DOTALL | re.MULTILINE
-    )
+    result = re.sub(front_pattern_toml, "", content, flags=re.DOTALL | re.MULTILINE)
+    result = re.sub(front_pattern_yaml, "", result, flags=re.DOTALL | re.MULTILINE)
     # temporary solution : remote images
     result = re.sub(
         r"!\[.*?\]\(https?://.*?\)", "", result, flags=re.DOTALL | re.MULTILINE
     )
     return result.strip()
+
+
+def clean_patterns(content: str) -> str:
+    result = content
+    for item in MarkdownRemovePatterns:
+        result = result.replace(item, "")
+
+    return result
 
 
 def process_file(filepath: str) -> str:
@@ -59,8 +68,8 @@ def process_file(filepath: str) -> str:
         content = f.read()
 
     content = strip_front_matter(content)
-
-    content = content + "\n\n---\n\n"
+    content = clean_patterns(content)
+    content = content + "\n\n"
     return content
 
 
@@ -72,9 +81,7 @@ def merge_files(files: list[str], language: str) -> str:
     return result
 
 
-def build_pdf(
-    md: str = OutputMD, pdf: str = OutputPDF, lang: str = "bn"
-) -> None:
+def build_pdf(md: str = OutputMD, pdf: str = OutputPDF, lang: str = "bn") -> None:
     main_font = BengaliNormalFont
     code_font = BengaliCodeFont
     if lang == "en":
@@ -89,7 +96,8 @@ def build_pdf(
         f"--pdf-engine={PandocPDFEngine}",
         "-f",
         "markdown-yaml_metadata_block",
-        "--include-before-body=coverpage.typ",
+        f"--include-before-body={PDFEngineCoverPage}",
+        f"--include-before-body={PDFEngineStyle}",
         "--toc",
         "--toc-depth=3",
         "--number-sections",
@@ -105,9 +113,7 @@ def build_pdf(
         _ = subprocess.run(cmd, check=True, capture_output=True, text=True)
         print(f"    [*] PDF Generated Successfully : {pdf}")
     except subprocess.CalledProcessError as e:
-        print(
-            f"    [ERR] PDF Generation Failed : ", str(e.stderr), str(e.stdout)
-        )
+        print(f"    [ERR] PDF Generation Failed : ", str(e.stderr), str(e.stdout))
     return
 
 
