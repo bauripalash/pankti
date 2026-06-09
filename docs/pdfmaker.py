@@ -27,6 +27,7 @@ ContentPages: list[str] = [
 OutputName = "output"
 OutputMD = OutputName + ".md"
 OutputPDF = OutputName + ".pdf"
+OutputTypst = OutputName + ".typ"
 
 BengaliNormalFont = "Noto Serif Bengali"
 EnglishNormalFont = "Noto Serif"
@@ -34,10 +35,8 @@ EnglishNormalFont = "Noto Serif"
 BengaliCodeFont = "Noto Serif Bengali"
 EnglishCodeFont = "monospace"
 
-PandocPDFEngine = "typst"
-# PDFEngineTemplate = "pdftemplate.typ"
-PDFEngineCoverPage = "coverpage.typ"
-PDFEngineStyle = "pdfstyle.typ"
+TypstCoverPage = "typstcoverpage.typ"
+TypstStyleConfig = "typststyle.typ"
 
 MarkdownRemovePatterns = ["{.dh3}", "{.args-table}", "{.return-table}"]
 
@@ -80,42 +79,46 @@ def merge_files(files: list[str], language: str) -> str:
         result += process_file(f"{language}/{file}")
     return result
 
-
-def build_pdf(md: str = OutputMD, pdf: str = OutputPDF, lang: str = "bn") -> None:
-    main_font = BengaliNormalFont
-    code_font = BengaliCodeFont
-    if lang == "en":
-        main_font = EnglishNormalFont
-        code_font = EnglishCodeFont
-
+def build_typst_file(md : str = OutputMD, typ : str = OutputTypst) -> None:
     cmd = [
         "pandoc",
         md,
         "-o",
-        pdf,
-        f"--pdf-engine={PandocPDFEngine}",
+        typ,
         "-f",
         "markdown-yaml_metadata_block",
-        f"--include-before-body={PDFEngineCoverPage}",
-        f"--include-before-body={PDFEngineStyle}",
-        "--toc",
-        "--toc-depth=3",
-        "--number-sections",
-        # "-V", f"template={PDFEngineTemplate}",
-        "-V",
-        f"titlepage=true",
-        "-V",
-        f"mainfont={main_font}",
-        "-V",
-        f"monofont={code_font}",
+    ]
+    try:
+        _ = subprocess.run(cmd, check=True, capture_output=True, text=True)
+        print(f"    [*] Typst File Generated Successfully : {typ}")
+    except subprocess.CalledProcessError as e:
+        print(f"    [ERR] Typst File Generation Failed : ", str(e.stderr), str(e.stdout))
+    return
+
+def process_typst_file(typ : str = OutputTypst) -> None:
+    content : str = ""
+    with open(TypstCoverPage, "r") as f:
+        content += f.read()
+    with open(TypstStyleConfig, "r") as f:
+        content += f.read()
+    with open(typ, "r") as f:
+        content += f.read()
+
+    with open(typ, "w") as f:
+        _ = f.write(content)
+
+def compile_typst(typ : str = OutputTypst, pdf : str = OutputPDF) -> None:
+    cmd = [
+        "typst",
+        "compile",
+        typ,
+        pdf
     ]
     try:
         _ = subprocess.run(cmd, check=True, capture_output=True, text=True)
         print(f"    [*] PDF Generated Successfully : {pdf}")
     except subprocess.CalledProcessError as e:
         print(f"    [ERR] PDF Generation Failed : ", str(e.stderr), str(e.stdout))
-    return
-
 
 def main() -> None:
     print(f"[+] Merging Files")
@@ -123,8 +126,12 @@ def main() -> None:
     print(f"[=] Finished Merging Files")
     with open(OutputMD, "w", encoding="utf-8") as f:
         _ = f.write(content)
+    print(f"[+] Building Typst File")
+    build_typst_file()
+    process_typst_file()
     print(f"[+] Building PDF")
-    build_pdf()
+    compile_typst()
+    #build_pdf()
     print(f"[=] Finished Building PDF")
 
 
