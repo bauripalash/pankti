@@ -38,14 +38,28 @@ EnglishCodeFont = "monospace"
 TypstCoverPage = "typstcoverpage.typ"
 TypstStyleConfig = "typststyle.typ"
 
-MarkdownRemovePatterns = ["{.dh3}", "{.args-table}", "{.return-table}"]
+MarkdownRemovePatterns = {
+    "{.dh3}": "",
+    "{.args-table}": "",
+    "{.return-table}": "",
+    "{{< katex />}}": "",
+    "\\\\(": "$",
+    "\\\\)": "$",
+    "[!INFO]": "",
+    "[!TIP]": "",
+    "[!WARNING]": "",
+}
 
 
-def strip_front_matter(content: str) -> str:
+def strip_md_front_matter(content: str) -> str:
     front_pattern_toml = r"^(\+\+\+\n.*?\n\+\+\+\n)"
     front_pattern_yaml = r"^(\-\-\-\n.*?\n\-\-\-\n)"
-    result = re.sub(front_pattern_toml, "", content, flags=re.DOTALL | re.MULTILINE)
-    result = re.sub(front_pattern_yaml, "", result, flags=re.DOTALL | re.MULTILINE)
+    result = re.sub(
+        front_pattern_toml, "", content, flags=re.DOTALL | re.MULTILINE
+    )
+    result = re.sub(
+        front_pattern_yaml, "", result, flags=re.DOTALL | re.MULTILINE
+    )
     # temporary solution : remote images
     result = re.sub(
         r"!\[.*?\]\(https?://.*?\)", "", result, flags=re.DOTALL | re.MULTILINE
@@ -53,33 +67,34 @@ def strip_front_matter(content: str) -> str:
     return result.strip()
 
 
-def clean_patterns(content: str) -> str:
+def clean_md_patterns(content: str) -> str:
     result = content
-    for item in MarkdownRemovePatterns:
-        result = result.replace(item, "")
+    for pattern, item in MarkdownRemovePatterns.items():
+        result = result.replace(pattern, item)
 
     return result
 
 
-def process_file(filepath: str) -> str:
+def process_md_file(filepath: str) -> str:
     content = ""
     with open(filepath, "r", encoding="utf-8") as f:
         content = f.read()
 
-    content = strip_front_matter(content)
-    content = clean_patterns(content)
+    content = strip_md_front_matter(content)
+    content = clean_md_patterns(content)
     content = content + "\n\n"
     return content
 
 
-def merge_files(files: list[str], language: str) -> str:
+def merge_md_files(files: list[str], language: str) -> str:
     result = ""
     for file in files:
         print(f"    [*] File: {file}")
-        result += process_file(f"{language}/{file}")
+        result += process_md_file(f"{language}/{file}")
     return result
 
-def build_typst_file(md : str = OutputMD, typ : str = OutputTypst) -> None:
+
+def build_typst_file(md: str = OutputMD, typ: str = OutputTypst) -> None:
     cmd = [
         "pandoc",
         md,
@@ -92,14 +107,19 @@ def build_typst_file(md : str = OutputMD, typ : str = OutputTypst) -> None:
         _ = subprocess.run(cmd, check=True, capture_output=True, text=True)
         print(f"    [*] Typst File Generated Successfully : {typ}")
     except subprocess.CalledProcessError as e:
-        print(f"    [ERR] Typst File Generation Failed : ", str(e.stderr), str(e.stdout))
+        print(
+            f"    [ERR] Typst File Generation Failed : ",
+            str(e.stderr),
+            str(e.stdout),
+        )
     return
 
-def process_typst_file(typ : str = OutputTypst) -> None:
-    content : str = ""
-    with open(TypstCoverPage, "r") as f:
-        content += f.read()
+
+def process_typst_file(typ: str = OutputTypst) -> None:
+    content: str = ""
     with open(TypstStyleConfig, "r") as f:
+        content += f.read()
+    with open(TypstCoverPage, "r") as f:
         content += f.read()
     with open(typ, "r") as f:
         content += f.read()
@@ -107,22 +127,21 @@ def process_typst_file(typ : str = OutputTypst) -> None:
     with open(typ, "w") as f:
         _ = f.write(content)
 
-def compile_typst(typ : str = OutputTypst, pdf : str = OutputPDF) -> None:
-    cmd = [
-        "typst",
-        "compile",
-        typ,
-        pdf
-    ]
+
+def compile_typst(typ: str = OutputTypst, pdf: str = OutputPDF) -> None:
+    cmd = ["typst", "compile", typ, pdf]
     try:
         _ = subprocess.run(cmd, check=True, capture_output=True, text=True)
         print(f"    [*] PDF Generated Successfully : {pdf}")
     except subprocess.CalledProcessError as e:
-        print(f"    [ERR] PDF Generation Failed : ", str(e.stderr), str(e.stdout))
+        print(
+            f"    [ERR] PDF Generation Failed : ", str(e.stderr), str(e.stdout)
+        )
+
 
 def main() -> None:
     print(f"[+] Merging Files")
-    content = merge_files(ContentPages, "bengali")
+    content = merge_md_files(ContentPages, "bengali")
     print(f"[=] Finished Merging Files")
     with open(OutputMD, "w", encoding="utf-8") as f:
         _ = f.write(content)
@@ -131,7 +150,7 @@ def main() -> None:
     process_typst_file()
     print(f"[+] Building PDF")
     compile_typst()
-    #build_pdf()
+    # build_pdf()
     print(f"[=] Finished Building PDF")
 
 
