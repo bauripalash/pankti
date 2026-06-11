@@ -43,7 +43,7 @@ typedef enum PCompFuncType {
     COMP_FN_SCRIPT,
 } PCompFuncType;
 
-// Loop Context for Break and Continue[todo] statements
+// Loop Context for Break and Continue statements
 typedef struct PCompLoopCtx {
     u16 *breakJumps;
     u16 loopStart;

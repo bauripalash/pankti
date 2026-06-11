@@ -371,7 +371,7 @@ static bool vmBinaryOp(PVm *vm, PanOpCode op) {
         bool isok = vmBinaryOpString(vm, op, left, right);
         if (!isok) {
             VmError(vm, RT_STR_BINARY_OP);
-            return false; // todo handle better
+            return false;
         }
     } else {
         VmError(vm, RT_INVALID_BINARY_OP);

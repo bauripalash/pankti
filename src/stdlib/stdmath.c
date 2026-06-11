@@ -6,8 +6,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-// TODO: Sine, Cos, Tangent type functions should take degrees instead of
-// radians for simpler mathematical calculations
 #include "../include/gc.h"
 #include "../include/pstdlib.h"
 #include "../include/ptypes.h"

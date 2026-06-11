@@ -114,6 +114,12 @@ bool IsDoubleSafeInt(double d) {
 bool IsU64SafeInt(u64 u) { return u <= (u64)INT_MAX; }
 bool IsI64SafeInt(i64 i) { return i >= (i64)INT_MIN && i <= (i64)INT_MAX; }
 
+bool IsU64SafeDouble(u64 u) { return u <= (1ULL << 53); }
+bool IsI64SafeDouble(i64 u) {
+    double d = (double)u;
+    return (i64)d == u;
+}
+
 bool IsDoubleInt(double d) { return (floor(d) == ceil(d)); }
 
 unsigned char ToHex2Bytes(char c1, char c2) {

@@ -457,7 +457,6 @@ static bool compileLitExpr(PCompiler *comp, PExpr *expr) {
             break;
         }
         case EXP_LIT_STR: {
-            // TODO: ESCAPE String HERE
             Token *opTok = expr->op;
             char *escapedStr = readStringEscapes(comp, opTok);
             // We hand ownership of escaped str to the string object
@@ -724,7 +723,7 @@ static bool compileCallExpr(PCompiler *comp, PExpr *expr) {
         }
     }
 
-    emitBtU16(comp, call->op, OP_CALL, (u16)call->argCount); // todo: call arg
+    emitBtU16(comp, call->op, OP_CALL, (u16)call->argCount);
 
     return true;
 }
@@ -838,7 +837,7 @@ static void tryLocalDeclare(PCompiler *comp, Token *name) {
     }
     if (comp->localCount >= MAX_COMPILER_LOCAL_COUNT) {
         cmpError(comp, name, COMPILER_LOCAL_TOO_MANY);
-        return; // todo error
+        return;
     }
     PLocal *local = &comp->locals[comp->localCount++];
     local->name = name;

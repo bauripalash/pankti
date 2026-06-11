@@ -135,6 +135,10 @@ bool IsDoubleSafeInt(double d);
 bool IsU64SafeInt(u64 u);
 // Check if i64 can be safely casted to int
 bool IsI64SafeInt(i64 i);
+// Check if u64 can be safely casted to double
+bool IsU64SafeDouble(u64 u);
+// Check if i64 can be safely casted to double
+bool IsI64SafeDouble(i64 u);
 
 unsigned char ToHex2Bytes(char c1, char c2);
 unsigned char HexStrToByte(char *str, int len);
