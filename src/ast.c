@@ -4,6 +4,11 @@
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * ast.c => It only provides ways to print AST Representation.
+ *
+ * Ast Nodes are indented using 2 spaces, for better visibility. Ast Nodes are
+ * colored, if not disbaled using NO_COLOR=1 enviornment flags
  */
 
 #include "include/ast.h"

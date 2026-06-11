@@ -4,6 +4,15 @@
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * compiler.c => Convert AST Representation to OpCodes.
+ * This is a simple bytecode compiler *not* a native machine code compiler.
+ *
+ * This module is provided with single parent ast node and it compiles it,
+ * returns a bytecode representation packed as a function.
+ *
+ * It handled statements, expressions, desugars syntax; it also handled escape
+ * sequences inside strings.
  */
 
 #include "include/compiler.h"

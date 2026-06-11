@@ -4,6 +4,13 @@
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * bengali.c => It proved helper to check if u32 or UTF-32 characters are valid
+ * bengali unicode characters such as numbers or valid characters in bengali
+ * unicode range
+ *
+ * It provided ways to convert a u32 number characters to bengali number
+ * equivalent.
  */
 
 #include "include/bengali.h"

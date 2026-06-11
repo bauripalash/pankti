@@ -4,6 +4,27 @@
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * argparse.c => Parse and set information about passed arguments to pankti
+ * interpreter as well as arguments passed to the script.
+ *
+ * In debug mode, flags for debugging internal working are enabled such as
+ * + debug-lexer: it will print tokens as soon as lexing/scanning is finished.
+ * + debug-parser: it will print the AST representation of the script
+ * + debug-bytecode: it will print the opcode after compiling AST
+ * + debug-gc: It will print statement, expression, object creation, as well
+ * print information about when is GC is starting, the marking process, freeing
+ * process etc.
+ * + stress-gc: Usually where GC will run after object threshold is crossed.
+ * with this flag, gc will run on after every opcode execution.
+ * + english-num: Instead of printing bengali numbers when printing values, it
+ * will print english/arabic numbers.
+ *
+ * In release mode, only help and version flags are enabled.
+ * Though flags can be set using environment variables, but those are not
+ * handled here.
+ *
+ * Apart from debug flags handling this also handle printing `help` information
  */
 
 #include "include/argparse.h"
