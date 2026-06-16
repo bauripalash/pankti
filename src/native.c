@@ -100,64 +100,23 @@ static PValue ntvLen(PVm *vm, PValue *args, u64 argc) {
 }
 
 static PValue ntvAppend(PVm *vm, PValue *args, u64 argc) {
-
-    if (argc < 2) {
-        VmError(
-            vm, RT_TEMPLATE,
-            "append(...) needs atleast two arguments, for appending to array"
-            " Or 3 arguments for adding new pair to a map"
-        );
+    PValue target = args[0];
+    if (!IsValueObjType(target, OT_ARR)) {
+        VmError(vm, RT_BUILTIN_APPEND_TARGET_NOT_ARRAY, ValueTypeToStr(target));
         return MakeNil();
     }
+    PObj *obj = ValueAsObj(target);
 
-    PValue target = args[0];
-
-    if (IsValueObjType(target, OT_ARR)) {
-
-        PObj *obj = ValueAsObj(target);
-
-        u64 elmCount = argc - 1;
-        for (u64 i = 0; i < elmCount; i++) {
-            PValue elm = args[i + 1];
-            if (!ArrayObjPushValue(obj, elm)) {
-                VmError(
-                    vm, RT_TEMPLATE,
-                    "Interenal Error : Failed to append item to array"
-                );
-                return MakeNil();
-            }
-        }
-
-        return MakeNumber((double)obj->v.OArray.count);
-    } else if (IsValueObjType(target, OT_MAP)) {
-        if (argc != 3) {
-            VmError(
-                vm, RT_TEMPLATE,
-                "append(...) needs atleast 3 arguments, map and a "
-                "key-value pair"
-            );
+    u64 elmCount = argc - 1;
+    for (u64 i = 0; i < elmCount; i++) {
+        PValue elm = args[i + 1];
+        if (!ArrayObjPushValue(obj, elm)) {
+            VmError(vm, RT_IME_BUILTIN_APPEND_PUSH_FAILED);
             return MakeNil();
         }
-
-        PObj *obj = ValueAsObj(target);
-        PValue key = args[1];
-        PValue value = args[2];
-
-        if (!MapObjPushPair(obj, key, value, vm->gc->timestamp)) {
-            VmError(
-                vm, RT_TEMPLATE,
-                "Interenal Error : Failed to append key-value pair to map"
-            );
-            return MakeNil();
-        }
-
-        return MakeNumber((double)obj->v.OMap.count);
     }
 
-    VmError(
-        vm, RT_TEMPLATE, "append(...) function only works on arrays and maps"
-    );
-    return MakeNil();
+    return MakeNumber((double)obj->v.OArray.count);
 }
 
 static PValue ntvError(PVm *vm, PValue *args, u64 argc) {
@@ -234,9 +193,9 @@ void RegisterNatives(PVm *vm) {
         MakeStdlibEntry(NAME_LEN_EN, ntvLen, 1),
         MakeStdlibEntry(NAME_LEN_BN, ntvLen, 1),
         MakeStdlibEntry(NAME_LEN_PN, ntvLen, 1),
-        MakeStdlibEntry(NAME_APPEND_EN, ntvAppend, -1),
-        MakeStdlibEntry(NAME_APPEND_BN, ntvAppend, -1),
-        MakeStdlibEntry(NAME_APPEND_PN, ntvAppend, -1),
+        MakeStdlibEntry(NAME_APPEND_EN, ntvAppend, 2),
+        MakeStdlibEntry(NAME_APPEND_BN, ntvAppend, 2),
+        MakeStdlibEntry(NAME_APPEND_PN, ntvAppend, 2),
         MakeStdlibEntry(NAME_ERROR_EN, ntvError, 1),
         MakeStdlibEntry(NAME_ERROR_BN, ntvError, 1),
         MakeStdlibEntry(NAME_ERROR_PN, ntvError, 1),

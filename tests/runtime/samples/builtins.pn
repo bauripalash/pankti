@@ -51,18 +51,6 @@ let a_list = [1, 2, 3]
 ?a_list
 ?একটি_তালিকা
 
-let a_map = {1: "hello", 2: "world"}
-ধরি একটি_ছক = {১ : "নমস্কার", ২ : "বিশ্ব"}
-
-?append(a_map, 3, "mango")
-?a_map
-
-?songjog(a_map, 4, true)
-?a_map
-
-?সংযোগ(একটি_ছক, ৩, "আম")
-?একটি_ছক
-
 ?type(args())
 ?প্রকার(প্রেরণমান())
 ?prokar(preronman())
