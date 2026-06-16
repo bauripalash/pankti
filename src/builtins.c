@@ -21,33 +21,33 @@
 #include <stdint.h>
 #include <time.h>
 
-#define NAME_CLOCK_EN      "clock"
-#define NAME_CLOCK_BN      "সময়"
-#define NAME_CLOCK_PN      "somoy"
+#define NAME_CLOCK_EN       "clock"
+#define NAME_CLOCK_BN       "সময়"
+#define NAME_CLOCK_PN       "somoy"
 
-#define NAME_SHOW_EN       "show"
-#define NAME_SHOW_BN       "দেখাও"
-#define NAME_SHOW_PN       "dekhao"
+#define NAME_SHOW_EN        "show"
+#define NAME_SHOW_BN        "দেখাও"
+#define NAME_SHOW_PN        "dekhao"
 
-#define NAME_TYPE_EN       "type"
-#define NAME_TYPE_BN       "প্রকার"
-#define NAME_TYPE_PN       "prokar"
+#define NAME_TYPE_EN        "type"
+#define NAME_TYPE_BN        "প্রকার"
+#define NAME_TYPE_PN        "prokar"
 
-#define NAME_LEN_EN        "len"
-#define NAME_LEN_BN        "আয়তন"
-#define NAME_LEN_PN        "ayoton"
+#define NAME_LEN_EN         "len"
+#define NAME_LEN_BN         "আয়তন"
+#define NAME_LEN_PN         "ayoton"
 
-#define NAME_APPEND_EN     "append"
-#define NAME_APPEND_BN     "সংযোগ"
-#define NAME_APPEND_PN     "songjog"
+#define NAME_APPEND_EN      "append"
+#define NAME_APPEND_BN      "সংযোগ"
+#define NAME_APPEND_PN      "songjog"
 
-#define NAME_ERROR_EN      "error"
-#define NAME_ERROR_BN      "গোলমাল"
-#define NAME_ERROR_PN      "golmal"
+#define NAME_ERROR_EN       "error"
+#define NAME_ERROR_BN       "গোলমাল"
+#define NAME_ERROR_PN       "golmal"
 
-#define NAME_ARGS_EN       "args"
-#define NAME_ARGS_BN       "প্রেরণমান"
-#define NAME_ARGS_PN       "preronman"
+#define NAME_ARGS_EN        "args"
+#define NAME_ARGS_BN        "প্রেরণমান"
+#define NAME_ARGS_PN        "preronman"
 
 #define BUILTIN_MODULE_NAME "সাধারণ"
 

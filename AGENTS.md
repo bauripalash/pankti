@@ -235,7 +235,7 @@ src/
         gfxhelper.h         # Graphics Helper/Utilities for Graphics backend
         keywords.h          # Keyword definitions (Bengali, English, Phonetic)
         lexer.h             # Lexer interface
-        native.h            # Native Functions
+        builtins.h          # Built-in Functions
         object.h            # Object System (Values, Strings, Functions etc.)
         opcode.h            # Bytecode Opcodes
         parser.h            # Parser
