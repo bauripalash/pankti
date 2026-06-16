@@ -8,6 +8,7 @@
 
 #include "include/native.h"
 #include "external/stb/stb_ds.h"
+#include "gen/diagon.h"
 #include "include/compiler.h"
 #include "include/gc.h"
 #include "include/object.h"
@@ -19,7 +20,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <time.h>
 
 #define NAME_CLOCK_EN      "clock"
@@ -73,11 +73,13 @@ static PValue ntvType(PVm *vm, PValue *args, u64 argc) {
     const char *typeName = ValueTypeToStr(target);
     char *typeNameMlcd = StrDuplicate(typeName, StrLength(typeName));
     if (typeNameMlcd == NULL) {
-        return MakeNil(); // todo error
+        VmError(vm, RT_IME_BUILTIN_TYPE_STRDUP);
+        return MakeNil();
     }
     PObj *typeStrObj = NewStrObject(vm->gc, NULL, typeNameMlcd, true);
     if (typeStrObj == NULL) {
-        return MakeNil(); // todo error
+        VmError(vm, RT_IME_BUILTIN_TYPE_STRRETURN);
+        return MakeNil();
     }
 
     return MakeObject(typeStrObj);
@@ -86,12 +88,12 @@ static PValue ntvType(PVm *vm, PValue *args, u64 argc) {
 static PValue ntvLen(PVm *vm, PValue *args, u64 argc) {
     PValue target = args[0];
     if (!IsValueObj(target)) {
-        VmError(vm, RT_TEMPLATE, "Length can not be calculated for this value");
+        VmError(vm, RT_BUILTIN_LEN_INVALID_TYPE, ValueTypeToStr(target));
         return MakeNil();
     }
     PObj *targetObj = ValueAsObj(target);
     if (!ObjectHasLen(targetObj)) {
-        VmError(vm, RT_TEMPLATE, "Length can not be calculated for this value");
+        VmError(vm, RT_BUILTIN_LEN_INVALID_TYPE, ValueTypeToStr(target));
         return MakeNil();
     }
     return MakeNumber(GetObjectLength(targetObj));
@@ -161,7 +163,7 @@ static PValue ntvAppend(PVm *vm, PValue *args, u64 argc) {
 static PValue ntvError(PVm *vm, PValue *args, u64 argc) {
     PValue rawMsg = args[0];
     if (!IsValueObjType(rawMsg, OT_STR)) {
-        VmError(vm, RT_TEMPLATE, "Error message must be a string");
+        VmError(vm, RT_BUILTIN_ERROR_INVALID_TYPE, ValueTypeToStr(rawMsg));
         return MakeNil();
     }
     struct OString *strObj = &ValueAsObj(rawMsg)->v.OString;
@@ -181,9 +183,7 @@ static PValue ntvGetArgs(PVm *vm, PValue *args, u64 argc) {
         PObj *emptyArray = NewArrayObject(vm->gc, NULL, NULL, 0);
 
         if (emptyArray == NULL) {
-            VmError(
-                vm, RT_TEMPLATE, "Failed to create array for arguments list"
-            );
+            VmError(vm, RT_IME_BUILTIN_ARGS_ARRAY_CREATE_FAILED);
             return MakeNil();
         }
 
@@ -194,18 +194,23 @@ static PValue ntvGetArgs(PVm *vm, PValue *args, u64 argc) {
     for (int i = 0; i < sargCount; i++) {
         PObj *strObj = NewStrObject(vm->gc, NULL, sargs[i], false);
         if (strObj == NULL) {
-            // handle error
+            arrfree(items); // GC will handle orphaned objects, just free array
+            VmError(vm, RT_IME_BUILTIN_ARGS_ARRAY_ITEM_CREATE_FAILED);
+            return MakeNil();
         }
 
         arrpush(items, MakeObject(strObj));
     }
 
     PObj *arr = NewArrayObject(vm->gc, NULL, items, sargCount);
+    if (arr == NULL) {
+        arrfree(items); // GC will handle orphaned objects, just free array
+        VmError(vm, RT_IME_BUILTIN_ARGS_ARRAY_CREATE_FAILED);
+        return MakeNil();
+    }
 
     return MakeObject(arr);
 }
-
-#define DefStrHash(s, v) ((StrHash(s, DefStrLen(s), v->gc->timestamp)))
 
 void RegisterNatives(PVm *vm) {
     if (vm == NULL) {

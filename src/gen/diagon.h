@@ -1,4 +1,6 @@
 /*
+ * Copyright (c) 2022 Palash Bauri
+ *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
@@ -460,6 +462,22 @@ typedef enum PanDiagCode{
     RT_STDMATH_RANDOM_MIN_NOT_NUM,
     // গণিত.এলোমেলো(সর্বনিম্ন, সর্বোচ্চ) কাজের প্রেরণমান 'সর্বোচ্চ' একটি সংখ্যা হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি দেওয়া হয়েছে
     RT_STDMATH_RANDOM_MAX_NOT_NUM,
+    // অভ্যন্তরীণ গোলমাল: প্রকার(রাশি) কাজের প্রেরণমান রাশিটির ধরন জানা বিফল হয়েছে
+    RT_IME_BUILTIN_TYPE_STRDUP,
+    // অভ্যন্তরীণ গোলমাল: প্রকার(রাশি) কাজের ফেরত মানের জন্যে কথারাশি তৈরি বিফল হয়েছে
+    RT_IME_BUILTIN_TYPE_STRRETURN,
+    // আয়তন(রাশি) কাজে দেওয়া %s-জাতিয় রাশির আয়তন নির্ধারণ সম্ভব নয়
+    RT_BUILTIN_LEN_INVALID_TYPE,
+    // সংযোগ(তালিকা, উপাদান) কাজের প্রথম প্রেরণ অর্থাৎ তালিকা একটি তালিকা হওয়া উচিত ছিল কিন্তু একটি %s-জাতিয় রাশি পাওয়া গেছে
+    RT_BUILTIN_APPEND_TARGET_NOT_ARRAY,
+    // অভ্যন্তরীণ গোলমাল: সংযোগ(তালিকা, উপাদান) কাজে তালিকাতে নতুন উপাদান যোগ বিফল হয়েছে
+    RT_IME_BUILTIN_APPEND_PUSH_FAILED,
+    // গোলমাল(বার্তা) কাজে বার্তা প্রেরণমান একটি কথারাশি হওয়া উচিত কিন্তু একটি %s-জাতিয় রাশি দেওয়া হয়েছে
+    RT_BUILTIN_ERROR_INVALID_TYPE,
+    // অভ্যন্তরীণ গোলমাল: প্রেরণমান() কাজের ফেরতমানের জন্য নতুন তালিকা তৈরি বিফল হয়েছে
+    RT_IME_BUILTIN_ARGS_ARRAY_CREATE_FAILED,
+    // অভ্যন্তরীণ গোলমাল: প্রেরণমান() কাজের ফেরতনের তালিকারর উপাদান তৈরি বিফল হয়েছে
+    RT_IME_BUILTIN_ARGS_ARRAY_ITEM_CREATE_FAILED,
     // অভ্যন্তরীণ গোলমাল: পরিবেশ.নাম() কাজে অপারেটিং সিস্টেমের নামের কথারাশি তৈরি বিফল হয়েছে
     RT_IME_STDSYS_NAME_STR,
     // অভ্যন্তরীণ গোলমাল: পরিবেশ.আর্চ() কাজে অপারেটিং সিস্টেমের আর্চের নামের কথারাশি তৈরি বিফল হয়েছে
