@@ -6,10 +6,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "include/native.h"
+#include "include/builtins.h"
 #include "external/stb/stb_ds.h"
 #include "gen/diagon.h"
-#include "include/compiler.h"
 #include "include/gc.h"
 #include "include/object.h"
 #include "include/printer.h"
@@ -50,15 +49,15 @@
 #define NAME_ARGS_BN       "প্রেরণমান"
 #define NAME_ARGS_PN       "preronman"
 
-#define NATIVE_MODULE_NAME "সাধারণ"
+#define BUILTIN_MODULE_NAME "সাধারণ"
 
-static PValue ntvClock(PVm *vm, PValue *args, u64 argc) {
+static PValue builtinClock(PVm *vm, PValue *args, u64 argc) {
     clock_t c = clock();
     double sec = (double)c / (double)CLOCKS_PER_SEC;
     return MakeNumber(sec);
 }
 
-static PValue ntvShow(PVm *vm, PValue *args, u64 argc) {
+static PValue builtinShow(PVm *vm, PValue *args, u64 argc) {
     for (u64 i = 0; i < argc; i++) {
         PrintValue(args[i]);
         if (i + 1 < argc) {
@@ -68,7 +67,7 @@ static PValue ntvShow(PVm *vm, PValue *args, u64 argc) {
     return MakeNil();
 }
 
-static PValue ntvType(PVm *vm, PValue *args, u64 argc) {
+static PValue builtinType(PVm *vm, PValue *args, u64 argc) {
     PValue target = args[0];
     const char *typeName = ValueTypeToStr(target);
     char *typeNameMlcd = StrDuplicate(typeName, StrLength(typeName));
@@ -85,7 +84,7 @@ static PValue ntvType(PVm *vm, PValue *args, u64 argc) {
     return MakeObject(typeStrObj);
 }
 
-static PValue ntvLen(PVm *vm, PValue *args, u64 argc) {
+static PValue builtinLen(PVm *vm, PValue *args, u64 argc) {
     PValue target = args[0];
     if (!IsValueObj(target)) {
         VmError(vm, RT_BUILTIN_LEN_INVALID_TYPE, ValueTypeToStr(target));
@@ -99,7 +98,7 @@ static PValue ntvLen(PVm *vm, PValue *args, u64 argc) {
     return MakeNumber(GetObjectLength(targetObj));
 }
 
-static PValue ntvAppend(PVm *vm, PValue *args, u64 argc) {
+static PValue builtinAppend(PVm *vm, PValue *args, u64 argc) {
     PValue target = args[0];
     if (!IsValueObjType(target, OT_ARR)) {
         VmError(vm, RT_BUILTIN_APPEND_TARGET_NOT_ARRAY, ValueTypeToStr(target));
@@ -119,7 +118,7 @@ static PValue ntvAppend(PVm *vm, PValue *args, u64 argc) {
     return MakeNumber((double)obj->v.OArray.count);
 }
 
-static PValue ntvError(PVm *vm, PValue *args, u64 argc) {
+static PValue builtinError(PVm *vm, PValue *args, u64 argc) {
     PValue rawMsg = args[0];
     if (!IsValueObjType(rawMsg, OT_STR)) {
         VmError(vm, RT_BUILTIN_ERROR_INVALID_TYPE, ValueTypeToStr(rawMsg));
@@ -131,7 +130,7 @@ static PValue ntvError(PVm *vm, PValue *args, u64 argc) {
     return MakeNil();
 }
 
-static PValue ntvGetArgs(PVm *vm, PValue *args, u64 argc) {
+static PValue builtinGetArgs(PVm *vm, PValue *args, u64 argc) {
     (void)args;
     (void)argc;
 
@@ -171,7 +170,7 @@ static PValue ntvGetArgs(PVm *vm, PValue *args, u64 argc) {
     return MakeObject(arr);
 }
 
-void RegisterNatives(PVm *vm) {
+void RegisterBuiltins(PVm *vm) {
     if (vm == NULL) {
         return;
     }
@@ -180,32 +179,32 @@ void RegisterNatives(PVm *vm) {
         return;
     }
 
-    StdlibEntry nativeEntries[] = {
-        MakeStdlibEntry(NAME_CLOCK_EN, ntvClock, 0),
-        MakeStdlibEntry(NAME_CLOCK_BN, ntvClock, 0),
-        MakeStdlibEntry(NAME_CLOCK_PN, ntvClock, 0),
-        MakeStdlibEntry(NAME_SHOW_EN, ntvShow, -1),
-        MakeStdlibEntry(NAME_SHOW_BN, ntvShow, -1),
-        MakeStdlibEntry(NAME_SHOW_PN, ntvShow, -1),
-        MakeStdlibEntry(NAME_TYPE_EN, ntvType, 1),
-        MakeStdlibEntry(NAME_TYPE_BN, ntvType, 1),
-        MakeStdlibEntry(NAME_TYPE_PN, ntvType, 1),
-        MakeStdlibEntry(NAME_LEN_EN, ntvLen, 1),
-        MakeStdlibEntry(NAME_LEN_BN, ntvLen, 1),
-        MakeStdlibEntry(NAME_LEN_PN, ntvLen, 1),
-        MakeStdlibEntry(NAME_APPEND_EN, ntvAppend, 2),
-        MakeStdlibEntry(NAME_APPEND_BN, ntvAppend, 2),
-        MakeStdlibEntry(NAME_APPEND_PN, ntvAppend, 2),
-        MakeStdlibEntry(NAME_ERROR_EN, ntvError, 1),
-        MakeStdlibEntry(NAME_ERROR_BN, ntvError, 1),
-        MakeStdlibEntry(NAME_ERROR_PN, ntvError, 1),
-        MakeStdlibEntry(NAME_ARGS_EN, ntvGetArgs, 0),
-        MakeStdlibEntry(NAME_ARGS_BN, ntvGetArgs, 0),
-        MakeStdlibEntry(NAME_ARGS_PN, ntvGetArgs, 0),
+    StdlibEntry builtinEntries[] = {
+        MakeStdlibEntry(NAME_CLOCK_EN, builtinClock, 0),
+        MakeStdlibEntry(NAME_CLOCK_BN, builtinClock, 0),
+        MakeStdlibEntry(NAME_CLOCK_PN, builtinClock, 0),
+        MakeStdlibEntry(NAME_SHOW_EN, builtinShow, -1),
+        MakeStdlibEntry(NAME_SHOW_BN, builtinShow, -1),
+        MakeStdlibEntry(NAME_SHOW_PN, builtinShow, -1),
+        MakeStdlibEntry(NAME_TYPE_EN, builtinType, 1),
+        MakeStdlibEntry(NAME_TYPE_BN, builtinType, 1),
+        MakeStdlibEntry(NAME_TYPE_PN, builtinType, 1),
+        MakeStdlibEntry(NAME_LEN_EN, builtinLen, 1),
+        MakeStdlibEntry(NAME_LEN_BN, builtinLen, 1),
+        MakeStdlibEntry(NAME_LEN_PN, builtinLen, 1),
+        MakeStdlibEntry(NAME_APPEND_EN, builtinAppend, 2),
+        MakeStdlibEntry(NAME_APPEND_BN, builtinAppend, 2),
+        MakeStdlibEntry(NAME_APPEND_PN, builtinAppend, 2),
+        MakeStdlibEntry(NAME_ERROR_EN, builtinError, 1),
+        MakeStdlibEntry(NAME_ERROR_BN, builtinError, 1),
+        MakeStdlibEntry(NAME_ERROR_PN, builtinError, 1),
+        MakeStdlibEntry(NAME_ARGS_EN, builtinGetArgs, 0),
+        MakeStdlibEntry(NAME_ARGS_BN, builtinGetArgs, 0),
+        MakeStdlibEntry(NAME_ARGS_PN, builtinGetArgs, 0),
     };
 
-    u64 count = ArrCount(nativeEntries);
+    u64 count = ArrCount(builtinEntries);
     PushStdlibEntries(
-        vm, vm->globals, NATIVE_MODULE_NAME, nativeEntries, count
+        vm, vm->globals, BUILTIN_MODULE_NAME, builtinEntries, count
     );
 }

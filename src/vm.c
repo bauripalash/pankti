@@ -13,7 +13,7 @@
 #include "include/compiler.h"
 #include "include/diagonctx.h"
 #include "include/gc.h"
-#include "include/native.h"
+#include "include/builtins.h"
 #include "include/object.h"
 #include "include/opcode.h"
 #include "include/printer.h"
@@ -78,7 +78,7 @@ void SetupVm(
     frame->cls = clsObj;
     frame->ip = clsObj->v.OClosure.function->v.OComFunction.code->code;
     frame->slots = vm->stack;
-    RegisterNatives(vm);
+    RegisterBuiltins(vm);
 }
 
 void FreeVm(PVm *vm) {

@@ -6,15 +6,14 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef NATIVE_H
-#define NATIVE_H
+#ifndef PANKTI_BUILTINS_H
+#define PANKTI_BUILTINS_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 typedef struct PVm PVm;
-void RegisterNatives(PVm *vm);
-
+void RegisterBuiltins(PVm *vm);
 #ifdef __cplusplus
 }
 #endif
