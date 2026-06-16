@@ -69,9 +69,10 @@ Pankti supports three syntax modes that can be mixed freely.
 |---------|----------|---------|-------------|-----------|
 | `দেখাও()` | `dekhao()` | `show()` | Print values to output| Any numbers |
 | `আয়তন()` | `ayoton()` | `len()` | Get length of Array, Strings etc. | 1 |
-| `সংযোগ()` | `songjog()` | `append()`| Append value to array | 2 or more |
+| `সংযোগ()` | `songjog()` | `append()`| Append value to array | 2 |
 | `সময়()` | `somoy()` | `clock()` | Get current time | 0 |
 | `গোলমাল()`| `golmal()`  | `error()`   | Throw a runtime error and halt execution |1|
+| `প্রেরণমান()` | `preronman()` | `args()` | Get arguments passed to the script|0|
 
 
 ### Data Types
