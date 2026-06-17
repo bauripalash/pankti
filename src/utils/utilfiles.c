@@ -6,7 +6,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+#include "../external/gb/gb_string.h"
 #include "../include/alloc.h"
+#include "../include/printer.h"
 #include "../include/ptypes.h"
 #include "../include/utils.h"
 #include <stdbool.h>
@@ -15,6 +17,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <time.h>
 #include <uchar.h>
 
 #if defined(PANKTI_OS_WIN)
@@ -147,4 +150,30 @@ bool PanIsPathFile(const char *filepath) {
     }
 
     return S_ISREG(buf.st_mode);
+}
+
+char *PanReadLine(const char *msg, int *len) {
+    if (msg != NULL) {
+        PanPrint(msg);
+        PanFlushStdout();
+        PanFlushStderr();
+    }
+    gbString gstr = gb_make_string("");
+    int ch;
+    int length = 0;
+    while ((ch = fgetc(stdin)) != EOF && ch != '\n') {
+        char c = (char)ch;
+        gstr = gb_append_string_length(gstr, &c, 1);
+        length++;
+    }
+    char *resultStr = StrDuplicate(gstr, (u64)gb_string_length(gstr));
+    gb_free_string(gstr);
+
+    if (resultStr == NULL) {
+        if (len != NULL) *len = 0;
+        return NULL;
+    }
+
+    if (len != NULL) *len = length;
+    return resultStr;
 }

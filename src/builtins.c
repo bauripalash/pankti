@@ -9,6 +9,7 @@
 #include "include/builtins.h"
 #include "external/stb/stb_ds.h"
 #include "gen/diagon.h"
+#include "include/alloc.h"
 #include "include/gc.h"
 #include "include/object.h"
 #include "include/printer.h"
@@ -20,6 +21,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <time.h>
+#include <unistd.h>
 
 #define NAME_CLOCK_EN       "clock"
 #define NAME_CLOCK_BN       "সময়"
@@ -48,6 +50,10 @@
 #define NAME_ARGS_EN        "args"
 #define NAME_ARGS_BN        "প্রেরণমান"
 #define NAME_ARGS_PN        "preronman"
+
+#define NAME_READLINE_EN    "read"
+#define NAME_READLINE_BN    "পড়ো"
+#define NAME_READLINE_PN    "poro"
 
 #define BUILTIN_MODULE_NAME "সাধারণ"
 
@@ -170,6 +176,32 @@ static PValue builtinGetArgs(PVm *vm, PValue *args, u64 argc) {
     return MakeObject(arr);
 }
 
+static PValue builtinReadline(PVm *vm, PValue *args, u64 argc) {
+    PValue msg = args[0];
+    if (!IsValueObjType(msg, OT_STR)) {
+        VmError(vm, RT_BUILTIN_READLINE_MSG_NOT_STR, ValueTypeToStr(msg));
+        return MakeNil();
+    }
+    struct OString *strObj = &ValueAsObj(msg)->v.OString;
+    int len = 0;
+    char *result = PanReadLine(strObj->value, &len);
+
+    if (result == NULL) {
+        VmError(vm, RT_IME_BUILTIN_READLINE_READ_FAIL);
+        return MakeNil();
+    }
+
+    PObj *resStrObj = NewStrObject(vm->gc, NULL, result, true);
+
+    if (resStrObj == NULL) {
+        VmError(vm, RT_IME_BUILTIN_READLINE_RESULT);
+        PFree(result);
+        return MakeNil();
+    }
+
+    return MakeObject(resStrObj);
+}
+
 void RegisterBuiltins(PVm *vm) {
     if (vm == NULL) {
         return;
@@ -201,6 +233,9 @@ void RegisterBuiltins(PVm *vm) {
         MakeStdlibEntry(NAME_ARGS_EN, builtinGetArgs, 0),
         MakeStdlibEntry(NAME_ARGS_BN, builtinGetArgs, 0),
         MakeStdlibEntry(NAME_ARGS_PN, builtinGetArgs, 0),
+        MakeStdlibEntry(NAME_READLINE_EN, builtinReadline, 1),
+        MakeStdlibEntry(NAME_READLINE_BN, builtinReadline, 1),
+        MakeStdlibEntry(NAME_READLINE_PN, builtinReadline, 1),
     };
 
     u64 count = ArrCount(builtinEntries);

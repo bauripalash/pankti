@@ -36,6 +36,8 @@ extern "C" {
 
 #define DefStrLen(str) ((u64)(sizeof(str) - 1))
 
+char *PanReadLine(const char *msg, int *len);
+
 // Read file to string (must free the returned string)
 // `path` = Path to the file
 char *PanReadFile(const char *path);
