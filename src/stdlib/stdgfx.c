@@ -13,6 +13,7 @@
 #include "../include/gfxdraw.h"
 #include "../include/gfxfont.h"
 #include "../include/gfxhelper.h"
+#include "../include/printer.h"
 #include "../include/pstdlib.h"
 #include "../include/symtable.h"
 #include "../include/vm.h"
@@ -94,6 +95,8 @@ static PValue gfx_DrawStart(PVm *vm, PValue *args, u64 argc) {
 
 static PValue gfx_DrawFinish(PVm *vm, PValue *args, u64 argc) {
     tigrUpdate(gcore->screen);
+    PanFlushStdout();
+    PanFlushStderr();
     return MakeNil();
 }
 
