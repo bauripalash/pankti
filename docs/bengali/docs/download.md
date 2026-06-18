@@ -1,11 +1,11 @@
 +++
 weight = 1
-title = "ডাউনলোড"
+title = "ডাউনলোড (Download)"
 +++
 
 # ডাউনলোড
 
-#### ডাউনলোড:
+## ডাউনলোড ফাইলসমূহ:
 
 * উইন্ডোজ x86 32বিট: [pankti-win32-preview.zip](https://github.com/bauripalash/pankti/releases/download/preview/pankti-win32-preview.zip)
 * উইন্ডোজ x86_64 64বিট: [pankti-win64-preview.zip](https://github.com/bauripalash/pankti/releases/download/preview/pankti-win64-preview.zip)
