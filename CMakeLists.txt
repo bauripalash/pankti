@@ -143,6 +143,8 @@ if(NOT NO_VERSION_FETCH)
 
     include(cmake/parseversion.cmake)
     ParseVersion("${CMAKE_SOURCE_DIR}/src/include/version.h")
+	string(REPLACE "+" "-" PANKTI_VERSION_FILE "${PANKTI_VERSION_FULL}")
+	set(PANKTI_VERSION_NUMERIC "${PANKTI_VERSION_MAJOR}.${PANKTI_VERSION_MINOR}.${PANKTI_VERSION_PATCH}.${PANKTI_GIT_COUNT_CLEAN}")
 
 
 	configure_file(
@@ -324,6 +326,12 @@ if (IS_OS_WIN)
         "${CMAKE_BINARY_DIR}/pankti.rc"
         @ONLY
     )
+
+	configure_file(
+        "${CMAKE_CURRENT_LIST_DIR}/windows/panktisetup.iss.in"
+        "${CMAKE_BINARY_DIR}/panktisetup.iss"
+        @ONLY
+	)
 
     target_sources(${PROJECT_NAME} PRIVATE "${CMAKE_BINARY_DIR}/pankti.rc")
 elseif (IS_OS_LINUX)

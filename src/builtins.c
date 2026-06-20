@@ -21,7 +21,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <time.h>
-#include <unistd.h>
 
 #define NAME_CLOCK_EN       "clock"
 #define NAME_CLOCK_BN       "সময়"

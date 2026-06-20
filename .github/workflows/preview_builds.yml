@@ -112,7 +112,7 @@ jobs:
   
   build-windows:
     name: Build Windows (32bit and 64bit)
-    runs-on: windows-latest
+    runs-on: windows-2022
     needs: [check-trigger]
     if: needs.check-trigger.outputs.should_run == 'true'
     strategy:
@@ -121,8 +121,10 @@ jobs:
         include:
           - label: win64
             cmake_arch: x64
+            iscc_flags: "/DIs64Bit"
           - label: win32
             cmake_arch: Win32
+            iscc_flags: ""
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -147,12 +149,25 @@ jobs:
       - name: Run Tests
         shell: cmd
         run: build.bat test_only
+
+      - name: Compile installer
+        run: |
+          iscc ${{ matrix.iscc_flags }} build/panktisetup.iss 
+          $installer = Get-ChildItem -Path dist -Filter "pankti-*-setup.exe" | Select-Object -First 1 
+          Copy-Item $installer.FullName "dist/pankti-${{ matrix.label }}-setup.exe"
       
-      - name: Upload artifact
+      - name: Upload binary artifact
         uses: actions/upload-artifact@v4
         with:
           name: pankti-${{ matrix.label }}
           path: build/pankti.exe
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pankti-${{ matrix.label }}-installer
+          path: dist/pankti-${{ matrix.label }}-setup.exe
+          if-no-files-found: error
 
   release-preview:
     name: Upload to Preview Pre-Release
@@ -177,18 +192,32 @@ jobs:
         with:
           name: pankti-win64
           path: artifacts/win64
-          
+ 
+      - name: Fetch Win64 Installer Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pankti-win64-installer
+          path: artifacts/win64-installer         
+
       - name: Fetch Win32 Artifacts
         uses: actions/download-artifact@v4
         with:
           name: pankti-win32
           path: artifacts/win32
+
+      - name: Fetch Win32 Installer Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pankti-win32-installer
+          path: artifacts/win32-installer
       
       - name: Zip Artifacts
         run: |
           zip -j pankti-linux64-preview.zip artifacts/linux/pankti
           zip -j pankti-win64-preview.zip artifacts/win64/pankti.exe
           zip -j pankti-win32-preview.zip artifacts/win32/pankti.exe
+          cp artifacts/win64-installer/pankti-win64-setup.exe pankti-win64-setup-preview.exe
+          cp artifacts/win32-installer/pankti-win32-setup.exe pankti-win32-setup-preview.exe
           git archive --format=zip --output=pankti-source-preview.zip HEAD
       
       - name: Ensure Preview Pre-Release
@@ -219,8 +248,10 @@ jobs:
           Author: Palash Bauri
 
           Download Links:
-          * Windows 32bit: [pankti-win32-preview.zip](${BASE}/pankti-win32-preview.zip)
-          * Windows 64bit: [pankti-win64-preview.zip](${BASE}/pankti-win64-preview.zip)
+          * Windows 32bit Installer: [pankti-win32-setup-preview.exe](${BASE}/pankti-win32-setup-preview.exe)
+          * Windows 64bit Installer: [pankti-win64-setup-preview.exe](${BASE}/pankti-win64-setup-preview.exe)
+          * Windows 32bit Exe: [pankti-win32-preview.zip](${BASE}/pankti-win32-preview.zip)
+          * Windows 64bit Exe: [pankti-win64-preview.zip](${BASE}/pankti-win64-preview.zip)
           * Linux 64bit: [pankti-linux64-preview.zip](${BASE}/pankti-linux64-preview.zip)
           * Source Code: [pankti-source-preview.zip](${BASE}/pankti-source-preview.zip)
           
@@ -241,6 +272,8 @@ jobs:
             pankti-win64-preview.zip \
             pankti-win32-preview.zip \
             pankti-source-preview.zip \
+            pankti-win64-setup-preview.exe \
+            pankti-win32-setup-preview.exe \
             --repo ${{ github.repository }} \
             --clobber
         
