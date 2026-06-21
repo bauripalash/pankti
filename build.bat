@@ -36,6 +36,23 @@ if "%1"=="build_rls_win64" goto:build_rls_win64
 
 echo Unknown command %1
 echo Usage "build.bat [COMMAND]"
+echo(
+echo [COMMAND]:
+echo 	run: Build and Run 'a.pn' pankti interpreter
+echo(
+echo 	cmake_setup: Setup CMake for Debug Build with Default Toolchain
+echo 	cmake_clang: Setup CMake for Debug Build with Clang Toolchain
+echo(
+echo 	build: Build Pankti project with pre-existing CMake setting
+echo 	build_dbg: Build Pankti in Debug Mode
+echo 	build_rls: Build Pankti in Release Mode
+echo 	build_rld: Build Pankti in Release with Debug Info Mode
+echo 	build_rls_win32: Build Pankti in Release Mode for Windows 32bit
+echo 	build_rls_win64: Build Pankti in Release Mode for Windows 64bit
+echo(
+echo 	test: Clean Build in Release mode and Run Tests
+echo 	test_only: Don't Rebuild and Run Tests
+echo 	runtime_tests: Build only tests and run only runtime tests
 exit /b 1
 
 

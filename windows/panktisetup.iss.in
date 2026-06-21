@@ -73,6 +73,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "addtopath"; Description: "Add {#MyAppName} to PATH"; GroupDescription: "Other tasks:"
 
 [Files]
 Source: "..\{#MyAppBinDir}\pankti.exe"; DestDir: "{app}"; Flags: ignoreversion
@@ -90,3 +91,146 @@ Name: "{group}\{#MyAppName} ({#AppArch}-bit)"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 Name: "{group}\Uninstall {#MyAppName} ({#AppArch}-bit)"; Filename: "{uninstallexe}"
 
+[Code]
+// Environment Key where the PATH is
+const EnvKey = 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment';
+
+// Link to Win32 SendMessageTimeoutA in user32.dll
+// Reference: https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendmessagetimeouta
+function SendMessageTimeout(
+	hWnd: Longint; // Window handle
+	Msg: Longint;  // Message ID
+	wParam: Longint; // Message parameter
+	lParam: string; // Message parameter (which settings was changed)
+	fuFlags: Longint; // Behavior flag
+	uTimeout: Longint; // Timeout period
+	var lpdwResult: Longint // Result
+) : Longint;
+	external 'SendMessageTimeoutA@user32.dll stdcall';
+
+const
+	// Message all top-level windows to notify settings change
+	// Reference: https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-settingchange
+	VAR_WM_SETTINGCHANGE = $001A;
+
+	// Special handle which sends message to all top-level window
+	VAR_HWND_BROADCAST = $FFFF;
+
+	// This flags makes it so the functions returns without waiting if hanged
+	VAR_SMTO_ABORTIFHUNG = $0002;
+
+// Wrapper to send message to all top-level windows that settings changed
+procedure RefreshEnv;
+var
+	Res: Longint; // SendMessageTimeoutA output, we don't actually use it here
+begin
+	// Send Message that Environment settings has changed
+	// with Timeout of 5000ms (5sec)
+	SendMessageTimeout(VAR_HWND_BROADCAST, VAR_WM_SETTINGCHANGE, 0, 'Environment', VAR_SMTO_ABORTIFHUNG, 5000, Res);
+end;
+
+// Add a Path to System PATH
+procedure EnvAddPath(Path: string);
+var
+	Paths: string; // Current PATH value
+begin
+	Log(Format('Begin EnvAddPath : %s', [Path]));
+
+	// Check & Fetch PATH from Environment Key
+	if not RegQueryStringValue(HKEY_LOCAL_MACHINE, EnvKey, 'Path', Paths) then
+	begin
+		Log('PATH not found in Registry');
+		Paths := '';
+	end;
+
+	// Duplicate entry check. ';' padding is added so substring can't match partial folder name
+	// If found - Do nothing - exit;
+	if Pos(';' + Uppercase(Path) + ';', ';' + Uppercase(Paths) + ';') > 0 then
+	begin
+		Log(Format('Path "%s" Already exists In Paths "%s"', [Path, Paths]));
+		Log('Exiting Early');
+		exit;
+	end;
+
+	Log(Format('Path "%s" does not exist in PATH', [Path]));
+
+	// Not equal in pascal is -> <>
+	if Paths <> '' then
+	begin
+		// If the last character of paths strings is not a semicolon
+		// add a semicolon
+		if Paths[Length(Paths)] <> ';' then
+			Paths := Paths + ';'
+	end;
+
+	// Append Path to Paths string
+	Paths := Paths + Path;
+
+	// Replace the the original path string with new appended path string in Registry
+	if RegWriteExpandStringValue(HKEY_LOCAL_MACHINE, EnvKey, 'Path', Paths) then
+		Log(Format('Added "%s" to PATH', [Path]))
+	else
+		Log(Format('Failed to add "%s" to PATH', [Path]));
+
+	RefreshEnv;
+
+	Log('Refreshed Environment');
+	Log(Format('Finished EnvAddPath : %s', [Path]));
+end;
+
+procedure EnvRemovePath(Path : string);
+var
+	Paths : string; // Current PATH
+	PPos : Integer; // Path position in Paths string
+begin
+	Log(Format('Begin EnvRemovePath : %s', [Path]));
+
+	// We fetch path from Environment Key. If It is empty, then we exit
+	if not RegQueryStringValue(HKEY_LOCAL_MACHINE, EnvKey, 'Path', Paths) then
+	begin
+		Log('PATH is empty. Exiting Early');
+		exit;
+	end;
+
+	// Get the position of the Path in current PATH string
+	// We also add padding of semicolons
+	PPos := Pos(';' + Uppercase(Path) + ';', ';' + Uppercase(Paths) + ';');
+
+	if PPos = 0 then // It means not found
+	begin
+		Log(Format('Path "%s" not found in PATH. Exiting Early', [Path]));
+		exit;
+	end;
+
+	Delete(Paths, PPos, Length(Path) + 1);
+
+	// Replace the the original path string with new appended path string in Registry
+	if RegWriteExpandStringValue(HKEY_LOCAL_MACHINE, EnvKey, 'Path', Paths) then
+		Log(Format('Removed "%s" from PATH', [Path]))
+	else
+		Log(Format('Failed to remove "%s" from PATH', [Path]));
+
+	RefreshEnv;
+
+	Log('Refreshed Environment');
+	Log(Format('Finished EnvRemovePath : %s', [Path]));
+end;
+
+// Called for hooking addtopath to Post-Install step
+// Reference: https://jrsoftware.org/ishelp/index.php?topic=scriptevents
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+	if (CurStep = ssPostInstall) and WizardIsTaskSelected('addtopath') then
+		EnvAddPath(ExpandConstant('{app}'));
+end;
+
+
+// Called for hooking to Post-Uninstall (maybe?) to remove from PATH
+// Reference: https://jrsoftware.org/ishelp/index.php?topic=scriptevents
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+	// Removing from PATH is unconditional because EnvRemovePath already checks
+	// if Path exists in PATH or not
+	if CurUninstallStep = usPostUninstall then
+		EnvRemovePath(ExpandConstant('{app}'));
+end;
