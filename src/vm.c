@@ -6,21 +6,21 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "include/vm.h"
+#include "vm.h"
+#include "alloc.h"
+#include "builtins.h"
+#include "compiler.h"
+#include "diagonctx.h"
 #include "external/stb/stb_ds.h"
+#include "gc.h"
 #include "gen/diagon.h"
-#include "include/alloc.h"
-#include "include/builtins.h"
-#include "include/compiler.h"
-#include "include/diagonctx.h"
-#include "include/gc.h"
-#include "include/object.h"
-#include "include/opcode.h"
-#include "include/printer.h"
-#include "include/pstdlib.h"
-#include "include/ptypes.h"
-#include "include/symtable.h"
-#include "include/utils.h"
+#include "object.h"
+#include "opcode.h"
+#include "printer.h"
+#include "pstdlib.h"
+#include "ptypes.h"
+#include "symtable.h"
+#include "utils.h"
 #include <math.h>
 #include <stdarg.h>
 #include <stdbool.h>

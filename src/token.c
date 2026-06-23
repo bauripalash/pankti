@@ -6,10 +6,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "include/token.h"
-#include "include/alloc.h"
-#include "include/printer.h"
-#include "include/terminal.h"
+#include "token.h"
+#include "alloc.h"
+#include "printer.h"
+#include "terminal.h"
 #include <stdbool.h>
 
 char *TokTypeToStr(PTokenType type) {

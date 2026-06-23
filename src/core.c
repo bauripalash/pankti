@@ -6,25 +6,25 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "include/core.h"
+#include "core.h"
+#include "alloc.h"
+#include "ast.h"
+#include "compiler.h"
+#include "diagonctx.h"
 #include "external/stb/stb_ds.h"
+#include "flags.h"
+#include "gc.h"
 #include "gen/diagon.h"
-#include "include/alloc.h"
-#include "include/ast.h"
-#include "include/compiler.h"
-#include "include/diagonctx.h"
-#include "include/flags.h"
-#include "include/gc.h"
-#include "include/lexer.h"
-#include "include/object.h"
-#include "include/panktiterms.h"
-#include "include/parser.h"
-#include "include/printer.h"
-#include "include/ptypes.h"
-#include "include/terminal.h"
-#include "include/token.h"
-#include "include/utils.h"
-#include "include/vm.h"
+#include "lexer.h"
+#include "object.h"
+#include "panktiterms.h"
+#include "parser.h"
+#include "printer.h"
+#include "ptypes.h"
+#include "terminal.h"
+#include "token.h"
+#include "utils.h"
+#include "vm.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -34,7 +34,7 @@
 #include <time.h>
 
 #if defined(PANKTI_BUILD_DEBUG)
-#include "include/opcode.h"
+#include "opcode.h"
 #endif
 
 static void coreRuntimeErrorBridge(

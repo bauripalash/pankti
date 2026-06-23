@@ -6,11 +6,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "include/unicode.h"
+#include "unicode.h"
+#include "alloc.h"
 #include "external/libgrapheme/grapheme.h"
 #include "external/stb/stb_ds.h"
-#include "include/alloc.h"
-#include "include/ptypes.h"
+#include "ptypes.h"
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>

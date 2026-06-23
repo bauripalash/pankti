@@ -8,8 +8,8 @@
 
 #if defined(PANKTI_BUILD_DEBUG)
 
-#include "include/flags.h"
-#include "include/printer.h"
+#include "flags.h"
+#include "printer.h"
 #include <stdbool.h>
 #include <stdlib.h>
 

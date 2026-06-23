@@ -46,7 +46,7 @@ KWLOOKUP_OUTPUT:=src/gen/kwlookup.h
 CPPCHECK_BUILD_DIR=$(CMAKE_BUILD_DIR)/cppcheck
 
 
-HEADERS:= $(shell find src/include -path 'src/gen' -prune -o -path 'src/external' -prune -o -path 'src/tmpl' -prune -o -name '*.h' -print)
+HEADERS:= $(shell find src/ -path 'src/gen' -prune -o -path 'src/external' -prune -o -path 'src/tmpl' -prune -o -name '*.h' -print)
 SOURCES:= $(shell find src/ -path 'src/gen' -prune -o -path 'src/external' -prune -o -path 'src/tmpl' -prune -o -name '*.c' -print)
 
 
@@ -174,7 +174,7 @@ run_cppcheck:
 
 .PHONY: gen_kwlookup
 gen_kwlookup:
-	./scripts/kwgperfgen.py src/include/keywords.h $(KWLOOKUP_OUTPUT)
+	./scripts/kwgperfgen.py src/keywords.h $(KWLOOKUP_OUTPUT)
 
 .PHONY: gen_diagon
 gen_diagon:

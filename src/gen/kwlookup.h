@@ -31,7 +31,7 @@
 
 
 #include <string.h>
-#include "../include/token.h"
+#include "../token.h"
 struct PanktiKeyword{
 	const char * name;
 	PTokenType ttype;

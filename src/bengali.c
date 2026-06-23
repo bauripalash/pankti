@@ -13,7 +13,7 @@
  * equivalent.
  */
 
-#include "include/bengali.h"
+#include "bengali.h"
 #include <stdint.h>
 
 bool IsBnNumber(u32 c) { return (c >= BN_NUM_0 && c <= BN_NUM_9); }

@@ -12,19 +12,19 @@
 #include <string.h>
 #include <uchar.h>
 
+#include "alloc.h"
+#include "bengali.h"
+#include "core.h"
 #include "external/stb/stb_ds.h"
 #include "gen/kwlookup.h"
-#include "include/alloc.h"
-#include "include/bengali.h"
-#include "include/core.h"
-#include "include/keywords.h"
-#include "include/lexer.h"
-#include "include/printer.h"
-#include "include/ptypes.h"
-#include "include/token.h"
-#include "include/unicode.h"
-#include "include/ustring.h"
-#include "include/utils.h"
+#include "keywords.h"
+#include "lexer.h"
+#include "printer.h"
+#include "ptypes.h"
+#include "token.h"
+#include "unicode.h"
+#include "ustring.h"
+#include "utils.h"
 
 Lexer *NewLexer(char *src) {
     Lexer *lx = PMalloc(sizeof(Lexer));

@@ -27,9 +27,9 @@
  * Apart from debug flags handling this also handle printing `help` information
  */
 
-#include "include/argparse.h"
-#include "include/printer.h"
-#include "include/version.h"
+#include "argparse.h"
+#include "printer.h"
+#include "version.h"
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -38,7 +38,7 @@
 #include "external/optparse/optparse.h"
 
 #if defined(PANKTI_BUILD_DEBUG)
-#include "include/flags.h"
+#include "flags.h"
 #define PANKTI_SHORT_ARGS "hvLPBTGSE"
 #else
 #define PANKTI_SHORT_ARGS "hv"

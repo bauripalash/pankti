@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "include/diagonctx.h"
+#include "diagonctx.h"
 #include <stdarg.h>
 #include <stdio.h>
 

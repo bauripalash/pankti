@@ -11,12 +11,12 @@
  * colored, if not disbaled using NO_COLOR=1 enviornment flags
  */
 
-#include "include/ast.h"
+#include "ast.h"
 #include "external/stb/stb_ds.h"
-#include "include/printer.h"
-#include "include/ptypes.h"
-#include "include/terminal.h"
-#include "include/token.h"
+#include "printer.h"
+#include "ptypes.h"
+#include "terminal.h"
+#include "token.h"
 #include <stddef.h>
 #include <stdio.h>
 

@@ -31,33 +31,33 @@ set(PANKTI_SRC_FILES
 
   # Object
 
-  "${CMAKE_CURRENT_LIST_DIR}/object/object.c"
-  "${CMAKE_CURRENT_LIST_DIR}/object/arrayobj.c"
-  "${CMAKE_CURRENT_LIST_DIR}/object/mapobj.c"
-  "${CMAKE_CURRENT_LIST_DIR}/object/printobj.c"
-  "${CMAKE_CURRENT_LIST_DIR}/object/tostrobj.c"
+  "${CMAKE_CURRENT_LIST_DIR}/object.c"
+  "${CMAKE_CURRENT_LIST_DIR}/arrayobj.c"
+  "${CMAKE_CURRENT_LIST_DIR}/mapobj.c"
+  "${CMAKE_CURRENT_LIST_DIR}/printobj.c"
+  "${CMAKE_CURRENT_LIST_DIR}/tostrobj.c"
 
   # Utilities
 
-  "${CMAKE_CURRENT_LIST_DIR}/utils/utilfiles.c"
-  "${CMAKE_CURRENT_LIST_DIR}/utils/utilnums.c"
-  "${CMAKE_CURRENT_LIST_DIR}/utils/utilstr.c"
+  "${CMAKE_CURRENT_LIST_DIR}/utilfiles.c"
+  "${CMAKE_CURRENT_LIST_DIR}/utilnums.c"
+  "${CMAKE_CURRENT_LIST_DIR}/utilstr.c"
 
   # Garbage Collector
 
-  "${CMAKE_CURRENT_LIST_DIR}/gc/gc.c"
-  "${CMAKE_CURRENT_LIST_DIR}/gc/gcexpr.c"
-  "${CMAKE_CURRENT_LIST_DIR}/gc/gcobject.c"
-  "${CMAKE_CURRENT_LIST_DIR}/gc/gcstmt.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gc.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gcexpr.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gcobject.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gcstmt.c"
 
   # Stdlib
-  "${CMAKE_CURRENT_LIST_DIR}/stdlib/pstdlib.c"
-  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdmap.c"
-  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdarray.c"
-  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdmath.c"
-  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdsystem.c"
-  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdstring.c"
-  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdfile.c"
+  "${CMAKE_CURRENT_LIST_DIR}/pstdlib.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdmap.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdarray.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdmath.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdsystem.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdstring.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdfile.c"
 
   # External
   "${CMAKE_CURRENT_LIST_DIR}/external/stb/stb_ds_impl.c"
@@ -69,34 +69,34 @@ set(PANKTI_SRC_FILES
 )
 
 set(PANKTI_HEADER_FILES
-  "${CMAKE_CURRENT_LIST_DIR}/include/alloc.h"
-  "${CMAKE_CURRENT_LIST_DIR}/include/bengali.h"
-  "${CMAKE_CURRENT_LIST_DIR}/include/core.h"
-  "${CMAKE_CURRENT_LIST_DIR}/include/defaults.h"
-  "${CMAKE_CURRENT_LIST_DIR}/include/gc.h"
-  "${CMAKE_CURRENT_LIST_DIR}/include/keywords.h"
-  "${CMAKE_CURRENT_LIST_DIR}/include/lexer.h"
-  "${CMAKE_CURRENT_LIST_DIR}/include/object.h"
-  "${CMAKE_CURRENT_LIST_DIR}/include/parser.h"
-  "${CMAKE_CURRENT_LIST_DIR}/include/pstdlib.h"
-  "${CMAKE_CURRENT_LIST_DIR}/include/strescape.h"
-  "${CMAKE_CURRENT_LIST_DIR}/include/strpool.h"
-  "${CMAKE_CURRENT_LIST_DIR}/include/terminal.h"
-  "${CMAKE_CURRENT_LIST_DIR}/include/token.h"
-  "${CMAKE_CURRENT_LIST_DIR}/include/ustring.h"
-  "${CMAKE_CURRENT_LIST_DIR}/include/utils.h"
+  "${CMAKE_CURRENT_LIST_DIR}/alloc.h"
+  "${CMAKE_CURRENT_LIST_DIR}/bengali.h"
+  "${CMAKE_CURRENT_LIST_DIR}/core.h"
+  "${CMAKE_CURRENT_LIST_DIR}/defaults.h"
+  "${CMAKE_CURRENT_LIST_DIR}/gc.h"
+  "${CMAKE_CURRENT_LIST_DIR}/keywords.h"
+  "${CMAKE_CURRENT_LIST_DIR}/lexer.h"
+  "${CMAKE_CURRENT_LIST_DIR}/object.h"
+  "${CMAKE_CURRENT_LIST_DIR}/parser.h"
+  "${CMAKE_CURRENT_LIST_DIR}/pstdlib.h"
+  "${CMAKE_CURRENT_LIST_DIR}/strescape.h"
+  "${CMAKE_CURRENT_LIST_DIR}/strpool.h"
+  "${CMAKE_CURRENT_LIST_DIR}/terminal.h"
+  "${CMAKE_CURRENT_LIST_DIR}/token.h"
+  "${CMAKE_CURRENT_LIST_DIR}/ustring.h"
+  "${CMAKE_CURRENT_LIST_DIR}/utils.h"
 
   # External
   "${CMAKE_CURRENT_LIST_DIR}/external/stb/stb_ds.h"
 )
 
 set(PANKTI_GFX_SRC_FILES
-  "${CMAKE_CURRENT_LIST_DIR}/stdlib/stdgfx.c"
-  "${CMAKE_CURRENT_LIST_DIR}/gfxhelper/gfxcore.c"
-  "${CMAKE_CURRENT_LIST_DIR}/gfxhelper/gfxdraw.c"
-  "${CMAKE_CURRENT_LIST_DIR}/gfxhelper/gfxfont.c"
-  "${CMAKE_CURRENT_LIST_DIR}/gfxhelper/gfxhelper.c"
-  "${CMAKE_CURRENT_LIST_DIR}/gfxhelper/gfxkeyboard.c"
+  "${CMAKE_CURRENT_LIST_DIR}/stdgfx.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gfxcore.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gfxdraw.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gfxfont.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gfxhelper.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gfxkeyboard.c"
 )
 
 set(PANKTI_MAIN_FILE "${CMAKE_CURRENT_LIST_DIR}/main.c")

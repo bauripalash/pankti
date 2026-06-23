@@ -142,7 +142,7 @@ if(NOT NO_VERSION_FETCH)
     # ------------------ END GIT INFO CHECK ------------------
 
     include(cmake/parseversion.cmake)
-    ParseVersion("${CMAKE_SOURCE_DIR}/src/include/version.h")
+    ParseVersion("${CMAKE_SOURCE_DIR}/src/version.h")
 	string(REPLACE "+" "-" PANKTI_VERSION_FILE "${PANKTI_VERSION_FULL}")
 	set(PANKTI_VERSION_NUMERIC "${PANKTI_VERSION_MAJOR}.${PANKTI_VERSION_MINOR}.${PANKTI_VERSION_PATCH}.${PANKTI_GIT_COUNT_CLEAN}")
 

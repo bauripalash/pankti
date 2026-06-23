@@ -6,8 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "include/strescape.h"
-#include "include/ptypes.h"
+#include "strescape.h"
+#include "ptypes.h"
 #include <ctype.h>
 #include <stddef.h>
 #include <stdint.h>

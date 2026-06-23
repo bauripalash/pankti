@@ -6,11 +6,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "include/strpool.h"
-#include "include/alloc.h"
-#include "include/object.h"
-#include "include/ptypes.h"
-#include "include/utils.h"
+#include "strpool.h"
+#include "alloc.h"
+#include "object.h"
+#include "ptypes.h"
+#include "utils.h"
 #include <stdbool.h>
 #include <stdlib.h>
 

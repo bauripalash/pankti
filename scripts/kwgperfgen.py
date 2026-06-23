@@ -14,7 +14,7 @@ import sys
 RESULT_CODE_OUTPUT = "src/gen/kwlookup.h"
 GPERF_TEMPLATE = """%{
 #include <string.h>
-#include "../include/token.h"
+#include "../token.h"
 %}
 
 struct PanktiKeyword{

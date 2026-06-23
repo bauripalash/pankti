@@ -6,12 +6,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "include/argparse.h"
-#include "include/core.h"
-#include "include/flags.h"
-#include "include/printer.h"
-#include "include/terminal.h"
-#include "include/utils.h"
+#include "argparse.h"
+#include "core.h"
+#include "flags.h"
+#include "printer.h"
+#include "terminal.h"
+#include "utils.h"
 #include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>

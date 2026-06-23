@@ -6,9 +6,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "include/terminal.h"
-#include "include/system.h"
-#include "include/utils.h"
+#include "terminal.h"
+#include "system.h"
+#include "utils.h"
 #include <stdbool.h>
 #include <stdlib.h>
 

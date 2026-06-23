@@ -6,9 +6,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "../../src/include/lexer.h"
-#include "../../src/include/parser.h"
-#include "../../src/include/gc.h"
+#include "../../src/lexer.h"
+#include "../../src/parser.h"
+#include "../../src/gc.h"
 #include "../../src/external/stb/stb_ds.h"
 #include "../include/utest.h"
 

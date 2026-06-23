@@ -6,16 +6,16 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "include/parser.h"
+#include "parser.h"
+#include "alloc.h"
+#include "ast.h"
+#include "diagonctx.h"
 #include "external/stb/stb_ds.h"
+#include "gc.h"
 #include "gen/diagon.h"
-#include "include/alloc.h"
-#include "include/ast.h"
-#include "include/diagonctx.h"
-#include "include/gc.h"
-#include "include/lexer.h"
-#include "include/token.h"
-#include "include/utils.h"
+#include "lexer.h"
+#include "token.h"
+#include "utils.h"
 #include <assert.h>
 #include <math.h>
 #include <stdarg.h>

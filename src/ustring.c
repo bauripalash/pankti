@@ -10,10 +10,10 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "include/alloc.h"
-#include "include/printer.h"
-#include "include/ptypes.h"
-#include "include/ustring.h"
+#include "alloc.h"
+#include "printer.h"
+#include "ptypes.h"
+#include "ustring.h"
 
 static u32 uiterGetACp(const char *str, u64 len, u64 *ate) {
     if (len == 0) {

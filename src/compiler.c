@@ -15,22 +15,22 @@
  * sequences inside strings.
  */
 
-#include "include/compiler.h"
+#include "compiler.h"
+#include "alloc.h"
+#include "ast.h"
+#include "diagonctx.h"
 #include "external/stb/stb_ds.h"
+#include "flags.h"
+#include "gc.h"
 #include "gen/diagon.h"
-#include "include/alloc.h"
-#include "include/ast.h"
-#include "include/diagonctx.h"
-#include "include/flags.h"
-#include "include/gc.h"
-#include "include/object.h"
-#include "include/opcode.h"
-#include "include/printer.h"
-#include "include/ptypes.h"
-#include "include/strescape.h"
-#include "include/token.h"
-#include "include/utils.h"
-#include "include/vm.h"
+#include "object.h"
+#include "opcode.h"
+#include "printer.h"
+#include "ptypes.h"
+#include "strescape.h"
+#include "token.h"
+#include "utils.h"
+#include "vm.h"
 #include <math.h>
 #include <stdarg.h>
 #include <stdbool.h>

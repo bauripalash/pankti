@@ -20,7 +20,7 @@ extern "C" {
 #include <stdlib.h>
 #include <sys/stat.h>
 #include "../include/utest.h"
-#include "../../src/include/system.h"
+#include "../../src/system.h"
 
 #ifdef PANKTI_OS_WIN
 #define stat _stat

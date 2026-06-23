@@ -6,12 +6,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "include/symtable.h"
-#include "include/alloc.h"
-#include "include/gc.h"
-#include "include/object.h"
-#include "include/printer.h"
-#include "include/ptypes.h"
+#include "symtable.h"
+#include "alloc.h"
+#include "gc.h"
+#include "object.h"
+#include "printer.h"
+#include "ptypes.h"
 #include <stdbool.h>
 #include <stdlib.h>
 

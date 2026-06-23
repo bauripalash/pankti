@@ -7,9 +7,9 @@
  */
 
 #include "../../src/external/stb/stb_ds.h"
-#include "../../src/include/lexer.h"
-#include "../../src/include/utils.h"
-#include "../../src/include/printer.h"
+#include "../../src/lexer.h"
+#include "../../src/utils.h"
+#include "../../src/printer.h"
 #include "../include/utest.h"
 #include <stdbool.h>
 

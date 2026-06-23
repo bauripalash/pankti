@@ -6,9 +6,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "include/printer.h"
-#include "include/alloc.h"
-#include "include/ptypes.h"
+#include "printer.h"
+#include "alloc.h"
+#include "ptypes.h"
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
