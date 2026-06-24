@@ -218,41 +218,40 @@ Pankti source files use `.pn` extension. `.pank` are also valid for legacy purpo
 ### Source Tree Structure
 ```
 src/              
-    include/
-        alloc.h             # Memory Allocation Utilities
-        argparse.h          # Argument Parsing System
-        ast.h               # Abstract Syntax Tree definitions
-        bengali.h           # Bengali characters handling
-        compiler.h          # Bytecode Compiler
-        core.h              # Core runtime
-        defaults.h          # Default values used across the project
-        diagonctx.h         # Parsing, Compiling, Runtime Diagnostics handling
-        flags.h             # Feature flags for runtime
-        gc.h                # Garbage Collector
-        gfxcore.h           # Pankti to Graphics backend connector
-        gfxdraw.h           # Graphics Drawing functions
-        gfxfont.h           # Graphics Font handling utilities
-        gfxhelper.h         # Graphics Helper/Utilities for Graphics backend
-        keywords.h          # Keyword definitions (Bengali, English, Phonetic)
-        lexer.h             # Lexer interface
-        builtins.h          # Built-in Functions
-        object.h            # Object System (Values, Strings, Functions etc.)
-        opcode.h            # Bytecode Opcodes
-        parser.h            # Parser
-        printer.h           # Writing to output device interface
-        pstdlib.h           # Pankti Standard Library definitions
-        ptypes.h            # Type definitions (u8, u16, u32, u64)
-        strescape.h         # Helper to escape characters like \n, \t \xHH, \uHHHH etc in strings
-        strpool.h           # String Interning handler
-        symtable.h          # Symbol Table for Compiler/VM
-        system.h            # OS Detection and Other OS related utilities
-        terminal.h          # Terminal related utilities
-        token.h             # Token definitions
-        unicode.h           # Unicode and Grapheme related utilities
-        ustring.h           # Codepoint Iterator interface
-        utils.h             # Utilities
-        version.h           # Version definition
-        vm.h                # Virtual Machine   
+    alloc.h             # Memory Allocation Utilities
+    argparse.h          # Argument Parsing System
+    ast.h               # Abstract Syntax Tree definitions
+    bengali.h           # Bengali characters handling
+    builtins.h          # Built-in Functions
+    compiler.h          # Bytecode Compiler
+    core.h              # Core runtime
+    defaults.h          # Default values used across the project
+    diagonctx.h         # Parsing, Compiling, Runtime Diagnostics handling
+    flags.h             # Feature flags for runtime
+    gc.h                # Garbage Collector
+    gfx.h           # Pankti to Graphics backend connector (Drawing, Text
+    Shaping, Input Handling)
+    gfx_constants.h     # Graphics related constants (Color names, Key names)
+    keywords.h          # Keyword definitions (Bengali, English, Phonetic)
+    lexer.h             # Lexer interface
+    object.h            # Object System (Values, Strings, Functions etc.)
+    opcode.h            # Bytecode Opcodes
+    panktiterms.h       # Terminology used throught the project
+    parser.h            # Parser
+    printer.h           # Writing to output device interface
+    pstdlib.h           # Pankti Standard Library definitions
+    ptypes.h            # Type definitions (u8, u16, u32, u64)
+    strescape.h         # Helper to escape characters like \n, \t \xHH, \uHHHH etc in strings
+    strpool.h           # String Interning handler
+    symtable.h          # Symbol Table for Compiler/VM
+    system.h            # OS Detection and Other OS related utilities
+    terminal.h          # Terminal related utilities
+    token.h             # Token definitions
+    unicode.h           # Unicode and Grapheme related utilities
+    ustring.h           # Codepoint Iterator interface
+    utils.h             # Utilities
+    version.h           # Version definition
+    vm.h                # Virtual Machine   
 ```
 
 ### Compilation Pipeline
