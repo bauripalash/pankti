@@ -6,10 +6,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "gfxfont.h"
 #include "external/kb/kb_text_shape.h"
 #include "gen/fonts/notoserifbn.h"
-#include "gfxcore.h"
+#include "gfx.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

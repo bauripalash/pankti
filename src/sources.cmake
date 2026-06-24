@@ -32,32 +32,32 @@ set(PANKTI_SRC_FILES
   # Object
 
   "${CMAKE_CURRENT_LIST_DIR}/object.c"
-  "${CMAKE_CURRENT_LIST_DIR}/arrayobj.c"
-  "${CMAKE_CURRENT_LIST_DIR}/mapobj.c"
-  "${CMAKE_CURRENT_LIST_DIR}/printobj.c"
-  "${CMAKE_CURRENT_LIST_DIR}/tostrobj.c"
+  "${CMAKE_CURRENT_LIST_DIR}/object_array.c"
+  "${CMAKE_CURRENT_LIST_DIR}/object_map.c"
+  "${CMAKE_CURRENT_LIST_DIR}/object_print.c"
+  "${CMAKE_CURRENT_LIST_DIR}/object_tostring.c"
 
   # Utilities
 
-  "${CMAKE_CURRENT_LIST_DIR}/utilfiles.c"
-  "${CMAKE_CURRENT_LIST_DIR}/utilnums.c"
-  "${CMAKE_CURRENT_LIST_DIR}/utilstr.c"
+  "${CMAKE_CURRENT_LIST_DIR}/utils_file.c"
+  "${CMAKE_CURRENT_LIST_DIR}/utils_number.c"
+  "${CMAKE_CURRENT_LIST_DIR}/utils_string.c"
 
   # Garbage Collector
 
   "${CMAKE_CURRENT_LIST_DIR}/gc.c"
-  "${CMAKE_CURRENT_LIST_DIR}/gcexpr.c"
-  "${CMAKE_CURRENT_LIST_DIR}/gcobject.c"
-  "${CMAKE_CURRENT_LIST_DIR}/gcstmt.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gc_expr.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gc_object.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gc_stmt.c"
 
   # Stdlib
   "${CMAKE_CURRENT_LIST_DIR}/pstdlib.c"
-  "${CMAKE_CURRENT_LIST_DIR}/stdmap.c"
-  "${CMAKE_CURRENT_LIST_DIR}/stdarray.c"
-  "${CMAKE_CURRENT_LIST_DIR}/stdmath.c"
-  "${CMAKE_CURRENT_LIST_DIR}/stdsystem.c"
-  "${CMAKE_CURRENT_LIST_DIR}/stdstring.c"
-  "${CMAKE_CURRENT_LIST_DIR}/stdfile.c"
+  "${CMAKE_CURRENT_LIST_DIR}/pstdlib_array.c"
+  "${CMAKE_CURRENT_LIST_DIR}/pstdlib_file.c"
+  "${CMAKE_CURRENT_LIST_DIR}/pstdlib_map.c"
+  "${CMAKE_CURRENT_LIST_DIR}/pstdlib_math.c"
+  "${CMAKE_CURRENT_LIST_DIR}/pstdlib_string.c"
+  "${CMAKE_CURRENT_LIST_DIR}/pstdlib_system.c"
 
   # External
   "${CMAKE_CURRENT_LIST_DIR}/external/stb/stb_ds_impl.c"
@@ -91,12 +91,14 @@ set(PANKTI_HEADER_FILES
 )
 
 set(PANKTI_GFX_SRC_FILES
-  "${CMAKE_CURRENT_LIST_DIR}/stdgfx.c"
-  "${CMAKE_CURRENT_LIST_DIR}/gfxcore.c"
-  "${CMAKE_CURRENT_LIST_DIR}/gfxdraw.c"
-  "${CMAKE_CURRENT_LIST_DIR}/gfxfont.c"
-  "${CMAKE_CURRENT_LIST_DIR}/gfxhelper.c"
-  "${CMAKE_CURRENT_LIST_DIR}/gfxkeyboard.c"
+  "${CMAKE_CURRENT_LIST_DIR}/pstdlib_gfx.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gfx.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gfx_colors.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gfx_draw.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gfx_font.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gfx_image.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gfx_input.c"
+  "${CMAKE_CURRENT_LIST_DIR}/gfx_platform.c"
 )
 
 set(PANKTI_MAIN_FILE "${CMAKE_CURRENT_LIST_DIR}/main.c")

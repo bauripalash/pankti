@@ -7,11 +7,54 @@
  */
 
 #include "external/tigr/tigr.h"
-#include "gfxhelper.h"
+#include "gfx.h"
+#include "gfx_constants.h"
 #include "ptypes.h"
 #include "utils.h"
 #include <ctype.h>
 #include <stdbool.h>
+
+bool GfxKeyPressed(PanGfxCore *core, PKey key) {
+    return key < GFX_CORE_MAX_KEYS ? core->kbPressedKey[key] : 0;
+}
+bool GfxKeyDown(PanGfxCore *core, PKey key) {
+    return tigrKeyHeld(core->screen, key) != 0;
+}
+bool GfxKeyReleased(PanGfxCore *core, PKey key) {
+    return key < GFX_CORE_MAX_KEYS ? core->kbReleasedKey[key] : 0;
+}
+bool GfxKeyUp(PanGfxCore *core, PKey key) {
+    return !GfxKeyPressed(core, key) && !GfxKeyDown(core, key);
+}
+
+bool GfxMousePressed(PanGfxCore *core, int key) {
+    return (core->mouseNewPress & key) != 0;
+    // tigrMouse(Tigr *bmp, int *x, int *y, int *buttons);
+    // return IsMouseButtonPressed(key);
+}
+bool GfxMouseDown(PanGfxCore *core, int key) {
+    int x;
+    int y;
+    int btn;
+    // return IsMouseButtonDown(key);
+    tigrMouse(core->screen, &x, &y, &btn);
+    return (btn & key);
+}
+bool GfxMouseReleased(PanGfxCore *core, int key) {
+    return (core->mouseNewRelease & key) != 0;
+}
+bool GfxMouseUp(PanGfxCore *core, int key) {
+    return !GfxMousePressed(core, key) && !GfxMouseDown(core, key);
+}
+
+void GfxGetMousePos(PanGfxCore *core, double *xpos, double *ypos) {
+    int x = 0;
+    int y = 0;
+    int btn = 0;
+    tigrMouse(core->screen, &x, &y, &btn);
+    *xpos = (double)x;
+    *ypos = (double)y;
+}
 
 #define m(n) (StrEqual(keyStr, n))
 int PanStrToMouseKey(const char *keyStr, i64 len) {

@@ -19,7 +19,8 @@ extern "C" {
 
 typedef TPixel PColor;
 typedef TKey PKey;
-typedef struct PanGfxCore PanGfxCore;
+
+#define GFX_IMAGE_STR_PREFIX "ছবি:"
 
 // Color sources : https://en.wikipedia.org/wiki/Web_colors
 
@@ -89,18 +90,6 @@ typedef struct PanGfxCore PanGfxCore;
 #define GFX_COLOR_SAFFRON_EN   "saffron"
 
 #define GFX_COLOR_BLANK_CODE   (PColor){0, 0, 0, 0}
-
-typedef enum ColorStrError {
-    CLRSTR_OK = 0,
-    CLRSTR_PREFIX_NOT_FOUND,
-    CLRSTR_INVALID_COLOR_VAL_R,
-    CLRSTR_INVALID_COLOR_VAL_G,
-    CLRSTR_INVALID_COLOR_VAL_B,
-    CLRSTR_INVALID_COLOR_VAL_A,
-    CLRSTR_TOO_LESS_VALS,
-    CLRSTR_TOO_MUCH_VALS,
-    CLRSTR_UNKNOWN_CLR_NAME,
-} ColorStrError;
 
 #define GFX_KEY_ESCAPE_1       "ইস্কেপ"
 #define GFX_KEY_ESCAPE_2       "esc"
@@ -297,16 +286,6 @@ typedef enum ColorStrError {
 #define GFX_MOUSE_KEY_MIDDLE_4 "majh"
 #define GFX_MOUSE_KEY_MIDDLE_5 "middle"
 
-#define GFX_IMAGE_STR_PREFIX   "ছবি:"
-
-PColor ParseColorString(const char *str, ColorStrError *err);
-
-PColor PanStrToColor(const char *str, ColorStrError *err);
-// Image LoadGuiAppIcon(void);
-
-void GfxSetWindowIcon(PanGfxCore *core);
-PKey PanStrToKeyboardKey(const char *keyStr, i64 len);
-int PanStrToMouseKey(const char *keyStr, i64 len);
 #ifdef __cplusplus
 }
 #endif
