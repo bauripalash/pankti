@@ -7,7 +7,7 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 PANKTI_BIN=${1}
-BENCHMARKS_DIR="$(dirname "$0")/benchmarks"
+BENCHMARKS_DIR="$(pwd)/benchmarks"
 SAMPLES_DIR="$BENCHMARKS_DIR/samples"
 OUTPUT_DIR="$BENCHMARKS_DIR/results"
 
