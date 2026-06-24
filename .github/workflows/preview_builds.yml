@@ -102,7 +102,7 @@ jobs:
           cmake --build build --target pankti --parallel
       
       - name: Run Tests
-        run: make test_only
+        run: make retest
       
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
