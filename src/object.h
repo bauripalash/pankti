@@ -6,8 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef OBJECT_H
-#define OBJECT_H
+#ifndef PANKTI_OBJECT_H
+#define PANKTI_OBJECT_H
 
 #ifdef __cplusplus
 extern "C" {

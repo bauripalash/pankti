@@ -6,8 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef OPCODE_H
-#define OPCODE_H
+#ifndef PANKTI_OPCODE_H
+#define PANKTI_OPCODE_H
 
 #include "object.h"
 #include "ptypes.h"

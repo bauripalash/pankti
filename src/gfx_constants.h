@@ -14,7 +14,6 @@ extern "C" {
 #endif
 
 #include "external/tigr/tigr.h"
-#include "ptypes.h"
 #include <stdbool.h>
 
 typedef TPixel PColor;

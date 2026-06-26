@@ -6,8 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef COMPILER_H
-#define COMPILER_H
+#ifndef PANKTI_COMPILER_H
+#define PANKTI_COMPILER_H
 
 #include "ast.h"
 #include "diagonctx.h"

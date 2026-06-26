@@ -6,8 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef PARSER_H
-#define PARSER_H
+#ifndef PANKTI_PARSER_H
+#define PANKTI_PARSER_H
 
 #include "diagonctx.h"
 #include "gc.h"

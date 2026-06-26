@@ -6,8 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef KEYWORDS_H
-#define KEYWORDS_H
+#ifndef PANKTI_KEYWORDS_H
+#define PANKTI_KEYWORDS_H
 
 #ifdef __cplusplus
 extern "C" {

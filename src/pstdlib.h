@@ -6,8 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef P_STDLIB_H
-#define P_STDLIB_H
+#ifndef PANKTI_PSTDLIB_H
+#define PANKTI_PSTDLIB_H
 
 #include "object.h"
 #include "symtable.h"

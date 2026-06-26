@@ -6,8 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef PTYPES_H
-#define PTYPES_H
+#ifndef PANKTI_PTYPES_H
+#define PANKTI_PTYPES_H
 
 #ifdef __cplusplus
 extern "C" {

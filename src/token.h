@@ -6,8 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef TOKEN_H
-#define TOKEN_H
+#ifndef PANKTI_TOKEN_H
+#define PANKTI_TOKEN_H
 
 #ifdef __cplusplus
 extern "C" {

@@ -6,8 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef LEXER_H
-#define LEXER_H
+#ifndef PANKTI_LEXER_H
+#define PANKTI_LEXER_H
 
 #ifdef __cplusplus
 extern "C" {

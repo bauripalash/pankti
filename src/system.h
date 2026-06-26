@@ -6,8 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef SYSTEM_H
-#define SYSTEM_H
+#ifndef PANKTI_SYSTEM_H
+#define PANKTI_SYSTEM_H
 
 #ifdef __cplusplus
 extern "C" {

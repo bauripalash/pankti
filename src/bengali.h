@@ -6,8 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef BENGALI_H
-#define BENGALI_H
+#ifndef PANKTI_BENGALI_H
+#define PANKTI_BENGALI_H
 
 #ifdef __cplusplus
 extern "C" {

@@ -6,8 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef USTRING_H
-#define USTRING_H
+#ifndef PANKTI_USTRING_H
+#define PANKTI_USTRING_H
 
 #ifdef __cplusplus
 extern "C" {

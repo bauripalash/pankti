@@ -6,8 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef VM_H
-#define VM_H
+#ifndef PANKTI_VM_H
+#define PANKTI_VM_H
 
 #include "diagonctx.h"
 #include "object.h"

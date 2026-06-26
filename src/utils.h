@@ -6,8 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef PANKTI_UTILS_H
+#define PANKTI_UTILS_H
 #include "ptypes.h"
 #include <stdbool.h>
 #include <stddef.h>

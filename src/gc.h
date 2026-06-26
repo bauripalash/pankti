@@ -6,8 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef GC_H
-#define GC_H
+#ifndef PANKTI_GC_H
+#define PANKTI_GC_H
 
 #include "strpool.h"
 #ifdef __cplusplus

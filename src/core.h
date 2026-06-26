@@ -6,8 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef CORE_H
-#define CORE_H
+#ifndef PANKTI_CORE_H
+#define PANKTI_CORE_H
 
 #include "compiler.h"
 #include "vm.h"

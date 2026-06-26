@@ -6,8 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef STRESCAPE_H
-#define STRESCAPE_H
+#ifndef PANKTI_STRESCAPE_H
+#define PANKTI_STRESCAPE_H
 
 #ifdef __cplusplus
 extern "C" {

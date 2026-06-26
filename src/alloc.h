@@ -6,8 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef ALLOC_H
-#define ALLOC_H
+#ifndef PANKTI_ALLOC_H
+#define PANKTI_ALLOC_H
 
 #include <stddef.h>
 #include <stdlib.h>
