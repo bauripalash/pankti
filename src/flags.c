@@ -59,7 +59,7 @@ void PrintDebugFlags(void) {
         "    STRESS_GC      = %s\n", panDebugFlags.stressGc ? "on" : "off"
     );
     PanPrint(
-        "    ENGLISH_NUM      = %s\n", panDebugFlags.stressGc ? "on" : "off"
+        "    ENGLISH_NUM      = %s\n", panDebugFlags.englishNum ? "on" : "off"
     );
 }
 #else
